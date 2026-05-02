@@ -9,7 +9,6 @@ import { cn } from "@lib/utils";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
   ArrowUp,
-  ArrowUpDown,
   ChevronRight,
   Globe,
   Link2,
@@ -313,7 +312,7 @@ function extractBlockNoteText(body: string, maxLen = 200): string {
     }
     walk(blocks);
     const text = parts.join(" ").trim();
-    return text.length > maxLen ? text.slice(0, maxLen) + "…" : text;
+    return text.length > maxLen ? `${text.slice(0, maxLen)}…` : text;
   } catch {
     return "";
   }
@@ -862,10 +861,7 @@ function StatusFilterChip({
       )}
       style={active ? { borderColor: s.dot, color: s.dot } : undefined}
     >
-      <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ background: s.dot }}
-      />
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.dot }} />
       {s.label}
     </button>
   );
@@ -904,7 +900,7 @@ function FilterRow({
             "px-3 py-1 text-[12.5px] font-medium rounded-md transition-colors",
             sort === "top"
               ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              : "text-slate-600 hover:text-slate-900",
           )}
         >
           Top
@@ -915,7 +911,7 @@ function FilterRow({
             "px-3 py-1 text-[12.5px] font-medium rounded-md transition-colors",
             sort === "new"
               ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              : "text-slate-600 hover:text-slate-900",
           )}
         >
           New
@@ -1006,7 +1002,7 @@ function FeedbackCard({
             "flex flex-col items-center justify-center rounded-lg border h-12 w-12 shrink-0 transition-all disabled:opacity-60",
             voted
               ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
-              : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50"
+              : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
           )}
         >
           <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -1267,7 +1263,6 @@ function FeedbackModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="A short, clear summary"
-              autoFocus
               required
               className="mt-1 w-full h-9 rounded-md border border-border bg-background px-2.5 text-[13px] outline-none focus:border-primary placeholder:text-muted-foreground"
             />
@@ -1381,10 +1376,7 @@ function DetailPanel({
           <div className="flex items-center gap-2 text-[12.5px] text-slate-600">
             <span className="font-medium text-slate-900">{post.authorName}</span>
             <span className="inline-flex items-center gap-1 rounded border border-slate-200 px-1.5 py-px text-[11.5px] text-slate-600">
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ background: BOARD_COLORS[0] }}
-              />
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: BOARD_COLORS[0] }} />
               {post.boardName}
             </span>
           </div>
@@ -1409,7 +1401,7 @@ function DetailPanel({
                 "flex flex-col items-center justify-center rounded-lg border h-16 w-16 transition-all disabled:opacity-60 shrink-0",
                 voted
                   ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
-                  : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50"
+                  : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
               )}
             >
               <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
@@ -1546,12 +1538,13 @@ function RoadmapCard({
           disabled={voting}
           className={cn(
             "inline-flex items-center gap-1 text-[12px] shrink-0 ml-2 transition-colors disabled:opacity-60",
-            voted
-              ? "text-slate-900 hover:text-slate-800"
-              : "text-slate-500 hover:text-slate-900",
+            voted ? "text-slate-900 hover:text-slate-800" : "text-slate-500 hover:text-slate-900",
           )}
         >
-          <ArrowUp className={cn("h-3.5 w-3.5 transition-all", voted && "fill-current")} strokeWidth={2.5} />
+          <ArrowUp
+            className={cn("h-3.5 w-3.5 transition-all", voted && "fill-current")}
+            strokeWidth={2.5}
+          />
           {voteCount}
         </button>
       </div>
@@ -1773,7 +1766,9 @@ export default function PublicBoardPage({ loaderData }: Route.ComponentProps) {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-xl font-semibold text-slate-900">
-                    {selectedBoardId === "all" ? "All Feedback" : boards.find(b => b.id === selectedBoardId)?.name ?? "Feedback"}
+                    {selectedBoardId === "all"
+                      ? "All Feedback"
+                      : (boards.find((b) => b.id === selectedBoardId)?.name ?? "Feedback")}
                   </h1>
                   <p className="mt-0.5 text-[13px] text-slate-600">
                     {filtered.length} posts · vote on what matters most to you

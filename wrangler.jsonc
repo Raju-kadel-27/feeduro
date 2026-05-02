@@ -1,0 +1,78 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "name": "nextgen-email",
+  "main": "./app/entry.worker.ts",
+  "compatibility_date": "2025-04-07",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "./build/client"
+  },
+  "vars": {
+    "ENVIRONMENT": "dev",
+    "API_URL": "http://localhost:3000"
+  },
+  "env": {
+    "dev": {
+      "name": "nextgen-email-dev",
+      "port": 3000,
+      "kv_namespaces": [
+        {
+          "binding": "CMS_KV",
+          "id": "dev"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "UPLOADS",
+          "bucket_name": "feediyo-uploads-dev"
+        }
+      ],
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "API_URL": "http://localhost:3000"
+      }
+    },
+    "staging": {
+      "name": "starter-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "API_URL": "https://staging.feediyo.com"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "CMS_KV",
+          "id": "e811695c812643c687429f678076146d"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "UPLOADS",
+          "bucket_name": "feediyo-uploads-staging"
+        }
+      ]
+    },
+    "production": {
+      "name": "starter",
+      "vars": {
+        "ENVIRONMENT": "production",
+        "API_URL": "https://feediyo.com"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "CMS_KV",
+          "id": "6821adc64b234d5eb4d409caf6d1b4da"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "UPLOADS",
+          "bucket_name": "feediyo-uploads"
+        }
+      ]
+    }
+  }
+}

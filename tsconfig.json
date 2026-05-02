@@ -1,26 +1,20 @@
 {
-  "include": [
-    "**/*",
-    "**/.server/**/*",
-    "**/.client/**/*",
-    ".react-router/types/**/*"
-  ],
+  "extends": "@total-typescript/tsconfig/bundler/dom/app",
+  "files": [],
+  "references": [{ "path": "./tsconfig.cloudflare.json" }],
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["node", "vite/client"],
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "bundler",
-    "jsx": "react-jsx",
-    "rootDirs": [".", "./.react-router/types"],
     "paths": {
-      "~/*": ["./app/*"]
-    },
-    "esModuleInterop": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true
+      "@/*": ["./*"],
+      "@components/*": ["./app/components/*"],
+      "@hooks/*": ["./app/hooks/*"],
+      "@lib/*": ["./app/lib/*"],
+      "@utils/*": ["./app/utils/*"],
+      "@emails/*": ["./app/emails/*"],
+      "@jobs/*": ["./app/jobs/*"],
+      "@routes/*": ["./app/routes/*"],
+      "@db/*": ["./db/*"],
+      "@styles": ["./styles/*"],
+      "@middleware/*": ["./app/middleware/*"]
+    }
   }
 }

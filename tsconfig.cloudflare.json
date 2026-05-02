@@ -1,0 +1,32 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    ".react-router/types/**/*",
+    "app/**/*",
+    "app/**/.server/**/*",
+    "app/**/.client/**/*",
+    "db/**/*",
+    "worker-configuration.d.ts",
+    "react-router.config.ts"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["@total-typescript/ts-reset", "@cloudflare/workers-types", "vite/client"],
+    "rootDirs": [".", "./.react-router/types"],
+    "paths": {
+      "@/*": ["./*"],
+      "@components/*": ["./app/components/*"],
+      "@hooks/*": ["./app/hooks/*"],
+      "@lib/*": ["./app/lib/*"],
+      "@utils/*": ["./app/utils/*"],
+      "@routes/*": ["./app/routes/*"],
+      "@emails/*": ["./app/emails/*"],
+      "@jobs/*": ["./app/jobs/*"],
+      "@db/*": ["./db/*"],
+      "@styles/*": ["./styles/*"],
+      "@middleware/*": ["./app/middleware/*"]
+    }
+  }
+}

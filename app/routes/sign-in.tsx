@@ -1,0 +1,91 @@
+import { LoginForm } from "@components/auth/login-form";
+import { authClient } from "@lib/auth/client";
+import { getSession } from "@lib/session.server";
+import { GalleryVerticalEnd } from "lucide-react";
+import { useState } from "react";
+import type { Route } from "./+types/sign-in";
+
+export function meta() {
+  return [{ title: "Sign In — Feediyo" }];
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  try {
+    const session = await getSession(request);
+    if (session) {
+      const orgId = session.session.activeOrganizationId;
+      throw new Response(null, {
+        status: 302,
+        headers: { Location: orgId ? "/dashboard" : "/onboarding" },
+      });
+    }
+  } catch (err) {
+    if (err instanceof Response) throw err;
+  }
+  const url = new URL(request.url);
+  const redirectTo = url.searchParams.get("redirect") ?? "/dashboard";
+  return { redirectTo };
+}
+
+export default function SignIn({ loaderData }: Route.ComponentProps) {
+  const { redirectTo } = loaderData;
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    await authClient.signIn.email({
+      email,
+      password,
+      callbackURL: redirectTo,
+      fetchOptions: {
+        onError(ctx) {
+          setError(ctx.error.message ?? "Invalid email or password");
+          setLoading(false);
+        },
+      },
+    });
+  }
+
+  async function handleGoogle() {
+    setLoading(true);
+    setError("");
+    const { error: oauthError } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: redirectTo,
+    });
+    if (oauthError) {
+      setError(oauthError.message ?? "Google sign-in failed. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <a href="/" className="flex items-center gap-2 self-center font-medium">
+          <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <GalleryVerticalEnd className="size-4" />
+          </div>
+          Feediyo
+        </a>
+
+        <LoginForm
+          email={email}
+          password={password}
+          error={error}
+          loading={loading}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onSubmit={handleSubmit}
+          onGoogle={handleGoogle}
+        />
+      </div>
+    </div>
+  );
+}

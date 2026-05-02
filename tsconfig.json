@@ -1,0 +1,20 @@
+{
+  "extends": "@total-typescript/tsconfig/bundler/dom/app",
+  "files": [],
+  "references": [{ "path": "./tsconfig.cloudflare.json" }],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"],
+      "@components/*": ["./app/components/*"],
+      "@hooks/*": ["./app/hooks/*"],
+      "@lib/*": ["./app/lib/*"],
+      "@utils/*": ["./app/utils/*"],
+      "@emails/*": ["./app/emails/*"],
+      "@jobs/*": ["./app/jobs/*"],
+      "@routes/*": ["./app/routes/*"],
+      "@db/*": ["./db/*"],
+      "@styles": ["./styles/*"],
+      "@middleware/*": ["./app/middleware/*"]
+    }
+  }
+}

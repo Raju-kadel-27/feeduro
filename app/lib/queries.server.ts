@@ -1,5 +1,5 @@
 import { getOrgPlanLimits } from "@lib/plan-limits.server";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, votes } from "@/db/schema";
 

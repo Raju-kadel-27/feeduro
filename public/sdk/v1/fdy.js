@@ -15,9 +15,9 @@
   function buildStyles(position) {
     var side = position === "left" ? "left" : "right";
     return [
-      "#" + PANEL_ID + "{",
+      `#${PANEL_ID}{`,
       "position:fixed;",
-      side + ":20px;",
+      `${side}:20px;`,
       "bottom:88px;",
       "width:380px;",
       "height:580px;",
@@ -31,14 +31,14 @@
       "pointer-events:none;",
       "transition:transform 0.22s cubic-bezier(0.16,1,0.3,1),opacity 0.18s ease;",
       "}",
-      "#" + PANEL_ID + ".fdy-open{",
+      `#${PANEL_ID}.fdy-open{`,
       "transform:translateY(0) scale(1);",
       "opacity:1;",
       "pointer-events:auto;",
       "}",
-      "#" + BTN_ID + "{",
+      `#${BTN_ID}{`,
       "position:fixed;",
-      side + ":20px;",
+      `${side}:20px;`,
       "bottom:20px;",
       "width:52px;",
       "height:52px;",
@@ -54,11 +54,11 @@
       "padding:0;",
       "transition:transform 0.15s ease,box-shadow 0.15s ease,background 0.15s ease;",
       "}",
-      "#" + BTN_ID + ":hover{",
+      `#${BTN_ID}:hover{`,
       "transform:scale(1.07);",
       "box-shadow:0 6px 22px rgba(109,40,217,0.5);",
       "}",
-      "#" + BTN_ID + ":active{transform:scale(0.97);}",
+      `#${BTN_ID}:active{transform:scale(0.97);}`,
     ].join("");
   }
 
@@ -83,7 +83,7 @@
   }
 
   function sendPendingIdentity() {
-    if (pendingIdentity && iframeEl && iframeEl.contentWindow) {
+    if (pendingIdentity && iframeEl?.contentWindow) {
       iframeEl.contentWindow.postMessage({ type: "fdy:identify", data: pendingIdentity }, BASE_URL);
     }
   }
@@ -109,7 +109,7 @@
     panelEl.setAttribute("aria-label", "Feedback");
 
     iframeEl = document.createElement("iframe");
-    iframeEl.src = BASE_URL + "/widget/" + token + "?theme=" + encodeURIComponent(theme);
+    iframeEl.src = `${BASE_URL}/widget/${token}?theme=${encodeURIComponent(theme)}`;
     iframeEl.style.cssText =
       "width:100%;height:100%;border:none;display:block;background:transparent;";
     iframeEl.setAttribute("title", "Feedback");

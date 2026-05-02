@@ -140,7 +140,7 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
       if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, body]);
+  }, [title, saveContent]);
 
   const { mutate: publish, isPending: publishing } = useMutation({
     mutationFn: async () => {

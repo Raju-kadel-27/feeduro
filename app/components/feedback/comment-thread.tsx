@@ -79,7 +79,6 @@ function ReplyForm({
         onChange={(e) => setBody(e.target.value)}
         placeholder="Write a reply…"
         rows={2}
-        autoFocus
         className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
       />
       <div className="flex gap-2">

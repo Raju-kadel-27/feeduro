@@ -57,7 +57,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     where: eq(widgetConfigs.token, params.widgetToken),
   });
 
-  if (!config || !config.enabled) {
+  if (!config?.enabled) {
     throw new Response("Not found", { status: 404 });
   }
 
@@ -284,37 +284,35 @@ export default function WidgetPage({ loaderData }: Route.ComponentProps) {
       {/* Body */}
       <main className="flex-1 overflow-y-auto overscroll-contain">
         {view === "feed" ? (
-          <>
-            {allPosts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-48 gap-1 text-muted-foreground">
-                <p className="text-[13px]">No feedback yet.</p>
-                <p className="text-[12px] opacity-70">Be the first to share!</p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-border/50">
-                {allPosts.map((post) => (
-                  <li key={post.id} className="px-4 py-3.5">
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-[13px] font-medium leading-snug line-clamp-2 flex-1">
-                        {post.title}
-                      </p>
-                      <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums mt-px">
-                        ▲ {post.voteCount}
+          allPosts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-48 gap-1 text-muted-foreground">
+              <p className="text-[13px]">No feedback yet.</p>
+              <p className="text-[12px] opacity-70">Be the first to share!</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border/50">
+              {allPosts.map((post) => (
+                <li key={post.id} className="px-4 py-3.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[13px] font-medium leading-snug line-clamp-2 flex-1">
+                      {post.title}
+                    </p>
+                    <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums mt-px">
+                      ▲ {post.voteCount}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <StatusPill id={post.status} />
+                    {post.commentCount > 0 && (
+                      <span className="text-[11px] text-muted-foreground">
+                        {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
                       </span>
-                    </div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <StatusPill id={post.status} />
-                      {post.commentCount > 0 && (
-                        <span className="text-[11px] text-muted-foreground">
-                          {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
         ) : (
           <div className="p-4">
             {submitted ? (
@@ -343,7 +341,6 @@ export default function WidgetPage({ loaderData }: Route.ComponentProps) {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="A short, clear summary"
-                    autoFocus
                     required
                     className="mt-1 w-full h-9 rounded-md border border-border bg-background px-2.5 text-[13px] outline-none focus:border-primary placeholder:text-muted-foreground transition-colors"
                   />

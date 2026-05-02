@@ -1,6 +1,5 @@
 import { cn } from "@lib/utils";
 import { MoreVertical, Tag } from "lucide-react";
-import * as React from "react";
 import type { FeedbackTag } from "./types";
 
 interface TagsTableProps {

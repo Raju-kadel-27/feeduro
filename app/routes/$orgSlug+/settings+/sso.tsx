@@ -85,7 +85,7 @@ function CopyButton({ value }: { value: string }) {
 export default function SSOSettings({ loaderData }: Route.ComponentProps) {
   const { providers, isAdmin, baseUrl } = loaderData;
   const revalidator = useRevalidator();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   const [showForm, setShowForm] = useState(false);
   const [providerId, setProviderId] = useState("");

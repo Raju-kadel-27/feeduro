@@ -640,7 +640,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
   const cfg = STATUS_CONFIG[status];
   const nextStatus = STATUS_NEXT[status];
   const totalComments = threadedComments.reduce((acc, c) => acc + 1 + c.replies.length, 0);
-  const heartCount = reactionCounts["heart"] ?? 0;
+  const heartCount = reactionCounts.heart ?? 0;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -894,7 +894,6 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                                       }
                                       placeholder="Write a reply…"
                                       rows={2}
-                                      autoFocus
                                       className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                                     />
                                     <div className="flex gap-2">

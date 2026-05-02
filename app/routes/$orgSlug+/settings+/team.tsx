@@ -1,7 +1,7 @@
 import { AppSidebar } from "@components/layout/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { auth, requireOrgBySlug } from "@lib/session.server";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Crown, Mail, UserMinus, X } from "lucide-react";
 import { useState } from "react";

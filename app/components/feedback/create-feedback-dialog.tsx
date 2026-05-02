@@ -84,7 +84,6 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
               className="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Short, clear summary of your idea or issue"
               required
-              autoFocus
             />
           </div>
 

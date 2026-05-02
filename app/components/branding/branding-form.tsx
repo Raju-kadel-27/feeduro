@@ -47,10 +47,7 @@ function Label({ htmlFor, children }: { htmlFor?: string; children: React.ReactN
 
 function Hint({ text }: { text: string }) {
   return (
-    <span
-      className="group relative inline-flex items-center align-middle ml-1.5 cursor-default"
-      tabIndex={0}
-    >
+    <span className="group relative inline-flex items-center align-middle ml-1.5 cursor-default">
       <Info className="size-3.5 text-muted-foreground" />
       <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-max max-w-[220px] rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
         {text}

@@ -83,7 +83,6 @@ export function InviteMemberDialog({ onClose }: Props) {
                 className="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="colleague@example.com"
                 required
-                autoFocus
               />
             </div>
 

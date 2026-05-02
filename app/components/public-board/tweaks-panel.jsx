@@ -167,8 +167,8 @@ function TweaksPanel({ title = "Tweaks", children }) {
       x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
       y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
     };
-    panel.style.right = offsetRef.current.x + "px";
-    panel.style.bottom = offsetRef.current.y + "px";
+    panel.style.right = `${offsetRef.current.x}px`;
+    panel.style.bottom = `${offsetRef.current.y}px`;
   }, []);
 
   React.useEffect(() => {

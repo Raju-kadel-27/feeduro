@@ -123,7 +123,7 @@ export function FeediyoProvider({
       removeScript();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+  }, [projectId, position, theme]);
 
   // Sync identity whenever the logged-in user changes.
   // Skipped entirely when the `user` prop is omitted (anonymous mode).
@@ -131,7 +131,7 @@ export function FeediyoProvider({
     if (typeof window === "undefined" || user === undefined) return;
     clientTokenRef.current = user?.clientToken ?? null;
     window.feediyo.identify(user);
-  }, [user?.id]);
+  }, [user?.id, user?.clientToken, user]);
 
   const value = useMemo<FeediyoContextValue>(
     () => ({

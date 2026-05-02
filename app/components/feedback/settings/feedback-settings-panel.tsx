@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Info, Plus } from "lucide-react";
-import * as React from "react";
 import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";

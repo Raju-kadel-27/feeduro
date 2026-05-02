@@ -19,7 +19,6 @@ import { authClient } from "@lib/auth/client";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  Building2,
   Code,
   CreditCard,
   Database,
@@ -31,9 +30,7 @@ import {
   LogOut,
   Map,
   MessageSquare,
-  Package,
   Palette,
-  Plug,
   Plus,
   Puzzle,
   Settings,

@@ -502,7 +502,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
               </Link>
             </div>
 
-            {widget && widget.enabled ? (
+            {widget?.enabled ? (
               <>
                 {/* Step 1 */}
                 <div className="space-y-1">
@@ -560,7 +560,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                         const msg = messages.find((m) => m.title === "Send to your developer");
                         if (msg)
                           navigator.clipboard.writeText(
-                            msg.message + `\n\nWidget snippet:\n${allWidgetSnippets}`,
+                            `${msg.message}\n\nWidget snippet:\n${allWidgetSnippets}`,
                           );
                       }}
                       className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-[12px] border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

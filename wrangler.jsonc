@@ -4,7 +4,7 @@
   "name": "feediyo",
   "main": "./app/entry.worker.ts",
   "alias": {
-    "virtual:react-router/server-build": "./build/server/index.js",
+    "virtual:react-router/server-build": "./build/server/index.js"
   },
   "compatibility_date": "2025-04-07",
   "compatibility_flags": ["nodejs_compat"],
@@ -16,14 +16,14 @@
       "name": "nextgen-email-dev",
       "vars": {
         "ENVIRONMENT": "dev",
-        "API_URL": "http://localhost:3000",
-      },
+        "API_URL": "http://localhost:3000"
+      }
     },
     "staging": {
       "name": "feediyo-staging"
     },
     "production": {
-      "name": "feediyo",
-    },
-  },
+      "name": "feediyo"
+    }
+  }
 }

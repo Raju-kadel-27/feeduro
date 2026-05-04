@@ -11,7 +11,7 @@
     "build:staging": "CLOUDFLARE_ENV=staging react-router build",
     "build:production": "CLOUDFLARE_ENV=production react-router build",
     "deploy:staging": "pnpm run build && wrangler deploy --env staging",
-    "deploy:prod": "pnpm run build:prod && wrangler deploy --env production",
+    "deploy:prod": "pnpm run build:production && wrangler deploy --env production",
     "typecheck": "pnpm rr:typegen && pnpm cf:typegen && tsc",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

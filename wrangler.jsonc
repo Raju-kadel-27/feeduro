@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
   "name": "feediyo",
-  "main": "./app/entry.worker.ts",
+  "main": "./build/server/index.js",
   "compatibility_date": "2025-04-07",
   "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
   "workers_dev": true,

@@ -101,6 +101,8 @@ export const feedbackPosts = pgTable(
     createdBy: varchar("created_by", { length: 36 }).notNull(),
     submitterEmail: varchar("submitter_email", { length: 255 }),
     submitterName: varchar("submitter_name", { length: 255 }),
+    githubIssueNumber: integer("github_issue_number"),
+    githubIssueUrl: varchar("github_issue_url", { length: 500 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -296,5 +298,31 @@ export const widgetConfigs = pgTable(
   (t) => ({
     tokenIdx: uniqueIndex("widget_token_idx").on(t.token),
     orgIdx: uniqueIndex("widget_org_idx").on(t.organizationId),
+  }),
+);
+
+// ============ GitHub Integration ============
+
+export const githubIntegrations = pgTable(
+  "github_integrations",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    repoOwner: varchar("repo_owner", { length: 255 }).notNull(),
+    repoName: varchar("repo_name", { length: 255 }).notNull(),
+    connectedByUserId: varchar("connected_by_user_id", { length: 36 }).notNull(),
+    autoCreateIssues: boolean("auto_create_issues").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
+  },
+  (t) => ({
+    orgUniqueIdx: uniqueIndex("github_integrations_org_unique_idx").on(t.organizationId),
   }),
 );

@@ -88,6 +88,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
 
     const verificationToken = `feediyo-verify=${createId()}`;
+    await purgeKvCache(context, rawDomain);
     await db.insert(customDomains).values({
       organizationId,
       domain: rawDomain,

@@ -17,19 +17,17 @@ const dotColor: Record<FeedbackBoard["color"], string> = {
 export function BoardsTable({ boards, onChangeVisibility }: BoardsTableProps) {
   if (boards.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-        No boards yet.
+      <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+        No boards yet. Create one below.
       </div>
     );
   }
 
   return (
-    <div className="rounded-md border border-border overflow-hidden bg-card">
-      <div className="grid grid-cols-[1fr_auto] items-center px-3 h-9 bg-muted/30 border-b border-border">
-        <div className="text-xs text-muted-foreground">Name</div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground pr-[34px]">
-          <span>Visibility</span>
-        </div>
+    <div className="rounded-lg border border-border overflow-hidden bg-card">
+      <div className="grid grid-cols-[1fr_auto] items-center px-4 h-10 bg-muted/30 border-b border-border">
+        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Board</div>
+        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide pr-9">Visibility</div>
       </div>
 
       <ul>
@@ -37,21 +35,26 @@ export function BoardsTable({ boards, onChangeVisibility }: BoardsTableProps) {
           <li
             key={b.id}
             className={cn(
-              "grid grid-cols-[1fr_auto] items-center px-3 h-[42px] hover:bg-muted/20 transition-colors",
+              "grid grid-cols-[1fr_auto] items-center px-4 py-3 hover:bg-muted/20 transition-colors",
               i !== 0 && "border-t border-border",
             )}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <GripVertical size={14} className="text-muted-foreground/40 cursor-grab shrink-0" />
-              <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", dotColor[b.color])} />
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-xs font-medium text-foreground truncate">{b.name}</span>
+              <GripVertical size={15} className="text-muted-foreground/40 cursor-grab shrink-0" />
+              <span className={cn("h-2 w-2 rounded-full shrink-0", dotColor[b.color])} />
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm font-medium text-foreground truncate">{b.name}</span>
                 {b.isDefault && (
-                  <span className="text-[10px] font-medium px-1 py-0.5 rounded bg-primary/10 text-primary shrink-0">
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
                     default
                   </span>
                 )}
               </div>
+              {b.postCount > 0 && (
+                <span className="ml-1 text-xs text-muted-foreground tabular-nums">
+                  {b.postCount} {b.postCount === 1 ? "post" : "posts"}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <select
@@ -59,7 +62,7 @@ export function BoardsTable({ boards, onChangeVisibility }: BoardsTableProps) {
                 onChange={(e) => onChangeVisibility(b.id, e.target.value as "public" | "private")}
                 className={cn(
                   "appearance-none bg-card text-foreground border border-border",
-                  "rounded-md pl-2.5 pr-6 py-1 text-xs font-medium leading-none",
+                  "rounded-md pl-3 pr-7 py-1.5 text-sm font-medium leading-none",
                   "focus:outline-none focus:border-muted-foreground",
                   "bg-no-repeat bg-[right_7px_center]",
                 )}
@@ -74,9 +77,9 @@ export function BoardsTable({ boards, onChangeVisibility }: BoardsTableProps) {
               <button
                 type="button"
                 aria-label="More options"
-                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               >
-                <MoreVertical size={14} />
+                <MoreVertical size={15} />
               </button>
             </div>
           </li>

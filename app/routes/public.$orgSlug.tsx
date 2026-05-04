@@ -919,12 +919,6 @@ function FilterRow({
       </div>
 
       <div className="h-5 w-px bg-slate-200" />
-
-      {/* Status filters */}
-      <span className="text-[12px] font-medium text-slate-500">Status</span>
-      {statuses.map((id) => (
-        <StatusFilterChip key={id} id={id} active={active.has(id)} onClick={() => toggle(id)} />
-      ))}
     </div>
   );
 }
@@ -948,12 +942,14 @@ function FeedbackCard({
   initialVoted,
   sessionUser,
   onAuthRequired,
+  onSelectPost,
 }: {
   post: PublicPost;
   orgSlug: string;
   initialVoted: boolean;
   sessionUser: SessionUser | null;
   onAuthRequired: () => void;
+  onSelectPost: () => void;
 }) {
   const [voted, setVoted] = useState(initialVoted);
   const [voteCount, setVoteCount] = useState(post.voteCount);
@@ -988,21 +984,23 @@ function FeedbackCard({
   }
 
   return (
-    <article className="group py-4 px-0 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50/50 -mx-4 px-4 transition-colors">
+    <article
+      onClick={onSelectPost}
+      className="group py-4 px-0 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50/50 -mx-4 px-4 transition-colors"
+    >
       <div className="flex items-start gap-4">
         {/* Vote pill on left */}
         <button
           onClick={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             handleVote();
           }}
           disabled={voting}
           aria-label={voted ? "Remove vote" : "Upvote"}
           className={cn(
-            "flex flex-col items-center justify-center rounded-lg border h-12 w-12 shrink-0 transition-all disabled:opacity-60",
-            voted
-              ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
-              : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
+            "flex flex-col items-center justify-center rounded-lg border h-12 w-12 shrink-0 transition-all disabled:opacity-60 border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
+            voted && "border-orange-600",
           )}
         >
           <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -1019,12 +1017,9 @@ function FeedbackCard({
               {post.description}
             </p>
           )}
-          <div className="flex items-center justify-between">
-            <StatusPill id={post.status} />
-            <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
-              <MessageSquare className="h-3.5 w-3.5" />
-              <span>{post.commentCount}</span>
-            </div>
+          <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
+            <MessageSquare className="h-3.5 w-3.5" />
+            <span>{post.commentCount}</span>
           </div>
         </div>
       </div>
@@ -1370,7 +1365,7 @@ function DetailPanel({
 
   return (
     <Sheet open={!!post} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent side="right" className="flex flex-col w-full sm:max-w-[480px] p-0">
+      <SheetContent side="right" className="flex flex-col w-full sm:max-w-[480px] lg:max-w-[980px] p-0 transition-none">
         {/* Header */}
         <SheetHeader className="border-b border-slate-100 px-6 py-4 space-y-3">
           <div className="flex items-center gap-2 text-[12.5px] text-slate-600">
@@ -1398,10 +1393,8 @@ function DetailPanel({
               onClick={handleVote}
               disabled={voting}
               className={cn(
-                "flex flex-col items-center justify-center rounded-lg border h-16 w-16 transition-all disabled:opacity-60 shrink-0",
-                voted
-                  ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
-                  : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
+                "flex flex-col items-center justify-center rounded-lg border h-16 w-16 transition-all disabled:opacity-60 shrink-0 border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
+                voted && "border-slate-900",
               )}
             >
               <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
@@ -1801,6 +1794,7 @@ export default function PublicBoardPage({ loaderData }: Route.ComponentProps) {
                     initialVoted={(votedPostIds ?? []).includes(post.id)}
                     sessionUser={sessionUser ?? null}
                     onAuthRequired={openFeedbackOrAuth}
+                    onSelectPost={() => setSelectedPostId(post.id)}
                   />
                 ))}
                 {filtered.length === 0 && (
@@ -1836,7 +1830,6 @@ export default function PublicBoardPage({ loaderData }: Route.ComponentProps) {
               onAuthRequired={openFeedbackOrAuth}
             />
             <UpdatesView entries={changelogEntries ?? []} />
-            <UpNextSidebar posts={upNextPosts ?? []} />
           </div>
         )}
       </main>

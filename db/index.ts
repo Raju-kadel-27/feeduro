@@ -28,7 +28,7 @@ export const getDb = (): AnyDb => {
   }
 
   if (!globalThis.__dbInstance) {
-    if (ENVIRONMENT === "development") {
+    if (ENVIRONMENT === "development" || ENVIRONMENT === "dev") {
       const pool = new Pool({ connectionString: DATABASE_URL, ssl: false });
       globalThis.__dbInstance = drizzlePg(pool, { schema });
     } else {

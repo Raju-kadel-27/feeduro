@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
-  "name": "nextgen-email",
+  "name": "feediyo",
   "main": "./app/entry.worker.ts",
   "compatibility_date": "2025-04-07",
   "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
@@ -11,9 +11,23 @@
   "assets": {
     "directory": "./build/client"
   },
+  "kv_namespaces": [
+    {
+      "binding": "CMS_KV",
+      "id": "dev"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "UPLOADS",
+      "bucket_name": "feediyo-uploads-dev"
+    }
+  ],
   "vars": {
     "ENVIRONMENT": "dev",
-    "API_URL": "http://localhost:3000"
+    "API_URL": "http://localhost:3000",
+    // Set DATABASE_URL to your local or service Postgres/Neon connection string.
+    "DATABASE_URL": "postgresql://<username>:<password>@<host>:5432/<database>"
   },
   "env": {
     "dev": {
@@ -40,7 +54,9 @@
       "name": "starter-staging",
       "vars": {
         "ENVIRONMENT": "staging",
-        "API_URL": "https://staging.feediyo.com"
+        "API_URL": "https://staging.feediyo.com",
+        // Replace with your staging database URL via Wrangler secrets or vars.
+        "DATABASE_URL": "postgresql://<username>:<password>@<host>:5432/<database>"
       },
       "kv_namespaces": [
         {
@@ -59,7 +75,9 @@
       "name": "starter",
       "vars": {
         "ENVIRONMENT": "production",
-        "API_URL": "https://feediyo.com"
+        "API_URL": "https://feediyo.com",
+        // Replace with your production database URL via Wrangler secrets or vars.
+        "DATABASE_URL": "postgresql://<username>:<password>@<host>:5432/<database>"
       },
       "kv_namespaces": [
         {

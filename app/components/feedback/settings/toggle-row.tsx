@@ -1,5 +1,3 @@
-import { Info } from "lucide-react";
-
 interface ToggleRowProps {
   label: string;
   hint?: string;
@@ -10,14 +8,10 @@ interface ToggleRowProps {
 
 export function ToggleRow({ label, hint, checked, onChange, disabled }: ToggleRowProps) {
   return (
-    <div className="flex items-center justify-between py-3">
-      <div className="flex items-center gap-1.5 text-[13px] font-medium text-foreground">
-        <span>{label}</span>
-        {hint && (
-          <span title={hint}>
-            <Info size={12} className="text-muted-foreground" />
-          </span>
-        )}
+    <div className="flex items-start justify-between gap-6 py-4">
+      <div className="space-y-0.5">
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </div>
       <button
         type="button"
@@ -26,17 +20,17 @@ export function ToggleRow({ label, hint, checked, onChange, disabled }: ToggleRo
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={[
-          "relative inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full",
-          "border transition-colors",
+          "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full",
+          "border-2 border-transparent transition-colors mt-0.5",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          checked ? "bg-amber-500 border-amber-500" : "bg-muted border-border",
+          checked ? "bg-primary" : "bg-input",
         ].join(" ")}
       >
         <span
           className={[
-            "pointer-events-none block h-3.5 w-3.5 rounded-full bg-white shadow-sm ring-0 transition-transform",
-            checked ? "translate-x-[15px]" : "translate-x-[1px]",
+            "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform",
+            checked ? "translate-x-4" : "translate-x-0",
           ].join(" ")}
         />
       </button>

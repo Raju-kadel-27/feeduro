@@ -1,16 +1,16 @@
 {
   "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "account_id": "eaf872daa611531b2c95caf488b832c9",
   "name": "feediyo",
-  "main": "./build/server/index.js",
+  "main": "./app/entry.worker.ts",
+  "alias": {
+    "virtual:react-router/server-build": "./build/server/index.js"
+  },
   "compatibility_date": "2025-04-07",
-  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "assets": { "directory": "./build/client" },
   "workers_dev": true,
-  "observability": {
-    "enabled": true
-  },
-  "assets": {
-    "directory": "./build/client"
-  },
   "kv_namespaces": [
     {
       "binding": "CMS_KV",
@@ -32,7 +32,6 @@
   "env": {
     "dev": {
       "name": "nextgen-email-dev",
-      "port": 3000,
       "kv_namespaces": [
         {
           "binding": "CMS_KV",

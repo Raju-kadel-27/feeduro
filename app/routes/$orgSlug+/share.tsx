@@ -119,7 +119,7 @@ function CopyBtn({
       type="button"
       onClick={handleCopy}
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-[12px] border border-border",
+        "inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-sm border border-border",
         "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0",
         className,
       )}
@@ -153,14 +153,14 @@ function SocialBtn({
       className="flex items-center gap-3 rounded-lg border border-border p-3.5 hover:bg-muted/50 transition-colors group"
     >
       <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white text-[13px] font-bold"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white text-sm font-bold"
         style={{ background: color }}
       >
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-medium leading-none">{label}</p>
-        <p className="text-[11.5px] text-muted-foreground mt-0.5">{description}</p>
+        <p className="text-sm font-medium leading-none">{label}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
       </div>
       <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors shrink-0" />
     </a>
@@ -192,8 +192,8 @@ function MessageCard({
           <Icon className="h-3.5 w-3.5 text-muted-foreground" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-medium leading-none">{title}</p>
-          <p className="text-[11.5px] text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-sm font-medium leading-none">{title}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         </div>
         <ChevronDown
           className={cn(
@@ -204,7 +204,7 @@ function MessageCard({
       </button>
       {open && (
         <div className="border-t border-border bg-muted/20">
-          <pre className="px-4 py-3 text-[12px] leading-relaxed text-foreground/80 whitespace-pre-wrap font-sans">
+          <pre className="px-4 py-3 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap font-sans">
             {message}
           </pre>
           <div className="flex justify-end px-4 pb-3">
@@ -231,16 +231,16 @@ function SnippetBlock({
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
             {label}
           </span>
           {optional && (
-            <span className="ml-2 text-[10.5px] text-muted-foreground/60">(optional)</span>
+            <span className="ml-2 text-xs text-muted-foreground/60">(optional)</span>
           )}
         </div>
         <CopyBtn text={code} />
       </div>
-      <pre className="rounded-lg bg-muted/60 border border-border/60 p-3.5 text-[11px] leading-relaxed overflow-x-auto text-foreground/75 whitespace-pre-wrap break-all font-mono">
+      <pre className="rounded-lg bg-muted/60 border border-border/60 p-3.5 text-xs leading-relaxed overflow-x-auto text-foreground/75 whitespace-pre-wrap break-all font-mono">
         {code}
       </pre>
     </div>
@@ -367,16 +367,16 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
           <section className="rounded-xl border border-border p-5 space-y-4">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <h2 className="text-[13.5px] font-semibold">Your {org.name} board is live</h2>
+              <h2 className="text-sm font-semibold">Your {org.name} board is live</h2>
             </div>
-            <p className="text-[12.5px] text-muted-foreground -mt-2">
+            <p className="text-sm text-muted-foreground -mt-2">
               Share it with your users, drop it in your docs, or link it from your website.
             </p>
 
             {/* URL row */}
             <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
               <Link2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className="flex-1 text-[12.5px] text-foreground/80 truncate font-mono">
+              <span className="flex-1 text-sm text-foreground/80 truncate font-mono">
                 {publicBoardUrl}
               </span>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -385,7 +385,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                   href={publicBoardUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-[12px] border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   <ExternalLink className="h-3 w-3" />
                   Visit
@@ -395,7 +395,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
 
             {/* Social share */}
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-3">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3">
                 Share on social
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -409,17 +409,17 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
           {/* ── Email signature ───────────────────────────────────────────── */}
           <section className="rounded-xl border border-border p-5 space-y-4">
             <div>
-              <h2 className="text-[13.5px] font-semibold">Email signature</h2>
-              <p className="text-[12.5px] text-muted-foreground mt-0.5">
+              <h2 className="text-sm font-semibold">Email signature</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Add this to your sign-off. Every email you send becomes an invite.
               </p>
             </div>
 
             <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1.5">
-              <p className="text-[13px] font-medium text-foreground">
+              <p className="text-sm font-medium text-foreground">
                 {userName || "[Your name]"} from {org.name}
               </p>
-              <p className="text-[12.5px] text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Got feedback about {org.name}?{" "}
                 <span className="text-primary underline-offset-2 underline">
                   Share your thoughts here →
@@ -435,8 +435,8 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
           {/* ── Add to your app ───────────────────────────────────────────── */}
           <section className="rounded-xl border border-border p-5 space-y-4">
             <div>
-              <h2 className="text-[13.5px] font-semibold">Add to your app or website</h2>
-              <p className="text-[12.5px] text-muted-foreground mt-0.5">
+              <h2 className="text-sm font-semibold">Add to your app or website</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Drop these links into your help menu, footer, or docs. Set once, collect forever.
               </p>
             </div>
@@ -452,8 +452,8 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                   className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-muted/20"
                 >
                   <div className="min-w-0">
-                    <p className="text-[12px] font-medium">{item.label}</p>
-                    <p className="text-[11px] text-muted-foreground truncate font-mono">
+                    <p className="text-sm font-medium">{item.label}</p>
+                    <p className="text-xs text-muted-foreground truncate font-mono">
                       {item.url}
                     </p>
                   </div>
@@ -463,7 +463,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 © {org.name} · Feedback · Roadmap · Changelog
               </p>
               <CopyBtn text={allLinks} label="Copy all links" />
@@ -473,8 +473,8 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
           {/* ── Ready-to-paste messages ───────────────────────────────────── */}
           <section className="space-y-3">
             <div>
-              <h2 className="text-[13.5px] font-semibold">Ready-to-paste messages</h2>
-              <p className="text-[12.5px] text-muted-foreground mt-0.5">
+              <h2 className="text-sm font-semibold">Ready-to-paste messages</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Pick a channel, copy the message, paste it. Each one is written for {org.name}.
               </p>
             </div>
@@ -489,14 +489,14 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
           <section className="rounded-xl border border-border p-5 space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-[13.5px] font-semibold">Widget embed</h2>
-                <p className="text-[12.5px] text-muted-foreground mt-0.5">
+                <h2 className="text-sm font-semibold">Widget embed</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
                   One snippet to collect feedback right inside your app.
                 </p>
               </div>
               <Link
                 to={`/${org.slug}/settings/widget`}
-                className="shrink-0 text-[12px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
+                className="shrink-0 text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
               >
                 Widget settings →
               </Link>
@@ -507,11 +507,11 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                 {/* Step 1 */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold shrink-0">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
                       1
                     </span>
-                    <span className="text-[12.5px] font-medium">SDK Loader</span>
-                    <span className="text-[11px] text-muted-foreground">Load the Feediyo SDK</span>
+                    <span className="text-sm font-medium">SDK Loader</span>
+                    <span className="text-xs text-muted-foreground">Load the Feediyo SDK</span>
                   </div>
                   <SnippetBlock
                     label="Paste in &lt;head&gt; or before &lt;/body&gt;"
@@ -522,11 +522,11 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                 {/* Step 2 */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold shrink-0">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
                       2
                     </span>
-                    <span className="text-[12.5px] font-medium">Initialize</span>
-                    <span className="text-[11px] text-muted-foreground">Configure the widget</span>
+                    <span className="text-sm font-medium">Initialize</span>
+                    <span className="text-xs text-muted-foreground">Configure the widget</span>
                   </div>
                   <SnippetBlock label="Init script" code={initSnippet!} />
                 </div>
@@ -534,10 +534,10 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                 {/* Optional identify */}
                 <div className="rounded-lg border border-dashed border-border/70 p-4 space-y-3 bg-muted/20">
                   <div>
-                    <p className="text-[12.5px] font-medium">
+                    <p className="text-sm font-medium">
                       Optional — Link feedback to your users
                     </p>
-                    <p className="text-[11.5px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       The widget works without this. Add it later to see who submitted what.
                     </p>
                   </div>
@@ -546,9 +546,9 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
 
                 {/* Footer actions */}
                 <div className="flex items-center justify-between gap-3 pt-1">
-                  <p className="text-[11.5px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Paste all three snippets before{" "}
-                    <code className="text-[10.5px] bg-muted px-1 py-0.5 rounded">
+                    <code className="text-xs bg-muted px-1 py-0.5 rounded">
                       &lt;/body&gt;
                     </code>
                   </p>
@@ -563,7 +563,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                             `${msg.message}\n\nWidget snippet:\n${allWidgetSnippets}`,
                           );
                       }}
-                      className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-[12px] border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     >
                       <Send className="h-3 w-3" />
                       Send to developer
@@ -577,14 +577,14 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                   <Megaphone className="h-8 w-8 text-muted-foreground/50" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-medium">Widget not configured yet</p>
-                  <p className="text-[12px] text-muted-foreground mt-0.5">
+                  <p className="text-sm font-medium">Widget not configured yet</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     Set up the embed widget to collect feedback directly inside your app.
                   </p>
                 </div>
                 <Link
                   to={`/${org.slug}/settings/widget`}
-                  className="inline-flex items-center gap-1.5 px-4 h-8 rounded-md bg-primary text-primary-foreground text-[12.5px] font-medium hover:bg-primary/90 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 h-8 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
                 >
                   Set up widget →
                 </Link>

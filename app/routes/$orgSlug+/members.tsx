@@ -1,9 +1,8 @@
 import { AppSidebar } from "@components/layout/app-sidebar";
-import { InviteMemberDialog } from "@components/members/invite-member-dialog";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { auth, requireOrgBySlug } from "@lib/session.server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Crown, UserMinus, UserPlus } from "lucide-react";
+import { Crown, UserMinus } from "lucide-react";
 import { useState } from "react";
 import type { Route } from "./+types/members";
 
@@ -51,7 +50,6 @@ interface Member {
 }
 
 export default function Members({ loaderData }: Route.ComponentProps) {
-  const [showInvite, setShowInvite] = useState(false);
   const qc = useQueryClient();
   const isAdmin = loaderData.currentRole === "admin";
 
@@ -84,16 +82,6 @@ export default function Members({ loaderData }: Route.ComponentProps) {
                 {members.length} member{members.length !== 1 ? "s" : ""} in this workspace
               </p>
             </div>
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => setShowInvite(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
-              >
-                <UserPlus className="h-4 w-4" />
-                Invite
-              </button>
-            )}
           </div>
 
           <div className="rounded-lg border overflow-hidden">
@@ -161,7 +149,6 @@ export default function Members({ loaderData }: Route.ComponentProps) {
           </div>
         </main>
       </SidebarInset>
-      {showInvite && <InviteMemberDialog onClose={() => setShowInvite(false)} />}
     </SidebarProvider>
   );
 }

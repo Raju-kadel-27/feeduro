@@ -8,6 +8,7 @@ import { useState } from "react";
 import { getDb } from "@/db";
 import { invitation } from "@/db/schema";
 import type { Route } from "./+types/team";
+import { InviteMemberDialog } from "@components/members/invite-member-dialog";
 
 export function meta() {
   return [{ title: "Team Settings — Feediyo" }];
@@ -72,6 +73,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
   const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
 
   const members: Member[] = loaderData.members as Member[];
   const pendingInvitations: PendingInvitation[] =
@@ -123,12 +125,12 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["team"] }),
   });
 
-  function handleInviteSubmit(e: React.FormEvent) {
+  const handleInviteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
     setInviteSuccess(false);
     sendInvite();
-  }
+  };
 
   return (
     <SidebarProvider>
@@ -139,63 +141,27 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium">Team</span>
         </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full space-y-10">
-          {/* Invite section */}
-          {isAdmin && (
-            <section>
-              <h2 className="text-base font-semibold mb-1">Invite a team member</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Send an invitation email to add someone to this workspace.
+        <main className="p-6 max-w-3xl mx-auto w-full">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold">Team</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Manage your team members and their roles.
               </p>
+            </div>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowInvite(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
+                Invite Member
+              </button>
+            )}
+          </div>
 
-              <form onSubmit={handleInviteSubmit} className="flex gap-2 items-end">
-                <div className="flex-1 space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setInviteSuccess(false);
-                    }}
-                    className="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="colleague@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Role</label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                    className="px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    {ROLES.map((r) => (
-                      <option key={r.value} value={r.value}>
-                        {r.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  type="submit"
-                  disabled={inviting || !email.trim()}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                >
-                  {inviting ? "Sending…" : "Send invite"}
-                </button>
-              </form>
-
-              {inviteSuccess && (
-                <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-                  Invitation sent to {email || "the user"}.
-                </p>
-              )}
-              {inviteError && (
-                <p className="mt-2 text-sm text-destructive">{(inviteError as Error).message}</p>
-              )}
-            </section>
-          )}
+          {/* Invite Member Dialog */}
+          {showInvite && <InviteMemberDialog onClose={() => setShowInvite(false)} />}
 
           {/* Pending invitations */}
           {isAdmin && pendingInvitations.length > 0 && (

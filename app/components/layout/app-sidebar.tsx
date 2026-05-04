@@ -111,7 +111,6 @@ export function AppSidebar() {
   const workspaceItems = [
     { title: "Roadmap", url: `${base}/roadmap`, icon: Map },
     { title: "Changelog", url: `${base}/changelog`, icon: FileText },
-    { title: "Members", url: `${base}/members`, icon: Users },
     { title: "Share", url: `${base}/share`, icon: Share2 },
     { title: "Settings", url: `${base}/settings`, icon: Settings },
   ];

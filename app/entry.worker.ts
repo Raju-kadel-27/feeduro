@@ -13,7 +13,7 @@ const APP_DOMAIN = "feediyo.com";
 // KV cache key prefix for custom domain → orgSlug mapping
 const KV_PREFIX = "custom_domain:v1:";
 // How long a resolved domain is cached in KV (seconds)
-const KV_TTL_SECONDS = 5 * 60; // 5 minutes
+const KV_TTL_SECONDS = 60 * 60; // 1 hour
 
 /**
  * Resolve a custom hostname to an org slug.
@@ -25,11 +25,11 @@ const KV_TTL_SECONDS = 5 * 60; // 5 minutes
  * A negative result ("no active domain") is also cached so we don't hammer
  * the DB for every request to an unknown hostname.
  */
-async function resolveCustomDomain(hostname: string, kv: KVNamespace): Promise<string | null> {
+async function resolveCustomDomain(hostname: string, kv?: KVNamespace): Promise<string | null> {
   const key = `${KV_PREFIX}${hostname}`;
 
   // 1. KV cache
-  const cached = await kv.get(key);
+  const cached = kv ? await kv.get(key) : null;
   if (cached !== null) {
     // Empty string means "no active domain found" — still a valid cached result
     return cached || null;
@@ -49,7 +49,9 @@ async function resolveCustomDomain(hostname: string, kv: KVNamespace): Promise<s
     const orgSlug = row[0]?.slug ?? null;
 
     // Cache result — empty string encodes a negative (not-found) result
-    await kv.put(key, orgSlug ?? "", { expirationTtl: KV_TTL_SECONDS });
+    if (kv) {
+      await kv.put(key, orgSlug ?? "", { expirationTtl: KV_TTL_SECONDS });
+    }
 
     return orgSlug;
   } catch (err) {
@@ -83,6 +85,11 @@ function buildRewrittenRequest(
   return new Request(rewrittenUrl.toString(), init);
 }
 
+function isHtmlRequest(request: Request) {
+  const accept = request.headers.get("accept") ?? "";
+  return accept.includes("text/html");
+}
+
 export default {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
@@ -103,18 +110,31 @@ export default {
     // ── 2. Custom domain: look up in DB (via KV cache) ───────────────────────
     const isAppDomain = hostname === APP_DOMAIN || hostname.endsWith(`.${APP_DOMAIN}`);
     if (!isAppDomain) {
-      // CMS_KV is bound in wrangler.jsonc for dev/staging/production
-      const kv = (env as unknown as { CMS_KV: KVNamespace }).CMS_KV;
-      if (kv) {
-        const orgSlug = await resolveCustomDomain(hostname, kv);
-        if (orgSlug) {
-          const rewritten = new URL(`/public/${orgSlug}${url.pathname}`, url);
-          rewritten.search = url.search;
+      const kv = (env as unknown as { CMS_KV?: KVNamespace }).CMS_KV;
+      const orgSlug = await resolveCustomDomain(hostname, kv);
+      if (orgSlug) {
+        const rewritten = new URL(`/public/${orgSlug}${url.pathname}`, url);
+        rewritten.search = url.search;
+        const context = new RouterContextProvider();
+        context.set(CloudflareContext, { env, ctx, cf: request.cf });
+        return await handler(buildRewrittenRequest(request, rewritten, hostname), context);
+      }
+
+      if (request.method === "GET" || request.method === "HEAD") {
+        if (isHtmlRequest(request)) {
+          const rewritten = new URL(`/domain-not-configured`, url);
           const context = new RouterContextProvider();
           context.set(CloudflareContext, { env, ctx, cf: request.cf });
           return await handler(buildRewrittenRequest(request, rewritten, hostname), context);
         }
+
+        const assetUrl = new URL(`${url.pathname}${url.search}`, `https://${APP_DOMAIN}`);
+        const headers = new Headers(request.headers);
+        headers.delete("host");
+        return await fetch(new Request(assetUrl.toString(), { method: request.method, headers, redirect: "manual" }));
       }
+
+      return new Response("Domain Not Configured", { status: 404, headers: { "Content-Type": "text/plain;charset=utf-8" } });
     }
 
     // ── 3. Normal app request ────────────────────────────────────────────────

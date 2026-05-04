@@ -4,92 +4,26 @@
   "name": "feediyo",
   "main": "./app/entry.worker.ts",
   "alias": {
-    "virtual:react-router/server-build": "./build/server/index.js"
+    "virtual:react-router/server-build": "./build/server/index.js",
   },
   "compatibility_date": "2025-04-07",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "assets": { "directory": "./build/client" },
   "workers_dev": true,
-  "kv_namespaces": [
-    {
-      "binding": "CMS_KV",
-      "id": "dev"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "UPLOADS",
-      "bucket_name": "feediyo-uploads-dev"
-    }
-  ],
-  "vars": {
-    "ENVIRONMENT": "dev",
-    "API_URL": "http://localhost:3000",
-    // Set DATABASE_URL to your local or service Postgres/Neon connection string.
-    "DATABASE_URL": "postgresql://<username>:<password>@<host>:5432/<database>"
-  },
   "env": {
     "dev": {
       "name": "nextgen-email-dev",
-      "kv_namespaces": [
-        {
-          "binding": "CMS_KV",
-          "id": "dev"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "UPLOADS",
-          "bucket_name": "feediyo-uploads-dev"
-        }
-      ],
       "vars": {
         "ENVIRONMENT": "dev",
-        "API_URL": "http://localhost:3000"
-      }
+        "API_URL": "http://localhost:3000",
+      },
     },
     "staging": {
-      "name": "starter-staging",
-      "vars": {
-        "ENVIRONMENT": "staging",
-        "API_URL": "https://staging.feediyo.com",
-        // Replace with your staging database URL via Wrangler secrets or vars.
-        "DATABASE_URL": "postgresql://<username>:<password>@<host>:5432/<database>"
-      },
-      "kv_namespaces": [
-        {
-          "binding": "CMS_KV",
-          "id": "e811695c812643c687429f678076146d"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "UPLOADS",
-          "bucket_name": "feediyo-uploads-staging"
-        }
-      ]
+      "name": "feediyo-staging"
     },
     "production": {
-      "name": "starter",
-      "vars": {
-        "ENVIRONMENT": "production",
-        "API_URL": "https://feediyo.com",
-        // Replace with your production database URL via Wrangler secrets or vars.
-        "DATABASE_URL": "postgresql://<username>:<password>@<host>:5432/<database>"
-      },
-      "kv_namespaces": [
-        {
-          "binding": "CMS_KV",
-          "id": "6821adc64b234d5eb4d409caf6d1b4da"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "UPLOADS",
-          "bucket_name": "feediyo-uploads"
-        }
-      ]
-    }
-  }
+      "name": "feediyo",
+    },
+  },
 }

@@ -3,8 +3,11 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/si
 import { requireOrgBySlug } from "@lib/session.server";
 import { cn } from "@lib/utils";
 import { and, eq } from "drizzle-orm";
+import { ArrowRight } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
 import { getDb } from "@/db";
-import { member } from "@/db/schema";
+import { githubIntegrations, member } from "@/db/schema";
 import type { Route } from "./+types/integrations";
 
 export function meta() {
@@ -15,9 +18,15 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
   const db = getDb();
 
-  const memberRecord = await db.query.member.findFirst({
-    where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
-  });
+  const [memberRecord, githubIntegration] = await Promise.all([
+    db.query.member.findFirst({
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+    }),
+    db.query.githubIntegrations.findFirst({
+      where: eq(githubIntegrations.organizationId, organizationId),
+      columns: { repoOwner: true, repoName: true },
+    }),
+  ]);
 
   return {
     isAdmin: memberRecord?.role === "admin",
@@ -26,6 +35,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     },
     slack: {
       enabled: !!(process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET),
+    },
+    github: {
+      configured: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
+      connected: !!githubIntegration,
+      repo: githubIntegration
+        ? `${githubIntegration.repoOwner}/${githubIntegration.repoName}`
+        : null,
     },
   };
 }
@@ -134,6 +150,14 @@ function SlackIcon() {
   );
 }
 
+function GitHubIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-foreground" aria-hidden>
+      <path d="M12 0C5.37 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.31.468-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.51 11.51 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.216.694.825.576C20.565 21.796 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
+    </svg>
+  );
+}
+
 function DiscordIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5 fill-[#5865F2]" aria-hidden>
@@ -143,7 +167,9 @@ function DiscordIcon() {
 }
 
 export default function IntegrationsSettings({ loaderData }: Route.ComponentProps) {
-  const { discord, slack } = loaderData;
+  const { discord, slack, github } = loaderData;
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+  const navigate = useNavigate();
 
   return (
     <SidebarProvider>
@@ -162,6 +188,57 @@ export default function IntegrationsSettings({ loaderData }: Route.ComponentProp
             </p>
           </div>
 
+          {/* Developer tools */}
+          <section className="space-y-3">
+            <h3 className="text-[13px] font-semibold text-foreground">Developer Tools</h3>
+
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
+              <div className="flex items-start gap-4 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
+                  <GitHubIcon />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-semibold text-foreground">GitHub Issues</span>
+                    <span
+                      className={cn(
+                        "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
+                        github.connected
+                          ? "bg-green-500/10 text-green-600"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {github.connected ? "Connected" : "Not connected"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {github.connected && github.repo
+                      ? `Linked to ${github.repo}. Create or link GitHub issues directly from roadmap cards.`
+                      : "Link your roadmap to a GitHub repository. Create issues from feedback or sync existing ones."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!github.configured) {
+                      toast.error(
+                        "GitHub OAuth app not configured. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in your environment, then restart the server.",
+                        { duration: 6000 },
+                      );
+                      return;
+                    }
+                    navigate(`/${orgSlug}/settings/github-integration`);
+                  }}
+                  className="shrink-0 flex items-center gap-1.5 rounded-md border border-border bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-secondary/80 transition-colors"
+                >
+                  {github.connected ? "Configure" : "Set up"}
+                  <ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Social login */}
           <section className="space-y-3">
             <h3 className="text-[13px] font-semibold text-foreground">Social Login</h3>
 

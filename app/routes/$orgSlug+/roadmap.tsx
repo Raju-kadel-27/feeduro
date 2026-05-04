@@ -9,10 +9,13 @@ import { getEnrichedPosts } from "@lib/queries.server";
 import { requireOrgBySlug } from "@lib/session.server";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronUp, MessageSquare } from "lucide-react";
+import { eq } from "drizzle-orm";
+import { ChevronUp, ExternalLink, GitBranch, Loader2, MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { getDb } from "@/db";
+import { githubIntegrations } from "@/db/schema";
 import type { Route } from "./+types/roadmap";
 
 export function meta() {
@@ -21,8 +24,20 @@ export function meta() {
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const { session, org } = await requireOrgBySlug(request, params.orgSlug);
-  const posts = await getEnrichedPosts(org.id, session.user.id);
-  return { user: session.user, posts, fetchedAt: Date.now() };
+  const db = getDb();
+  const [posts, integration] = await Promise.all([
+    getEnrichedPosts(org.id, session.user.id),
+    db.query.githubIntegrations.findFirst({
+      where: eq(githubIntegrations.organizationId, org.id),
+      columns: { repoOwner: true, repoName: true },
+    }),
+  ]);
+  return {
+    user: session.user,
+    posts,
+    fetchedAt: Date.now(),
+    hasGithubIntegration: !!integration,
+  };
 }
 
 type Status = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
@@ -37,6 +52,8 @@ interface Post {
   voteCount: number;
   hasVoted: boolean;
   commentCount: number;
+  githubIssueNumber: number | null;
+  githubIssueUrl: string | null;
 }
 
 const COLUMNS: { id: Status; label: string; dot: string }[] = [
@@ -55,7 +72,19 @@ function buildGroups(posts: Post[]): Groups {
   }, {} as Groups);
 }
 
-function DraggableCard({ post, index, column }: { post: Post; index: number; column: Status }) {
+function DraggableCard({
+  post,
+  index,
+  column,
+  hasGithubIntegration,
+  onIssueCreated,
+}: {
+  post: Post;
+  index: number;
+  column: Status;
+  hasGithubIntegration: boolean;
+  onIssueCreated: (postId: string, issueNumber: number, issueUrl: string) => void;
+}) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const navigate = useNavigate();
   const { ref, isDragging } = useSortable({
@@ -64,6 +93,27 @@ function DraggableCard({ post, index, column }: { post: Post; index: number; col
     type: "item",
     accept: ["item"],
     group: column,
+  });
+
+  const { mutate: createIssue, isPending: creatingIssue } = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/github", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "create_issue", postId: post.id }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        issue?: { number: number; html_url: string };
+      };
+      if (!res.ok) throw new Error(json.error ?? "Failed to create issue");
+      return json.issue!;
+    },
+    onSuccess: (issue) => {
+      toast.success(`GitHub issue #${issue.number} created`);
+      onIssueCreated(post.id, issue.number, issue.html_url);
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   return (
@@ -91,6 +141,39 @@ function DraggableCard({ post, index, column }: { post: Post; index: number; col
             {post.commentCount}
           </span>
         )}
+
+        {/* GitHub issue badge or create button */}
+        <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          {post.githubIssueNumber ? (
+            <a
+              href={post.githubIssueUrl ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`GitHub issue #${post.githubIssueNumber}`}
+              className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-foreground border border-border rounded px-1.5 py-0.5 hover:bg-muted/40 transition-colors"
+            >
+              <GitBranch className="h-2.5 w-2.5" />#{post.githubIssueNumber}
+              <ExternalLink className="h-2 w-2" />
+            </a>
+          ) : (
+            hasGithubIntegration && (
+              <button
+                type="button"
+                disabled={creatingIssue}
+                onClick={() => createIssue()}
+                title="Create GitHub issue"
+                className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground border border-border rounded px-1.5 py-0.5 hover:bg-muted/40 transition-all"
+              >
+                {creatingIssue ? (
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                ) : (
+                  <GitBranch className="h-2.5 w-2.5" />
+                )}
+                {creatingIssue ? "Creating…" : "Create issue"}
+              </button>
+            )
+          )}
+        </div>
       </div>
     </div>
   );
@@ -149,9 +232,13 @@ function DroppableColumn({
 function KanbanBoard({
   posts,
   onStatusChange,
+  hasGithubIntegration,
+  onIssueCreated,
 }: {
   posts: Post[];
   onStatusChange: (id: string, status: Status) => void;
+  hasGithubIntegration: boolean;
+  onIssueCreated: (postId: string, issueNumber: number, issueUrl: string) => void;
 }) {
   const [groups, setGroups] = useState<Groups>(() => buildGroups(posts));
   const previousGroups = useRef(groups);
@@ -210,7 +297,14 @@ function KanbanBoard({
           return (
             <DroppableColumn key={col.id} column={col} count={colPosts.length}>
               {colPosts.map((post, index) => (
-                <DraggableCard key={post.id} post={post} index={index} column={col.id} />
+                <DraggableCard
+                  key={post.id}
+                  post={post}
+                  index={index}
+                  column={col.id}
+                  hasGithubIntegration={hasGithubIntegration}
+                  onIssueCreated={onIssueCreated}
+                />
               ))}
             </DroppableColumn>
           );
@@ -261,10 +355,21 @@ export default function Roadmap({ loaderData }: Route.ComponentProps) {
       const res = await fetch("/api/feedback");
       return res.json() as Promise<{ posts: Post[] }>;
     },
-    initialData: { posts: loaderData.posts },
+    initialData: { posts: loaderData.posts as Post[] },
     initialDataUpdatedAt: loaderData.fetchedAt,
     staleTime: 30_000,
   });
+
+  function handleIssueCreated(postId: string, issueNumber: number, issueUrl: string) {
+    qc.setQueryData<{ posts: Post[] }>(["roadmap"], (old) => {
+      if (!old) return old;
+      return {
+        posts: old.posts.map((p) =>
+          p.id === postId ? { ...p, githubIssueNumber: issueNumber, githubIssueUrl: issueUrl } : p,
+        ),
+      };
+    });
+  }
 
   const { mutate: updateStatus } = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: Status }) => {
@@ -316,6 +421,8 @@ export default function Roadmap({ loaderData }: Route.ComponentProps) {
               <KanbanBoard
                 posts={posts}
                 onStatusChange={(id, status) => updateStatus({ id, status })}
+                hasGithubIntegration={loaderData.hasGithubIntegration}
+                onIssueCreated={handleIssueCreated}
               />
             )}
           </div>

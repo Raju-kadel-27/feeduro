@@ -7,7 +7,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { organization } from "better-auth/plugins";
+import { genericOAuth, organization } from "better-auth/plugins";
 import DodoPayments from "dodopayments";
 import { and, eq } from "drizzle-orm";
 import Stripe from "stripe";
@@ -170,6 +170,90 @@ export const auth = betterAuth({
         },
       },
     }),
+    ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
+      ? [
+          genericOAuth({
+            config: [
+              {
+                providerId: "github",
+                clientId: env.GITHUB_CLIENT_ID,
+                clientSecret: env.GITHUB_CLIENT_SECRET,
+                authorizationUrl: "https://github.com/login/oauth/authorize",
+                tokenUrl: "https://github.com/login/oauth/access_token",
+                scopes: ["repo", "read:user", "user:email"],
+                // GitHub returns URL-encoded tokens by default — request JSON
+                getToken: async ({ code, redirectURI }) => {
+                  const res = await fetch("https://github.com/login/oauth/access_token", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    body: JSON.stringify({
+                      client_id: env.GITHUB_CLIENT_ID,
+                      client_secret: env.GITHUB_CLIENT_SECRET,
+                      code,
+                      redirect_uri: redirectURI,
+                    }),
+                  });
+                  const data = (await res.json()) as {
+                    access_token?: string;
+                    scope?: string;
+                    error?: string;
+                  };
+                  if (data.error || !data.access_token)
+                    throw new Error(data.error ?? "GitHub token exchange failed");
+                  return {
+                    accessToken: data.access_token,
+                    refreshToken: undefined,
+                    accessTokenExpiresAt: undefined,
+                    scopes: data.scope?.split(",") ?? [],
+                    idToken: undefined,
+                    raw: data,
+                  };
+                },
+                getUserInfo: async (tokens) => {
+                  const res = await fetch("https://api.github.com/user", {
+                    headers: {
+                      Authorization: `Bearer ${tokens.accessToken}`,
+                      Accept: "application/vnd.github.v3+json",
+                    },
+                  });
+                  const profile = (await res.json()) as {
+                    id: number;
+                    login: string;
+                    name?: string;
+                    email?: string;
+                    avatar_url?: string;
+                  };
+                  // Fetch primary verified email if not exposed in profile
+                  let email = profile.email ?? null;
+                  if (!email) {
+                    const emailRes = await fetch("https://api.github.com/user/emails", {
+                      headers: {
+                        Authorization: `Bearer ${tokens.accessToken}`,
+                        Accept: "application/vnd.github.v3+json",
+                      },
+                    });
+                    const emails = (await emailRes.json()) as Array<{
+                      email: string;
+                      primary: boolean;
+                      verified: boolean;
+                    }>;
+                    email = emails.find((e) => e.primary && e.verified)?.email ?? null;
+                  }
+                  return {
+                    id: String(profile.id),
+                    name: profile.name ?? profile.login,
+                    email: email ?? `${profile.login}@github.noemail`,
+                    image: profile.avatar_url,
+                    emailVerified: !!email,
+                  };
+                },
+                // Only used for account linking, not sign-in
+                disableImplicitSignUp: true,
+              },
+            ],
+          }),
+        ]
+      : []),
     stripe({
       stripeClient,
       stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,

@@ -11,6 +11,8 @@ const envSchema = z.object({
   DISCORD_CLIENT_SECRET: z.string().optional(),
   SLACK_CLIENT_ID: z.string().optional(),
   SLACK_CLIENT_SECRET: z.string().optional(),
+  GITHUB_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_SECRET: z.string().optional(),
   EMAIL_SERVER: z.string(),
   EMAIL_FROM: z.string(),
   STRIPE_SECRET_KEY: z.string(),

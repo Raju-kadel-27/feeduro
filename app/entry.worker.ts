@@ -131,10 +131,15 @@ export default {
         const assetUrl = new URL(`${url.pathname}${url.search}`, `https://${APP_DOMAIN}`);
         const headers = new Headers(request.headers);
         headers.delete("host");
-        return await fetch(new Request(assetUrl.toString(), { method: request.method, headers, redirect: "manual" }));
+        return await fetch(
+          new Request(assetUrl.toString(), { method: request.method, headers, redirect: "manual" }),
+        );
       }
 
-      return new Response("Domain Not Configured", { status: 404, headers: { "Content-Type": "text/plain;charset=utf-8" } });
+      return new Response("Domain Not Configured", {
+        status: 404,
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+      });
     }
 
     // ── 3. Normal app request ────────────────────────────────────────────────

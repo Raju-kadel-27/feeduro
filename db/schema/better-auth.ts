@@ -19,7 +19,6 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  stripeCustomerId: text("stripe_customer_id"),
   dodoCustomerId: text("dodo_customer_id"),
 });
 
@@ -136,7 +135,6 @@ export const organization = pgTable(
     logo: text("logo"),
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
-    stripeCustomerId: text("stripe_customer_id"),
   },
   (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)],
 );
@@ -186,8 +184,6 @@ export const subscription = pgTable("subscription", {
   id: text("id").primaryKey(),
   plan: text("plan").notNull(),
   referenceId: text("reference_id").notNull(),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
   status: text("status").default("incomplete"),
   periodStart: timestamp("period_start"),
   periodEnd: timestamp("period_end"),
@@ -199,5 +195,4 @@ export const subscription = pgTable("subscription", {
   endedAt: timestamp("ended_at"),
   seats: integer("seats"),
   billingInterval: text("billing_interval"),
-  stripeScheduleId: text("stripe_schedule_id"),
 });

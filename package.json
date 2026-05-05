@@ -32,7 +32,6 @@
     "db:generate": "drizzle-kit generate --config=./db/config.ts",
     "db:seed": "dotenv -e .env.dev -- tsx db/seed.ts",
     "schema:generate": "dotenv -e .env -- npx @better-auth/cli@latest generate --config ./app/lib/auth/server.ts --output ./db/schema/better-auth.ts --yes",
-    "stripe:webhook": "stripe listen --forward-to localhost:3000/api/auth/stripe/webhook",
     "dodo:login": "dodo login",
     "dodo:webhook": "NODE_OPTIONS=--experimental-websocket dodo wh listen --forward-to localhost:3000/api/auth/dodopayments/webhooks",
     "prepare": "husky"
@@ -41,7 +40,6 @@
     "@better-auth/api-key": "^1.6.9",
     "@better-auth/passkey": "^1.6.5",
     "@better-auth/sso": "^1.6.9",
-    "@better-auth/stripe": "^1.6.5",
     "@blocknote/core": "^0.49.0",
     "@blocknote/react": "^0.49.0",
     "@blocknote/shadcn": "^0.49.0",
@@ -86,7 +84,6 @@
     "react-router-dom": "7.14.0",
     "resend": "^6.12.2",
     "sonner": "^2.0.7",
-    "stripe": "^22.0.2",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
     "vite-tsconfig-paths": "^6.1.1",

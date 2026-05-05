@@ -13,11 +13,7 @@
   "workers_dev": true,
   "env": {
     "dev": {
-      "name": "nextgen-email-dev",
-      "vars": {
-        "ENVIRONMENT": "dev",
-        "API_URL": "http://localhost:3000"
-      }
+      "name": "nextgen-email-dev"
     },
     "staging": {
       "name": "feediyo-staging"

@@ -10,12 +10,6 @@ import {
   createDodoCheckoutSession,
 } from "@lib/dodo.server";
 import { requireOrgBySlug } from "@lib/session.server";
-import {
-  cancelSubscription,
-  createCheckoutSession,
-  createPortalSession,
-  updateSubscriptionPlan,
-} from "@lib/stripe.server";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, or } from "drizzle-orm";
 import { CheckIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
@@ -52,7 +46,6 @@ const PLANS = [
     monthly: "$12",
     annual: "$8",
     description: "Perfect for small teams and growing startups",
-    trial: "14-day free trial",
     features: ["Everything in Free", "5 feedback boards", "Private boards", "Guest posting"],
   },
   {
@@ -80,8 +73,7 @@ type BillingInterval = "monthly" | "annual";
 // ─── Loader ───────────────────────────────────────────────────────────────────
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const env = getEnv();
+  const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
   const db = getDb();
 
   const activeSub = await db.query.subscription.findFirst({
@@ -96,43 +88,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     orderBy: desc(subscription.periodEnd),
   });
 
-  const useDodo = env.PAYMENT_PROCESSOR === "dodo";
-
   return {
     subscription: activeSub ?? null,
-    organizationId,
-    userEmail: session.user.email,
-    userName: session.user.name,
     currentBillingInterval: (activeSub?.billingInterval ?? null) as BillingInterval | null,
-    paymentProcessor: useDodo ? ("dodo" as const) : ("stripe" as const),
-    stripe: {
-      prices: {
-        starter: {
-          monthly: env.STRIPE_STARTER_MONTHLY_PRICE_ID ?? "",
-          annual: env.STRIPE_STARTER_ANNUAL_PRICE_ID ?? "",
-        },
-        professional: {
-          monthly: env.STRIPE_PRO_MONTHLY_PRICE_ID ?? "",
-          annual: env.STRIPE_PRO_ANNUAL_PRICE_ID ?? "",
-        },
-      },
-    },
-    dodo: {
-      productIds: {
-        starter: {
-          monthly: env.DODO_STARTER_MONTHLY_PRODUCT_ID ?? "",
-          annual: env.DODO_STARTER_ANNUAL_PRODUCT_ID ?? "",
-        },
-        professional: {
-          monthly: env.DODO_PRO_MONTHLY_PRODUCT_ID ?? "",
-          annual: env.DODO_PRO_ANNUAL_PRODUCT_ID ?? "",
-        },
-      },
-    },
   };
 }
 
-// ─── Action (plan changes for existing subscribers) ───────────────────────────
+// ─── Action ───────────────────────────────────────────────────────────────────
 
 export async function action({ request, params }: Route.ActionArgs) {
   const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
@@ -141,17 +103,6 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
   const returnUrl = `${new URL(request.url).origin}${new URL(request.url).pathname}`;
-
-  const prices = {
-    starter: {
-      monthly: env.STRIPE_STARTER_MONTHLY_PRICE_ID ?? "",
-      annual: env.STRIPE_STARTER_ANNUAL_PRICE_ID ?? "",
-    },
-    professional: {
-      monthly: env.STRIPE_PRO_MONTHLY_PRICE_ID ?? "",
-      annual: env.STRIPE_PRO_ANNUAL_PRICE_ID ?? "",
-    },
-  };
 
   const dodoProductIds = {
     starter: {
@@ -164,7 +115,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     },
   };
 
-  // New subscription — redirect to Dodo Checkout
   if (intent === "dodo-checkout") {
     const plan = formData.get("plan") as Exclude<PlanId, "free">;
     const interval = formData.get("interval") as BillingInterval;
@@ -180,7 +130,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     return redirect(result.url);
   }
 
-  // Upgrade/downgrade existing Dodo subscription
   if (intent === "dodo-change-plan") {
     const plan = formData.get("plan") as Exclude<PlanId, "free">;
     const interval = formData.get("interval") as BillingInterval;
@@ -210,7 +159,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     return redirect(`${returnUrl}?upgraded=true`);
   }
 
-  // Cancel Dodo subscription at period end (downgrade to free)
   if (intent === "dodo-cancel") {
     const activeSub = await db.query.subscription.findFirst({
       where: and(
@@ -229,81 +177,6 @@ export async function action({ request, params }: Route.ActionArgs) {
       .update(subscription)
       .set({ cancelAtPeriodEnd: true })
       .where(eq(subscription.dodoSubscriptionId, activeSub.dodoSubscriptionId));
-    return redirect(`${returnUrl}?upgraded=true`);
-  }
-
-  // Guard: Stripe-only intents
-  if (
-    ["checkout", "portal", "change-plan"].includes(intent) &&
-    env.PAYMENT_PROCESSOR !== "stripe"
-  ) {
-    return { ok: false, error: "Stripe is not the active payment processor" };
-  }
-
-  // New subscription — redirect to Stripe Checkout
-  if (intent === "checkout") {
-    const plan = formData.get("plan") as Exclude<PlanId, "free">;
-    const interval = formData.get("interval") as BillingInterval;
-    const email = formData.get("email") as string;
-    const priceId = prices[plan]?.[interval];
-    if (!priceId) return { ok: false, error: "Price not configured" };
-
-    const url = await createCheckoutSession({
-      priceId,
-      organizationId,
-      customerEmail: email,
-      successUrl: `${returnUrl}?upgraded=true`,
-      cancelUrl: returnUrl,
-      trialDays: plan === "starter" ? 14 : undefined,
-    });
-
-    return redirect(url);
-  }
-
-  // Open Stripe Customer Portal — handles payment updates, cancellation, etc.
-  if (intent === "portal") {
-    const activeSub = await db.query.subscription.findFirst({
-      where: eq(subscription.referenceId, organizationId),
-      columns: { stripeCustomerId: true },
-    });
-    const customerId = activeSub?.stripeCustomerId;
-    if (!customerId) return { ok: false, error: "No Stripe customer found" };
-
-    const url = await createPortalSession({ customerId, returnUrl });
-    return redirect(url);
-  }
-
-  // Plan change for existing subscribers
-  if (intent === "change-plan") {
-    const plan = formData.get("plan") as PlanId;
-    const interval = formData.get("interval") as BillingInterval;
-
-    const activeSub = await db.query.subscription.findFirst({
-      where: and(
-        eq(subscription.referenceId, organizationId),
-        or(eq(subscription.status, "active"), eq(subscription.status, "trialing")),
-      ),
-      columns: { stripeSubscriptionId: true },
-    });
-
-    if (!activeSub?.stripeSubscriptionId) {
-      return { ok: false, error: "No active subscription found" };
-    }
-
-    if (plan === "free") {
-      await cancelSubscription(activeSub.stripeSubscriptionId);
-      return redirect(`${returnUrl}?upgraded=true`);
-    }
-
-    const priceId = prices[plan]?.[interval];
-    if (!priceId) return { ok: false, error: "Price not configured" };
-
-    const ok = await updateSubscriptionPlan({
-      stripeSubscriptionId: activeSub.stripeSubscriptionId,
-      priceId,
-    });
-    if (!ok) return { ok: false, error: "Stripe API error" };
-
     return redirect(`${returnUrl}?upgraded=true`);
   }
 
@@ -332,15 +205,7 @@ function formatDate(date: Date | null | undefined) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BillingSettings({ loaderData }: Route.ComponentProps) {
-  const {
-    subscription: activeSub,
-    organizationId,
-    userEmail,
-    userName,
-    currentBillingInterval,
-    paymentProcessor,
-    stripe,
-  } = loaderData;
+  const { subscription: activeSub, currentBillingInterval } = loaderData;
 
   const [searchParams] = useSearchParams();
   const justUpgraded = searchParams.get("upgraded") === "true";
@@ -366,9 +231,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   const isTrialing = activeSub?.status === "trialing";
   const isPastDue = activeSub?.status === "past_due";
   const isCancelingAtPeriodEnd = activeSub?.cancelAtPeriodEnd === true;
-  const hasStripeSub = Boolean(activeSub?.stripeSubscriptionId);
-  const hasDodoSub = Boolean(activeSub?.dodoSubscriptionId);
-  const hasManagedSub = paymentProcessor === "dodo" ? hasDodoSub : hasStripeSub;
+  const hasManagedSub = Boolean(activeSub?.dodoSubscriptionId);
 
   const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
@@ -378,44 +241,11 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   const actionError =
     fetcher.data && "error" in fetcher.data ? (fetcher.data as { error: string }).error : null;
 
-  // Use current subscription's billing interval for plan changes to avoid accidental interval switch
   function intervalForPlanChange(): BillingInterval {
     return currentBillingInterval ?? billingInterval;
   }
 
-  // ── Stripe handlers ───────────────────────────────────────────────────────
-
-  function handleStripeCheckout(planId: Exclude<PlanId, "free">) {
-    setLoadingPlan(planId);
-    fetcher.submit(
-      { intent: "checkout", plan: planId, interval: billingInterval, email: userEmail },
-      { method: "POST" },
-    );
-  }
-
-  function handleStripeChangePlan(planId: PlanId) {
-    setLoadingPlan(planId);
-    fetcher.submit(
-      { intent: "change-plan", plan: planId, interval: billingInterval },
-      { method: "POST" },
-    );
-  }
-
-  function handleStripePortal() {
-    fetcher.submit({ intent: "portal" }, { method: "POST" });
-  }
-
-  // ── Dodo Payments handlers ────────────────────────────────────────────────
-
-  function handleDodoCheckout(planId: Exclude<PlanId, "free">) {
-    setLoadingPlan(planId);
-    fetcher.submit(
-      { intent: "dodo-checkout", plan: planId, interval: billingInterval },
-      { method: "POST" },
-    );
-  }
-
-  async function handleDodoPortal() {
+  async function handlePortal() {
     setDodoPortalLoading(true);
     const { data, error } = await authClient.dodopayments.customer.portal();
     setDodoPortalLoading(false);
@@ -423,33 +253,25 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
     if ("url" in data) window.location.href = data.url as string;
   }
 
-  // ── Unified handlers ──────────────────────────────────────────────────────
-
   function handleCheckout(planId: Exclude<PlanId, "free">) {
-    if (paymentProcessor === "dodo") handleDodoCheckout(planId);
-    else handleStripeCheckout(planId);
+    setLoadingPlan(planId);
+    fetcher.submit(
+      { intent: "dodo-checkout", plan: planId, interval: billingInterval },
+      { method: "POST" },
+    );
   }
 
   function handleChangePlan(planId: PlanId) {
-    if (paymentProcessor === "dodo") {
-      if (planId === "free") {
-        setLoadingPlan("free");
-        fetcher.submit({ intent: "dodo-cancel", plan: "free" }, { method: "POST" });
-      } else {
-        setLoadingPlan(planId);
-        fetcher.submit(
-          { intent: "dodo-change-plan", plan: planId, interval: intervalForPlanChange() },
-          { method: "POST" },
-        );
-      }
+    if (planId === "free") {
+      setLoadingPlan("free");
+      fetcher.submit({ intent: "dodo-cancel", plan: "free" }, { method: "POST" });
     } else {
-      handleStripeChangePlan(planId);
+      setLoadingPlan(planId);
+      fetcher.submit(
+        { intent: "dodo-change-plan", plan: planId, interval: intervalForPlanChange() },
+        { method: "POST" },
+      );
     }
-  }
-
-  function handleOpenPortal() {
-    if (paymentProcessor === "dodo") handleDodoPortal();
-    else handleStripePortal();
   }
 
   return (
@@ -529,13 +351,10 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                       size="sm"
                       variant="destructive"
                       disabled={isSubmitting}
-                      onClick={handleOpenPortal}
+                      onClick={handlePortal}
                     >
                       <ExternalLinkIcon className="mr-1.5 h-3.5 w-3.5" />
-                      {isSubmitting &&
-                      (dodoPortalLoading || fetcher.formData?.get("intent") === "portal")
-                        ? "Opening…"
-                        : "Update payment"}
+                      {isSubmitting && dodoPortalLoading ? "Opening…" : "Update payment"}
                     </Button>
                   )}
                   {hasManagedSub && (
@@ -543,13 +362,10 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                       variant="outline"
                       size="sm"
                       disabled={isSubmitting}
-                      onClick={handleOpenPortal}
+                      onClick={handlePortal}
                     >
                       <ExternalLinkIcon className="mr-1.5 h-3.5 w-3.5" />
-                      {isSubmitting &&
-                      (dodoPortalLoading || fetcher.formData?.get("intent") === "portal")
-                        ? "Opening…"
-                        : "Manage billing"}
+                      {isSubmitting && dodoPortalLoading ? "Opening…" : "Manage billing"}
                     </Button>
                   )}
                 </div>
@@ -644,9 +460,6 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                       <p className="text-xs text-muted-foreground">billed annually</p>
                     )}
                     <p className="mt-1.5 text-xs text-muted-foreground">{plan.description}</p>
-                    {"trial" in plan && plan.trial && paymentProcessor === "stripe" && (
-                      <p className="mt-1.5 text-xs font-medium text-primary">{plan.trial}</p>
-                    )}
                   </div>
 
                   <ul className="mb-6 flex-1 space-y-1.5">
@@ -672,15 +485,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                           : handleCheckout(plan.id as Exclude<PlanId, "free">)
                       }
                     >
-                      {loading
-                        ? "Processing…"
-                        : !hasManagedSub &&
-                            paymentProcessor === "stripe" &&
-                            "trial" in plan &&
-                            plan.trial &&
-                            currentPlan === "free"
-                          ? "Start free trial"
-                          : `Upgrade to ${plan.name}`}
+                      {loading ? "Processing…" : `Upgrade to ${plan.name}`}
                     </Button>
                   ) : isLowerPlan ? (
                     plan.id === "free" && isCancelingAtPeriodEnd ? (
@@ -704,9 +509,8 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground">
-            All plans are billed in USD via{" "}
-            {paymentProcessor === "dodo" ? "Dodo Payments" : "Stripe"}. You can upgrade, downgrade,
-            or cancel at any time.
+            All plans are billed in USD via Dodo Payments. You can upgrade, downgrade, or cancel at
+            any time.
           </p>
         </main>
       </SidebarInset>

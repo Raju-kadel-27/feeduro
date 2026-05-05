@@ -14,10 +14,6 @@
   "env": {
     "dev": {
       "name": "nextgen-email-dev",
-      "vars": {
-        "ENVIRONMENT": "dev",
-        "API_URL": "http://localhost:3000"
-      }
     },
     "staging": {
       "name": "feediyo-staging"

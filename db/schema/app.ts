@@ -28,7 +28,7 @@ export const changelogStatusEnum = pgEnum("changelog_status", ["draft", "publish
 export const widgetPositionEnum = pgEnum("widget_position", ["left", "right"]);
 export const widgetThemeEnum = pgEnum("widget_theme", ["light", "dark", "auto"]);
 
-// ============ Subscription (Stripe + Dodo — managed here due to custom columns) ============
+// ============ Subscription (Dodo Payments — managed here due to custom columns) ============
 
 export const subscription = pgTable(
   "subscription",
@@ -36,8 +36,6 @@ export const subscription = pgTable(
     id: varchar("id", { length: 255 }).primaryKey(),
     plan: varchar("plan", { length: 50 }).notNull(),
     referenceId: varchar("reference_id", { length: 255 }).notNull(),
-    stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
-    stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
     status: varchar("status", { length: 50 }).notNull().default("incomplete"),
     periodStart: timestamp("period_start"),
     periodEnd: timestamp("period_end"),
@@ -49,13 +47,11 @@ export const subscription = pgTable(
     trialStart: timestamp("trial_start"),
     trialEnd: timestamp("trial_end"),
     billingInterval: varchar("billing_interval", { length: 20 }),
-    stripeScheduleId: varchar("stripe_schedule_id", { length: 255 }),
     dodoCustomerId: varchar("dodo_customer_id", { length: 255 }),
     dodoSubscriptionId: varchar("dodo_subscription_id", { length: 255 }),
   },
   (t) => ({
     referenceIdIdx: index("subscription_reference_id_idx").on(t.referenceId),
-    stripeSubIdx: index("subscription_stripe_sub_idx").on(t.stripeSubscriptionId),
     dodoSubIdx: index("subscription_dodo_sub_idx").on(t.dodoSubscriptionId),
   }),
 );

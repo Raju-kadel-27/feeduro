@@ -1,6 +1,5 @@
 import { apiKey } from "@better-auth/api-key";
 import { sso } from "@better-auth/sso";
-import { stripe } from "@better-auth/stripe";
 import { checkout, dodopayments, portal, webhooks } from "@dodopayments/better-auth";
 import { sendInvitationEmail } from "@jobs/send-invitation-email";
 import { getBaseUrl } from "@utils/base-url";
@@ -10,16 +9,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { genericOAuth, organization } from "better-auth/plugins";
 import DodoPayments from "dodopayments";
 import { and, eq } from "drizzle-orm";
-import Stripe from "stripe";
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
 import { feedbackBoards } from "@/db/schema";
 
 const env = getEnv();
-
-const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: "2026-04-22.dahlia",
-});
 
 const dodoClient = env.DODO_PAYMENTS_API_KEY
   ? new DodoPayments({
@@ -254,73 +248,6 @@ export const auth = betterAuth({
           }),
         ]
       : []),
-    stripe({
-      stripeClient,
-      stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
-      createCustomerOnSignUp: false,
-      subscription: {
-        enabled: true,
-        plans: [
-          ...(env.STRIPE_STARTER_MONTHLY_PRICE_ID
-            ? [
-                {
-                  name: "starter",
-                  priceId: env.STRIPE_STARTER_MONTHLY_PRICE_ID,
-                  ...(env.STRIPE_STARTER_ANNUAL_PRICE_ID
-                    ? { annualDiscountPriceId: env.STRIPE_STARTER_ANNUAL_PRICE_ID }
-                    : {}),
-                  limits: {
-                    boards: 5,
-                    privateBoards: 1,
-                    guestPosting: 1,
-                  },
-                  freeTrial: { days: 14 },
-                },
-              ]
-            : []),
-          ...(env.STRIPE_PRO_MONTHLY_PRICE_ID
-            ? [
-                {
-                  name: "professional",
-                  priceId: env.STRIPE_PRO_MONTHLY_PRICE_ID,
-                  ...(env.STRIPE_PRO_ANNUAL_PRICE_ID
-                    ? { annualDiscountPriceId: env.STRIPE_PRO_ANNUAL_PRICE_ID }
-                    : {}),
-                  limits: {
-                    boards: -1,
-                    customDomain: 1,
-                    whiteLabelBranding: 1,
-                    sso: 1,
-                    unlimitedAdmins: 1,
-                    unlimitedIntegrations: 1,
-                  },
-                },
-              ]
-            : []),
-        ],
-        authorizeReference: async ({ user, referenceId }) => {
-          const db = getDb();
-          const memberRecord = await db.query.member.findFirst({
-            where: and(
-              eq(schema.member.userId, user.id),
-              eq(schema.member.organizationId, referenceId),
-            ),
-          });
-          return memberRecord?.role === "admin";
-        },
-        onSubscriptionComplete: async ({ subscription, plan }) => {
-          console.info(
-            `[Stripe] Subscription complete: org=${subscription.referenceId} plan=${plan.name}`,
-          );
-        },
-        onSubscriptionCancel: async ({ subscription }) => {
-          console.info(`[Stripe] Subscription canceled: org=${subscription.referenceId}`);
-        },
-      },
-      organization: {
-        enabled: true,
-      },
-    }),
     ...(dodoClient
       ? [
           dodopayments({

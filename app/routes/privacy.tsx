@@ -82,7 +82,7 @@ export default function Privacy() {
             <h3 className="font-medium">Payment data</h3>
             <p className="text-muted-foreground leading-relaxed">
               We do not store credit card or bank details. Payments are handled directly by our
-              payment processors — Stripe and DodoPayments. We only store your subscription plan,
+              payment processor — Dodo Payments. We only store your subscription plan,
               status, and billing period.
             </p>
 
@@ -99,7 +99,7 @@ export default function Privacy() {
             <ul className="list-disc list-outside ml-5 space-y-2 text-muted-foreground">
               <li>To provide, operate, and maintain the Feediyo service</li>
               <li>To authenticate your identity (email/password or Google OAuth)</li>
-              <li>To process subscription payments through Stripe and DodoPayments</li>
+              <li>To process subscription payments through Dodo Payments</li>
               <li>
                 To send transactional emails you explicitly trigger — such as team invitation emails
               </li>
@@ -187,7 +187,7 @@ export default function Privacy() {
               to countries that have not received an adequacy decision, we rely on appropriate
               safeguards such as Standard Contractual Clauses (SCCs) approved by the European
               Commission, or transfers to service providers that participate in the EU-U.S. Data
-              Privacy Framework (e.g. Stripe, Cloudflare).
+              Privacy Framework (e.g. Dodo Payments, Cloudflare).
             </p>
           </section>
 

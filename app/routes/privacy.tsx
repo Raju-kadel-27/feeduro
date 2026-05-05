@@ -82,8 +82,8 @@ export default function Privacy() {
             <h3 className="font-medium">Payment data</h3>
             <p className="text-muted-foreground leading-relaxed">
               We do not store credit card or bank details. Payments are handled directly by our
-              payment processor — Dodo Payments. We only store your subscription plan,
-              status, and billing period.
+              payment processor — Dodo Payments. We only store your subscription plan, status, and
+              billing period.
             </p>
 
             <h3 className="font-medium">Technical and usage data</h3>

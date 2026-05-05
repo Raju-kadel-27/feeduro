@@ -13,7 +13,7 @@
   "workers_dev": true,
   "env": {
     "dev": {
-      "name": "nextgen-email-dev",
+      "name": "nextgen-email-dev"
     },
     "staging": {
       "name": "feediyo-staging"

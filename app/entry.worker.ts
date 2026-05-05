@@ -5,7 +5,7 @@ import { getDb } from "@/db";
 import { customDomains, organization } from "@/db/schema";
 import { CloudflareContext } from "./middleware/cloudflare.server";
 
-const handler = createRequestHandler(build, import.meta.env.MODE);
+const handler = createRequestHandler(build);
 
 const RESERVED_SUBDOMAINS = new Set(["www", "app", "api", "mail", "admin"]);
 const APP_DOMAIN = "feediyo.com";

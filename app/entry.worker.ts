@@ -95,11 +95,11 @@ export default {
     const url = new URL(request.url);
     const hostname = url.hostname;
 
-    // ── 1. Feediyo subdomain: {orgSlug}.feediyo.com → /public/{orgSlug} ──────
+    // ── 1. Feediyo subdomain: {orgSlug}.feediyo.com → /{orgSlug} ──────────────
     if (hostname.endsWith(`.${APP_DOMAIN}`)) {
       const orgSlug = hostname.slice(0, -`.${APP_DOMAIN}`.length);
       if (orgSlug && !RESERVED_SUBDOMAINS.has(orgSlug)) {
-        const rewritten = new URL(`/public/${orgSlug}${url.pathname}`, url);
+        const rewritten = new URL(`/${orgSlug}${url.pathname}`, url);
         rewritten.search = url.search;
         const context = new RouterContextProvider();
         context.set(CloudflareContext, { env, ctx, cf: request.cf });
@@ -113,7 +113,7 @@ export default {
       const kv = (env as unknown as { CMS_KV?: KVNamespace }).CMS_KV;
       const orgSlug = await resolveCustomDomain(hostname, kv);
       if (orgSlug) {
-        const rewritten = new URL(`/public/${orgSlug}${url.pathname}`, url);
+        const rewritten = new URL(`/${orgSlug}${url.pathname}`, url);
         rewritten.search = url.search;
         const context = new RouterContextProvider();
         context.set(CloudflareContext, { env, ctx, cf: request.cf });

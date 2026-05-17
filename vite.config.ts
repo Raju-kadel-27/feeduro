@@ -1,14 +1,28 @@
 import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import tailwindcss from "@tailwindcss/vite";
+import babel from "vite-plugin-babel";
+import { tunnelPlugin } from "./scripts/vite-tunnel-plugin";
 
 export default defineConfig({
   server: {
     port: 3000,
     hmr: false,
   },
-  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  plugins: [
+    process.env.TUNNEL === "true" && tunnelPlugin(3000),
+    tailwindcss(),
+    reactRouter(),
+    tsconfigPaths(),
+    babel({
+      filter: /\.[jt]sx?$/,
+      exclude: /node_modules/,
+      babelConfig: {
+        plugins: [["babel-plugin-react-compiler", {}]],
+      },
+    }),
+  ],
   resolve: { dedupe: ["react", "react-dom"] },
   optimizeDeps: {
     // @dnd-kit packages are ESM — pre-bundling them causes rolldown to create
@@ -22,6 +36,21 @@ export default defineConfig({
       "@dnd-kit/abstract",
       "@dnd-kit/helpers",
     ],
-    include: ["@blocknote/react", "@blocknote/core", "@blocknote/shadcn"],
+    // Explicitly pre-bundle react/react-dom so Rolldown produces a single
+    // shared React chunk. Without this, packages like @radix-ui that ship CJS
+    // can grab a separate React instance, breaking hook dispatchers.
+    include: [
+      "react",
+      "react-dom",
+      "@blocknote/react",
+      "@blocknote/core",
+      "@blocknote/shadcn",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-label",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-separator",
+      "@radix-ui/react-slot",
+      "@radix-ui/react-tabs",
+    ],
   },
 });

@@ -18,15 +18,18 @@
     "paths": {
       "@/*": ["./*"],
       "@components/*": ["./app/components/*"],
+      "@providers/*": ["./app/providers/*"],
       "@hooks/*": ["./app/hooks/*"],
       "@lib/*": ["./app/lib/*"],
       "@utils/*": ["./app/utils/*"],
       "@routes/*": ["./app/routes/*"],
-      "@emails/*": ["./app/emails/*"],
-      "@jobs/*": ["./app/jobs/*"],
+      "@emails/*": ["./app/features/emails/*"],
+      "@jobs/*": ["./app/features/jobs/*"],
       "@db/*": ["./db/*"],
       "@styles/*": ["./styles/*"],
-      "@middleware/*": ["./app/middleware/*"]
+      "@middleware/*": ["./app/middleware/*"],
+      "@features/*": ["./app/features/*"],
+      "@services/*": ["./app/services/*"]
     }
   }
 }

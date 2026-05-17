@@ -21,5 +21,13 @@ export function getRequestProperties(
 }
 
 export function waitUntil<T>(context: Readonly<RouterContextProvider>, promise: Promise<T>) {
-  return getExecutionContext(context).waitUntil(promise);
+  try {
+    const cfCtx = context.get(CloudflareContext);
+    if (cfCtx?.ctx) {
+      cfCtx.ctx.waitUntil(promise);
+    }
+  } catch {
+    // CloudflareContext not set — running outside Cloudflare Workers (e.g. local dev)
+  }
+  return promise;
 }

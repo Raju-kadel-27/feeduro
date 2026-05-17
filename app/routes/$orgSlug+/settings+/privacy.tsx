@@ -1,17 +1,18 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { Badge } from "@components/ui/badge";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
-import { getOrgPlanLimits } from "@lib/plan-limits.server";
-import { requireOrgBySlug } from "@lib/session.server";
-import { type PrivacySettings, parsePrivacySettings } from "@routes/api+/privacy-settings";
+import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { eq } from "drizzle-orm";
 import { EyeOff, Lock, ShieldCheck, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+
 import type { Route } from "./+types/privacy";
+import { parsePrivacySettings, type PrivacySettings } from "../../api+/_workspace+/privacy-settings";
 
 export function meta() {
   return [{ title: "Privacy & Access — Feediyo" }];
@@ -95,7 +96,6 @@ function SettingCard({
           checked={checked}
           onCheckedChange={onCheckedChange}
           disabled={disabled}
-          className="shrink-0 mt-0.5"
         />
       </div>
     </section>

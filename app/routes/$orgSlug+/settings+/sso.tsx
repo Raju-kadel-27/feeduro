@@ -1,6 +1,6 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBaseUrl } from "@utils/base-url";
@@ -11,8 +11,15 @@ import { useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "@/db";
 import { member, ssoProvider } from "@/db/schema";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@components/ui/dialog";
+
 import type { Route } from "./+types/sso";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@components/ui/dialog";
 
 export function meta() {
   return [{ title: "Login & SSO — Feediyo" }];
@@ -183,9 +190,7 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
                             {p.type}
                           </span>
                         </div>
-                        <p className="text-sm text-muted-foreground truncate mt-1">
-                          {p.issuer}
-                        </p>
+                        <p className="text-sm text-muted-foreground truncate mt-1">{p.issuer}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {isAdmin && (
@@ -272,7 +277,9 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
                           required
                           className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         />
-                        <p className="text-xs text-muted-foreground">Users with this email domain</p>
+                        <p className="text-xs text-muted-foreground">
+                          Users with this email domain
+                        </p>
                       </div>
                     </div>
 
@@ -288,7 +295,9 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
                       />
                       <p className="text-xs text-muted-foreground">
                         OIDC discovery is fetched automatically from
-                        <span className="font-mono">{" {issuer}/.well-known/openid-configuration"}</span>
+                        <span className="font-mono">
+                          {" {issuer}/.well-known/openid-configuration"}
+                        </span>
                       </p>
                     </div>
 
@@ -322,7 +331,12 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
                       <button
                         type="submit"
                         disabled={
-                          registering || !providerId || !issuer || !domain || !clientId || !clientSecret
+                          registering ||
+                          !providerId ||
+                          !issuer ||
+                          !domain ||
+                          !clientId ||
+                          !clientSecret
                         }
                         className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm"
                       >

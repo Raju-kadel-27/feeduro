@@ -1,15 +1,16 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { Button } from "@components/ui/button";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
-import { requireOrgBySlug } from "@lib/session.server";
-import { parseChangelogSettings } from "@routes/api+/changelog-settings";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { eq } from "drizzle-orm";
 import { PlusIcon, TagIcon, Trash2Icon } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { getDb } from "@/db";
 import { changelogTags, organization } from "@/db/schema";
+
+import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
 import type { Route } from "./+types/changelog";
 
 export function meta() {

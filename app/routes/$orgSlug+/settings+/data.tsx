@@ -1,11 +1,12 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { Button } from "@components/ui/button";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { DownloadIcon, FileSpreadsheetIcon, TriangleAlertIcon, UploadIcon } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+
 import type { Route } from "./+types/data";
 
 export function meta() {

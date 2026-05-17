@@ -1,4 +1,4 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { Alert, AlertDescription } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -8,8 +8,8 @@ import {
   cancelDodoSubscription,
   changeDodoPlan,
   createDodoCheckoutSession,
-} from "@lib/dodo.server";
-import { requireOrgBySlug } from "@lib/session.server";
+} from "@features/billing/server/dodo";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, or } from "drizzle-orm";
 import { CheckIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import { redirect, useFetcher, useRevalidator, useSearchParams } from "react-router";
 import { getDb } from "@/db";
 import { subscription } from "@/db/schema";
+
 import type { Route } from "./+types/billing";
 
 export function meta() {

@@ -1,6 +1,6 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { AlertCircle, CheckCircle2, Clock, Copy, Globe, RefreshCw, Trash2 } from "lucide-react";
@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { getDb } from "@/db";
 import { customDomains, member } from "@/db/schema";
+
 import type { Route } from "./+types/domain";
 
 export function meta() {

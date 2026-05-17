@@ -1,8 +1,8 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
-import { requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { Check, Copy, Eye, EyeOff, RefreshCw } from "lucide-react";
@@ -10,6 +10,7 @@ import { useState } from "react";
 import { data, useFetcher } from "react-router";
 import { getDb } from "@/db";
 import { feedbackBoards, widgetConfigs } from "@/db/schema";
+
 import type { Route } from "./+types/widget";
 
 function generateSigningSecret(): string {
@@ -571,13 +572,13 @@ const signature = crypto
                     </p>
                     <CodeBlock
                       label="app/root.tsx  ·  layout.tsx  (React Router / Remix)"
-                      code={`import { createFeediyoAuth } from '~/lib/feediyo-auth.server';
+                      code={`import { createIdentityToken } from '~/lib/identity-token';
 
 export async function loader({ request }) {
   const user = await getAuthUser(request);
 
   const feediyoAuth = user
-    ? await createFeediyoAuth(
+    ? await createIdentityToken(
         user.id,
         user.email,
         user.name,
@@ -631,7 +632,7 @@ function FeedbackLink() {
                     />
                     <p className="text-xs text-zinc-500 pt-1">
                       <code className="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">
-                        createFeediyoAuth
+                        createIdentityToken
                       </code>{" "}
                       generates both the HMAC signature (widget identity) and the{" "}
                       <code className="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">

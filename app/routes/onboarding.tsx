@@ -1,10 +1,11 @@
-import { CreateWorkspaceForm } from "@components/workspace/create-workspace-form";
-import { auth } from "@lib/auth/server";
-import { requireSession } from "@lib/session.server";
+import { CreateWorkspaceForm } from "@features/workspace/components/create-workspace-form";
+import { auth } from "@/app/lib/auth/server";
+import { requireSession } from "@lib/session";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import { getDb } from "@/db";
 import { member, organization } from "@/db/schema";
+
 import type { Route } from "./+types/onboarding";
 
 export function meta() {
@@ -29,7 +30,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     where: eq(member.userId, session.user.id),
   });
 
-  if (memberships.length > 0) {
+  if (memberships.length > 0 && memberships[0]) {
     const firstOrgId = memberships[0].organizationId;
     await auth.api.setActiveOrganization({
       body: { organizationId: firstOrgId },

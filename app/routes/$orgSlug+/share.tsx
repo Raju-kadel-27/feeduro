@@ -46,9 +46,9 @@ function RedditIcon({ className }: { className?: string }) {
   );
 }
 
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { cn } from "@lib/utils";
 import { getEnv } from "@utils/get-env";
 import { getDb } from "@/db";
@@ -69,7 +69,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const isDev = env.ENVIRONMENT === "development";
   const publicBoardUrl = isDev
-    ? `${env.BASE_URL}/public/${org.slug}`
+    ? `${env.BASE_URL}/${org.slug}`
     : `https://${org.slug}.feediyo.com`;
 
   const widget = await db.query.widgetConfigs.findFirst({
@@ -234,9 +234,7 @@ function SnippetBlock({
           <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
             {label}
           </span>
-          {optional && (
-            <span className="ml-2 text-xs text-muted-foreground/60">(optional)</span>
-          )}
+          {optional && <span className="ml-2 text-xs text-muted-foreground/60">(optional)</span>}
         </div>
         <CopyBtn text={code} />
       </div>
@@ -253,10 +251,20 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
   const { org, userName, publicBoardUrl, widget, links } = loaderData;
 
   // ── Social share URLs ──────────────────────────────────────────────────────
-  const shareText = encodeURIComponent(
-    `Share your feedback and ideas for ${org.name}: ${publicBoardUrl}`,
-  );
+  // Twitter: text + url as separate params so Twitter counts the URL as 23 chars
+  // LinkedIn: only url is supported by their sharer — OG tags generate the preview
+  // Facebook: only u is supported — OG tags generate the preview
+  // Reddit: url + title pre-fills a ready-to-submit link post
   const shareUrl = encodeURIComponent(publicBoardUrl);
+  const tweetText = encodeURIComponent(
+    `We just set up a public feedback board for ${org.name} — share your ideas and vote on what we should build next! 🚀`,
+  );
+  const redditTitle = encodeURIComponent(
+    `We just launched a public feedback board for ${org.name} — tell us what to build next!`,
+  );
+  const linkedInText = encodeURIComponent(
+    `We just launched a public feedback board for ${org.name}.\n\nGot feature requests, bug reports, or ideas? Head over, drop them in, and vote on what matters most:\n\n${publicBoardUrl}\n\nWe review everything — your input shapes what we build next.`,
+  );
 
   const socials = [
     {
@@ -264,14 +272,14 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
       description: "Post to your followers.",
       icon: XIcon,
       color: "#000000",
-      href: `https://twitter.com/intent/tweet?text=${shareText}`,
+      href: `https://x.com/intent/post?text=${tweetText}&url=${shareUrl}`,
     },
     {
       label: "LinkedIn",
       description: "Share with your network.",
       icon: LinkedinIcon,
       color: "#0a66c2",
-      href: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`,
+      href: `https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&summary=${linkedInText}&title=${encodeURIComponent(`Feedback board for ${org.name}`)}`,
     },
     {
       label: "Facebook",
@@ -285,7 +293,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
       description: "Share in a subreddit.",
       icon: RedditIcon,
       color: "#ff4500",
-      href: `https://reddit.com/submit?url=${shareUrl}&title=${encodeURIComponent(`Feedback board for ${org.name}`)}`,
+      href: `https://www.reddit.com/submit?url=${shareUrl}&title=${redditTitle}`,
     },
   ];
 
@@ -453,9 +461,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium">{item.label}</p>
-                    <p className="text-xs text-muted-foreground truncate font-mono">
-                      {item.url}
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate font-mono">{item.url}</p>
                   </div>
                   <CopyBtn text={item.url} />
                 </div>
@@ -534,9 +540,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                 {/* Optional identify */}
                 <div className="rounded-lg border border-dashed border-border/70 p-4 space-y-3 bg-muted/20">
                   <div>
-                    <p className="text-sm font-medium">
-                      Optional — Link feedback to your users
-                    </p>
+                    <p className="text-sm font-medium">Optional — Link feedback to your users</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       The widget works without this. Add it later to see who submitted what.
                     </p>
@@ -548,9 +552,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                 <div className="flex items-center justify-between gap-3 pt-1">
                   <p className="text-xs text-muted-foreground">
                     Paste all three snippets before{" "}
-                    <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                      &lt;/body&gt;
-                    </code>
+                    <code className="text-xs bg-muted px-1 py-0.5 rounded">&lt;/body&gt;</code>
                   </p>
                   <div className="flex items-center gap-2">
                     <CopyBtn text={allWidgetSnippets!} label="Copy all" />

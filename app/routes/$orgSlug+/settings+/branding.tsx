@@ -1,11 +1,13 @@
-import type { BrandingFormValues } from "@components/branding/branding-form";
-import { BrandingForm } from "@components/branding/branding-form";
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { BrandingForm } from "@features/branding/components/branding-form";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+import { brandingSchema } from "@features/branding/schemas/branding.schema";
+
+import type { BrandingFormValues } from "@features/branding/types/branding.types";
 import type { Route } from "./+types/branding";
 
 export function meta() {
@@ -20,18 +22,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     where: eq(organization.id, organizationId),
   });
 
-  const defaults = {
-    primaryColor: "indigo" as const,
-    theme: "dynamic" as const,
-    language: "auto" as const,
-    hidePoweredBy: false,
-  };
+  let brandingOverrides: Partial<BrandingFormValues> = {};
 
   if (org?.metadata) {
     try {
       const parsed = JSON.parse(org.metadata) as Record<string, unknown>;
       if (parsed.branding && typeof parsed.branding === "object") {
-        Object.assign(defaults, parsed.branding);
+        const result = brandingSchema.partial().safeParse(parsed.branding);
+        if (result.success) {
+          brandingOverrides = result.data;
+        }
       }
     } catch {}
   }
@@ -39,7 +39,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return {
     logo: org?.logo ?? "",
     name: org?.name ?? "",
-    ...defaults,
+    primaryColor: "indigo" as const,
+    theme: "dynamic" as const,
+    language: "auto" as const,
+    hidePoweredBy: false,
+    ...brandingOverrides,
   } satisfies BrandingFormValues;
 }
 

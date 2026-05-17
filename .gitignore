@@ -1,8 +1,62 @@
-.DS_Store
-/.env
-/.env.staging
-/node_modules/
+# Environment
+.env
+.env.dev
+.env.local
+.env.staging
+.env.production
 
-# React Router
+# Dependencies
+/node_modules/
+**/node_modules/
+
+# React Router / Vite build output
 /.react-router/
 /build/
+/dist/
+.vite/
+
+# TypeScript build info
+*.tsbuildinfo
+tsconfig.cloudflare.tsbuildinfo
+
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+.dev.vars.*
+worker-configuration.d.ts
+
+# Drizzle generated files (run db:generate manually)
+/db/migrations/*.sql
+/db/meta/
+
+# pnpm
+.pnpm-store/
+.pnpm-debug.log
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Test output
+/coverage/
+/playwright-report/
+/test-results/
+
+# Misc
+*.local

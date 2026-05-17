@@ -1,14 +1,16 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { auth, requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
+import { auth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Crown, Mail, UserMinus, X } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "@/db";
 import { invitation } from "@/db/schema";
+import { InviteMemberDialog } from "@features/workspace/components/invite-member-dialog";
+
 import type { Route } from "./+types/team";
-import { InviteMemberDialog } from "@components/members/invite-member-dialog";
 
 export function meta() {
   return [{ title: "Team Settings — Feediyo" }];

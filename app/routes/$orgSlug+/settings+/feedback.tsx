@@ -1,11 +1,15 @@
-import { FeedbackSettingsPanel } from "@components/feedback/settings/feedback-settings-panel";
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { FeedbackSettingsPanel } from "@features/feedback/components/settings/feedback-settings-panel";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { requireOrgBySlug } from "@lib/session.server";
-import { parseFeedbackSettings } from "@routes/api+/feedback-settings";
+import { getOrgCategories } from "@features/feedback/server/categories.server";
+import { getOrgTags } from "@features/feedback/server/tags.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getEnv } from "@utils/get-env";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts, member, organization } from "@/db/schema";
+
+import { parseFeedbackSettings } from "@features/feedback/server/feedback-settings";
 import type { Route } from "./+types/feedback";
 
 export function meta() {
@@ -37,19 +41,34 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     }),
   ]);
 
+  let tags: { id: string; name: string; color: string }[] = [];
+  let categories: { id: string; name: string; color: string }[] = [];
+  try {
+    [tags, categories] = await Promise.all([
+      getOrgTags(organizationId),
+      getOrgCategories(organizationId),
+    ]);
+  } catch {
+    /* tables may not exist yet — run pnpm db:push */
+  }
+
   const countMap = Object.fromEntries(countRows.map((r) => [r.boardId, r.count]));
   const feedbackSettings = parseFeedbackSettings(org?.metadata ?? null);
+  const geminiConfigured = !!getEnv().GEMINI_API_KEY;
 
   return {
     boards: boards.map((b) => ({ ...b, postCount: countMap[b.id] ?? 0 })),
     isAdmin: memberRecord?.role === "admin",
     limit: 2,
+    tags,
+    categories,
+    geminiConfigured,
     ...feedbackSettings,
   };
 }
 
 export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentProps) {
-  const { boards, isAdmin, limit, enableRoadmap, weeklyDigest } = loaderData;
+  const { boards, isAdmin, limit, enableRoadmap, weeklyDigest, tags, categories, geminiConfigured } = loaderData;
 
   return (
     <SidebarProvider>
@@ -60,14 +79,16 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
           <span className="text-sm font-medium">Feedback</span>
         </header>
 
-        <main className="p-6 max-w-[640px] mx-auto w-full">
+        <main className="p-6 flex items-center justify-center max-w-3xl mx-auto">
           <FeedbackSettingsPanel
             boards={boards}
-            tags={[]}
+            tags={tags}
+            categories={categories}
             isAdmin={isAdmin ?? false}
             limit={limit}
             enableRoadmap={enableRoadmap}
             weeklyDigest={weeklyDigest}
+            geminiConfigured={geminiConfigured}
           />
         </main>
       </SidebarInset>

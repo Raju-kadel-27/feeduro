@@ -1,6 +1,6 @@
-import { AppSidebar } from "@components/layout/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { requireOrgBySlug } from "@lib/session.server";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { cn } from "@lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { and, desc, eq } from "drizzle-orm";
@@ -10,8 +10,15 @@ import { useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "@/db";
 import { apikey, member } from "@/db/schema";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@components/ui/dialog";
+
 import type { Route } from "./+types/api-tokens";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@components/ui/dialog";
 
 export function meta() {
   return [{ title: "API Tokens — Feediyo" }];

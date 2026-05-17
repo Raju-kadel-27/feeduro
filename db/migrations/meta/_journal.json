@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1777623739015,
-      "tag": "0000_wooden_shaman",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1777899782078,
-      "tag": "0001_rich_winter_soldier",
+      "when": 1779002686989,
+      "tag": "0000_smart_gambit",
       "breakpoints": true
     }
   ]

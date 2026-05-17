@@ -1,17 +1,37 @@
 import { apiKeyClient } from "@better-auth/api-key/client";
 import { ssoClient } from "@better-auth/sso/client";
 import { dodopaymentsClient } from "@dodopayments/better-auth";
-import { genericOAuthClient, organizationClient } from "better-auth/client/plugins";
+import {
+  genericOAuthClient,
+  lastLoginMethodClient,
+  organizationClient,
+  twoFactorClient,
+} from "better-auth/client/plugins";
+import { passkeyClient } from "@better-auth/passkey/client";
 import { createAuthClient } from "better-auth/react";
+import { passkey } from "@better-auth/passkey";
+import {
+  ac,
+  adminRole,
+  memberRole,
+  viewerRole,
+} from "@/app/lib/auth/server/permissions";
 
 export const authClient = createAuthClient({
-  baseURL: "http://localhost:3000",
+  baseURL: typeof window !== "undefined" ? window.location.origin : "http://localhost:3000",
   plugins: [
-    organizationClient(),
+    lastLoginMethodClient(),
+    organizationClient({
+      ac,
+      roles: { admin: adminRole, member: memberRole, viewer: viewerRole },
+      dynamicAccessControl: { enabled: true },
+    }),
     ssoClient(),
     apiKeyClient(),
     dodopaymentsClient(),
     genericOAuthClient(),
+    passkeyClient(),
+    twoFactorClient(),
   ],
 });
 

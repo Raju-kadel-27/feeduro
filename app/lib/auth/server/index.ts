@@ -1,6 +1,7 @@
 import { apiKey } from "@better-auth/api-key";
 import { passkey } from "@better-auth/passkey";
 import { sso } from "@better-auth/sso";
+import { sendResetPasswordEmail } from "@features/jobs/send-reset-password-email";
 import { getBaseUrl } from "@utils/base-url";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -51,6 +52,13 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
+    sendResetPassword: async ({ user, url }) => {
+      void sendResetPasswordEmail({
+        userName: user.name,
+        resetUrl: url,
+        recipientEmail: user.email,
+      });
+    },
   },
 
   socialProviders,

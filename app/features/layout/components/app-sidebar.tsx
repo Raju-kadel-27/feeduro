@@ -19,7 +19,7 @@ import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, BarChart2, Bot, Code, CreditCard, Database, ExternalLink, FileText,
-  Fingerprint, Globe, KeyRound, LayoutPanelLeft, Map, MessageSquare,
+  Fingerprint, Globe, KeyRound, LayoutPanelLeft, Lock, Map, MessageSquare,
   Palette, Plus, Puzzle, Settings, Share2, Shield, ShieldCheck, Users, Users2, Webhook, X,
 } from "lucide-react";
 import { type ElementType, useState } from "react";
@@ -49,6 +49,7 @@ const makeSettingsSections = (base: string) => [
     { title: "Login & SSO", url: `${base}/settings/sso`, icon: KeyRound },
     { title: "Two-Factor Auth", url: `${base}/settings/two-factor`, icon: ShieldCheck },
     { title: "Passkeys", url: `${base}/settings/passkeys`, icon: Fingerprint },
+    { title: "Password", url: `${base}/settings/password`, icon: Lock },
   ]},
   { label: "Developer", items: [
     { title: "Integrations", url: `${base}/settings/integrations`, icon: Puzzle },

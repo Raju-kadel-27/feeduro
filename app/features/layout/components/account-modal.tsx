@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog";
-import { useTheme } from "@providers/theme-provider";
+import { ChangePasswordForm } from "@features/auth/components/change-password-form";
+import { useNotificationSound } from "@features/notifications/hooks/use-notification-sound";
 import { authClient } from "@lib/auth/client";
 import { cn } from "@lib/utils";
-import { useNotificationSound } from "@features/notifications/hooks/use-notification-sound";
+import { useTheme } from "@providers/theme-provider";
 import { Camera, LogOut, Monitor, Moon, Palette, Settings, Sun, User, Volume2, VolumeX } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -238,6 +239,13 @@ function SettingsTab({ onSignOut }: { onSignOut: () => void }) {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="text-[15px] font-semibold">Security</h2>
+        <p className="text-[12.5px] text-muted-foreground mt-0.5">Update your account password.</p>
+      </div>
+
+      <ChangePasswordForm />
+
       <div>
         <h2 className="text-[15px] font-semibold">Account</h2>
         <p className="text-[12.5px] text-muted-foreground mt-0.5">Manage your account settings.</p>

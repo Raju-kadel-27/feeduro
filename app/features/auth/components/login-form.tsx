@@ -1,6 +1,5 @@
 import { GoogleIcon } from "@components/icons";
 import { Badge } from "@components/ui/badge";
-import { Spinner } from "@components/ui/spinner";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import {
@@ -11,6 +10,7 @@ import {
   FieldSeparator,
 } from "@components/ui/field";
 import { Input } from "@components/ui/input";
+import { Spinner } from "@components/ui/spinner";
 import { cn } from "@lib/utils";
 import { Fingerprint } from "lucide-react";
 import { Link } from "react-router";
@@ -57,7 +57,9 @@ export function LoginForm({
                   {loading ? <Spinner /> : <GoogleIcon />}
                   Login with Google
                   {lastMethod === "google" && (
-                    <Badge variant="secondary" className="ml-auto">Last used</Badge>
+                    <Badge variant="secondary" className="ml-auto">
+                      Last used
+                    </Badge>
                   )}
                 </Button>
               </Field>
@@ -67,7 +69,9 @@ export function LoginForm({
                   <Fingerprint className="size-4" />
                   Sign in with Passkey
                   {lastMethod === "passkey" && (
-                    <Badge variant="secondary" className="ml-auto">Last used</Badge>
+                    <Badge variant="secondary" className="ml-auto">
+                      Last used
+                    </Badge>
                   )}
                 </Button>
               </Field>
@@ -80,7 +84,9 @@ export function LoginForm({
                 <div className="flex items-center gap-2">
                   <FieldLabel htmlFor="email">Email</FieldLabel>
                   {lastMethod === "email" && (
-                    <Badge variant="secondary" className="text-xs">Last used</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Last used
+                    </Badge>
                   )}
                 </div>
                 <Input
@@ -145,7 +151,7 @@ export function LoginForm({
           Terms of Service
         </a>{" "}
         and{" "}
-        <a href="#" className="underline underline-offset-4 hover:text-primary">
+        <a href="/privacy" className="underline underline-offset-4 hover:text-primary">
           Privacy Policy
         </a>
         .

@@ -6,28 +6,28 @@
 .env.production
 
 # Dependencies
+.node_modules
 /node_modules/
 **/node_modules/
 
 # React Router / Vite build output
-/.react-router/
-/build/
-/dist/
-.vite/
+**/.react-router/
+**/build/
+**/dist/
+**/.vite/
 
 # TypeScript build info
 *.tsbuildinfo
-tsconfig.cloudflare.tsbuildinfo
 
 # Cloudflare Workers
-.wrangler/
+**/.wrangler/
 .dev.vars
 .dev.vars.*
-worker-configuration.d.ts
+apps/web/worker-configuration.d.ts
 
 # Drizzle generated files (run db:generate manually)
-/db/migrations/*.sql
-/db/meta/
+apps/web/db/migrations/*.sql
+apps/web/db/meta/
 
 # pnpm
 .pnpm-store/
@@ -54,9 +54,9 @@ Thumbs.db
 *.swo
 
 # Test output
-/coverage/
-/playwright-report/
-/test-results/
+**/coverage/
+**/playwright-report/
+**/test-results/
 
 # Misc
 *.local

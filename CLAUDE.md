@@ -1,11 +1,19 @@
 # Feediyo — Claude Project Instructions
 
+## Monorepo layout
+This is a **Turborepo + pnpm workspace** monorepo. The main app lives in `apps/web/`. All app-level paths below (`app/routes/`, `app/features/`, `db/`, etc.) are relative to `apps/web/`.
+
+```
+apps/web/     ← React Router / Cloudflare Workers app (this is the main codebase)
+packages/react/ ← @feediyo/react widget SDK
+```
+
 ## Stack
 - React Router v7 (framework mode, file-based routing)
 - Cloudflare Workers + Neon Postgres (serverless) via Drizzle ORM
 - TypeScript, Tailwind CSS, shadcn/ui
 - Biome for linting/formatting
-- pnpm workspaces
+- pnpm workspaces + Turborepo
 
 ## Architecture
 This is a **modular monolith** SaaS app (feedback boards / changelog).

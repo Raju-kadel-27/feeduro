@@ -14,6 +14,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 import { Toaster } from "sonner";
 
@@ -75,6 +76,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App({ loaderData }: Route.ComponentProps) {
   const { locale, appConfig } = loaderData;
+  const location = useLocation();
   const [i18nInstance] = useState(() => createI18nInstance(locale));
 
   useEffect(() => {
@@ -86,7 +88,9 @@ export default function App({ loaderData }: Route.ComponentProps) {
   return (
     <AppConfigProvider config={appConfig}>
       <I18nextProvider i18n={i18nInstance} defaultNS="translation">
-        <Outlet />
+        <div key={location.pathname} className="animate-page-enter">
+          <Outlet />
+        </div>
       </I18nextProvider>
     </AppConfigProvider>
   );

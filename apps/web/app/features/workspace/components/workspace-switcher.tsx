@@ -37,7 +37,7 @@ export function WorkspaceSwitcher() {
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground text-xs font-bold">
               {activeOrg?.name?.[0]?.toUpperCase() ?? "?"}
             </div>
-            <span className="flex-1 truncate text-left font-medium text-[hsl(var(--sidebar-foreground))]">
+            <span className="flex-1 truncate text-left font-medium text-sidebar-foreground">
               {activeOrg?.name ?? "Select workspace"}
             </span>
             <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />

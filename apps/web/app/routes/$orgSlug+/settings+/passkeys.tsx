@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { authClient } from "@lib/auth/client";
 import { Fingerprint, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";

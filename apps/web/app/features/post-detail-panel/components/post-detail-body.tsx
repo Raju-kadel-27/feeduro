@@ -1,5 +1,6 @@
 import type { DetailData, PostDetail } from "@features/feedback/schemas/admin";
 import { timeAgo } from "@features/feedback/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { cn } from "@lib/utils";
 import { Bot, ChevronUp, RefreshCw } from "lucide-react";
 import { Link } from "react-router";
@@ -48,7 +49,7 @@ export function PostDetailBody({
 }) {
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="px-5 pt-3 pb-3 space-y-4 max-w-2xl mx-auto">
+      <div className="px-5 pt-2 pb-3 space-y-2 max-w-2xl mx-auto">
         {post.mergedIntoPostId && detailData.mergedIntoPost && (
           <PostMergedBanner
             title={detailData.mergedIntoPost.title}
@@ -86,15 +87,15 @@ export function PostDetailBody({
             onClick={() => !vote.voting && vote.toggleVote()}
             disabled={vote.voting}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 w-9 h-9 border-[1.5px] transition-all duration-150 shrink-0 select-none",
+              "group/vote flex flex-col items-center justify-center gap-0.5 w-8 h-8 border-[1.5px] transition-all duration-150 shrink-0 select-none",
               vote.hasVoted
-                ? "border-[#3f3f46] bg-[#fafafa] text-[#18181b]"
-                : "border-[#e4e4e7] bg-white text-[#a1a1aa]",
+                ? "border-foreground/50 bg-muted text-foreground"
+                : "border-border bg-card text-muted-foreground",
               vote.voting && "opacity-50 cursor-not-allowed",
             )}
           >
             <ChevronUp
-              className={cn("h-3 w-3", vote.hasVoted ? "stroke-[2.5]" : "stroke-[1.75]")}
+              className={cn("h-3 w-3 transition-transform duration-150 group-hover/vote:-translate-y-0.5", vote.hasVoted ? "stroke-[2.5]" : "stroke-[1.75]")}
             />
             <span className="text-[10px] font-semibold leading-none tabular-nums">
               {vote.voteCount}
@@ -119,23 +120,36 @@ export function PostDetailBody({
               )}
             </h3>
             {isAdmin && (
-              <button
-                type="button"
-                onClick={() => comments.generateSummary()}
-                disabled={comments.generatingSummary}
-                className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium rounded-md border hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
-              >
-                {comments.generatingSummary ? (
-                  <RefreshCw className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Bot className="h-3 w-3" />
-                )}
-                {comments.generatingSummary
-                  ? "Summarizing…"
-                  : comments.summary
-                    ? "Regenerate"
-                    : "Summarize"}
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <button
+                        type="button"
+                        onClick={() => comments.generateSummary()}
+                        disabled={comments.generatingSummary || totalComments <= 10}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium rounded-md border hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {comments.generatingSummary ? (
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Bot className="h-3 w-3" />
+                        )}
+                        {comments.generatingSummary
+                          ? "Summarizing…"
+                          : comments.summary
+                            ? "Regenerate"
+                            : "Summarize"}
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+                  {totalComments <= 10 && (
+                    <TooltipContent side="left">
+                      <p>At least 10 comments are needed to generate a summary</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
           {comments.summary && (

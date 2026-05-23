@@ -13,12 +13,14 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  open: "bg-blue-50 text-blue-700 border-blue-200",
-  reviewing: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  planned: "bg-purple-50 text-purple-700 border-purple-200",
-  "in-progress": "bg-orange-50 text-orange-700 border-orange-200",
-  completed: "bg-green-50 text-green-700 border-green-200",
+  open: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30",
+  reviewing: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/15 dark:text-yellow-300 dark:border-yellow-500/30",
+  planned: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30",
+  "in-progress": "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30",
+  completed: "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/30",
 };
+
+const FALLBACK_COLOR = "bg-muted text-muted-foreground border-border";
 
 interface StatusFunnelStepsProps {
   steps: StatusFunnelStep[];
@@ -27,7 +29,7 @@ interface StatusFunnelStepsProps {
 export function StatusFunnelSteps({ steps }: StatusFunnelStepsProps) {
   if (steps.length === 0) {
     return (
-      <p className="text-sm text-[#a1a1aa] py-8 text-center">No status transitions recorded yet.</p>
+      <p className="text-sm text-muted-foreground py-8 text-center">No status transitions recorded yet.</p>
     );
   }
 
@@ -58,23 +60,23 @@ export function StatusFunnelSteps({ steps }: StatusFunnelStepsProps) {
           {i === 0 && (
             <div
               className={cn(
-                "rounded-md border px-3 py-1.5 text-[12px] font-medium",
-                STATUS_COLOR[step.from] ?? "bg-zinc-50 text-zinc-700 border-zinc-200",
+                "rounded-md border px-3 py-1.5 text-sm font-medium",
+                STATUS_COLOR[step.from] ?? FALLBACK_COLOR,
               )}
             >
               {STATUS_LABEL[step.from] ?? step.from}
             </div>
           )}
           <div className="flex flex-col items-center gap-0.5">
-            <ArrowRight className="h-3.5 w-3.5 text-[#a1a1aa]" />
-            <span className="text-[10px] text-[#a1a1aa] tabular-nums whitespace-nowrap">
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
               {step.avgDays}d avg · {step.count}
             </span>
           </div>
           <div
             className={cn(
-              "rounded-md border px-3 py-1.5 text-[12px] font-medium",
-              STATUS_COLOR[step.to] ?? "bg-zinc-50 text-zinc-700 border-zinc-200",
+              "rounded-md border px-3 py-1.5 text-sm font-medium",
+              STATUS_COLOR[step.to] ?? FALLBACK_COLOR,
             )}
           >
             {STATUS_LABEL[step.to] ?? step.to}

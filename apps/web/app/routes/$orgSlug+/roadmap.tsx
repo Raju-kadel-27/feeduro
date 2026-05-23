@@ -1,5 +1,5 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { ColumnSkeleton } from "@features/roadmap/components/column-skeleton";
 import { KanbanBoard } from "@features/roadmap/components/kanban-board";
 import { useRoadmap } from "@features/roadmap/hooks/use-roadmap";
@@ -43,7 +43,7 @@ export default function RoadmapPage() {
         </header>
 
         <div className="flex flex-col h-[calc(100svh-3.5rem)] overflow-hidden">
-          <div className="flex-1 overflow-x-auto overflow-y-hidden px-2 py-5">
+          <div className="flex-1 overflow-x-auto overflow-y-hidden px-6 py-5">
             {isLoading ? (
               <ColumnSkeleton />
             ) : (

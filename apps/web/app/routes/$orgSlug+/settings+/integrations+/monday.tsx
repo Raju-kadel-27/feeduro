@@ -3,7 +3,7 @@ import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import type { MondaySettings } from "@features/integrations/monday/server/schemas";
 import { getIntegration, parseSettings } from "@features/integrations/server/queries";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";

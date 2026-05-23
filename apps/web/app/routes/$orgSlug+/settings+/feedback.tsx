@@ -4,7 +4,7 @@ import { FeedbackSettingsPanel } from "@features/feedback/components/settings/fe
 import { getOrgCategories } from "@features/feedback/server/categories.server";
 import { parseFeedbackSettings } from "@features/feedback/server/feedback-settings";
 import { getOrgTags } from "@features/feedback/server/tags.server";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";

@@ -101,7 +101,7 @@ export function SidebarUserFooter() {
                 {session?.user.name?.[0]?.toUpperCase() ?? "?"}
               </div>
             )}
-            <span className="text-xs text-[hsl(var(--sidebar-foreground))] truncate">
+            <span className="text-xs text-sidebar-foreground truncate">
               {session?.user.name ?? session?.user.email ?? ""}
             </span>
           </button>

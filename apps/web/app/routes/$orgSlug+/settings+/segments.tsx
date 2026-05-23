@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { getOrgSegments } from "@features/segmentation/server/service";
 import type { Segment, SegmentFilters } from "@features/segmentation/types";
 import { cn } from "@lib/utils";
@@ -115,9 +115,8 @@ function SegmentForm({
   }
 
   return (
-    <div className="space-y-4 p-4 rounded-lg border border-[#e4e4e7] bg-[#fafafa]">
+    <div className="space-y-4 p-4 rounded-lg border border-border bg-muted/40">
       <div className="flex items-center gap-3">
-        {/* Color picker */}
         <div className="flex gap-1.5 flex-wrap">
           {COLOR_OPTIONS.map((c) => (
             <button
@@ -126,7 +125,7 @@ function SegmentForm({
               onClick={() => setForm((f) => ({ ...f, color: c }))}
               className={cn(
                 "h-5 w-5 rounded-full transition-transform",
-                form.color === c && "ring-2 ring-offset-1 ring-[#18181b] scale-110",
+                form.color === c && "ring-2 ring-offset-1 ring-ring scale-110",
               )}
               style={{ backgroundColor: c }}
             />
@@ -137,13 +136,12 @@ function SegmentForm({
           placeholder="Segment name (e.g. Paying customers)"
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          className="flex-1 px-3 py-1.5 text-sm rounded-md border border-[#e4e4e7] bg-white focus:outline-none focus:ring-1 focus:ring-[#18181b]"
+          className="flex-1 px-3 py-1.5 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
         />
       </div>
 
-      {/* Plan filter */}
       <div>
-        <p className="text-xs text-[#71717a] font-medium mb-1.5">Customer plan</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1.5">Customer plan</p>
         <div className="flex flex-wrap gap-1.5">
           {PLAN_OPTIONS.map((p) => (
             <button
@@ -153,8 +151,8 @@ function SegmentForm({
               className={cn(
                 "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
                 form.plan.includes(p)
-                  ? "bg-[#18181b] text-white border-[#18181b]"
-                  : "border-[#d4d4d8] text-[#71717a] hover:border-[#a1a1aa]",
+                  ? "bg-foreground text-background border-foreground"
+                  : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
               )}
             >
               {p}
@@ -163,11 +161,10 @@ function SegmentForm({
         </div>
       </div>
 
-      {/* Other trait filters */}
       <div className="grid grid-cols-3 gap-3">
         {(["role", "industry", "location"] as const).map((field) => (
           <label key={field} className="block">
-            <span className="text-xs text-[#71717a] font-medium capitalize block mb-1">
+            <span className="text-xs text-muted-foreground font-medium capitalize block mb-1">
               {field}
             </span>
             <input
@@ -175,15 +172,14 @@ function SegmentForm({
               placeholder={`e.g. ${field === "role" ? "founder" : field === "industry" ? "SaaS" : "North America"}`}
               value={form[field]}
               onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-              className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-[#e4e4e7] bg-white focus:outline-none focus:ring-1 focus:ring-[#18181b]"
+              className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </label>
         ))}
       </div>
 
-      {/* Company size range */}
       <div>
-        <p className="text-xs text-[#71717a] font-medium mb-1.5">Company size (employees)</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1.5">Company size (employees)</p>
         <div className="flex items-center gap-2">
           <input
             type="number"
@@ -191,16 +187,16 @@ function SegmentForm({
             placeholder="Min"
             value={form.minCompanySize}
             onChange={(e) => setForm((f) => ({ ...f, minCompanySize: e.target.value }))}
-            className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-[#e4e4e7] bg-white focus:outline-none focus:ring-1 focus:ring-[#18181b]"
+            className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
-          <span className="text-xs text-[#a1a1aa] shrink-0">to</span>
+          <span className="text-xs text-muted-foreground shrink-0">to</span>
           <input
             type="number"
             min={1}
             placeholder="Max"
             value={form.maxCompanySize}
             onChange={(e) => setForm((f) => ({ ...f, maxCompanySize: e.target.value }))}
-            className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-[#e4e4e7] bg-white focus:outline-none focus:ring-1 focus:ring-[#18181b]"
+            className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
       </div>
@@ -209,7 +205,7 @@ function SegmentForm({
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md border border-[#e4e4e7] hover:bg-[#f4f4f5] transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md border border-border hover:bg-accent transition-colors"
         >
           <X className="h-3.5 w-3.5" /> Cancel
         </button>
@@ -217,7 +213,7 @@ function SegmentForm({
           type="button"
           disabled={!form.name.trim()}
           onClick={() => onSave(form)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md bg-[#18181b] text-white hover:bg-[#27272a] transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors disabled:opacity-40"
         >
           <Check className="h-3.5 w-3.5" /> Save segment
         </button>
@@ -307,7 +303,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-md bg-[#18181b] text-white hover:bg-[#27272a] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors"
             >
               <Plus className="h-3.5 w-3.5" /> New segment
             </button>
@@ -316,13 +312,12 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
 
         <div className="flex flex-1 items-center justify-center p-6">
           <div className="w-full max-w-2xl space-y-4">
-            {/* API usage hint */}
-            <div className="rounded-lg border border-[#e4e4e7] p-4 text-sm bg-[#fafafa]">
-              <p className="font-medium text-[#18181b] mb-1">Identify users via API</p>
-              <p className="text-[#71717a] text-[13px] mb-2">
+            <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
+              <p className="font-medium text-foreground mb-1">Identify users via API</p>
+              <p className="text-muted-foreground text-[13px] mb-2">
                 Push customer traits from your backend using your API key:
               </p>
-              <pre className="text-[12px] bg-[#f4f4f5] rounded p-3 overflow-x-auto text-[#18181b]">{`POST /api/user-profiles
+              <pre className="text-[12px] bg-muted rounded p-3 overflow-x-auto text-foreground">{`POST /api/user-profiles
 Authorization: Bearer <your-api-key>
 
 {
@@ -346,7 +341,7 @@ Authorization: Bearer <your-api-key>
             )}
 
             {segments.length === 0 && !creating ? (
-              <div className="text-center py-16 text-[#71717a]">
+              <div className="text-center py-16 text-muted-foreground">
                 <p className="text-sm font-medium">No segments yet</p>
                 <p className="text-xs mt-1">
                   Create a segment to filter feedback by customer traits.
@@ -365,7 +360,7 @@ Authorization: Bearer <your-api-key>
                   ) : (
                     <div
                       key={seg.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-[#e4e4e7] bg-white"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
                     >
                       <span
                         className="h-3 w-3 rounded-full shrink-0"
@@ -375,13 +370,13 @@ Authorization: Bearer <your-api-key>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium truncate">{seg.name}</p>
                           {seg.memberCount != null && (
-                            <span className="text-[11px] text-[#a1a1aa] tabular-nums shrink-0">
+                            <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
                               {seg.memberCount.toLocaleString()}{" "}
                               {seg.memberCount === 1 ? "user" : "users"}
                             </span>
                           )}
                         </div>
-                        <p className="text-[12px] text-[#71717a] truncate">
+                        <p className="text-[12px] text-muted-foreground truncate">
                           {describeFilters(seg.filters)}
                         </p>
                       </div>
@@ -390,14 +385,14 @@ Authorization: Bearer <your-api-key>
                           <button
                             type="button"
                             onClick={() => setEditingId(seg.id)}
-                            className="p-1.5 rounded hover:bg-[#f4f4f5] text-[#71717a] hover:text-[#18181b] transition-colors"
+                            className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(seg.id, seg.name)}
-                            className="p-1.5 rounded hover:bg-[#fef2f2] text-[#71717a] hover:text-red-500 transition-colors"
+                            className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

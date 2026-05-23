@@ -84,13 +84,14 @@ export async function getLinearIssueById(
 export async function registerLinearWebhook(
   accessToken: string,
   webhookUrl: string,
+  teamId: string,
 ): Promise<LinearWebhookResult> {
   const d = await linearGql<{ webhookCreate: { success: boolean; webhook: LinearWebhookResult } }>(
     accessToken,
     `mutation WebhookCreate($input: WebhookCreateInput!) {
       webhookCreate(input: $input) { success webhook { id secret } }
     }`,
-    { input: { url: webhookUrl, resourceTypes: ["Issue"], allPublicTeams: true } },
+    { input: { url: webhookUrl, resourceTypes: ["Issue"], teamId } },
   );
   if (!d.webhookCreate.success) throw new Error("Failed to register Linear webhook");
   return d.webhookCreate.webhook;

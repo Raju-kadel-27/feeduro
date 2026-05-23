@@ -172,7 +172,8 @@ export async function action({ request, context }: Route.ActionArgs) {
       boardId,
       title: title.trim(),
       description: description?.trim() || null,
-      createdBy: "public",
+      createdBy: null,
+      isPublicSubmission: true,
       submitterEmail,
       submitterName,
     })

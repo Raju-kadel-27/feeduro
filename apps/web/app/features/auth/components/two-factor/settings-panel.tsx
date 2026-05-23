@@ -5,7 +5,7 @@ import { TwoFactorManageSection } from "@features/auth/components/two-factor/man
 import { TwoFactorPasswordStep } from "@features/auth/components/two-factor/password-step";
 import { TwoFactorStatus } from "@features/auth/components/two-factor/status";
 import { useTwoFactor } from "@features/auth/hooks/use-two-factor";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 

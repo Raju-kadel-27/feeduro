@@ -46,6 +46,20 @@
   --sidebar-accent-foreground: hsl(240 5.9% 10%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+  /* Changelog */
+  --cl-surface: hsl(0 0% 100%);
+  --cl-surface-alt: hsl(210 40% 96.1%);
+  --cl-border: hsl(214.3 31.8% 91.4%);
+  --cl-text: hsl(222.2 84% 4.9%);
+  --cl-text-muted: hsl(215.4 16.3% 46.9%);
+  --cl-pill-active-bg: hsl(222.2 84% 4.9%);
+  --cl-pill-active-fg: hsl(0 0% 100%);
+  --cl-tag-feature: #1d6b52;
+  --cl-tag-improvement: #7a4e10;
+  --cl-tag-api: #354a80;
+  --cl-tag-fix: #8b2020;
+  --cl-tag-performance: #7a4e10;
 }
 
 .dark {
@@ -85,15 +99,29 @@
   --chart-4: hsl(38 90% 55%);
   --chart-5: hsl(340 72% 58%);
 
-  /* Sidebar — one step darker than main background */
-  --sidebar-background: hsl(220 13% 6%);
-  --sidebar-foreground: hsl(210 14% 88%);
-  --sidebar-primary: hsl(222 89% 63%);
+  /* Sidebar — Linear-inspired dark, deep navy-black with crisp text */
+  --sidebar-background: hsl(232 18% 8%);
+  --sidebar-foreground: hsl(224 18% 76%);
+  --sidebar-primary: hsl(228 90% 65%);
   --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(220 11% 13%);
-  --sidebar-accent-foreground: hsl(210 14% 88%);
-  --sidebar-border: hsl(220 11% 15%);
-  --sidebar-ring: hsl(222 89% 63%);
+  --sidebar-accent: hsl(232 16% 16%);
+  --sidebar-accent-foreground: hsl(224 28% 95%);
+  --sidebar-border: hsl(232 14% 13%);
+  --sidebar-ring: hsl(228 90% 65%);
+
+  /* Changelog */
+  --cl-surface: #161A21;
+  --cl-surface-alt: #1B2029;
+  --cl-border: #262C36;
+  --cl-text: #E8ECF1;
+  --cl-text-muted: #8C95A3;
+  --cl-pill-active-bg: #E8ECF1;
+  --cl-pill-active-fg: #0E1116;
+  --cl-tag-feature: #A8D3C2;
+  --cl-tag-improvement: #D4A05A;
+  --cl-tag-api: #A6B4D4;
+  --cl-tag-fix: #E08585;
+  --cl-tag-performance: #D4A05A;
 }
 
 /* ============ Tailwind v4 Theme Tokens ============ */
@@ -167,6 +195,41 @@
   --shadow-polaris-button-active: inset 0px 1px 0px 0.5px #e7e7e7;
 }
 
+/* ============ Animations ============ */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+.animate-page-enter {
+  animation: page-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 160ms ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ============ Base styles ============ */
 
 @layer base {
@@ -174,7 +237,6 @@
     border-color: var(--color-border);
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--border)) transparent;
-    font-size: 16px;
   }
 
   ::-webkit-scrollbar {
@@ -190,12 +252,18 @@
   }
 
   html {
-    font-size: 19px;
+    font-size: 20px;
+    font-family: var(--font-sans);
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  button {
+    cursor: pointer;
   }
 
   /* Ensure BlockNote borders and outlines use the correct theme tokens */

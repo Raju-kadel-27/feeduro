@@ -21,7 +21,7 @@ export function TopNav({
 }) {
   return (
     <header className="sticky top-0 z-30 backdrop-blur bg-background/80 border-b border-border/60">
-      <div className="mx-auto flex h-14 max-w-[1440px] items-center px-6">
+      <div className="mx-auto flex h-11 max-w-[1440px] items-center px-6">
         <div className="w-[520px] shrink-0 flex items-center">
           <a href="/" className="flex items-center gap-2.5">
             <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[12px] font-bold">
@@ -37,13 +37,13 @@ export function TopNav({
               key={tab}
               to={tab === "feedback" ? "?" : `?tab=${tab}`}
               className={cn(
-                "relative px-3 h-14 text-[13.5px] inline-flex items-center capitalize transition-colors",
+                "relative px-3 h-11 text-[15px] inline-flex items-center capitalize transition-colors",
                 currentTab === tab
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {tab}
+              {tab === "updates" ? "Changelogs" : tab}
               {currentTab === tab && (
                 <span className="absolute left-3 right-3 bottom-0 h-px bg-foreground" />
               )}

@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { InviteMemberDialog } from "@features/workspace/components/invite-member-dialog";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

@@ -176,7 +176,6 @@ async function seed() {
       name: "Bug Reports",
       slug: "bug-reports",
       description: "Report issues and bugs",
-      isDefault: true,
     },
     {
       name: "Integrations",
@@ -1132,7 +1131,7 @@ async function seed() {
 
   // ── 8. Reactions ─────────────────────────────────────────────────────────
 
-  const reactionTypes = ["heart", "rocket", "eyes", "thumbsup"];
+  const reactionTypes = ["heart", "thumbsup", "thumbsdown", "laugh", "wow"] as const;
   let reactionCount = 0;
 
   for (const postId of postIds.slice(0, 10)) {

@@ -7,10 +7,9 @@ interface Props {
 
 export function IntegrationSection({ title, children }: Props) {
   return (
-    <section className="space-y-3">
-      <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
-
-      {children}
+    <section className="space-y-2">
+      <h3 className="text-base font-medium text-gray-600">{title}</h3>
+      <div className="grid grid-cols-3 gap-2">{children}</div>
     </section>
   );
 }

@@ -28,6 +28,8 @@ import {
 import { jiraOAuth } from "./oauth";
 import { JiraActionSchema, type JiraSettings } from "./schemas";
 
+const LOG = "[jira-service]";
+
 const CALLBACK_PATH = "/api/jira";
 
 function callbackUrl(): string {
@@ -140,9 +142,12 @@ export async function handleJiraLoader(request: Request) {
       const webhookUrl = `${getBaseUrl()}/api/jira/webhook?orgId=${parsed.orgId}&secret=`;
       const isLocal = webhookUrl.includes("localhost") || webhookUrl.includes("127.0.0.1");
 
-      if (!isLocal) {
+      if (isLocal) {
+        console.warn(`${LOG} OAuth callback — webhook skipped, local URL detected`);
+      } else {
         try {
           webhookSecret = crypto.randomUUID();
+          console.log(`${LOG} registering webhook cloudId=${selectedCloud.id} orgId=${parsed.orgId}`);
           const reg = await registerJiraWebhook(
             accessToken,
             selectedCloud.id,
@@ -150,7 +155,12 @@ export async function handleJiraLoader(request: Request) {
           );
           webhookIds = reg.ids;
           webhookExpiresAt = reg.expiresAt;
-        } catch {
+          console.log(`${LOG} webhook registered ids=${JSON.stringify(webhookIds)} expiresAt=${webhookExpiresAt}`);
+        } catch (err) {
+          console.error(
+            `${LOG} webhook registration failed — issue sync will NOT work:`,
+            err instanceof Error ? err.message : err,
+          );
           webhookSecret = undefined;
         }
       }
@@ -307,36 +317,86 @@ export async function handleJiraAction(request: Request) {
   }
 
   if (input.intent === "update_settings") {
+    console.log(
+      `${LOG} update_settings orgId=${organizationId} project=${input.defaultProjectKey ?? "none"} autoCreate=${input.autoCreateIssues}`,
+    );
     const integration = await getIntegration(organizationId, "jira");
-    if (!integration) return data({ error: "No Jira integration found" }, { status: 400 });
+    if (!integration?.accessToken) return data({ error: "No Jira integration found" }, { status: 400 });
     const settings = parseSettings<JiraSettings>(integration.settings) ?? ({} as JiraSettings);
+
+    let { webhookIds, webhookSecret, webhookExpiresAt } = settings;
+    const projectKey = input.defaultProjectKey ?? settings.defaultProjectKey;
+    const projectChanged = input.defaultProjectKey && input.defaultProjectKey !== settings.defaultProjectKey;
+    const noWebhook = !webhookIds?.length;
+    const webhookUrl = `${getBaseUrl()}/api/jira/webhook?orgId=${organizationId}&secret=`;
+    const isLocal = webhookUrl.includes("localhost") || webhookUrl.includes("127.0.0.1");
+
+    if (projectKey && !isLocal && (noWebhook || projectChanged)) {
+      try {
+        if (webhookIds?.length && settings.cloudId) {
+          console.log(`${LOG} deleting old webhooks ids=${JSON.stringify(webhookIds)}`);
+          await deleteJiraWebhooks(integration.accessToken, settings.cloudId, webhookIds).catch(
+            (err) => console.warn(`${LOG} failed to delete old webhooks:`, err),
+          );
+        }
+        webhookSecret = crypto.randomUUID();
+        const jqlFilter = `project = ${projectKey}`;
+        console.log(`${LOG} registering webhook jqlFilter="${jqlFilter}" cloudId=${settings.cloudId}`);
+        const reg = await registerJiraWebhook(
+          integration.accessToken,
+          settings.cloudId!,
+          `${webhookUrl}${webhookSecret}`,
+          jqlFilter,
+        );
+        webhookIds = reg.ids;
+        webhookExpiresAt = reg.expiresAt;
+        console.log(`${LOG} webhook registered ids=${JSON.stringify(webhookIds)} expiresAt=${webhookExpiresAt}`);
+      } catch (err) {
+        console.error(
+          `${LOG} webhook registration failed — issue sync will NOT work:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+    } else if (isLocal) {
+      console.warn(`${LOG} webhook skipped — local URL, issue sync will NOT work`);
+    }
+
     await updateIntegrationSettings(
       organizationId,
       "jira",
       {
         ...settings,
-        defaultProjectKey: input.defaultProjectKey ?? settings.defaultProjectKey,
+        defaultProjectKey: projectKey,
         autoCreateIssues: input.autoCreateIssues,
         statusMappings: input.statusMappings ?? settings.statusMappings,
+        webhookIds,
+        webhookSecret,
+        webhookExpiresAt,
       },
       session.user.id,
     );
+    console.log(`${LOG} update_settings done orgId=${organizationId} hasWebhook=${!!webhookIds?.length}`);
     return data({ success: true });
   }
 
   if (input.intent === "disconnect") {
+    console.log(`${LOG} disconnect orgId=${organizationId}`);
     const integration = await getIntegration(organizationId, "jira");
     if (integration?.accessToken) {
       const settings = parseSettings<JiraSettings>(integration.settings);
       if (settings?.cloudId && settings.webhookIds?.length) {
+        console.log(`${LOG} deleting webhooks ids=${JSON.stringify(settings.webhookIds)}`);
         await deleteJiraWebhooks(
           integration.accessToken,
           settings.cloudId,
           settings.webhookIds,
-        ).catch(() => {});
+        ).catch((err) => console.warn(`${LOG} failed to delete webhooks on disconnect:`, err));
+      } else {
+        console.warn(`${LOG} disconnect — no webhookIds, webhooks may still exist in Jira`);
       }
     }
     await deleteIntegration(organizationId, "jira");
+    console.log(`${LOG} disconnect done orgId=${organizationId}`);
     return data({ success: true });
   }
 

@@ -132,6 +132,13 @@ export function FeedbackSettingsPanel({
     onError: (err) => toast.error(err.message),
   });
 
+  const { mutate: updateAnonymizeUsers } = useMutation({
+    mutationFn: ({ id, anonymizeUsers }: { id: string; anonymizeUsers: boolean }) =>
+      callApi("/api/boards", { intent: "update-anonymize-users", id, anonymizeUsers }),
+    onSuccess: () => revalidator.revalidate(),
+    onError: (err) => toast.error(err.message),
+  });
+
   const { mutate: createBoard, isPending: creatingBoard } = useMutation({
     mutationFn: () =>
       callApi("/api/boards", {
@@ -279,6 +286,7 @@ export function FeedbackSettingsPanel({
           onUpdateSmartReplies={(id, enabled, instructions) =>
             updateSmartReplies({ id, enabled, instructions })
           }
+          onUpdateAnonymizeUsers={(id, anonymizeUsers) => updateAnonymizeUsers({ id, anonymizeUsers })}
         />
 
         {isAdmin && showCreateBoard && (

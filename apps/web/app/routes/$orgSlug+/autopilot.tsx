@@ -1,7 +1,7 @@
 import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import type { SuggestionWithPosts } from "@features/autopilot/types";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bot, Check, ExternalLink, Merge, X } from "lucide-react";
 import { Link, useParams } from "react-router";

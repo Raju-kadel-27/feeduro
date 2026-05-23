@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrganization } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { NotificationItem } from "@features/notifications/components/notification-item";
 import type { Notification } from "@features/notifications/schemas/notification";
 import { markAllNotificationsRead } from "@features/notifications/server/mutations";

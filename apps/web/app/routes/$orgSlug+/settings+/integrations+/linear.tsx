@@ -2,7 +2,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/si
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getIntegration } from "@features/integrations/server/queries";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";

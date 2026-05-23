@@ -34,16 +34,7 @@ export function RefineChip({
   onClear,
 }: RefineChipProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -53,6 +44,15 @@ export function RefineChip({
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
+
+  function openMenu() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  }
+
+  function scheduleClose() {
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  }
 
   if (hidden) return null;
 
@@ -64,13 +64,13 @@ export function RefineChip({
     : (options.find((o) => o.value === singleSelected)?.label ?? singleSelected ?? "");
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative" onMouseEnter={openMenu} onMouseLeave={scheduleClose}>
       <div
         className={cn(
           "inline-flex items-center rounded-md text-[13.5px] transition-colors",
           isActive
-            ? "border border-[#d4d4d8] bg-[#f4f4f5] font-medium text-[#18181b]"
-            : "border border-dashed border-[#d4d4d8] text-[#71717a] hover:bg-[#f4f4f5] hover:border-solid hover:text-[#18181b]",
+            ? "border border-border bg-accent font-medium text-foreground"
+            : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
         )}
       >
         <button
@@ -80,13 +80,13 @@ export function RefineChip({
         >
           {isActive ? (
             <>
-              <span className="text-[#71717a] font-normal">{label}:</span>
+              <span className="text-muted-foreground font-normal">{label}:</span>
               <span className="font-semibold">{activeLabel}</span>
             </>
           ) : (
             <>
               <span>{label}</span>
-              <ChevronDown className="h-3 w-3 text-[#a1a1aa]" />
+              <ChevronDown className="h-3 w-3 text-muted-foreground" />
             </>
           )}
         </button>
@@ -97,7 +97,7 @@ export function RefineChip({
               e.stopPropagation();
               onClear();
             }}
-            className="pr-2 ml-0.5 text-[#71717a] hover:text-[#18181b] transition-colors"
+            className="pr-2 ml-0.5 text-muted-foreground hover:text-foreground transition-colors"
             aria-label={`Clear ${label} filter`}
           >
             <X className="h-3 w-3" />
@@ -106,7 +106,7 @@ export function RefineChip({
       </div>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 z-50 min-w-[220px] rounded-lg border border-[#ececec] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.02)] overflow-hidden">
+        <div className="absolute top-full left-0 mt-1.5 z-50 min-w-[220px] rounded-lg border border-border bg-popover shadow-lg dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)] overflow-hidden">
           <ul>
             {options.map((opt) => {
               const checked = multiSelect
@@ -121,14 +121,14 @@ export function RefineChip({
                       if (!multiSelect) setOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center gap-2.5 px-3 py-2 text-[13.5px] hover:bg-[#f4f4f5] transition-colors text-left",
-                      checked && "bg-[#f4f4f5]",
+                      "w-full flex items-center gap-2.5 px-3 py-2 text-[13.5px] hover:bg-accent transition-colors text-left",
+                      checked && "bg-accent",
                     )}
                   >
                     <span
                       className={cn(
                         "h-3.5 w-3.5 rounded-sm border-[1.5px] shrink-0 flex items-center justify-center transition-colors",
-                        checked ? "bg-[#18181b] border-[#18181b]" : "border-[#d4d4d8]",
+                        checked ? "bg-foreground border-foreground" : "border-border",
                       )}
                     >
                       {checked && (
@@ -151,7 +151,7 @@ export function RefineChip({
                     )}
                     <span className="flex-1 truncate">{opt.label}</span>
                     {opt.count != null && (
-                      <span className="text-[12px] text-[#a1a1aa] tabular-nums shrink-0">
+                      <span className="text-[12px] text-muted-foreground tabular-nums shrink-0">
                         {opt.count}
                       </span>
                     )}
@@ -161,14 +161,14 @@ export function RefineChip({
             })}
           </ul>
           {multiSelect && selected.length > 0 && (
-            <div className="border-t border-[#ececec]">
+            <div className="border-t border-border">
               <button
                 type="button"
                 onClick={() => {
                   onClear();
                   setOpen(false);
                 }}
-                className="w-full px-3 py-2 text-[13px] text-[#71717a] hover:bg-[#f4f4f5] text-left transition-colors"
+                className="w-full px-3 py-2 text-[13px] text-muted-foreground hover:bg-accent text-left transition-colors"
               >
                 Clear
               </button>
@@ -193,7 +193,7 @@ export function BooleanChip({ label, active, onToggle, onClear }: BooleanChipPro
       <button
         type="button"
         onClick={onToggle}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[13.5px] border font-medium transition-colors border-dashed border-[#d4d4d8] text-[#71717a] hover:bg-[#f4f4f5] hover:border-solid"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[13.5px] border font-medium transition-colors border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground"
       >
         {label}
       </button>
@@ -201,12 +201,12 @@ export function BooleanChip({ label, active, onToggle, onClear }: BooleanChipPro
   }
 
   return (
-    <div className="inline-flex items-center rounded-md text-[13.5px] border font-medium border-[#d4d4d8] bg-[#f4f4f5] text-[#18181b]">
+    <div className="inline-flex items-center rounded-md text-[13.5px] border font-medium border-border bg-accent text-foreground">
       <span className="pl-2.5 py-1">{label}</span>
       <button
         type="button"
         onClick={onClear}
-        className="px-2 py-1 text-[#71717a] hover:text-[#18181b] transition-colors"
+        className="px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
         aria-label={`Clear ${label} filter`}
       >
         <X className="h-3 w-3" />

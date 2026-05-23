@@ -19,7 +19,7 @@ export function StatusFilterChip({
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 h-8 text-xs font-medium transition-colors",
         active
           ? "border-current text-foreground"
-          : "border-slate-200 text-slate-600 hover:text-slate-900",
+          : "border-border text-muted-foreground hover:text-foreground",
       )}
       style={active ? { borderColor: s.dot, color: s.dot } : undefined}
     >

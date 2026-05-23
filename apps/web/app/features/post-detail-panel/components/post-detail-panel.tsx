@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useCommentActions } from "../hooks/use-comment-actions";
 import { useIntegrationLinks } from "../hooks/use-integration-links";
 import { useMergeActions } from "../hooks/use-merge-actions";
+import { useOwnerPicker } from "../hooks/use-owner-picker";
 import { usePostData } from "../hooks/use-post-data";
 import { useVoteStatus } from "../hooks/use-vote-status";
 import type { FeedItem } from "./post-activity-feed";
@@ -30,6 +31,7 @@ export function PostDetailPanel({
   const comments = useCommentActions(postId, onDataChange);
   const merge = useMergeActions({ postId, initializedRef, onDataChange, onOpenPost, onClose });
   const integrations = useIntegrationLinks(postId);
+  const owner = useOwnerPicker(postId, onDataChange);
 
   const post = detailData?.postDetail;
   const isAdmin = detailData?.currentRole === "admin";
@@ -44,9 +46,13 @@ export function PostDetailPanel({
       integrations.setAsanaLink(detailData?.asanaLink ?? null);
       comments.setSummary(post.aiSummary ?? null);
       comments.setSummaryGeneratedAt(post.aiSummaryGeneratedAt ?? null);
+      owner.setOwnerId(post.ownerId ?? null);
+      owner.setOwnerName(post.ownerName ?? null);
+      owner.setOwnerImage(post.ownerImage ?? null);
+      owner.setOrgAdmins(detailData?.orgAdmins ?? []);
       initializedRef.current = true;
     }
-  }, [post, detailData, vote, integrations, comments]);
+  }, [post, detailData, vote, integrations, comments, owner]);
 
   useEffect(() => {
     const t = setTimeout(() => merge.setMergeDebounced(merge.mergeSearch), 280);
@@ -99,6 +105,7 @@ export function PostDetailPanel({
           hasMergedInto={!!post.mergedIntoPostId}
           vote={vote}
           integrations={integrations}
+          owner={owner}
           onMergeOpen={merge.openMergeDialog}
           onClose={onClose}
         />

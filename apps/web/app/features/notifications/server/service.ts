@@ -276,6 +276,36 @@ export async function notifyAutopilotDuplicate({
   );
 }
 
+// ─── owner_assigned ───────────────────────────────────────────────────────────
+// Notifies the newly assigned owner when someone assigns them to a post.
+
+export async function notifyOwnerAssigned({
+  postId,
+  postTitle,
+  newOwnerId,
+  actorId,
+  organizationId,
+  actorName,
+}: {
+  postId: string;
+  postTitle: string;
+  newOwnerId: string;
+  actorId: string;
+  organizationId: string;
+  actorName: string;
+}): Promise<void> {
+  await insertNotifications([
+    {
+      organizationId,
+      userId: newOwnerId,
+      type: "owner_assigned" as const,
+      postId,
+      actorId,
+      metadata: { postTitle, actorName },
+    },
+  ]);
+}
+
 // ─── vote_milestone ───────────────────────────────────────────────────────────
 // Notifies the post author when a vote milestone is reached.
 

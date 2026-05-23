@@ -1,5 +1,5 @@
 import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useRevalidator } from "react-router";

@@ -18,7 +18,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "Linear",
 
-      icon: <LinearIcon className="h-5 w-5 text-foreground" />,
+      icon: <LinearIcon className="h-10 w-10 text-foreground" />,
 
       connected: linear.connected,
 
@@ -44,7 +44,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "GitHub Issues",
 
-      icon: <GitHubIcon />,
+      icon: <GitHubIcon className="h-10 w-10 fill-foreground" />,
 
       connected: github.connected,
 
@@ -70,7 +70,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "Jira",
 
-      icon: <JiraIcon size={20} />,
+      icon: <JiraIcon size={40} />,
 
       connected: jira.connected,
 
@@ -96,7 +96,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "Asana",
 
-      icon: <AsanaIcon size={20} />,
+      icon: <AsanaIcon size={40} />,
 
       connected: asana.connected,
 
@@ -122,7 +122,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "Notion",
 
-      icon: <NotionIcon size={20} />,
+      icon: <NotionIcon size={40} />,
 
       connected: notion.connected,
 
@@ -148,7 +148,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "Monday.com",
 
-      icon: <MondayIcon size={20} />,
+      icon: <MondayIcon size={40} />,
 
       connected: monday.connected,
 
@@ -174,7 +174,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "Trello",
 
-      icon: <TrelloIcon size={20} />,
+      icon: <TrelloIcon size={40} />,
 
       connected: trello.connected,
 
@@ -200,7 +200,7 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
     {
       name: "Shortcut",
 
-      icon: <ShortcutIcon size={20} />,
+      icon: <ShortcutIcon size={40} />,
 
       connected: shortcut.connected,
 

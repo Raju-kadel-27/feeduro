@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { CreateRoleDialog } from "@features/roles/components/create-role-dialog";
 import { RolesTable } from "@features/roles/components/roles-table";
 import type { OrgRole } from "@features/roles/types";

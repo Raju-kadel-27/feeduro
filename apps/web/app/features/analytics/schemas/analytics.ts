@@ -1,5 +1,56 @@
 import { z } from "zod";
 
+export const DATE_RANGE_OPTIONS = ["7d", "30d", "90d", "all"] as const;
+export type DateRange = (typeof DATE_RANGE_OPTIONS)[number];
+
+export const StatusBreakdownItemSchema = z.object({
+  status: z.string(),
+  count: z.number(),
+});
+export const StatusBreakdownSchema = z.array(StatusBreakdownItemSchema);
+export type StatusBreakdownItem = z.infer<typeof StatusBreakdownItemSchema>;
+export type StatusBreakdown = z.infer<typeof StatusBreakdownSchema>;
+
+export const ActivityPointSchema = z.object({
+  period: z.string(),
+  count: z.number(),
+});
+export const ActivityOverTimeSchema = z.array(ActivityPointSchema);
+export type ActivityPoint = z.infer<typeof ActivityPointSchema>;
+export type ActivityOverTime = z.infer<typeof ActivityOverTimeSchema>;
+
+export const CompletedPostSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  voteCount: z.number(),
+  completedAt: z.string(),
+});
+export const CompletedPostsSchema = z.array(CompletedPostSchema);
+export type CompletedPost = z.infer<typeof CompletedPostSchema>;
+export type CompletedPosts = z.infer<typeof CompletedPostsSchema>;
+
+export const TagBreakdownItemSchema = z.object({
+  tagName: z.string(),
+  tagColor: z.string(),
+  postCount: z.number(),
+  totalVotes: z.number(),
+});
+export const TagBreakdownSchema = z.array(TagBreakdownItemSchema);
+export type TagBreakdownItem = z.infer<typeof TagBreakdownItemSchema>;
+export type TagBreakdown = z.infer<typeof TagBreakdownSchema>;
+
+export const TrendingPostSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  status: z.string(),
+  totalVotes: z.number(),
+  votesThisWeek: z.number(),
+  votesLastWeek: z.number(),
+});
+export const TrendingPostsSchema = z.array(TrendingPostSchema);
+export type TrendingPost = z.infer<typeof TrendingPostSchema>;
+export type TrendingPosts = z.infer<typeof TrendingPostsSchema>;
+
 export const VoteTrendPointSchema = z.object({
   date: z.string(),
   voteCount: z.number(),

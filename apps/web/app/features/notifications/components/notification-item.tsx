@@ -23,13 +23,13 @@ const TYPE_ICON: Record<string, React.ElementType> = {
 };
 
 const TYPE_COLOR: Record<string, string> = {
-  new_comment: "bg-blue-100 text-blue-600",
-  new_post: "bg-green-100 text-green-600",
-  post_merged: "bg-purple-100 text-purple-600",
-  status_changed: "bg-orange-100 text-orange-600",
-  mention: "bg-pink-100 text-pink-600",
-  vote_milestone: "bg-yellow-100 text-yellow-600",
-  autopilot_duplicate: "bg-violet-100 text-violet-600",
+  new_comment: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  new_post: "bg-green-500/10 text-green-600 dark:text-green-400",
+  post_merged: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  status_changed: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  mention: "bg-pink-500/10 text-pink-600 dark:text-pink-400",
+  vote_milestone: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+  autopilot_duplicate: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
 };
 
 export function notificationText(n: Notification): string {
@@ -71,12 +71,12 @@ interface Props {
 
 export function NotificationItem({ notification: n, href, onClick }: Props) {
   const Icon = TYPE_ICON[n.type] ?? Bell;
-  const colorClass = TYPE_COLOR[n.type] ?? "bg-gray-100 text-gray-600";
+  const colorClass = TYPE_COLOR[n.type] ?? "bg-muted text-muted-foreground";
   const isUnread = !n.readAt;
 
   const className = cn(
     "w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-lg transition-colors hover:bg-accent",
-    isUnread && "bg-orange-50/60",
+    isUnread && "bg-orange-500/5 dark:bg-orange-500/10",
   );
 
   const body = (

@@ -8,6 +8,7 @@ export const NotificationTypeSchema = z.enum([
   "mention",
   "vote_milestone",
   "autopilot_duplicate",
+  "owner_assigned",
 ]);
 
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;

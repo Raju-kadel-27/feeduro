@@ -1,6 +1,7 @@
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useLoaderData } from "react-router";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/app/components/ui/sidebar";
+import { PageTitle } from "@/app/components/common/page-title";
+import { SidebarInset, SidebarProvider } from "@/app/components/ui/sidebar";
 import type { IntegrationsLoaderData } from "../server/loader";
 import { AutomationIntegrations } from "./automation-integrations";
 import { CrmIntegrations } from "./crm-integrations";
@@ -15,11 +16,8 @@ export default function IntegrationsSettings() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Integrations</span>
-        </header>
-        <main className="p-6 max-w-[640px] mx-auto w-full space-y-6">
+        <PageTitle title="Integrations" />
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           <IntegrationsPageHeader />
           <ProjectManagementIntegrations loaderData={loaderData} />
           <CrmIntegrations loaderData={loaderData} />

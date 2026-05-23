@@ -4,6 +4,7 @@ import type { VoterTraitCounts } from "@features/segmentation/types";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, postExternalLinks, votes } from "@/db/schema";
+import { getPostTagsBatch } from "./tags.server";
 
 const EMPTY_TRAITS: VoterTraitCounts = { plan: {}, role: {}, industry: {}, location: {} };
 
@@ -17,7 +18,7 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
 
   const postIds = posts.map((p) => p.id);
 
-  const [allVotes, commentCountRows, voterTraitCounts, githubLinks] = await Promise.all([
+  const [allVotes, commentCountRows, voterTraitCounts, githubLinks, postTagRows] = await Promise.all([
     postIds.length > 0
       ? db.query.votes.findMany({ where: eq(votes.organizationId, organizationId) })
       : Promise.resolve([]),
@@ -49,10 +50,16 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
             ),
           )
       : Promise.resolve([]),
+    postIds.length > 0 ? getPostTagsBatch(postIds) : Promise.resolve([]),
   ]);
 
   const commentCountMap = Object.fromEntries(commentCountRows.map((r) => [r.postId, r.count]));
   const githubLinkMap = Object.fromEntries(githubLinks.map((l) => [l.postId, l]));
+  const tagsByPost: Record<string, string[]> = {};
+  for (const row of postTagRows) {
+    if (!tagsByPost[row.postId]) tagsByPost[row.postId] = [];
+    tagsByPost[row.postId].push(row.id);
+  }
 
   return posts.map((post) => {
     const postVotes = allVotes.filter((v) => v.postId === post.id);
@@ -63,6 +70,7 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
       hasVoted: postVotes.some((v) => v.userId === userId),
       commentCount: commentCountMap[post.id] ?? 0,
       voterTraitCounts: voterTraitCounts[post.id] ?? EMPTY_TRAITS,
+      tagIds: tagsByPost[post.id] ?? [],
       githubIssueNumber: githubLink ? Number(githubLink.externalId) : null,
       githubIssueUrl: githubLink?.externalUrl ?? null,
     };

@@ -3,7 +3,7 @@ import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getIntegration, parseSettings } from "@features/integrations/server/queries";
 import type { ZendeskSettings } from "@features/integrations/zendesk/server/schemas";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getEnv } from "@utils/get-env";

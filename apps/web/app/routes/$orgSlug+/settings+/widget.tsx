@@ -2,7 +2,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/si
 import { Switch } from "@components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { Check, Copy, Eye, EyeOff, RefreshCw } from "lucide-react";

@@ -1,11 +1,26 @@
-import { DatePickerWithRange } from "@components/ui/date-picker-with-range";
-import { SegmentFilterChip } from "@features/segmentation/components/segment-filter-chip";
+import type { Category, Tag } from "@features/dashboard/types";
 import type { Segment } from "@features/segmentation/types";
+import { DateRangeChip } from "./date-range-chip";
 import { cn } from "@lib/utils";
-import { ChevronDown, Filter } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import type { Board, Refinements, Sort, Status, View, ViewFilters } from "../types";
+import { ChevronDown, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { PageTitle } from "@/app/components/common/page-title";
+import type {
+  Board,
+  Refinements,
+  Sort,
+  Status,
+  View,
+  ViewFilters,
+} from "../types";
 import { BooleanChip, type ChipOption, RefineChip } from "./refine-chip";
+import { ViewsChip } from "./views-chip";
+
+interface OrgAdmin {
+  id: string;
+  name: string | null;
+  image: string | null;
+}
 
 const STATUS_OPTIONS: ChipOption[] = [
   { value: "open", label: "Pending", color: "#94a3b8" },
@@ -24,46 +39,101 @@ const SORT_OPTIONS: { value: Sort; label: string }[] = [
 ];
 
 interface RefineChipBarProps {
+  views: View[];
+  activeViewId: string | null;
   activeView: View | undefined;
+  viewCounts: Record<string, number>;
   refinements: Refinements;
   effectiveSort: Sort;
   hasRefinements: boolean;
   boards: Board[];
+  tags?: Tag[];
+  categories?: Category[];
   segments?: Segment[];
-  onSetRefinement: (key: string, value: string | string[] | boolean | undefined) => void;
+  orgAdmins?: OrgAdmin[];
+  onSwitchView: (viewId: string) => void;
+  onClearView: () => void;
+  onSetRefinement: (
+    key: string,
+    value: string | string[] | boolean | undefined,
+  ) => void;
   onClearRefinements: () => void;
   onSaveChanges: () => void;
   onSaveAsNew: () => void;
+  onNewRequest: () => void;
   className?: string;
 }
 
-function SortMenu({ value, onChange }: { value: Sort; onChange: (s: Sort) => void }) {
+const DEFAULT_SORT: Sort = "newest";
+
+function SortMenu({
+  value,
+  onChange,
+}: {
+  value: Sort;
+  onChange: (s: Sort) => void;
+}) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function h(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open]);
-
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isActive = value !== DEFAULT_SORT;
   const label = SORT_OPTIONS.find((o) => o.value === value)?.label ?? "Sort";
 
+  function openMenu() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  }
+
+  function scheduleClose() {
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  }
+
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((p) => !p)}
-        className="inline-flex items-center gap-1 text-[13.5px] text-[#71717a] hover:text-[#18181b] transition-colors"
+    <div
+      className="relative"
+      onMouseEnter={openMenu}
+      onMouseLeave={scheduleClose}
+    >
+      <div
+        className={cn(
+          "inline-flex items-center rounded-md text-[13.5px] transition-colors",
+          isActive
+            ? "border border-border bg-accent font-medium text-foreground"
+            : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
+        )}
       >
-        Sort: <span className="font-medium text-[#18181b]">{label}</span>
-        <ChevronDown className="h-3 w-3" />
-      </button>
+        <button
+          type="button"
+          onClick={() => setOpen((p) => !p)}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1"
+        >
+          {isActive ? (
+            <>
+              <span className="text-muted-foreground font-normal">Sort:</span>
+              <span className="font-semibold">{label}</span>
+            </>
+          ) : (
+            <>
+              <span>Sort</span>
+              <ChevronDown className="h-3 w-3 text-muted-foreground" />
+            </>
+          )}
+        </button>
+        {isActive && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange(DEFAULT_SORT);
+            }}
+            className="pr-2 ml-0.5 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Reset sort"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[180px] rounded-lg border border-[#ececec] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+        <div className="absolute left-0 top-full mt-1.5 z-50 min-w-[180px] rounded-lg border border-border bg-popover shadow-lg dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -73,8 +143,8 @@ function SortMenu({ value, onChange }: { value: Sort; onChange: (s: Sort) => voi
                 setOpen(false);
               }}
               className={cn(
-                "w-full px-3 py-2 text-[13.5px] text-left hover:bg-[#f4f4f5] transition-colors",
-                value === opt.value && "font-medium text-[#18181b]",
+                "w-full px-3 py-2 text-[13.5px] text-left hover:bg-accent transition-colors",
+                value === opt.value && "font-medium text-foreground",
               )}
             >
               {opt.label}
@@ -87,209 +157,218 @@ function SortMenu({ value, onChange }: { value: Sort; onChange: (s: Sort) => voi
 }
 
 export function RefineChipBar({
+  views,
+  activeViewId,
   activeView,
+  viewCounts,
   refinements,
   effectiveSort,
   hasRefinements,
   boards,
+  tags = [],
+  categories = [],
   segments = [],
+  orgAdmins = [],
+  onSwitchView,
+  onClearView,
   onSetRefinement,
   onClearRefinements,
   onSaveChanges,
   onSaveAsNew,
+  onNewRequest,
   className,
 }: RefineChipBarProps) {
   const viewFilters: ViewFilters = activeView?.filters ?? {};
-
-  const boardOptions: ChipOption[] = boards.map((b) => ({ value: b.id, label: b.name }));
+  const boardOptions: ChipOption[] = boards.map((b) => ({
+    value: b.id,
+    label: b.name,
+  }));
+  const ownerOptions: ChipOption[] = [
+    { value: "unassigned", label: "Unassigned" },
+    ...orgAdmins.map((m) => ({ value: m.id, label: m.name ?? m.id })),
+  ];
 
   return (
-    <div className={cn("flex items-center gap-2 px-[18px] py-2 border-b flex-wrap", className)}>
-      <span className="text-[13px] text-[#a1a1aa] font-medium shrink-0">Refine:</span>
-
-      <RefineChip
-        label="Board"
-        options={boardOptions}
-        selected={refinements.board ?? []}
-        multiSelect
-        hidden={!!viewFilters.board?.length}
-        onSelect={(id) => {
-          const cur = refinements.board ?? [];
-          onSetRefinement("board", cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]);
-        }}
-        onClear={() => onSetRefinement("board", [])}
+    <div className={cn("flex flex-col", className)}>
+      <PageTitle
+        title="Feedbacks"
+        className="border-b-0 px-[18px] h-auto pt-2 pb-0"
+        action={
+          <button
+            type="button"
+            onClick={onNewRequest}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+          >
+            <span className="text-base leading-none">+</span>
+            New feedback
+          </button>
+        }
       />
 
-      {viewFilters.minAge == null &&
-        viewFilters.maxAge == null &&
-        !viewFilters.dateFrom &&
-        !viewFilters.dateTo && (
-          <DatePickerWithRange
-            value={{
-              from: refinements.dateFrom ? new Date(refinements.dateFrom) : undefined,
-              to: refinements.dateTo ? new Date(refinements.dateTo) : undefined,
-            }}
-            onChange={(range) => {
-              onSetRefinement("date", undefined);
-              onSetRefinement("dateFrom", range?.from?.toISOString());
-              onSetRefinement("dateTo", range?.to?.toISOString());
-            }}
-            onClear={() => {
-              onSetRefinement("date", undefined);
-              onSetRefinement("dateFrom", undefined);
-              onSetRefinement("dateTo", undefined);
-            }}
-            placeholder="Date"
-            className={cn(
-              "h-auto w-auto py-1 px-2 text-[13px] font-normal rounded-md",
-              refinements.dateFrom || refinements.dateTo
-                ? "bg-[#18181b] text-white border-[#18181b] hover:bg-[#27272a] hover:text-white"
-                : "text-[#71717a] border-[#d4d4d8] hover:bg-[#f4f4f5] hover:text-[#18181b]",
-            )}
-          />
-        )}
+      <div className="flex items-center gap-2 px-[18px] py-2 flex-wrap">
+        <ViewsChip
+          views={views}
+          activeViewId={activeViewId}
+          activeView={activeView}
+          viewCounts={viewCounts}
+          onSwitchView={onSwitchView}
+          onClearView={onClearView}
+        />
+        <SortMenu
+          value={effectiveSort}
+          onChange={(s) => onSetRefinement("sort", s)}
+        />
+        <RefineChip
+          label="Board"
+          options={boardOptions}
+          selected={refinements.board ?? []}
+          multiSelect
+          hidden={!!viewFilters.board?.length}
+          onSelect={(id) => {
+            const cur = refinements.board ?? [];
+            onSetRefinement(
+              "board",
+              cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+            );
+          }}
+          onClear={() => onSetRefinement("board", [])}
+        />
 
-      <RefineChip
-        label="Status"
-        options={STATUS_OPTIONS}
-        selected={refinements.status ?? []}
-        multiSelect
-        hidden={!!viewFilters.status?.length}
-        onSelect={(s) => {
-          const cur = refinements.status ?? [];
-          onSetRefinement(
-            "status",
-            cur.includes(s as Status) ? cur.filter((x) => x !== s) : [...cur, s],
-          );
-        }}
-        onClear={() => onSetRefinement("status", [])}
-      />
+        <DateRangeChip
+          datePreset={refinements.datePreset}
+          dateFrom={refinements.dateFrom}
+          dateTo={refinements.dateTo}
+          hidden={
+            viewFilters.minAge != null ||
+            viewFilters.maxAge != null ||
+            !!viewFilters.dateFrom ||
+            !!viewFilters.dateTo
+          }
+          onSetRefinement={onSetRefinement}
+        />
 
-      {/* Segment chip — only shown when org has segments defined */}
-      <SegmentFilterChip
-        segments={segments}
-        activeSegmentId={refinements.segmentId}
-        onSelect={(id) => onSetRefinement("segment", id)}
-      />
+        <RefineChip
+          label="Tags"
+          options={tags.map((t) => ({ value: t.id, label: t.name, color: t.color }))}
+          selected={refinements.tagIds ?? []}
+          multiSelect
+          hidden={tags.length === 0}
+          onSelect={(id) => {
+            const cur = refinements.tagIds ?? [];
+            onSetRefinement("tag", cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]);
+          }}
+          onClear={() => onSetRefinement("tag", [])}
+        />
 
-      {refinements.hasCustomerComment && (
+        <RefineChip
+          label="Category"
+          options={categories.map((c) => ({ value: c.id, label: c.name, color: c.color }))}
+          selected={refinements.categoryId ?? []}
+          multiSelect
+          hidden={categories.length === 0}
+          onSelect={(id) => {
+            const cur = refinements.categoryId ?? [];
+            onSetRefinement(
+              "category",
+              cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+            );
+          }}
+          onClear={() => onSetRefinement("category", [])}
+        />
+
+        <RefineChip
+          label="Owner"
+          options={ownerOptions}
+          selected={refinements.owner ?? []}
+          multiSelect
+          hidden={ownerOptions.length <= 1}
+          onSelect={(id) => {
+            const cur = refinements.owner ?? [];
+            onSetRefinement(
+              "owner",
+              cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+            );
+          }}
+          onClear={() => onSetRefinement("owner", [])}
+        />
+
+        <RefineChip
+          label="Status"
+          options={STATUS_OPTIONS}
+          selected={refinements.status ?? []}
+          multiSelect
+          hidden={!!viewFilters.status?.length}
+          onSelect={(s) => {
+            const cur = refinements.status ?? [];
+            onSetRefinement(
+              "status",
+              cur.includes(s as Status)
+                ? cur.filter((x) => x !== s)
+                : [...cur, s],
+            );
+          }}
+          onClear={() => onSetRefinement("status", [])}
+        />
+
+        <RefineChip
+          label="Segment"
+          options={segments.map((s) => ({
+            value: s.id,
+            label: s.name,
+            color: s.color,
+          }))}
+          singleSelected={refinements.segmentId}
+          selected={[]}
+          multiSelect={false}
+          hidden={segments.length === 0}
+          onSelect={(id) =>
+            onSetRefinement(
+              "segment",
+              refinements.segmentId === id ? undefined : id,
+            )
+          }
+          onClear={() => onSetRefinement("segment", undefined)}
+        />
+
         <BooleanChip
           label="Customer commented"
-          active
-          onToggle={() => {}}
+          active={!!refinements.hasCustomerComment}
+          onToggle={() => onSetRefinement("cust", true)}
           onClear={() => onSetRefinement("cust", undefined)}
         />
-      )}
-      {refinements.hasComments && (
         <BooleanChip
           label="Has comments"
-          active
-          onToggle={() => {}}
+          active={!!refinements.hasComments}
+          onToggle={() => onSetRefinement("commented", true)}
           onClear={() => onSetRefinement("commented", undefined)}
         />
-      )}
 
-      <PlusFilterMenu
-        hasCust={!!refinements.hasCustomerComment || !!viewFilters.hasCustomerComment}
-        hasCommented={!!refinements.hasComments || !!viewFilters.hasComments}
-        onAddFilter={(key) => onSetRefinement(key, true)}
-      />
-
-      <div className="flex-1" />
-
-      {hasRefinements ? (
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={onClearRefinements}
-            className="px-2.5 py-1 text-[13.5px] text-[#71717a] hover:text-[#18181b] hover:bg-[#f4f4f5] rounded-md transition-colors"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            onClick={onSaveChanges}
-            className="px-2.5 py-1 text-[13.5px] rounded-md border border-[#d4d4d8] hover:bg-[#f4f4f5] transition-colors font-medium"
-          >
-            Save changes
-          </button>
-          <button
-            type="button"
-            onClick={onSaveAsNew}
-            className="px-2.5 py-1 text-[13.5px] rounded-md bg-[#18181b] text-white hover:bg-[#27272a] transition-colors font-medium"
-          >
-            Save as new view
-          </button>
-        </div>
-      ) : (
-        <SortMenu value={effectiveSort} onChange={(s) => onSetRefinement("sort", s)} />
-      )}
-    </div>
-  );
-}
-
-function PlusFilterMenu({
-  hasCust,
-  hasCommented,
-  onAddFilter,
-}: {
-  hasCust: boolean;
-  hasCommented: boolean;
-  onAddFilter: (key: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const allHidden = hasCust && hasCommented;
-
-  useEffect(() => {
-    if (!open) return;
-    function h(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open]);
-
-  if (allHidden) return null;
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((p) => !p)}
-        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[13px] text-[#71717a] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors border border-dashed border-[#d4d4d8] hover:border-solid"
-      >
-        <Filter className="h-3 w-3" />
-        Filter
-      </button>
-      {open && (
-        <div className="absolute left-0 top-full mt-1.5 z-50 min-w-[200px] rounded-lg border border-[#ececec] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
-          {!hasCust && (
+        {hasRefinements && (
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => {
-                onAddFilter("cust");
-                setOpen(false);
-              }}
-              className="w-full px-3 py-2 text-[13.5px] text-left hover:bg-[#f4f4f5] transition-colors"
+              onClick={onClearRefinements}
+              className="px-2.5 py-1 text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
             >
-              Customer commented
+              Reset
             </button>
-          )}
-          {!hasCommented && (
             <button
               type="button"
-              onClick={() => {
-                onAddFilter("commented");
-                setOpen(false);
-              }}
-              className="w-full px-3 py-2 text-[13.5px] text-left hover:bg-[#f4f4f5] transition-colors"
+              onClick={onSaveChanges}
+              className="px-2.5 py-1 text-[13.5px] rounded-md border border-border hover:bg-accent transition-colors font-medium"
             >
-              Has any comments
+              Save changes
             </button>
-          )}
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={onSaveAsNew}
+              className="px-2.5 py-1 text-[13.5px] rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium"
+            >
+              Save as new view
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

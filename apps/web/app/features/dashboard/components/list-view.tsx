@@ -15,7 +15,7 @@ export function ListView({
   group: Group;
   boardMap: Record<string, Board>;
   queryKey: readonly unknown[];
-  usersMap: Record<string, { name: string; image: string | null }>;
+  usersMap?: Record<string, { name: string | null; image: string | null }>;
   onOpen: (id: string) => void;
 }) {
   let groups: { key: string; label: string; hexColor: string; items: Post[] }[];

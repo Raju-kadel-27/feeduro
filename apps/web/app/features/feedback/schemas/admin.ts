@@ -42,7 +42,7 @@ export const ActivityDataSchema = z.object({
   type: z.string(),
   oldValue: z.string().nullable(),
   newValue: z.string(),
-  userId: z.string(),
+  userId: z.string().nullable(),
   createdAt: z.string(),
   userName: z.string().nullable(),
   userImage: z.string().nullable(),
@@ -57,13 +57,20 @@ export const IntegrationLinkSchema = z.object({
 });
 export type IntegrationLink = z.infer<typeof IntegrationLinkSchema>;
 
+export const OrgMemberSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  image: z.string().nullable(),
+});
+export type OrgMember = z.infer<typeof OrgMemberSchema>;
+
 export const PostDetailSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string().nullable(),
   status: z.string(),
   boardId: z.string(),
-  createdBy: z.string(),
+  createdBy: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
   mergedIntoPostId: z.string().nullable(),
@@ -75,6 +82,9 @@ export const PostDetailSchema = z.object({
   authorImage: z.string().nullable(),
   aiSummary: z.string().nullable(),
   aiSummaryGeneratedAt: z.string().nullable(),
+  ownerId: z.string().nullable(),
+  ownerName: z.string().nullable(),
+  ownerImage: z.string().nullable(),
 });
 export type PostDetail = z.infer<typeof PostDetailSchema>;
 
@@ -91,6 +101,7 @@ export const DetailDataSchema = z.object({
   mergedIntoPost: z.object({ id: z.string(), title: z.string() }).nullable(),
   mergedChildren: z.array(z.object({ id: z.string(), title: z.string(), createdAt: z.string() })),
   canUnmerge: z.boolean(),
+  orgAdmins: z.array(OrgMemberSchema),
 });
 export type DetailData = z.infer<typeof DetailDataSchema>;
 

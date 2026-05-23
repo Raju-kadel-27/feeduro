@@ -22,12 +22,14 @@ import {
   getMondayGroups,
   getMondayItemById,
   getMondayMe,
+  getMondayWebhook,
   parseMondayItemInput,
   registerMondayWebhook,
 } from "./client";
 import { mondayOAuth } from "./oauth";
 
 const CALLBACK_PATH = "/api/monday";
+const LOG = "[monday-service]";
 
 function callbackUrl() {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
@@ -62,11 +64,15 @@ export async function handleMondayLoader(request: Request) {
 
   if (code && state) {
     const parsed = parseOAuthState(state);
-    if (!parsed) return redirect("/");
+    if (!parsed) {
+      console.error(`${LOG} OAuth callback: invalid state param`);
+      return redirect("/");
+    }
 
     const env = getEnv();
     if (!env.MONDAY_CLIENT_ID || !env.MONDAY_CLIENT_SECRET) return redirect("/");
 
+    console.log(`${LOG} OAuth callback started orgId=${parsed.orgId}`);
     try {
       const { accessToken } = await exchangeCode(
         mondayOAuth,
@@ -77,14 +83,18 @@ export async function handleMondayLoader(request: Request) {
       );
 
       const me = await getMondayMe(accessToken);
+      console.log(`${LOG} token exchanged accountId=${me.account.id} name="${me.account.name}"`);
 
       const db = getDb();
       const existing = await getIntegration(parsed.orgId, "monday");
       const existingSettings = parseSettings<MondaySettings>(existing?.settings ?? null);
 
       if (existing?.accessToken && existingSettings?.webhookIds?.length) {
+        console.log(`${LOG} cleaning up existing webhooks count=${existingSettings.webhookIds.length}`);
         for (const wid of existingSettings.webhookIds) {
-          await deleteMondayWebhook(existing.accessToken, wid).catch(() => {});
+          await deleteMondayWebhook(existing.accessToken, wid).catch((err) =>
+            console.warn(`${LOG} failed to delete old webhook webhookId=${wid}:`, err),
+          );
         }
       }
 
@@ -102,6 +112,7 @@ export async function handleMondayLoader(request: Request) {
         webhookIds: [],
       };
 
+      console.log(`${LOG} saving integration orgId=${parsed.orgId}`);
       await db
         .insert(integrations)
         .values({
@@ -114,8 +125,12 @@ export async function handleMondayLoader(request: Request) {
           target: [integrations.organizationId, integrations.provider],
           set: { accessToken, settings: JSON.stringify(settings), updatedAt: new Date() },
         });
-    } catch {
-      // Redirect even on error — UI will show "not connected"
+      console.log(`${LOG} OAuth callback complete orgId=${parsed.orgId}`);
+    } catch (err) {
+      console.error(
+        `${LOG} OAuth callback failed orgId=${parsed.orgId}:`,
+        err instanceof Error ? err.message : err,
+      );
     }
 
     const orgSlug = await getOrgSlugFromId(parsed.orgId);
@@ -173,8 +188,13 @@ export async function handleMondayAction(request: Request) {
 
     let webhookIds = settings.webhookIds ?? [];
     if (boardChanged && newBoardId && integration.accessToken) {
-      for (const wid of webhookIds) {
-        await deleteMondayWebhook(integration.accessToken, wid).catch(() => {});
+      if (webhookIds.length) {
+        console.log(`${LOG} deleting old webhooks boardId=${settings.defaultBoardId} count=${webhookIds.length}`);
+        for (const wid of webhookIds) {
+          await deleteMondayWebhook(integration.accessToken, wid).catch((err) =>
+            console.warn(`${LOG} failed to delete webhook webhookId=${wid}:`, err),
+          );
+        }
       }
       webhookIds = [];
 
@@ -182,20 +202,27 @@ export async function handleMondayAction(request: Request) {
       const isLocal = webhookBase.includes("localhost") || webhookBase.includes("127.0.0.1");
 
       if (!isLocal) {
+        console.log(`${LOG} registering webhook boardId=${newBoardId} orgId=${organizationId} event=change_column_value`);
         try {
-          const [statusWid, deleteWid] = await Promise.all([
-            registerMondayWebhook(
-              integration.accessToken,
-              newBoardId,
-              webhookBase,
-              "change_status_column_value",
-            ),
-            registerMondayWebhook(integration.accessToken, newBoardId, webhookBase, "delete_pulse"),
-          ]);
-          webhookIds = [statusWid, deleteWid];
-        } catch {
-          // Non-fatal — status sync disabled without webhooks
+          const statusWid = await registerMondayWebhook(
+            integration.accessToken,
+            newBoardId,
+            webhookBase,
+            "change_column_value",
+          );
+          webhookIds = [statusWid];
+          console.log(`${LOG} webhook registered boardId=${newBoardId} webhookId=${statusWid} event=change_column_value url=${webhookBase}`);
+          getMondayWebhook(integration.accessToken, statusWid)
+            .then((wh) => console.log(`${LOG} webhook verified — Monday.com confirms url="${wh?.url}" event="${wh?.event}"`))
+            .catch(() => {});
+        } catch (err) {
+          console.error(
+            `${LOG} webhook registration failed — status sync will NOT work:`,
+            err instanceof Error ? err.message : err,
+          );
         }
+      } else {
+        console.warn(`${LOG} webhook skipped — local URL, status sync will NOT work`);
       }
     }
 
@@ -224,14 +251,20 @@ export async function handleMondayAction(request: Request) {
   }
 
   if (body.intent === "disconnect") {
+    console.log(`${LOG} disconnect orgId=${organizationId}`);
     const db = getDb();
     const integration = await getIntegration(organizationId, "monday");
     if (integration?.accessToken) {
       const settings = parseSettings<MondaySettings>(integration.settings);
       if (settings?.webhookIds?.length) {
+        console.log(`${LOG} deleting webhooks on disconnect count=${settings.webhookIds.length}`);
         for (const wid of settings.webhookIds) {
-          await deleteMondayWebhook(integration.accessToken, wid).catch(() => {});
+          await deleteMondayWebhook(integration.accessToken, wid).catch((err) =>
+            console.warn(`${LOG} failed to delete webhook webhookId=${wid} on disconnect:`, err),
+          );
         }
+      } else {
+        console.warn(`${LOG} disconnect — no webhookIds in settings, webhooks may still exist in Monday.com`);
       }
     }
     await db
@@ -239,6 +272,7 @@ export async function handleMondayAction(request: Request) {
       .where(
         and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "monday")),
       );
+    console.log(`${LOG} disconnect done orgId=${organizationId}`);
     return data({ success: true });
   }
 

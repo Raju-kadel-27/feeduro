@@ -1,7 +1,9 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
+import { PublishConfirmPopover } from "@features/changelog/components/publish-confirm-popover";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { ArrowLeft, Check, Clock, Globe } from "lucide-react";
@@ -9,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "@/db";
-import { changelogs } from "@/db/schema";
+import { changelogs, organization } from "@/db/schema";
 
 import type { Route } from "./+types/$changelogId";
 
@@ -23,17 +25,22 @@ export function meta({ params }: Route.MetaArgs) {
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const { session, org } = await requireOrgBySlug(request, params.orgSlug);
-
-  if (params.changelogId === "new") {
-    return { user: session.user, changelog: null };
-  }
-
   const db = getDb();
-  const entry = await db.query.changelogs.findFirst({
-    where: and(eq(changelogs.id, params.changelogId), eq(changelogs.organizationId, org.id)),
-  });
 
-  return { user: session.user, changelog: entry ?? null };
+  const [orgRow, entry] = await Promise.all([
+    db.query.organization.findFirst({
+      where: eq(organization.id, org.id),
+      columns: { metadata: true },
+    }),
+    params.changelogId === "new"
+      ? Promise.resolve(null)
+      : db.query.changelogs.findFirst({
+          where: and(eq(changelogs.id, params.changelogId), eq(changelogs.organizationId, org.id)),
+        }),
+  ]);
+
+  const { emailSubscriptionsEnabled } = parseChangelogSettings(orgRow?.metadata ?? null);
+  return { user: session.user, changelog: entry ?? null, emailSubscriptionsEnabled };
 }
 
 type ChangelogEntry = {
@@ -145,13 +152,10 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
   }, [title, saveContent]);
 
   const { mutate: publish, isPending: publishing } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (notifySubscribers: boolean) => {
       if (!title.trim()) throw new Error("Title is required");
-
-      // Cancel any pending autosave so we don't race
       if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
 
-      // Save current content first
       if (!isNew) {
         await fetch("/api/changelogs", {
           method: "POST",
@@ -159,8 +163,6 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
           body: JSON.stringify({ intent: "update", id: changelogId, title, body: bodyRef.current }),
         });
       }
-
-      const idToPublish = isNew ? undefined : changelogId;
 
       if (isNew) {
         const res = await fetch("/api/changelogs", {
@@ -171,11 +173,10 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
         const json = (await res.json()) as { success?: boolean; id?: string; error?: string };
         if (!json.success) throw new Error(json.error ?? "Failed to create");
 
-        // Now publish
         const pubRes = await fetch("/api/changelogs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ intent: "publish", id: json.id }),
+          body: JSON.stringify({ intent: "publish", id: json.id, notifySubscribers }),
         });
         const pubJson = (await pubRes.json()) as { success?: boolean; error?: string };
         if (!pubJson.success) throw new Error(pubJson.error ?? "Failed to publish");
@@ -185,7 +186,7 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
       const res = await fetch("/api/changelogs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent: "publish", id: idToPublish }),
+        body: JSON.stringify({ intent: "publish", id: changelogId, notifySubscribers }),
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
       if (!json.success) throw new Error(json.error ?? "Failed to publish");
@@ -287,14 +288,12 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
                 {unpublishing ? <Spinner className="size-3.5" /> : "Unpublish"}
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => publish()}
+              <PublishConfirmPopover
                 disabled={isBusy}
-                className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-              >
-                {publishing ? <Spinner className="size-3.5" /> : "Publish"}
-              </button>
+                publishing={publishing}
+                subscriptionsEnabled={loaderData.emailSubscriptionsEnabled}
+                onPublish={(notify) => publish(notify)}
+              />
             )}
           </div>
         </header>

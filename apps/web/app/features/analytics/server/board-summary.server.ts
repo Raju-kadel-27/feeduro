@@ -1,10 +1,17 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
 import { BoardSummarySchema } from "../schemas/analytics";
 
-export async function getBoardSummaries(organizationId: string) {
+export async function getBoardSummaries(organizationId: string, since?: Date) {
   const db = getDb();
+
+  const joinConditions = [
+    eq(feedbackPosts.boardId, feedbackBoards.id),
+    eq(feedbackPosts.organizationId, organizationId),
+    isNull(feedbackPosts.mergedIntoPostId),
+    ...(since ? [gte(feedbackPosts.createdAt, since)] : []),
+  ];
 
   const rows = await db
     .select({
@@ -21,13 +28,7 @@ export async function getBoardSummaries(organizationId: string) {
         end::numeric, 1)::float`,
     })
     .from(feedbackBoards)
-    .leftJoin(
-      feedbackPosts,
-      and(
-        eq(feedbackPosts.boardId, feedbackBoards.id),
-        eq(feedbackPosts.organizationId, organizationId),
-      ),
-    )
+    .leftJoin(feedbackPosts, and(...joinConditions))
     .where(eq(feedbackBoards.organizationId, organizationId))
     .groupBy(feedbackBoards.id, feedbackBoards.name)
     .orderBy(sql`count(${feedbackPosts.id}) desc`);

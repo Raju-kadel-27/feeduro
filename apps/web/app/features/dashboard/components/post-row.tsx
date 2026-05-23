@@ -1,18 +1,23 @@
 import { MessageSquare } from "lucide-react";
 import type { Board, Post } from "../types";
 import { StatusPill } from "./status-pill";
-import { UserAvatar } from "./user-avatar";
 import { VotePill } from "./vote-pill";
 
-function formatDate(dateStr: string) {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffH = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-  if (diffH < 1) return "just now";
-  if (diffH < 24) return `${Math.floor(diffH)}h ago`;
-  if (diffH < 48) return "yesterday";
-  if (diffH < 24 * 7) return `${Math.floor(diffH / 24)}d ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+function OwnerBadge({ name }: { name: string }) {
+  const initials = name
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <span
+      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-[9px] font-semibold shrink-0"
+      title={`Owner: ${name}`}
+    >
+      {initials}
+    </span>
+  );
 }
 
 export function PostRow({
@@ -25,34 +30,30 @@ export function PostRow({
   post: Post;
   board: Board | undefined;
   queryKey: readonly unknown[];
-  usersMap: Record<string, { name: string; image: string | null }>;
+  usersMap?: Record<string, { name: string | null; image: string | null }>;
   onOpen: (id: string) => void;
 }) {
+  const owner = post.ownerId ? usersMap?.[post.ownerId] : null;
+
   return (
     <div
-      className="flex items-start gap-3 px-4 py-3 hover:bg-[#fafafa] transition-colors cursor-pointer group border-b last:border-b-0"
+      className="flex items-center gap-3 px-4 py-2 hover:bg-accent/40 transition-colors cursor-pointer group border-b last:border-b-0"
       onClick={() => onOpen(post.id)}
     >
-      <div className="mt-0.5 shrink-0">
+      <div className="shrink-0">
         <VotePill post={post} queryKey={queryKey} />
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <p className="text-sm font-medium leading-snug group-hover:text-[#6d28d9] transition-colors truncate min-w-0">
+          <p className="text-sm font-medium leading-snug group-hover:text-primary transition-colors truncate min-w-0">
             {post.title}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">
             <StatusPill status={post.status} />
             {board && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] border border-[#d1d5db] text-[#6b7280] font-medium whitespace-nowrap">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] border border-border text-muted-foreground font-medium whitespace-nowrap">
                 {board.name}
-              </span>
-            )}
-            {post.commentCount > 0 && (
-              <span className="flex items-center gap-0.5 text-[10px] text-[#a1a1aa]">
-                <MessageSquare className="h-3 w-3" />
-                {post.commentCount}
               </span>
             )}
           </div>
@@ -64,11 +65,12 @@ export function PostRow({
         )}
       </div>
 
-      <div className="flex flex-col items-end gap-1 shrink-0 mt-0.5">
-        <UserAvatar userId={post.createdBy} usersMap={usersMap} size="sm" />
-        <span className="text-[10px] text-[#a1a1aa] tabular-nums whitespace-nowrap">
-          {formatDate(post.createdAt)}
-        </span>
+      <div className="flex items-center gap-2 shrink-0 text-muted-foreground">
+        {owner?.name && <OwnerBadge name={owner.name} />}
+        <div className="flex items-center gap-1">
+          <MessageSquare className="h-4 w-4" />
+          <span className="text-[11px] tabular-nums">{post.commentCount}</span>
+        </div>
       </div>
     </div>
   );

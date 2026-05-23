@@ -48,14 +48,14 @@ export function VotePill({ post, queryKey }: { post: Post; queryKey: readonly un
       }}
       disabled={isPending}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 w-9 h-9 border-[1.5px] transition-all duration-150 shrink-0 select-none",
+        "group/vote flex flex-col items-center justify-center gap-0.5 w-8 h-8 border-[1.5px] transition-all duration-150 shrink-0 select-none",
         post.hasVoted
-          ? "border-[#3f3f46] bg-[#fafafa] text-[#18181b]"
-          : "border-[#d4d4d8] bg-white text-[#52525b] hover:border-[#a1a1aa] hover:text-[#18181b] hover:bg-[#fafafa]",
+          ? "border-foreground/50 bg-muted text-foreground"
+          : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground hover:bg-muted/50",
         isPending && "opacity-50 cursor-not-allowed",
       )}
     >
-      <ChevronUp className={cn("h-3 w-3", post.hasVoted ? "stroke-[2.5]" : "stroke-[1.75]")} />
+      <ChevronUp className={cn("h-3 w-3 transition-transform duration-150 group-hover/vote:-translate-y-0.5", post.hasVoted ? "stroke-[2.5]" : "stroke-[1.75]")} />
       <span className="text-[10px] font-semibold leading-none tabular-nums">{post.voteCount}</span>
     </button>
   );

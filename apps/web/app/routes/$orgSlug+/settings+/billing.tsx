@@ -8,7 +8,7 @@ import {
   changeDodoPlan,
   createDodoCheckoutSession,
 } from "@features/billing/server/dodo";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { authClient } from "@lib/auth/client";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, or } from "drizzle-orm";

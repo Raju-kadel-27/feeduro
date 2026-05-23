@@ -1,3 +1,5 @@
+import { DEFAULT_BRANDING, parseBranding } from "@features/branding/server/parse-branding";
+import type { BrandingMeta } from "@features/branding/server/parse-branding";
 import { requireOrganization } from "@features/auth/server/guards";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -5,30 +7,6 @@ import { getDb } from "@/db";
 import { organization } from "@/db/schema";
 
 import type { Route } from "./+types/branding";
-
-interface BrandingMeta {
-  primaryColor: string;
-  theme: "dynamic" | "light" | "dark";
-  language: string;
-  hidePoweredBy: boolean;
-}
-
-const DEFAULT_BRANDING: BrandingMeta = {
-  primaryColor: "indigo",
-  theme: "dynamic",
-  language: "auto",
-  hidePoweredBy: false,
-};
-
-function parseBranding(metadata: string | null): BrandingMeta {
-  if (!metadata) return DEFAULT_BRANDING;
-  try {
-    const parsed = JSON.parse(metadata) as Record<string, unknown>;
-    return { ...DEFAULT_BRANDING, ...((parsed.branding as Partial<BrandingMeta>) ?? {}) };
-  } catch {
-    return DEFAULT_BRANDING;
-  }
-}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const { organizationId } = await requireOrganization(request);

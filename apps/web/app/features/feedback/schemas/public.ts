@@ -24,6 +24,7 @@ export const PublicPostSchema = z.object({
   boardId: z.string(),
   boardName: z.string(),
   authorName: z.string(),
+  authorIsAdmin: z.boolean(),
   voteCount: z.number(),
   commentCount: z.number(),
 });
@@ -34,6 +35,7 @@ export const PublicBoardSchema = z.object({
   name: z.string(),
   slug: z.string(),
   isDefault: z.boolean(),
+  anonymizeUsers: z.boolean(),
 });
 export type PublicBoard = z.infer<typeof PublicBoardSchema>;
 
@@ -50,8 +52,13 @@ export const PublicChangelogSchema = z.object({
   title: z.string(),
   slug: z.string(),
   publishedAt: z.string(),
-  excerpt: z.string(),
+  body: z.string(),
   authorName: z.string(),
+  version: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  voteCount: z.number().optional(),
+  voted: z.boolean().optional(),
+  commentCount: z.number().optional(),
 });
 export type PublicChangelog = z.infer<typeof PublicChangelogSchema>;
 

@@ -23,7 +23,7 @@ const STATUS_CONFIG: Record<Status, { label: string; color: string; dot: string 
   open: {
     label: "Pending",
     color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-    dot: "bg-slate-400",
+    dot: "bg-muted-foreground",
   },
   reviewing: {
     label: "Reviewing",
@@ -109,13 +109,13 @@ function VoteButton({ post, boardId }: { post: Post; boardId: string }) {
       onClick={() => mutate()}
       disabled={isPending}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 w-10 rounded-md border px-1 py-1.5 text-xs font-semibold transition-colors",
+        "group/vote flex flex-col items-center justify-center gap-0.5 w-10 rounded-md border px-1 py-1.5 text-xs font-semibold transition-colors",
         post.hasVoted
           ? "border-primary bg-primary/10 text-primary"
           : "border-border hover:border-primary hover:text-primary",
       )}
     >
-      <ChevronUp className="h-3.5 w-3.5" />
+      <ChevronUp className="h-3.5 w-3.5 transition-transform duration-150 group-hover/vote:-translate-y-0.5" />
       <span>{post.voteCount}</span>
     </button>
   );

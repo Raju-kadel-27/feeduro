@@ -5,7 +5,7 @@ import * as React from "react";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "13rem";
+const SIDEBAR_WIDTH = "14rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -121,14 +121,14 @@ function Sidebar({
         state === "collapsed" && collapsible === "icon" && "w-(--sidebar-width-icon)",
         variant === "floating" || variant === "inset"
           ? "p-2"
-          : "border-r border-[hsl(var(--sidebar-border))]",
+          : "border-r border-sidebar-border",
         className,
       )}
       {...props}
     >
       <div
         data-slot="sidebar-inner"
-        className="flex h-full w-full flex-col bg-[hsl(var(--sidebar-background))]"
+        className="flex h-full w-full flex-col bg-sidebar"
       >
         {children}
       </div>
@@ -213,8 +213,8 @@ function SidebarGroupLabel({
     <Comp
       data-slot="sidebar-group-label"
       className={cn(
-        "text-sidebar-foreground/70 ring-sidebar-ring flex h-6 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-none transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-3.5 [&>svg]:shrink-0",
-        "text-[hsl(var(--sidebar-foreground)/0.7)]",
+        "ring-sidebar-ring flex h-6 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-none transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-3.5 [&>svg]:shrink-0",
+        "text-sidebar-foreground/60 uppercase tracking-wide",
         className,
       )}
       {...props}
@@ -263,14 +263,14 @@ function SidebarMenuButton({
       data-slot="sidebar-menu-button"
       data-active={isActive}
       className={cn(
-        "peer/menu-button flex w-full items-center gap-1.5 overflow-hidden rounded-md px-2 py-1 text-left text-xs outline-none transition-[width,height,padding]",
-        "text-[hsl(var(--sidebar-foreground))]",
-        "hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]",
-        "focus-visible:ring-2 focus-visible:ring-[hsl(var(--sidebar-ring))]",
-        "active:bg-[hsl(var(--sidebar-accent))] active:text-[hsl(var(--sidebar-accent-foreground))]",
+        "peer/menu-button flex w-full items-center gap-1.5 overflow-hidden rounded-md px-2 py-1.5 text-left text-xs outline-none transition-colors",
+        "text-sidebar-foreground",
+        "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+        "active:bg-sidebar-accent active:text-sidebar-accent-foreground",
         "disabled:pointer-events-none disabled:opacity-50",
         isActive &&
-          "bg-[hsl(var(--sidebar-accent))] font-medium text-[hsl(var(--sidebar-accent-foreground))]",
+          "bg-sidebar-accent font-semibold text-sidebar-accent-foreground",
         "[&>span:last-child]:truncate [&>svg]:size-3.5 [&>svg]:shrink-0",
         className,
       )}
@@ -283,7 +283,7 @@ function SidebarSeparator({ className, ...props }: React.ComponentProps<"div">) 
   return (
     <div
       data-slot="sidebar-separator"
-      className={cn("bg-[hsl(var(--sidebar-border))] mx-2 my-1 h-px w-auto shrink-0", className)}
+      className={cn("bg-sidebar-border mx-2 my-1 h-px w-auto shrink-0", className)}
       {...props}
     />
   );

@@ -39,7 +39,7 @@ export function ConfigureTotpStep({
           Scan with authenticator app
         </p>
         {qrDataUrl ? (
-          <div className="inline-block rounded-lg border border-border bg-white p-3">
+          <div className="inline-block rounded-lg border border-border bg-white dark:bg-white p-3">
             <img src={qrDataUrl} alt="TOTP QR code" width={200} height={200} />
           </div>
         ) : (

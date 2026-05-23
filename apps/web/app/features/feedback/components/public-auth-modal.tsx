@@ -94,7 +94,7 @@ export function PublicAuthModal({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="max-w-[420px] p-6">
+      <DialogContent className="max-w-[420px] p-6 animate-scale-in">
         <DialogTitle className="sr-only">
           {tab === "sign-in" ? "Sign in to your account" : "Create an account"}
         </DialogTitle>

@@ -69,3 +69,27 @@ export function avatarColor(name: string): string {
   const hash = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return AVATAR_COLORS[hash % AVATAR_COLORS.length]!;
 }
+
+const ALIAS_ADJECTIVES = [
+  "Shy", "Bold", "Calm", "Bright", "Swift", "Eager", "Witty", "Kind",
+  "Brave", "Quiet", "Jolly", "Keen", "Lively", "Nimble", "Proud",
+  "Clever", "Gentle", "Happy", "Humble", "Lucky", "Merry", "Noble",
+  "Plucky", "Radiant", "Serene", "Tidy", "Vivid", "Warm", "Zesty", "Daring",
+];
+
+const ALIAS_ANIMALS = [
+  "Cheetah", "Panda", "Fox", "Eagle", "Whale", "Tiger", "Bear", "Wolf",
+  "Hawk", "Lynx", "Otter", "Raven", "Crane", "Bison", "Gecko",
+  "Koala", "Lemur", "Moose", "Quail", "Finch", "Stoat", "Viper",
+  "Wren", "Yak", "Zebu", "Ibis", "Dingo", "Camel", "Snipe", "Tapir",
+];
+
+export function generateUserAlias(userId: string): string {
+  let hash = 5381;
+  for (let i = 0; i < userId.length; i++) {
+    hash = ((hash << 5) + hash + userId.charCodeAt(i)) & 0x7fffffff;
+  }
+  const adj = ALIAS_ADJECTIVES[hash % ALIAS_ADJECTIVES.length]!;
+  const animal = ALIAS_ANIMALS[Math.floor(hash / ALIAS_ADJECTIVES.length) % ALIAS_ANIMALS.length]!;
+  return `${adj} ${animal}`;
+}

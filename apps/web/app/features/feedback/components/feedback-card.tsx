@@ -1,6 +1,7 @@
 import { cn } from "@lib/utils";
-import { ArrowUp, MessageSquare } from "lucide-react";
+import { ChevronUp, MessageSquare } from "lucide-react";
 import { useState } from "react";
+import { STATUS } from "../constants";
 import type { PublicPost, SessionUser } from "../schemas/public";
 import { VoteResponseSchema } from "../schemas/public";
 
@@ -55,41 +56,50 @@ export function FeedbackCard({
   return (
     <article
       onClick={onSelectPost}
-      className="group py-4 px-0 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50/50 -mx-4 px-4 transition-colors"
+      className="group flex items-center gap-3 py-2 px-4 -mx-4 border-b border-border last:border-0 cursor-pointer hover:bg-accent/30 transition-colors"
     >
-      <div className="flex items-start gap-4">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleVote();
-          }}
-          disabled={voting}
-          aria-label={voted ? "Remove vote" : "Upvote"}
-          className={cn(
-            "flex flex-col items-center justify-center rounded-lg border h-12 w-12 shrink-0 transition-all disabled:opacity-60 border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
-            voted && "border-orange-600",
-          )}
-        >
-          <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />
-          <span className="text-[10px] font-bold leading-none mt-0.5">{voteCount}</span>
-        </button>
-
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold leading-snug text-slate-900 mb-1">
-            {post.title}
-          </h3>
-          {post.description && (
-            <p className="text-[13px] leading-relaxed text-slate-600 line-clamp-2 mb-2">
-              {post.description}
-            </p>
-          )}
-          <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
-            <MessageSquare className="h-3.5 w-3.5" />
-            <span>{post.commentCount}</span>
-          </div>
+      <div className="min-w-0 flex-1">
+        <h3 className="text-[14px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
+          {post.title}
+        </h3>
+        {post.description && (
+          <p className="mt-0.5 text-[13.5px] leading-relaxed text-muted-foreground line-clamp-1">
+            {post.description}
+          </p>
+        )}
+        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+          <MessageSquare className="h-2.5 w-2.5" />
+          <span className="text-[11px]">{post.commentCount}</span>
+          <span className="mx-0.5 text-border">·</span>
+          <span
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium"
+            style={{ background: STATUS[post.status].bg, color: STATUS[post.status].fg }}
+          >
+            <span className="h-1 w-1 rounded-full" style={{ background: STATUS[post.status].dot }} />
+            {STATUS[post.status].label}
+          </span>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleVote();
+        }}
+        disabled={voting}
+        aria-label={voted ? "Remove vote" : "Upvote"}
+        className={cn(
+          "group/vote flex flex-col items-center justify-center rounded-none border w-7 py-1 shrink-0 transition-all disabled:opacity-60",
+          voted
+            ? "border-foreground/50 bg-muted text-foreground"
+            : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+        )}
+      >
+        <ChevronUp className="h-3.5 w-3.5 transition-transform duration-150 group-hover/vote:-translate-y-0.5" strokeWidth={2} />
+        <span className="text-[11px] font-bold leading-none mt-0.5">{voteCount}</span>
+      </button>
     </article>
   );
 }

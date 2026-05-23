@@ -3,7 +3,7 @@ import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import type { AsanaSettings } from "@features/integrations/asana/server/schemas";
 import { getIntegration, parseSettings } from "@features/integrations/server/queries";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
@@ -197,7 +197,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
           <span className="text-sm font-medium">Asana</span>
         </header>
 
-        <main className="p-6 max-w-[600px] mx-auto w-full space-y-6">
+        <main className="p-6 max-w-[800px] mx-auto w-full space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted">

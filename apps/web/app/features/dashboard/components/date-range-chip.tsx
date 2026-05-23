@@ -103,8 +103,8 @@ export function DateRangeChip({
           className={cn(
             "inline-flex items-center gap-1 px-2 py-1 rounded-md text-[12px] border transition-colors",
             isActive
-              ? "bg-[#18181b] text-white border-[#18181b]"
-              : "text-[#71717a] border-[#d4d4d8] hover:bg-[#f4f4f5] hover:text-[#18181b]",
+              ? "bg-foreground text-background border-foreground"
+              : "text-muted-foreground border-border hover:bg-accent hover:text-foreground",
           )}
         >
           <CalendarIcon className="h-3 w-3" />
@@ -127,12 +127,12 @@ export function DateRangeChip({
         align="start"
         side="bottom"
         sideOffset={6}
-        className="![width:700px] p-0 shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
+        className="![width:700px] p-0 shadow-lg dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]"
       >
         <div className="flex">
           {/* Presets — vertical left panel */}
-          <div className="w-36 shrink-0 border-r border-[#ececec] p-2 space-y-0.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-[#a1a1aa] px-2 py-1">
+          <div className="w-36 shrink-0 border-r border-border p-2 space-y-0.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground px-2 py-1">
               Quick select
             </p>
             {DATE_PRESETS.map((preset) => (
@@ -146,8 +146,8 @@ export function DateRangeChip({
                   setOpen(false);
                 }}
                 className={cn(
-                  "w-full text-left px-2 py-1.5 text-[13px] rounded hover:bg-[#f4f4f5] transition-colors",
-                  datePreset === preset.value && "bg-[#f4f4f5] font-semibold text-[#18181b]",
+                  "w-full text-left px-2 py-1.5 text-[13px] rounded hover:bg-accent transition-colors",
+                  datePreset === preset.value && "bg-accent font-semibold text-foreground",
                 )}
               >
                 {preset.label}
@@ -157,7 +157,7 @@ export function DateRangeChip({
 
           {/* Calendar + time inputs */}
           <div className="p-3">
-            <p className="text-[11px] text-[#a1a1aa] font-medium mb-2 uppercase tracking-wide">
+            <p className="text-[11px] text-muted-foreground font-medium mb-2 uppercase tracking-wide">
               Custom range
             </p>
             <Calendar
@@ -167,30 +167,30 @@ export function DateRangeChip({
               numberOfMonths={2}
               defaultMonth={pendingRange?.from}
             />
-            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[#ececec]">
-              <label className="flex items-center gap-1.5 text-[12px] text-[#71717a]">
+            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border">
+              <label className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
                 From
                 <input
                   type="time"
                   value={fromTime}
                   onChange={(e) => setFromTime(e.target.value)}
-                  className="text-[12px] text-[#18181b] border border-[#d4d4d8] rounded px-1.5 py-0.5"
+                  className="text-[12px] text-foreground bg-background border border-input rounded px-1.5 py-0.5"
                 />
               </label>
-              <label className="flex items-center gap-1.5 text-[12px] text-[#71717a]">
+              <label className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
                 To
                 <input
                   type="time"
                   value={toTime}
                   onChange={(e) => setToTime(e.target.value)}
-                  className="text-[12px] text-[#18181b] border border-[#d4d4d8] rounded px-1.5 py-0.5"
+                  className="text-[12px] text-foreground bg-background border border-input rounded px-1.5 py-0.5"
                 />
               </label>
               <button
                 type="button"
                 onClick={applyCustomRange}
                 disabled={!pendingRange?.from && !pendingRange?.to}
-                className="ml-auto px-3 py-1 text-[12px] rounded-md bg-[#18181b] text-white hover:bg-[#27272a] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="ml-auto px-3 py-1 text-[12px] rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Apply
               </button>

@@ -198,5 +198,18 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ success: true });
   }
 
+  if (body.intent === "update-anonymize-users") {
+    const id = body.id as string;
+    if (!id) return data({ error: "ID is required" }, { status: 400 });
+    const anonymizeUsers = body.anonymizeUsers as boolean;
+
+    await db
+      .update(feedbackBoards)
+      .set({ anonymizeUsers })
+      .where(and(eq(feedbackBoards.id, id), eq(feedbackBoards.organizationId, organizationId)));
+
+    return data({ success: true });
+  }
+
   return data({ error: "Unknown intent" }, { status: 400 });
 }

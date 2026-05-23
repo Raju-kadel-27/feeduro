@@ -525,7 +525,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
     }),
-    db.query.user.findFirst({ where: eq(user.id, post.createdBy) }),
+    post.createdBy
+      ? db.query.user.findFirst({ where: eq(user.id, post.createdBy) })
+      : Promise.resolve(null),
     db.query.postExternalLinks.findFirst({
       where: and(eq(postExternalLinks.postId, post.id), eq(postExternalLinks.provider, "linear")),
       columns: { identifier: true, externalTitle: true, externalStatus: true, externalUrl: true },

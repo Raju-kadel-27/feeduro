@@ -6,54 +6,86 @@ import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import type { Route } from "./+types/linear.webhook";
 
+const LOG = "[linear-webhook]";
+
+type FeediyoStatus = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
+
+type LinearStateType =
+  | "triage"
+  | "backlog"
+  | "unstarted"
+  | "started"
+  | "completed"
+  | "cancelled";
+
 type LinearWebhookPayload = {
   action: "create" | "update" | "remove";
   type: string;
-  organizationId: string; // Linear workspace ID
   data: {
     id: string;
-    identifier?: string;
     title?: string;
     state?: {
       id: string;
       name: string;
-      type: string;
+      type: LinearStateType;
     };
   };
 };
 
+// Default mapping by Linear state type — used when no statusMappings are configured.
+const STATE_TYPE_TO_FEEDIYO: Partial<Record<LinearStateType, FeediyoStatus>> = {
+  completed: "completed",
+  cancelled: "closed",
+  started: "in-progress",
+};
+
+function resolveStatus(
+  stateName: string,
+  stateType: LinearStateType,
+  mappings: LinearSettings["statusMappings"],
+): FeediyoStatus | null {
+  // User-configured name match takes priority
+  const nameMatch = mappings?.find((m) => m.linearStateName === stateName);
+  if (nameMatch?.feediyoStatus) return nameMatch.feediyoStatus as FeediyoStatus;
+
+  // Fall back to type-based defaults
+  return STATE_TYPE_TO_FEEDIYO[stateType] ?? null;
+}
+
 // POST /api/linear/webhook?orgId=<feediyo-org-id>
-// Called by Linear when an issue is created/updated in the connected workspace.
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
 
   if (!orgId) {
+    console.error(`${LOG} rejected: missing orgId`);
     return new Response("Missing orgId", { status: 400 });
   }
 
   const rawBody = await request.text();
   const signature = request.headers.get("Linear-Signature") ?? "";
-
   const db = getDb();
 
-  // Load the integration to get the webhook secret for signature verification
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, orgId), eq(integrations.provider, "linear")),
+    columns: { settings: true },
   });
 
   if (!integration) {
+    console.error(`${LOG} no integration found for orgId=${orgId}`);
     return new Response("Integration not found", { status: 404 });
   }
 
   const settings = parseSettings<LinearSettings>(integration.settings);
 
   if (!settings?.webhookSecret) {
+    console.error(`${LOG} no webhookSecret for orgId=${orgId}`);
     return new Response("Webhook not configured", { status: 400 });
   }
 
   const valid = await verifyLinearWebhookSignature(rawBody, signature, settings.webhookSecret);
   if (!valid) {
+    console.error(`${LOG} invalid signature for orgId=${orgId}`);
     return new Response("Invalid signature", { status: 401 });
   }
 
@@ -61,51 +93,58 @@ export async function action({ request }: Route.ActionArgs) {
   try {
     payload = JSON.parse(rawBody) as LinearWebhookPayload;
   } catch {
+    console.error(`${LOG} invalid JSON body`);
     return new Response("Invalid JSON", { status: 400 });
   }
 
-  // Only process issue updates — ignore creates, deletes, and other resource types
   if (payload.type !== "Issue" || payload.action !== "update" || !payload.data.state) {
     return new Response("OK", { status: 200 });
   }
 
-  const linearIssueId = payload.data.id;
-  const newStateName = payload.data.state.name;
-  const newTitle = payload.data.title;
+  const { id: linearIssueId, title: newTitle, state } = payload.data;
 
-  // Find the linked post
+  console.log(
+    `${LOG} issue=${linearIssueId} state="${state.name}" type="${state.type}" orgId=${orgId}`,
+  );
+
   const link = await db.query.postExternalLinks.findFirst({
     where: and(
       eq(postExternalLinks.externalId, linearIssueId),
       eq(postExternalLinks.provider, "linear"),
       eq(postExternalLinks.organizationId, orgId),
     ),
+    columns: { id: true, postId: true },
   });
 
   if (!link) {
+    console.log(`${LOG} no linked post for issue=${linearIssueId} — skipping`);
     return new Response("OK", { status: 200 });
   }
 
-  // Update cached status and title on the link
-  await db
-    .update(postExternalLinks)
-    .set({
-      externalStatus: newStateName,
-      ...(newTitle ? { externalTitle: newTitle } : {}),
-      lastSyncedAt: new Date(),
-    })
-    .where(eq(postExternalLinks.id, link.id));
+  const newStatus = resolveStatus(state.name, state.type, settings.statusMappings);
 
-  // Apply status mapping to update the Feediyo post status
-  const mappings = settings.statusMappings ?? [];
-  const match = mappings.find((m) => m.linearStateName === newStateName);
+  console.log(
+    `${LOG} syncing issue=${linearIssueId} → postId=${link.postId} newStatus=${newStatus ?? "none"}`,
+  );
 
-  if (match?.feediyoStatus) {
-    await db
-      .update(feedbackPosts)
-      .set({ status: match.feediyoStatus as typeof feedbackPosts.$inferSelect.status })
-      .where(and(eq(feedbackPosts.id, link.postId), eq(feedbackPosts.organizationId, orgId)));
-  }
+  await db.transaction(async (tx) => {
+    await tx
+      .update(postExternalLinks)
+      .set({
+        externalStatus: state.name,
+        ...(newTitle ? { externalTitle: newTitle } : {}),
+        lastSyncedAt: new Date(),
+      })
+      .where(eq(postExternalLinks.id, link.id));
 
+    if (newStatus) {
+      await tx
+        .update(feedbackPosts)
+        .set({ status: newStatus })
+        .where(and(eq(feedbackPosts.id, link.postId), eq(feedbackPosts.organizationId, orgId)));
+    }
+  });
+
+  console.log(`${LOG} done — issue=${linearIssueId} postId=${link.postId}`);
   return new Response("OK", { status: 200 });
 }

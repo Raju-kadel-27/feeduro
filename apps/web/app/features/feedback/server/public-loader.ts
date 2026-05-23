@@ -1,3 +1,4 @@
+import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
 import { verifyIdentityToken } from "@lib/identity-token";
 import { getSession } from "@lib/session";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
@@ -9,13 +10,14 @@ import {
   comments,
   feedbackBoards,
   feedbackPosts,
+  member,
   organization,
   user as userTable,
   votes,
   widgetConfigs,
 } from "@/db/schema";
 import type { PublicBoard, PublicChangelog, PublicPost, SessionUser } from "../schemas/public";
-import { extractBlockNoteText, toStatusKey } from "../utils";
+import { generateUserAlias, toStatusKey } from "../utils";
 
 export async function publicPageLoader({ request, params }: LoaderFunctionArgs) {
   const db = getDb();
@@ -23,9 +25,10 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, orgSlug),
-    columns: { id: true, name: true, slug: true },
+    columns: { id: true, name: true, slug: true, metadata: true },
   });
   if (!org) throw new Response("Not found", { status: 404 });
+  const { emailSubscriptionsEnabled } = parseChangelogSettings(org.metadata ?? null);
 
   const customDomain = request.headers.get("x-custom-domain") ?? null;
 
@@ -59,16 +62,18 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
   const boards = await db.query.feedbackBoards.findMany({
     where: and(eq(feedbackBoards.organizationId, org.id), eq(feedbackBoards.visibility, "public")),
     orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
-    columns: { id: true, name: true, slug: true, isDefault: true },
+    columns: { id: true, name: true, slug: true, isDefault: true, anonymizeUsers: true },
   });
 
   const boardIds = boards.map((b) => b.id);
   const boardMap = Object.fromEntries(boards.map((b) => [b.id, b.name]));
+  const boardAnonymizeMap = Object.fromEntries(boards.map((b) => [b.id, b.anonymizeUsers]));
   const publicBoards: PublicBoard[] = boards.map((b) => ({
     id: b.id,
     name: b.name,
     slug: b.slug,
     isDefault: b.isDefault,
+    anonymizeUsers: b.anonymizeUsers,
   }));
 
   if (boardIds.length === 0) {
@@ -83,6 +88,7 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
       sessionUser,
       publicUser,
       widgetToken,
+      emailSubscriptionsEnabled,
     });
   }
 
@@ -96,6 +102,7 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
       status: true,
       boardId: true,
       createdBy: true,
+      isPublicSubmission: true,
     },
   });
 
@@ -126,30 +133,56 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
   }, {});
 
   const uniqueUserIds = [
-    ...new Set(rawPosts.map((p) => p.createdBy).filter((id) => id !== "public")),
+    ...new Set(rawPosts.map((p) => p.createdBy).filter((id): id is string => id != null)),
   ];
-  const users =
+  const [users, adminMembers] = await Promise.all([
     uniqueUserIds.length > 0
-      ? await db.query.user.findMany({
+      ? db.query.user.findMany({
           where: inArray(userTable.id, uniqueUserIds),
           columns: { id: true, name: true },
         })
-      : [];
+      : Promise.resolve([]),
+    uniqueUserIds.length > 0
+      ? db
+          .select({ userId: member.userId })
+          .from(member)
+          .where(
+            and(
+              eq(member.organizationId, org.id),
+              inArray(member.userId, uniqueUserIds),
+            ),
+          )
+      : Promise.resolve([]),
+  ]);
   const userMap = Object.fromEntries(users.map((u) => [u.id, u.name]));
+  const adminUserIds = new Set(adminMembers.map((m) => m.userId));
   const commentCountMap = Object.fromEntries(commentCountRows.map((r) => [r.postId, r.count]));
 
-  const posts: PublicPost[] = rawPosts.map((post) => ({
-    id: post.id,
-    title: post.title,
-    description: post.description ?? null,
-    status: toStatusKey(post.status),
-    boardId: post.boardId,
-    boardName: boardMap[post.boardId] ?? "",
-    authorName:
-      post.createdBy === "public" ? "Anonymous" : (userMap[post.createdBy] ?? "Anonymous"),
-    voteCount: voteCountMap[post.id] ?? 0,
-    commentCount: commentCountMap[post.id] ?? 0,
-  }));
+  const posts: PublicPost[] = rawPosts.map((post) => {
+    const authorId = post.createdBy ?? "";
+    const isAnonymousBoard = boardAnonymizeMap[post.boardId] ?? false;
+    const isAdmin = adminUserIds.has(authorId);
+    let authorName: string;
+    if (post.isPublicSubmission) {
+      authorName = isAnonymousBoard ? generateUserAlias(`pub-${post.id}`) : "Anonymous";
+    } else if (isAnonymousBoard && !isAdmin) {
+      authorName = generateUserAlias(authorId);
+    } else {
+      authorName = userMap[authorId] ?? "Anonymous";
+    }
+    return {
+      id: post.id,
+      title: post.title,
+      description: post.description ?? null,
+      status: toStatusKey(post.status),
+      boardId: post.boardId,
+      boardName: boardMap[post.boardId] ?? "",
+      authorName,
+      authorIsAdmin: isAdmin,
+      voteCount: voteCountMap[post.id] ?? 0,
+      commentCount: commentCountMap[post.id] ?? 0,
+    };
+  });
 
   const rawChangelogs = await db.query.changelogs.findMany({
     where: and(eq(changelogsTable.organizationId, org.id), eq(changelogsTable.status, "published")),
@@ -157,7 +190,9 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
     columns: { id: true, title: true, slug: true, body: true, publishedAt: true, createdBy: true },
   });
 
-  const changelogUserIds = [...new Set(rawChangelogs.map((c) => c.createdBy).filter(Boolean))];
+  const changelogUserIds = [
+    ...new Set(rawChangelogs.map((c) => c.createdBy).filter((id): id is string => id != null)),
+  ];
   const changelogUsers =
     changelogUserIds.length > 0
       ? await db.query.user.findMany({
@@ -172,7 +207,7 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
     title: c.title,
     slug: c.slug,
     publishedAt: c.publishedAt?.toISOString() ?? c.id,
-    excerpt: extractBlockNoteText(c.body, 200),
+    body: c.body,
     authorName: changelogUserMap[c.createdBy] ?? "Team",
   }));
 
@@ -197,5 +232,6 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
     sessionUser,
     publicUser,
     widgetToken,
+    emailSubscriptionsEnabled,
   });
 }

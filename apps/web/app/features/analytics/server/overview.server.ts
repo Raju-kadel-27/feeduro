@@ -1,16 +1,45 @@
+import { type RouterContextProvider } from "react-router";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import type { DateRange } from "../schemas/analytics";
+import { DATE_RANGE_OPTIONS } from "../schemas/analytics";
+import { getAnalyticsCache } from "./analytics-cache.server";
+import { getActivityOverTime } from "./activity-over-time.server";
+import { getAdminActivity } from "./admin-activity.server";
 import { getBoardSummaries } from "./board-summary.server";
+import { getChangelogEngagement } from "./changelog-engagement.server";
+import { getCompanyEngagement } from "./company-engagement.server";
+import { getCompletedInPeriod } from "./completed-posts.server";
+import { getStatusBreakdown } from "./status-breakdown.server";
 import { getStatusFunnel } from "./status-funnel.server";
+import { getTagBreakdown } from "./tag-breakdown.server";
+import { getTrendingPosts } from "./trending-posts.server";
 import { getTopPostsByVotes } from "./vote-trends.server";
 
-export async function loadAnalyticsOverview(request: Request, orgSlug: string) {
-  const { session, org } = await requireOrgBySlug(request, orgSlug);
-  const organizationId = org.id;
+function parseSince(range: string): Date | undefined {
+  const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : null;
+  if (!days) return undefined;
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d;
+}
 
-  const [boards, topPosts, funnel] = await Promise.all([
-    getBoardSummaries(organizationId),
-    getTopPostsByVotes(organizationId, undefined, 8),
-    getStatusFunnel(organizationId),
+async function fetchAll(organizationId: string, range: DateRange, since: Date | undefined) {
+  const [
+    boards, topPosts, funnel, statusBreakdown,
+    activityOverTime, completedPosts, tagBreakdown, trendingPosts,
+    changelogEngagement, adminActivity, companyEngagement,
+  ] = await Promise.all([
+    getBoardSummaries(organizationId, since),
+    getTopPostsByVotes(organizationId, undefined, 8, since),
+    getStatusFunnel(organizationId, undefined, since),
+    getStatusBreakdown(organizationId),
+    getActivityOverTime(organizationId, range, since),
+    getCompletedInPeriod(organizationId, since),
+    getTagBreakdown(organizationId, since),
+    getTrendingPosts(organizationId),
+    getChangelogEngagement(organizationId),
+    getAdminActivity(organizationId, since),
+    getCompanyEngagement(organizationId, since),
   ]);
 
   const totalPosts = boards.reduce((s, b) => s + b.totalPosts, 0);
@@ -20,11 +49,47 @@ export async function loadAnalyticsOverview(request: Request, orgSlug: string) {
   const avgVotesPerPost = totalPosts > 0 ? Math.round((totalVotes / totalPosts) * 10) / 10 : 0;
 
   return {
-    user: session.user,
+    range,
     stats: { totalPosts, totalVotes, resolutionRate, avgVotesPerPost },
     boards,
     topPosts,
     funnel,
+    statusBreakdown,
+    activityOverTime,
+    completedPosts,
+    tagBreakdown,
+    trendingPosts,
+    changelogEngagement,
+    adminActivity,
+    companyEngagement,
     fetchedAt: Date.now(),
   };
+}
+
+type OverviewData = Awaited<ReturnType<typeof fetchAll>>;
+
+export async function loadAnalyticsOverview(
+  request: Request,
+  orgSlug: string,
+  context?: Readonly<RouterContextProvider>,
+) {
+  const { session, org } = await requireOrgBySlug(request, orgSlug);
+  const organizationId = org.id;
+
+  const url = new URL(request.url);
+  const rawRange = url.searchParams.get("range") ?? "all";
+  const range = (DATE_RANGE_OPTIONS as readonly string[]).includes(rawRange)
+    ? (rawRange as DateRange)
+    : "all";
+  const since = parseSince(range);
+
+  const cache = context ? getAnalyticsCache(context) : undefined;
+  const cacheKey = `${organizationId}:${range}`;
+
+  const hit = cache?.get<OverviewData>(cacheKey);
+  if (hit) return { user: session.user, ...hit };
+
+  const overviewData = await fetchAll(organizationId, range, since);
+  cache?.set(cacheKey, overviewData);
+  return { user: session.user, ...overviewData };
 }

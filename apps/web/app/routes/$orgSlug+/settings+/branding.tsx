@@ -3,7 +3,7 @@ import { requireOrgBySlug } from "@features/auth/server/guards";
 import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { organization } from "@/db/schema";

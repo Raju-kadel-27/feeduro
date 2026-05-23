@@ -8,9 +8,10 @@ export const DEFAULT_TAGS = [
 
 export interface ChangelogSettings {
   enabled: boolean;
+  emailSubscriptionsEnabled: boolean;
 }
 
-const DEFAULTS: ChangelogSettings = { enabled: true };
+const DEFAULTS: ChangelogSettings = { enabled: true, emailSubscriptionsEnabled: false };
 
 export function parseChangelogSettings(metadata: string | null): ChangelogSettings {
   if (!metadata) return DEFAULTS;

@@ -3,12 +3,15 @@ import type { AdminStatus } from "@features/feedback/schemas/admin";
 import { ArrowUpRight, Smile, X } from "lucide-react";
 import { Link } from "react-router";
 import type { useIntegrationLinks } from "../hooks/use-integration-links";
+import type { useOwnerPicker } from "../hooks/use-owner-picker";
 import type { useVoteStatus } from "../hooks/use-vote-status";
 import { AdminMenu } from "./post-admin-menu";
+import { OwnerPicker } from "./post-owner-picker";
 import { StatusPill } from "./post-status-pill";
 
 type VoteState = ReturnType<typeof useVoteStatus>;
 type Integrations = ReturnType<typeof useIntegrationLinks>;
+type OwnerState = ReturnType<typeof useOwnerPicker>;
 type StatusConfig = (typeof ADMIN_STATUS_CONFIG)[AdminStatus];
 
 export function PostDetailHeader({
@@ -18,6 +21,7 @@ export function PostDetailHeader({
   hasMergedInto,
   vote,
   integrations,
+  owner,
   onMergeOpen,
   onClose,
 }: {
@@ -27,6 +31,7 @@ export function PostDetailHeader({
   hasMergedInto: boolean;
   vote: VoteState;
   integrations: Integrations;
+  owner: OwnerState;
   onMergeOpen: () => void;
   onClose: () => void;
 }) {
@@ -35,6 +40,16 @@ export function PostDetailHeader({
   return (
     <header className="flex items-center h-12 px-4 border-b shrink-0 gap-2">
       <StatusPill cfg={cfg} isAdmin={isAdmin} status={vote.status} onUpdate={vote.updateStatus} />
+      <div className="w-px h-4 bg-border shrink-0" />
+      <OwnerPicker
+        ownerId={owner.ownerId}
+        ownerName={owner.ownerName}
+        ownerImage={owner.ownerImage}
+        orgAdmins={owner.orgAdmins}
+        isAdmin={isAdmin}
+        assigning={owner.assigning}
+        onAssign={owner.assignOwner}
+      />
       <div className="flex-1" />
       <div className="flex items-center gap-0.5">
         <Link

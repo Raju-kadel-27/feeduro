@@ -2,7 +2,7 @@ import { ADMIN_STATUS_CONFIG } from "@features/feedback/constants";
 import type { ActivityData, AdminStatus } from "@features/feedback/schemas/admin";
 import { timeAgo } from "@features/feedback/utils";
 import { cn } from "@lib/utils";
-import { GitMerge } from "lucide-react";
+import { GitMerge, UserCheck } from "lucide-react";
 import { StatusCircleIcon } from "./status-circle-icon";
 
 export function ActivityItem({
@@ -57,6 +57,26 @@ export function ActivityItem({
           {oldValue ?? "a post"}
         </span>
         <span>from this post</span>
+        <span className="text-muted-foreground/40">·</span>
+        <span>{timeAgo(createdAt)}</span>
+      </div>
+    );
+  }
+
+  if (type === "owner_assigned") {
+    const isUnassign = newValue === "Unassigned";
+    return (
+      <div className="flex items-center gap-2 py-1.5 text-xs text-muted-foreground flex-wrap">
+        <UserCheck className="h-3 w-3 text-blue-500 shrink-0" />
+        <span className="font-medium text-foreground/80">{userName ?? "Someone"}</span>
+        {isUnassign ? (
+          <span>unassigned this post</span>
+        ) : (
+          <>
+            <span>assigned to</span>
+            <span className="font-medium text-foreground/80">{newValue}</span>
+          </>
+        )}
         <span className="text-muted-foreground/40">·</span>
         <span>{timeAgo(createdAt)}</span>
       </div>

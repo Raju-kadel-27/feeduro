@@ -34,6 +34,7 @@ import { linearOAuth } from "./oauth";
 import { LinearActionSchema, type LinearSettings } from "./schemas";
 
 const CALLBACK_PATH = "/api/linear";
+const LOG = "[linear-service]";
 
 function callbackUrl(): string {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
@@ -67,8 +68,12 @@ export async function handleLinearLoader(request: Request) {
 
   if (code && state) {
     const parsed = parseOAuthState(state);
-    if (!parsed) return redirect("/");
+    if (!parsed) {
+      console.error(`${LOG} OAuth callback: invalid state param`);
+      return redirect("/");
+    }
 
+    console.log(`${LOG} OAuth callback started orgId=${parsed.orgId}`);
     const { clientId, clientSecret } = requireLinearEnv();
 
     try {
@@ -80,38 +85,31 @@ export async function handleLinearLoader(request: Request) {
         callbackUrl(),
       );
       const workspace = await getLinearWorkspace(accessToken);
+      console.log(`${LOG} token exchanged workspaceId=${workspace.id} name="${workspace.name}"`);
 
       const existing = await getIntegration(parsed.orgId, "linear");
       const existingSettings = parseSettings<LinearSettings>(existing?.settings ?? null);
 
-      const webhookUrl = `${getBaseUrl()}/api/linear/webhook?orgId=${parsed.orgId}`;
-      const isLocal = webhookUrl.includes("localhost") || webhookUrl.includes("127.0.0.1");
-
-      let webhookId = existingSettings?.webhookId;
-      let webhookSecret = existingSettings?.webhookSecret;
-
-      if (!isLocal) {
-        try {
-          if (existingSettings?.webhookId) {
-            await deleteLinearWebhook(accessToken, existingSettings.webhookId).catch(() => {});
-          }
-          const webhook = await registerLinearWebhook(accessToken, webhookUrl);
-          webhookId = webhook.id;
-          webhookSecret = webhook.secret;
-        } catch {
-          /* Non-fatal — integration works, just no auto-sync */
-        }
-      }
-
+      // Webhook registration requires a teamId (non-admin accounts cannot use allPublicTeams).
+      // It happens in update_settings once the user picks a team.
+      // Preserve existing webhook if reconnecting so status sync keeps working.
       const settings: LinearSettings = {
         workspaceId: workspace.id,
         workspaceName: workspace.name,
         defaultTeamId: existingSettings?.defaultTeamId,
         autoCreateIssues: existingSettings?.autoCreateIssues ?? false,
         statusMappings: existingSettings?.statusMappings,
-        webhookId,
-        webhookSecret,
+        webhookId: existingSettings?.webhookId,
+        webhookSecret: existingSettings?.webhookSecret,
       };
+
+      console.log(
+        `${LOG} OAuth callback — webhook deferred to team selection (preserving existing: ${!!existingSettings?.webhookId})`,
+      );
+
+      console.log(
+        `${LOG} saving integration orgId=${parsed.orgId} hasWebhook=${!!settings.webhookId}`,
+      );
 
       const db = getDb();
       await db
@@ -126,8 +124,13 @@ export async function handleLinearLoader(request: Request) {
           target: [integrations.organizationId, integrations.provider],
           set: { accessToken, settings: JSON.stringify(settings), updatedAt: new Date() },
         });
-    } catch {
-      /* Redirect even on error — UI will show "not connected" */
+
+      console.log(`${LOG} OAuth callback complete orgId=${parsed.orgId}`);
+    } catch (err) {
+      console.error(
+        `${LOG} OAuth callback failed orgId=${parsed.orgId}:`,
+        err instanceof Error ? err.message : err,
+      );
     }
 
     const orgSlug = await getOrgSlugFromId(parsed.orgId);
@@ -166,9 +169,46 @@ export async function handleLinearAction(request: Request) {
   }
 
   if (input.intent === "update_settings") {
+    console.log(
+      `${LOG} update_settings orgId=${organizationId} autoCreate=${input.autoCreateIssues} teamId=${input.defaultTeamId ?? "none"}`,
+    );
     const integration = await getIntegration(organizationId, "linear");
-    if (!integration) return data({ error: "No Linear integration found" }, { status: 400 });
+    if (!integration?.accessToken) return data({ error: "No Linear integration found" }, { status: 400 });
     const settings = parseSettings<LinearSettings>(integration.settings) ?? ({} as LinearSettings);
+
+    let { webhookId, webhookSecret } = settings;
+
+    const webhookUrl = `${getBaseUrl()}/api/linear/webhook?orgId=${organizationId}`;
+    const isLocal = webhookUrl.includes("localhost") || webhookUrl.includes("127.0.0.1");
+    const teamChanged = input.defaultTeamId && input.defaultTeamId !== settings.defaultTeamId;
+    const noWebhook = !webhookId;
+
+    if (input.defaultTeamId && !isLocal && (noWebhook || teamChanged)) {
+      try {
+        if (webhookId) {
+          console.log(`${LOG} deleting old webhook webhookId=${webhookId} (team changed)`);
+          await deleteLinearWebhook(integration.accessToken, webhookId).catch((err) =>
+            console.warn(`${LOG} failed to delete old webhook:`, err),
+          );
+        }
+        const webhook = await registerLinearWebhook(
+          integration.accessToken,
+          webhookUrl,
+          input.defaultTeamId,
+        );
+        webhookId = webhook.id;
+        webhookSecret = webhook.secret;
+        console.log(`${LOG} webhook registered webhookId=${webhookId} teamId=${input.defaultTeamId}`);
+      } catch (err) {
+        console.error(
+          `${LOG} webhook registration failed — status sync will NOT work:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+    } else if (isLocal) {
+      console.warn(`${LOG} webhook skipped — local URL, status sync will NOT work`);
+    }
+
     await updateIntegrationSettings(
       organizationId,
       "linear",
@@ -176,21 +216,31 @@ export async function handleLinearAction(request: Request) {
         ...settings,
         defaultTeamId: input.defaultTeamId,
         autoCreateIssues: input.autoCreateIssues,
+        webhookId,
+        webhookSecret,
       },
       session.user.id,
     );
+    console.log(`${LOG} update_settings done orgId=${organizationId} hasWebhook=${!!webhookId}`);
     return data({ success: true });
   }
 
   if (input.intent === "disconnect") {
+    console.log(`${LOG} disconnect orgId=${organizationId}`);
     const integration = await getIntegration(organizationId, "linear");
     if (integration?.accessToken) {
       const settings = parseSettings<LinearSettings>(integration.settings);
       if (settings?.webhookId) {
-        await deleteLinearWebhook(integration.accessToken, settings.webhookId).catch(() => {});
+        console.log(`${LOG} deleting webhook webhookId=${settings.webhookId}`);
+        await deleteLinearWebhook(integration.accessToken, settings.webhookId).catch((err) =>
+          console.warn(`${LOG} failed to delete webhook on disconnect:`, err),
+        );
+      } else {
+        console.warn(`${LOG} disconnect — no webhookId in settings, webhook may still exist in Linear`);
       }
     }
     await deleteIntegration(organizationId, "linear");
+    console.log(`${LOG} disconnect done orgId=${organizationId}`);
     return data({ success: true });
   }
 
@@ -220,15 +270,23 @@ export async function handleLinearAction(request: Request) {
       }),
     ]);
 
-    if (!integration?.accessToken) return data({ error: "Linear not connected" }, { status: 400 });
+    if (!integration?.accessToken) {
+      console.error(`${LOG} create_issue — not connected orgId=${organizationId}`);
+      return data({ error: "Linear not connected" }, { status: 400 });
+    }
     const settings = parseSettings<LinearSettings>(integration.settings);
     const teamId = input.teamId ?? settings?.defaultTeamId;
-    if (!teamId)
+    if (!teamId) {
+      console.error(`${LOG} create_issue — no teamId postId=${input.postId} orgId=${organizationId}`);
       return data(
         { error: "No team selected — set a default team in Linear settings" },
         { status: 400 },
       );
-    if (!post) return data({ error: "Post not found" }, { status: 404 });
+    }
+    if (!post) {
+      console.error(`${LOG} create_issue — post not found postId=${input.postId}`);
+      return data({ error: "Post not found" }, { status: 404 });
+    }
 
     const existingLink = await db.query.postExternalLinks.findFirst({
       where: and(
@@ -237,9 +295,14 @@ export async function handleLinearAction(request: Request) {
       ),
       columns: { id: true },
     });
-    if (existingLink)
+    if (existingLink) {
+      console.warn(`${LOG} create_issue — already linked postId=${input.postId}`);
       return data({ error: "Post already linked to a Linear issue" }, { status: 400 });
+    }
 
+    console.log(
+      `${LOG} create_issue postId=${input.postId} teamId=${teamId} orgId=${organizationId}`,
+    );
     try {
       const description = post.description
         ? `${post.description}\n\n---\n*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`
@@ -249,6 +312,9 @@ export async function handleLinearAction(request: Request) {
         teamId,
         post.title,
         description,
+      );
+      console.log(
+        `${LOG} create_issue done issueId=${issue.id} identifier=${issue.identifier} postId=${input.postId}`,
       );
       await insertPostExternalLink({
         postId: input.postId,
@@ -263,6 +329,10 @@ export async function handleLinearAction(request: Request) {
       });
       return data({ success: true, issue });
     } catch (err) {
+      console.error(
+        `${LOG} create_issue failed postId=${input.postId}:`,
+        err instanceof Error ? err.message : err,
+      );
       return data(
         { error: err instanceof Error ? err.message : "Failed to create Linear issue" },
         { status: 400 },
@@ -282,9 +352,18 @@ export async function handleLinearAction(request: Request) {
       }),
     ]);
 
-    if (!integration?.accessToken) return data({ error: "Linear not connected" }, { status: 400 });
-    if (!post) return data({ error: "Post not found" }, { status: 404 });
+    if (!integration?.accessToken) {
+      console.error(`${LOG} link_issue — not connected orgId=${organizationId}`);
+      return data({ error: "Linear not connected" }, { status: 400 });
+    }
+    if (!post) {
+      console.error(`${LOG} link_issue — post not found postId=${input.postId}`);
+      return data({ error: "Post not found" }, { status: 404 });
+    }
 
+    console.log(
+      `${LOG} link_issue postId=${input.postId} issueId=${input.issueId} orgId=${organizationId}`,
+    );
     try {
       const issue = await getLinearIssueById(integration.accessToken, input.issueId);
       await upsertPostExternalLink({
@@ -298,8 +377,15 @@ export async function handleLinearAction(request: Request) {
         externalStatus: issue.state.name,
         linkedByUserId: session.user.id,
       });
+      console.log(
+        `${LOG} link_issue done issueId=${issue.id} identifier=${issue.identifier} postId=${input.postId}`,
+      );
       return data({ success: true, issue });
     } catch (err) {
+      console.error(
+        `${LOG} link_issue failed postId=${input.postId} issueId=${input.issueId}:`,
+        err instanceof Error ? err.message : err,
+      );
       return data(
         { error: err instanceof Error ? err.message : "Failed to link Linear issue" },
         { status: 400 },
@@ -308,6 +394,7 @@ export async function handleLinearAction(request: Request) {
   }
 
   if (input.intent === "unlink_issue") {
+    console.log(`${LOG} unlink_issue postId=${input.postId} orgId=${organizationId}`);
     await deletePostExternalLink(input.postId, "linear", organizationId);
     return data({ success: true });
   }

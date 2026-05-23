@@ -1,12 +1,30 @@
+import type React from "react";
+import { useState } from "react";
 import { DiscordIcon, SlackIcon } from "@components/icons";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/app/components/ui/sheet";
 import { IntegrationSection } from "../components/integration-section";
-import { SocialLoginCard } from "../components/social-login-card";
+import { IntegrationTile } from "../components/integration-tile";
 
-export const SOCIAL_LOGIN_INTEGRATIONS = [
+interface SocialItem {
+  key: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  docsUrl: string;
+  setupSteps: string[];
+}
+
+const SOCIAL_LOGIN_INTEGRATIONS: SocialItem[] = [
   {
     key: "discord",
     name: "Discord",
-    icon: <DiscordIcon />,
+    icon: <DiscordIcon className="h-7 w-7 fill-[#5865F2]" />,
     description: "Allow users to sign in to Feediyo using their Discord account via OAuth 2.0.",
     docsUrl: "https://discord.com/developers/applications",
     setupSteps: [
@@ -17,11 +35,10 @@ export const SOCIAL_LOGIN_INTEGRATIONS = [
       "Restart the server — Discord login will appear automatically.",
     ],
   },
-
   {
     key: "slack",
     name: "Slack",
-    icon: <SlackIcon />,
+    icon: <SlackIcon className="h-7 w-7" />,
     description: "Allow users to sign in to Feediyo using their Slack account via OAuth 2.0.",
     docsUrl: "https://api.slack.com/apps",
     setupSteps: [
@@ -39,14 +56,58 @@ interface Props {
 }
 
 export function SocialLoginIntegrations({ loaderData }: Props) {
+  const [selected, setSelected] = useState<SocialItem | null>(null);
+
   return (
-    <IntegrationSection title="Social Login">
-      {SOCIAL_LOGIN_INTEGRATIONS.map((integration) => (
-        <SocialLoginCard
-          {...integration}
-          enabled={loaderData[integration.key as keyof typeof loaderData].enabled}
-        />
-      ))}
-    </IntegrationSection>
+    <>
+      <IntegrationSection title="Social Login">
+        {SOCIAL_LOGIN_INTEGRATIONS.map((integration) => (
+          <IntegrationTile
+            key={integration.key}
+            name={integration.name}
+            icon={integration.icon}
+            connected={loaderData[integration.key as keyof typeof loaderData]?.enabled ?? false}
+            onClick={() => setSelected(integration)}
+          />
+        ))}
+      </IntegrationSection>
+
+      <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+        <SheetContent>
+          {selected && (
+            <>
+              <SheetHeader>
+                <div className="flex items-center gap-3 mb-1">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted">
+                    {selected.icon}
+                  </div>
+                  <SheetTitle>{selected.name}</SheetTitle>
+                </div>
+                <SheetDescription>{selected.description}</SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-6 space-y-3">
+                <p className="text-[13px] font-medium text-foreground">Setup required</p>
+                <ol className="space-y-2 list-decimal list-inside">
+                  {selected.setupSteps.map((step) => (
+                    <li key={step} className="text-[13px] text-muted-foreground leading-relaxed">
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+                <a
+                  href={selected.docsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 text-[13px] text-primary hover:underline"
+                >
+                  View documentation →
+                </a>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

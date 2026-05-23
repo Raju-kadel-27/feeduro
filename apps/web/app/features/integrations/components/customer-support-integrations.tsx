@@ -2,7 +2,7 @@ import { ZendeskIcon } from "@components/icons";
 import { useNavigate, useParams } from "react-router";
 import type { IntegrationsLoaderData } from "../server/loader";
 import { IntegrationSection } from "./integration-section";
-import { OAuthIntegrationCard } from "./oauth-integration-card";
+import { IntegrationTile } from "./integration-tile";
 
 interface Props {
   loaderData: IntegrationsLoaderData;
@@ -13,17 +13,12 @@ export function CustomerSupportIntegrations({ loaderData }: Props) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const { zendesk } = loaderData;
 
-  const description = zendesk.connected
-    ? `Connected${zendesk.accountName ? ` · ${zendesk.accountName}` : zendesk.subdomain ? ` · ${zendesk.subdomain}.zendesk.com` : ""}. Create Zendesk tickets from feedback posts.`
-    : "Create Zendesk support tickets directly from feedback posts.";
-
   return (
     <IntegrationSection title="Customer Support">
-      <OAuthIntegrationCard
+      <IntegrationTile
         name="Zendesk"
-        icon={<ZendeskIcon size={20} />}
+        icon={<ZendeskIcon size={40} />}
         connected={zendesk.connected}
-        description={description}
         onClick={() => navigate(`/${orgSlug}/settings/integrations/zendesk`)}
       />
     </IntegrationSection>

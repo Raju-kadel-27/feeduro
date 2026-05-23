@@ -2,7 +2,11 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { StatusFunnelSchema } from "../schemas/analytics";
 
-export async function getStatusFunnel(organizationId: string, boardId?: string) {
+export async function getStatusFunnel(
+  organizationId: string,
+  boardId?: string,
+  since?: Date,
+) {
   const db = getDb();
 
   const boardFilter = boardId
@@ -11,6 +15,8 @@ export async function getStatusFunnel(organizationId: string, boardId?: string) 
         WHERE board_id = ${boardId} AND organization_id = ${organizationId}
       )`
     : sql``;
+
+  const sinceFilter = since ? sql`AND a1.created_at >= ${since}` : sql``;
 
   const result = await db.execute(sql`
     SELECT
@@ -32,6 +38,7 @@ export async function getStatusFunnel(organizationId: string, boardId?: string) 
           AND a3.created_at < a2.created_at
       )
       ${boardFilter}
+      ${sinceFilter}
     GROUP BY a1.new_value, a2.new_value
     ORDER BY count(*) DESC
   `);

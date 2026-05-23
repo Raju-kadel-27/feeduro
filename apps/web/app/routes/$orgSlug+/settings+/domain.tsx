@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { AlertCircle, CheckCircle2, Clock, Copy, Globe, RefreshCw, Trash2 } from "lucide-react";

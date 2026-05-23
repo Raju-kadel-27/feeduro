@@ -34,6 +34,9 @@ function sortPosts(posts: Post[], sort: Sort): Post[] {
 function buildRefinementsFromParams(sp: URLSearchParams): Refinements {
   const boards = sp.getAll("board").filter(Boolean);
   const statuses = sp.getAll("status") as Status[];
+  const owners = sp.getAll("owner").filter(Boolean);
+  const categoryIds = sp.getAll("category").filter(Boolean);
+  const tagIds = sp.getAll("tag").filter(Boolean);
   const datePreset = sp.get("date") ?? undefined;
   const dateFrom = sp.get("dateFrom") ?? undefined;
   const dateTo = sp.get("dateTo") ?? undefined;
@@ -44,6 +47,9 @@ function buildRefinementsFromParams(sp: URLSearchParams): Refinements {
   return {
     ...(boards.length > 0 && { board: boards }),
     ...(statuses.length > 0 && { status: statuses }),
+    ...(owners.length > 0 && { owner: owners }),
+    ...(categoryIds.length > 0 && { categoryId: categoryIds }),
+    ...(tagIds.length > 0 && { tagIds }),
     ...(datePreset && { datePreset }),
     ...(dateFrom && { dateFrom }),
     ...(dateTo && { dateTo }),
@@ -58,6 +64,9 @@ function hasAnyRefinement(r: Refinements): boolean {
   return !!(
     r.board?.length ||
     r.status?.length ||
+    r.owner?.length ||
+    r.categoryId?.length ||
+    r.tagIds?.length ||
     r.datePreset ||
     r.dateFrom ||
     r.dateTo ||
@@ -126,6 +135,17 @@ export function useViewState(
     );
   }
 
+  function clearView() {
+    setSp(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("view");
+        return next;
+      },
+      { replace: true },
+    );
+  }
+
   function saveRefinementsToView() {
     if (!activeView) return;
     const mergedFilters = mergeFilters(activeView.filters, refinements);
@@ -160,6 +180,7 @@ export function useViewState(
   );
 
   return {
+    activeViewId,
     activeView,
     activeSegment,
     refinements,
@@ -172,6 +193,7 @@ export function useViewState(
     switchView,
     setRefinement,
     clearRefinements,
+    clearView,
     saveRefinementsToView,
   };
 }

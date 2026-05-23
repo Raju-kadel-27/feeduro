@@ -150,6 +150,7 @@ export async function registerJiraWebhook(
   accessToken: string,
   cloudId: string,
   webhookUrl: string,
+  jqlFilter = "",
 ): Promise<JiraWebhookRegistration> {
   const d = await jiraFetch<{
     webhookRegistrationResult: Array<{
@@ -161,7 +162,12 @@ export async function registerJiraWebhook(
     method: "POST",
     body: JSON.stringify({
       url: webhookUrl,
-      webhooks: [{ events: ["jira:issue_created", "jira:issue_updated", "jira:issue_deleted"] }],
+      webhooks: [
+        {
+          jqlFilter,
+          events: ["jira:issue_created", "jira:issue_updated", "jira:issue_deleted"],
+        },
+      ],
     }),
   });
   const ids: number[] = [];
@@ -170,8 +176,11 @@ export async function registerJiraWebhook(
     if (r.createdWebhookId) {
       ids.push(r.createdWebhookId);
       if (r.expirationDate) expiresAt = r.expirationDate;
+    } else if (r.errors?.length) {
+      throw new Error(`Jira webhook registration error: ${r.errors.join(", ")}`);
     }
   }
+  if (!ids.length) throw new Error("Jira returned no webhook IDs — registration failed silently");
   return { ids, expiresAt };
 }
 

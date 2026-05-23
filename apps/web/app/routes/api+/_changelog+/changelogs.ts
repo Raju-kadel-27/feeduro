@@ -1,6 +1,8 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { isAdmin } from "@features/roles/server/queries";
+import { notifyChangelogSubscribers } from "@features/changelog/server/subscribers";
 import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { extractBlockNoteText } from "@features/feedback/utils";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -20,9 +22,7 @@ function slugify(title: string): string {
 export async function loader({ request }: Route.LoaderArgs) {
   const { organizationId } = await requireOrganization(request);
   const db = getDb();
-
-  const url = new URL(request.url);
-  const id = url.searchParams.get("id");
+  const id = new URL(request.url).searchParams.get("id");
 
   if (id) {
     const entry = await db.query.changelogs.findFirst({
@@ -35,22 +35,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   const entries = await db.query.changelogs.findMany({
     where: eq(changelogs.organizationId, organizationId),
     orderBy: [desc(changelogs.createdAt)],
-    columns: {
-      id: true,
-      title: true,
-      slug: true,
-      status: true,
-      publishedAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+    columns: { id: true, title: true, slug: true, status: true, publishedAt: true, createdAt: true, updatedAt: true },
   });
-
   return data({ changelogs: entries });
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+  const { session, org, organizationId } = await requireOrganization(request);
   const db = getDb();
 
   if (!(await isAdmin(organizationId, session.user.id))) {
@@ -64,7 +55,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (!title) return data({ error: "Title is required" }, { status: 400 });
 
     const baseSlug = slugify(title) || createId().substring(0, 16);
-
     const existing = await db.query.changelogs.findFirst({
       where: and(eq(changelogs.organizationId, organizationId), eq(changelogs.slug, baseSlug)),
     });
@@ -80,22 +70,12 @@ export async function action({ request, context }: Route.ActionArgs) {
         status: "draft",
         createdBy: session.user.id,
       })
-      .returning({
-        id: changelogs.id,
-        title: changelogs.title,
-        slug: changelogs.slug,
-        createdAt: changelogs.createdAt,
-      });
+      .returning({ id: changelogs.id, title: changelogs.title, slug: changelogs.slug, createdAt: changelogs.createdAt });
 
     dispatchWebhook(context, organizationId, "changelog.created", {
-      id: entry.id,
-      title: entry.title,
-      slug: entry.slug,
-      status: "draft",
-      createdBy: session.user.id,
-      createdAt: entry.createdAt,
+      id: entry.id, title: entry.title, slug: entry.slug, status: "draft",
+      createdBy: session.user.id, createdAt: entry.createdAt,
     });
-
     return data({ success: true, id: entry.id });
   }
 
@@ -103,20 +83,17 @@ export async function action({ request, context }: Route.ActionArgs) {
     const id = body.id as string;
     const title = (body.title as string)?.trim();
     const changelogBody = body.body as string;
-
     if (!title) return data({ error: "Title is required" }, { status: 400 });
     if (!id) return data({ error: "ID is required" }, { status: 400 });
 
-    await db
-      .update(changelogs)
-      .set({ title, body: changelogBody })
+    await db.update(changelogs).set({ title, body: changelogBody })
       .where(and(eq(changelogs.id, id), eq(changelogs.organizationId, organizationId)));
-
     return data({ success: true });
   }
 
   if (body.intent === "publish") {
     const id = body.id as string;
+    const shouldNotify = body.notifySubscribers === true;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
 
     const publishedAt = new Date();
@@ -125,7 +102,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       .update(changelogs)
       .set({ status: "published", publishedAt })
       .where(and(eq(changelogs.id, id), eq(changelogs.organizationId, organizationId)))
-      .returning({ title: changelogs.title, slug: changelogs.slug });
+      .returning({ title: changelogs.title, slug: changelogs.slug, body: changelogs.body });
 
     if (published) {
       dispatchWebhook(context, organizationId, "changelog.published", {
@@ -135,6 +112,18 @@ export async function action({ request, context }: Route.ActionArgs) {
         publishedAt: publishedAt.toISOString(),
         publishedBy: session.user.id,
       });
+
+      if (shouldNotify) {
+        const origin = new URL(request.url).origin;
+        notifyChangelogSubscribers(context, {
+          organizationId,
+          orgName: org.name ?? "",
+          changelogTitle: published.title,
+          excerpt: extractBlockNoteText(published.body, 200),
+          changelogUrl: `${origin}/${org.slug}?tab=updates`,
+          baseUrl: origin,
+        });
+      }
     }
 
     return data({ success: true });
@@ -143,23 +132,16 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (body.intent === "unpublish") {
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
-
-    await db
-      .update(changelogs)
-      .set({ status: "draft", publishedAt: null })
+    await db.update(changelogs).set({ status: "draft", publishedAt: null })
       .where(and(eq(changelogs.id, id), eq(changelogs.organizationId, organizationId)));
-
     return data({ success: true });
   }
 
   if (body.intent === "delete") {
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
-
-    await db
-      .delete(changelogs)
+    await db.delete(changelogs)
       .where(and(eq(changelogs.id, id), eq(changelogs.organizationId, organizationId)));
-
     return data({ success: true });
   }
 

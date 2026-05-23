@@ -1,8 +1,8 @@
 import { UpdatesView } from "@features/changelog/components/updates-view";
 import { DetailPanel } from "@features/feedback/components/detail-panel";
 import { FeedbackCard } from "@features/feedback/components/feedback-card";
-import { FeedbackModal } from "@features/feedback/components/feedback-modal";
 import { FilterRow } from "@features/feedback/components/filter-row";
+import { InlineFeedbackForm } from "@features/feedback/components/inline-feedback-form";
 import { PublicAuthModal } from "@features/feedback/components/public-auth-modal";
 import { PublicSidebar } from "@features/feedback/components/public-sidebar";
 import { TopNav } from "@features/feedback/components/top-nav";
@@ -15,7 +15,6 @@ import type {
 } from "@features/feedback/schemas/public";
 import { CreateBoardFab } from "@features/layout/components/create-board-fab";
 import { PublicRoadmapView } from "@features/roadmap/components/public-roadmap-view";
-import { Megaphone } from "lucide-react";
 
 type Props = {
   loaderData: {
@@ -28,6 +27,7 @@ type Props = {
     sessionUser: SessionUser | null;
     publicUser: { id: string; email: string; name?: string } | null;
     widgetToken: string | null;
+    emailSubscriptionsEnabled?: boolean;
   };
 };
 
@@ -45,6 +45,11 @@ export function PublicBoardPage({ loaderData }: Props) {
 
   const safeVotedIds = votedPostIds ?? [];
 
+  const postCounts = posts.reduce<Record<string, number>>((acc, p) => {
+    acc[p.boardId] = (acc[p.boardId] ?? 0) + 1;
+    return acc;
+  }, {});
+
   const {
     currentTab,
     activeStatuses,
@@ -52,9 +57,6 @@ export function PublicBoardPage({ loaderData }: Props) {
     setSort,
     selectedBoardId,
     setSelectedBoardId,
-    setSearchParams,
-    showModal,
-    setShowModal,
     authModal,
     setAuthModal,
     selectedPostId,
@@ -67,51 +69,43 @@ export function PublicBoardPage({ loaderData }: Props) {
   } = usePublicBoard({ posts, sessionUser });
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
       <TopNav
         orgName={org.name}
         sessionUser={sessionUser ?? null}
         currentTab={currentTab}
-        onSubmitPost={() => setShowModal(true)}
+        onSubmitPost={() => setAuthModal("sign-in")}
         onSignIn={() => setAuthModal("sign-in")}
         onSignUp={() => setAuthModal("sign-up")}
       />
 
-      <main className="mx-auto max-w-[1440px] px-6 pt-16 pb-32">
+      <main className={`mx-auto px-6 pb-16 ${currentTab === "roadmap" ? "max-w-[1200px] pt-1" : "max-w-[1060px] pt-6"}`}>
         {currentTab === "feedback" && (
-          <div className="flex gap-10">
+          <div className="flex gap-16">
             <PublicSidebar
               boards={boards}
+              postCounts={postCounts}
+              totalCount={posts.length}
               selectedBoardId={selectedBoardId}
               onSelectBoard={setSelectedBoardId}
             />
             <section className="min-w-0 flex-1">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-xl font-semibold text-slate-900">
-                    {selectedBoardId === "all"
-                      ? "All Feedback"
-                      : (boards.find((b) => b.id === selectedBoardId)?.name ?? "Feedback")}
-                  </h1>
-                  <p className="mt-0.5 text-[13px] text-slate-600">
-                    {filtered.length} posts · vote on what matters most to you
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="px-4 py-2 rounded-lg bg-slate-900 text-white text-[13px] font-medium hover:bg-slate-800 transition-colors inline-flex items-center gap-2"
-                >
-                  <Megaphone className="h-4 w-4" />
-                  Give Feedback
-                </button>
-              </div>
+              <InlineFeedbackForm
+                orgSlug={org.slug}
+                boards={boards}
+                publicUser={publicUser ?? null}
+                widgetToken={widgetToken ?? null}
+                sessionUser={sessionUser ?? null}
+                onSubmitted={handleSubmitted}
+                onAuthRequired={() => setAuthModal("sign-in")}
+              />
               <FilterRow
                 active={activeStatuses}
                 toggle={toggleStatus}
                 sort={sort}
                 setSort={setSort}
               />
-              <div className="mt-4">
+              <div className="mt-1">
                 {filtered.map((post) => (
                   <FeedbackCard
                     key={post.id}
@@ -124,7 +118,7 @@ export function PublicBoardPage({ loaderData }: Props) {
                   />
                 ))}
                 {filtered.length === 0 && (
-                  <div className="flex items-center justify-center py-20 text-sm text-slate-500">
+                  <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
                     {posts.length === 0
                       ? "No feedback yet. Be the first to share!"
                       : "No feedback matches the current filters."}
@@ -138,6 +132,7 @@ export function PublicBoardPage({ loaderData }: Props) {
         {currentTab === "roadmap" && (
           <PublicRoadmapView
             posts={allPosts}
+            boards={boards}
             orgSlug={org.slug}
             votedPostIds={safeVotedIds}
             sessionUser={sessionUser ?? null}
@@ -146,31 +141,15 @@ export function PublicBoardPage({ loaderData }: Props) {
         )}
 
         {currentTab === "updates" && (
-          <div className="flex gap-10">
-            <PublicSidebar
-              boards={boards}
-              onSelectBoard={(id) => {
-                setSelectedBoardId(id);
-                setSearchParams({});
-              }}
-            />
-            <UpdatesView entries={changelogEntries ?? []} />
-          </div>
+          <UpdatesView
+            entries={changelogEntries ?? []}
+            orgSlug={org.slug}
+            subscriptionsEnabled={loaderData.emailSubscriptionsEnabled ?? false}
+          />
         )}
       </main>
 
       <CreateBoardFab />
-
-      {showModal && (
-        <FeedbackModal
-          orgSlug={org.slug}
-          boards={boards}
-          publicUser={publicUser ?? null}
-          widgetToken={widgetToken ?? null}
-          onClose={() => setShowModal(false)}
-          onSubmitted={handleSubmitted}
-        />
-      )}
 
       {authModal && (
         <PublicAuthModal

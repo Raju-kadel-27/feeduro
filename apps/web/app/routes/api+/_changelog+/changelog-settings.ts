@@ -3,6 +3,7 @@ import {
   DEFAULT_TAGS,
   parseChangelogSettings,
 } from "@features/changelog/server/changelog-settings";
+import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -14,25 +15,50 @@ export async function loader({ request }: Route.LoaderArgs) {
   const { organizationId } = await requireOrganization(request);
   const db = getDb();
 
-  const [org, tags] = await Promise.all([
+  const [org, tags, subscriberCount] = await Promise.all([
     db.query.organization.findFirst({ where: eq(organization.id, organizationId) }),
     db.query.changelogTags.findMany({
       where: eq(changelogTags.organizationId, organizationId),
       orderBy: (t, { asc }) => [asc(t.createdAt)],
     }),
+    getSubscriberCount(organizationId),
   ]);
 
-  // Seed default tags on first visit
   if (tags.length === 0) {
     await db.insert(changelogTags).values(DEFAULT_TAGS.map((name) => ({ organizationId, name })));
     const seeded = await db.query.changelogTags.findMany({
       where: eq(changelogTags.organizationId, organizationId),
       orderBy: (t, { asc }) => [asc(t.createdAt)],
     });
-    return data({ ...parseChangelogSettings(org?.metadata ?? null), tags: seeded });
+    return data({ ...parseChangelogSettings(org?.metadata ?? null), tags: seeded, subscriberCount });
   }
 
-  return data({ ...parseChangelogSettings(org?.metadata ?? null), tags });
+  return data({ ...parseChangelogSettings(org?.metadata ?? null), tags, subscriberCount });
+}
+
+async function updateChangelogSettings(
+  organizationId: string,
+  updates: Record<string, unknown>,
+) {
+  const db = getDb();
+  const org = await db.query.organization.findFirst({
+    where: eq(organization.id, organizationId),
+    columns: { id: true, metadata: true },
+  });
+  if (!org) return false;
+
+  let meta: Record<string, unknown> = {};
+  try {
+    meta = JSON.parse(org.metadata ?? "{}") as Record<string, unknown>;
+  } catch {}
+
+  const currentSettings = (meta.changelogSettings as Record<string, unknown>) ?? {};
+  await db
+    .update(organization)
+    .set({ metadata: JSON.stringify({ ...meta, changelogSettings: { ...currentSettings, ...updates } }) })
+    .where(eq(organization.id, organizationId));
+
+  return true;
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -42,21 +68,16 @@ export async function action({ request }: Route.ActionArgs) {
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "toggle") {
-    const org = await db.query.organization.findFirst({
-      where: eq(organization.id, organizationId),
+    const ok = await updateChangelogSettings(organizationId, { enabled: body.enabled });
+    if (!ok) return data({ error: "Not found" }, { status: 404 });
+    return data({ success: true });
+  }
+
+  if (body.intent === "toggle-subscriptions") {
+    const ok = await updateChangelogSettings(organizationId, {
+      emailSubscriptionsEnabled: body.enabled,
     });
-    if (!org) return data({ error: "Not found" }, { status: 404 });
-
-    let meta: Record<string, unknown> = {};
-    try {
-      meta = JSON.parse(org.metadata ?? "{}") as Record<string, unknown>;
-    } catch {}
-
-    await db
-      .update(organization)
-      .set({ metadata: JSON.stringify({ ...meta, changelogSettings: { enabled: body.enabled } }) })
-      .where(eq(organization.id, organizationId));
-
+    if (!ok) return data({ error: "Not found" }, { status: 404 });
     return data({ success: true });
   }
 
@@ -72,18 +93,15 @@ export async function action({ request }: Route.ActionArgs) {
 
     const id = createId();
     await db.insert(changelogTags).values({ id, organizationId, name });
-
     return data({ success: true, id });
   }
 
   if (body.intent === "delete-tag") {
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
-
     await db
       .delete(changelogTags)
       .where(and(eq(changelogTags.id, id), eq(changelogTags.organizationId, organizationId)));
-
     return data({ success: true });
   }
 

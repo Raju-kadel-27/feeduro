@@ -5,6 +5,18 @@ export type Sort = "trending" | "newest" | "oldest" | "votes";
 export type Group = "status" | "board" | "none";
 export type ViewMode = "list" | "board";
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface Post {
   id: string;
   title: string;
@@ -12,7 +24,10 @@ export interface Post {
   status: Status;
   createdAt: string;
   boardId: string;
-  createdBy: string;
+  createdBy: string | null;
+  ownerId?: string | null;
+  categoryId?: string | null;
+  tagIds?: string[];
   voteCount: number;
   hasVoted: boolean;
   commentCount: number;
@@ -36,6 +51,9 @@ export interface ViewFilters {
   excludeStatus?: Status[];
   board?: string[];
   author?: string[];
+  owner?: string[];
+  categoryId?: string[];
+  tagIds?: string[];
   minAge?: number;
   maxAge?: number;
   dateFrom?: string;
@@ -61,6 +79,9 @@ export interface View {
 export interface Refinements {
   board?: string[];
   status?: Status[];
+  owner?: string[];
+  categoryId?: string[];
+  tagIds?: string[];
   datePreset?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -104,7 +125,20 @@ export function postMatchesFilters(
   if (filters.status?.length && !filters.status.includes(post.status)) return false;
   if (filters.excludeStatus?.length && filters.excludeStatus.includes(post.status)) return false;
   if (filters.board?.length && !filters.board.includes(post.boardId)) return false;
-  if (filters.author?.length && !filters.author.includes(post.createdBy)) return false;
+  if (filters.categoryId?.length) {
+    if (!post.categoryId || !filters.categoryId.includes(post.categoryId)) return false;
+  }
+  if (filters.tagIds?.length) {
+    const postTags = post.tagIds ?? [];
+    if (!filters.tagIds.some((id) => postTags.includes(id))) return false;
+  }
+  if (filters.author?.length && (!post.createdBy || !filters.author.includes(post.createdBy)))
+    return false;
+  if (filters.owner?.length) {
+    const matchesUnassigned = filters.owner.includes("unassigned") && !post.ownerId;
+    const matchesOwner = post.ownerId != null && filters.owner.includes(post.ownerId);
+    if (!matchesUnassigned && !matchesOwner) return false;
+  }
   const age = daysSince(post.createdAt);
   if (filters.minAge != null && age < filters.minAge) return false;
   if (filters.maxAge != null && age > filters.maxAge) return false;
@@ -132,6 +166,9 @@ export function mergeFilters(viewFilters: ViewFilters, refinements: Refinements)
   const merged: ViewFilters = { ...viewFilters };
   if (refinements.board?.length) merged.board = refinements.board;
   if (refinements.status?.length) merged.status = refinements.status;
+  if (refinements.owner?.length) merged.owner = refinements.owner;
+  if (refinements.categoryId?.length) merged.categoryId = refinements.categoryId;
+  if (refinements.tagIds?.length) merged.tagIds = refinements.tagIds;
   if (refinements.datePreset) {
     Object.assign(merged, datePresetToFilters(refinements.datePreset));
     delete merged.dateFrom;

@@ -8,7 +8,7 @@ import {
 } from "@components/ui/dialog";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { isAdmin } from "@features/roles/server/queries";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";

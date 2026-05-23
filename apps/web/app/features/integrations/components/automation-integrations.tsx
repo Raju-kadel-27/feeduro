@@ -2,7 +2,7 @@ import { N8nIcon, ZapierIcon } from "@components/icons";
 import { useNavigate, useParams } from "react-router";
 import type { IntegrationsLoaderData } from "../server/loader";
 import { IntegrationSection } from "./integration-section";
-import { OAuthIntegrationCard } from "./oauth-integration-card";
+import { IntegrationTile } from "./integration-tile";
 
 interface Props {
   loaderData: IntegrationsLoaderData;
@@ -15,26 +15,16 @@ export function AutomationIntegrations({ loaderData }: Props) {
 
   return (
     <IntegrationSection title="Automation">
-      <OAuthIntegrationCard
+      <IntegrationTile
         name="Zapier"
-        icon={<ZapierIcon size={20} />}
+        icon={<ZapierIcon size={40} />}
         connected={zapier.connected}
-        description={
-          zapier.connected
-            ? "Connected. Feediyo events are being forwarded to your Zaps."
-            : "Forward feedback events to 7,000+ apps. Connect via a Zapier Catch Hook."
-        }
         onClick={() => navigate(`/${orgSlug}/settings/integrations/zapier`)}
       />
-      <OAuthIntegrationCard
+      <IntegrationTile
         name="n8n"
-        icon={<N8nIcon size={20} />}
+        icon={<N8nIcon size={40} />}
         connected={n8n.connected}
-        description={
-          n8n.connected
-            ? "Connected. Feediyo events are being forwarded to your n8n workflows."
-            : "Trigger n8n workflows from feedback events. Connect via a Webhook node."
-        }
         onClick={() => navigate(`/${orgSlug}/settings/integrations/n8n`)}
       />
     </IntegrationSection>

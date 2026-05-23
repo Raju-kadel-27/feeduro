@@ -4,23 +4,24 @@ import { requireOrgBySlug } from "@features/auth/server/guards";
 import { ListView } from "@features/dashboard/components/list-view";
 import { RefineChipBar } from "@features/dashboard/components/refine-chip-bar";
 import { SaveAsViewPopover } from "@features/dashboard/components/save-as-view-popover";
-import { ViewHeader } from "@features/dashboard/components/view-header";
 import { useViewState } from "@features/dashboard/hooks/use-view-state";
 import { getOrgViewsWithCounts } from "@features/dashboard/server/views.server";
-import type { Board, Post, View } from "@features/dashboard/types";
 import { CreateFeedbackDialog } from "@features/feedback/components/create-feedback-dialog";
 import { getBoards, getEnrichedPosts } from "@features/feedback/server/queries";
-import { AppSidebar } from "@features/layout/components/app-sidebar";
+import { getOrgCategories } from "@features/feedback/server/categories.server";
+import { getOrgTags } from "@features/feedback/server/tags.server";
+import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { PostDetailPanel } from "@features/post-detail-panel/components/post-detail-panel";
 import { getOrgSegments } from "@features/segmentation/server/service";
-import type { Segment } from "@features/segmentation/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { redirect, useParams } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
+import type { Board, Category, Post, Tag, View } from "@features/dashboard/types";
+import type { Segment } from "@features/segmentation/types";
 import type { Route } from "./+types/dashboard";
 
 export function meta() {
@@ -31,20 +32,23 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const { session, org } = await requireOrgBySlug(request, params.orgSlug);
   const db = getDb();
 
-  const [memberRecord, orgMembers, posts, boardsData, views, segmentList] = await Promise.all([
-    db.query.member.findFirst({
-      where: and(eq(member.organizationId, org.id), eq(member.userId, session.user.id)),
-    }),
-    db
-      .select({ userId: member.userId, name: userTable.name, image: userTable.image })
-      .from(member)
-      .innerJoin(userTable, eq(member.userId, userTable.id))
-      .where(eq(member.organizationId, org.id)),
-    getEnrichedPosts(org.id, session.user.id),
-    getBoards(org.id),
-    getOrgViewsWithCounts(org.id).catch(() => [] as View[]),
-    getOrgSegments(org.id).catch(() => [] as Segment[]),
-  ]);
+  const [memberRecord, orgMembers, posts, boardsData, views, segmentList, tagList, categoryList] =
+    await Promise.all([
+      db.query.member.findFirst({
+        where: and(eq(member.organizationId, org.id), eq(member.userId, session.user.id)),
+      }),
+      db
+        .select({ userId: member.userId, name: userTable.name, image: userTable.image, role: member.role })
+        .from(member)
+        .innerJoin(userTable, eq(member.userId, userTable.id))
+        .where(eq(member.organizationId, org.id)),
+      getEnrichedPosts(org.id, session.user.id),
+      getBoards(org.id),
+      getOrgViewsWithCounts(org.id).catch(() => [] as View[]),
+      getOrgSegments(org.id).catch(() => [] as Segment[]),
+      getOrgTags(org.id).catch(() => [] as Tag[]),
+      getOrgCategories(org.id).catch(() => [] as Category[]),
+    ]);
 
   if (boardsData.boards.length === 0) {
     throw redirect(`/${params.orgSlug}/settings/feedback`);
@@ -56,31 +60,25 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     usersMap: Object.fromEntries(
       orgMembers.map((m) => [m.userId, { name: m.name, image: m.image }]),
     ),
+    orgAdmins: orgMembers
+      .filter((m) => m.role === "admin" || m.role === "owner")
+      .map((m) => ({ id: m.userId, name: m.name, image: m.image })),
     posts,
     boards: boardsData.boards,
     views,
     segments: segmentList,
+    tags: tagList,
+    categories: categoryList,
     fetchedAt: Date.now(),
   };
 }
 
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
-  const [showCreate, setShowCreate] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showSaveAsPopover, setShowSaveAsPopover] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
-  const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (searchRef.current) clearTimeout(searchRef.current);
-    searchRef.current = setTimeout(() => setDebouncedSearch(searchQuery), 200);
-    return () => {
-      if (searchRef.current) clearTimeout(searchRef.current);
-    };
-  }, [searchQuery]);
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ["feedback", "all", orgSlug],
@@ -126,14 +124,38 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
     staleTime: 60_000,
   });
 
+  const { data: tagsData } = useQuery({
+    queryKey: ["tags", orgSlug],
+    queryFn: async () => {
+      const res = await fetch("/api/tags");
+      return res.json() as Promise<{ tags: Tag[] }>;
+    },
+    initialData: { tags: loaderData.tags },
+    initialDataUpdatedAt: loaderData.fetchedAt,
+    staleTime: 60_000,
+  });
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["categories", orgSlug],
+    queryFn: async () => {
+      const res = await fetch("/api/categories");
+      return res.json() as Promise<{ categories: Category[] }>;
+    },
+    initialData: { categories: loaderData.categories },
+    initialDataUpdatedAt: loaderData.fetchedAt,
+    staleTime: 60_000,
+  });
+
   const allPosts = postsData?.posts ?? [];
   const boards = boardsData?.boards ?? [];
   const views = viewsData?.views ?? [];
   const segments = segmentsData?.segments ?? [];
-  const defaultBoard = boards.find((b) => b.isDefault) ?? boards[0];
+  const tags = tagsData?.tags ?? [];
+  const categories = categoriesData?.categories ?? [];
   const boardMap = Object.fromEntries(boards.map((b) => [b.id, b]));
+  const defaultBoard = boards.find((b) => b.isDefault) ?? boards[0];
 
-  const viewState = useViewState(views, allPosts, debouncedSearch, segments);
+  const viewState = useViewState(views, allPosts, "", segments);
 
   const { mutate: saveViewChanges } = useMutation({
     mutationFn: async ({
@@ -204,31 +226,38 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
     createView({ name, emoji, filters: merged.filters, sort: merged.sort });
   }
 
-  const { sortedPosts, activeView, refinements, hasRefinements, effectiveSort } = viewState;
+  const {
+    sortedPosts,
+    activeViewId,
+    activeView,
+    refinements,
+    hasRefinements,
+    effectiveSort,
+    viewCounts,
+  } = viewState;
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <div className="flex flex-col h-full">
-          <ViewHeader
-            activeView={activeView}
-            hasRefinements={hasRefinements}
-            boardMap={boardMap}
-            postCount={sortedPosts.length}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onNewRequest={() => setShowCreate(true)}
-          />
-
+        <div className={`flex flex-col h-full transition-opacity duration-200 ${selectedPostId ? "opacity-50" : "opacity-100"}`}>
           <div className="relative shrink-0">
             <RefineChipBar
+              views={views}
+              activeViewId={activeViewId}
               activeView={activeView}
+              viewCounts={viewCounts}
               refinements={refinements}
               effectiveSort={effectiveSort}
               hasRefinements={hasRefinements}
               boards={boards}
+              tags={tags}
+              categories={categories}
               segments={segments}
+              orgAdmins={loaderData.orgAdmins}
+              onSwitchView={viewState.switchView}
+              onClearView={viewState.clearView}
+              onNewRequest={() => setShowCreate(true)}
               onSetRefinement={viewState.setRefinement}
               onClearRefinements={viewState.clearRefinements}
               onSaveChanges={handleSaveChanges}
@@ -250,8 +279,8 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
             {postsLoading ? (
               <div className="divide-y">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-3">
-                    <Skeleton className="h-11 w-11 rounded-lg shrink-0" />
+                  <div key={i} className="flex items-center gap-3 px-4 py-2">
+                    <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
                     <div className="flex-1 space-y-1.5">
                       <Skeleton className="h-4 w-3/4" />
                       <Skeleton className="h-3 w-1/2" />
@@ -263,12 +292,10 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
               <div className="flex flex-col items-center justify-center py-24 text-center px-6">
                 <div className="text-4xl mb-3">🌤️</div>
                 <p className="text-sm font-medium">
-                  {hasRefinements || debouncedSearch
-                    ? "Nothing matches these filters"
-                    : "This view is empty"}
+                  {hasRefinements ? "Nothing matches these filters" : "This view is empty"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {hasRefinements || debouncedSearch
+                  {hasRefinements
                     ? "Try removing a filter or clearing your search."
                     : "Pick another view from the sidebar, or submit a new request."}
                 </p>

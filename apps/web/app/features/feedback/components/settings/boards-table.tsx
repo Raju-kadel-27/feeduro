@@ -7,6 +7,7 @@ interface BoardsTableProps {
   boards: FeedbackBoard[];
   onChangeVisibility: (id: string, visibility: "public" | "private") => void;
   onUpdateSmartReplies: (id: string, enabled: boolean, instructions: string | null) => void;
+  onUpdateAnonymizeUsers: (id: string, anonymizeUsers: boolean) => void;
 }
 
 const dotColor: Record<FeedbackBoard["color"], string> = {
@@ -21,11 +22,13 @@ function BoardRow({
   index,
   onChangeVisibility,
   onUpdateSmartReplies,
+  onUpdateAnonymizeUsers,
 }: {
   board: FeedbackBoard;
   index: number;
   onChangeVisibility: (id: string, visibility: "public" | "private") => void;
   onUpdateSmartReplies: (id: string, enabled: boolean, instructions: string | null) => void;
+  onUpdateAnonymizeUsers: (id: string, anonymizeUsers: boolean) => void;
 }) {
   const [instructions, setInstructions] = useState(board.smartRepliesInstructions ?? "");
 
@@ -68,6 +71,20 @@ function BoardRow({
               className="sr-only peer"
               checked={board.smartRepliesEnabled}
               onChange={handleSmartRepliesToggle}
+            />
+            <div className="w-9 h-5 bg-muted rounded-full peer peer-checked:bg-primary transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
+          </label>
+        </div>
+
+        {/* Anonymize users toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-muted-foreground">Anonymize users</span>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={board.anonymizeUsers}
+              onChange={(e) => onUpdateAnonymizeUsers(board.id, e.target.checked)}
             />
             <div className="w-9 h-5 bg-muted rounded-full peer peer-checked:bg-primary transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
           </label>
@@ -130,6 +147,7 @@ export function BoardsTable({
   boards,
   onChangeVisibility,
   onUpdateSmartReplies,
+  onUpdateAnonymizeUsers,
 }: BoardsTableProps) {
   if (boards.length === 0) {
     return (
@@ -149,6 +167,7 @@ export function BoardsTable({
             index={i}
             onChangeVisibility={onChangeVisibility}
             onUpdateSmartReplies={onUpdateSmartReplies}
+            onUpdateAnonymizeUsers={onUpdateAnonymizeUsers}
           />
         ))}
       </ul>

@@ -152,7 +152,7 @@ export async function registerMondayWebhook(
   accessToken: string,
   boardId: string,
   targetUrl: string,
-  event: "change_status_column_value" | "delete_pulse",
+  event: "change_status_column_value" | "change_column_value",
 ): Promise<string> {
   const data = await mondayGraphQL<{ create_webhook: { id: string } }>(
     accessToken,
@@ -167,4 +167,16 @@ export async function registerMondayWebhook(
 
 export async function deleteMondayWebhook(accessToken: string, webhookId: string): Promise<void> {
   await mondayGraphQL(accessToken, `mutation { delete_webhook(id: ${webhookId}) { id } }`);
+}
+
+export async function getMondayWebhook(
+  accessToken: string,
+  webhookId: string,
+): Promise<{ id: string; boardId: string; url: string; event: string } | null> {
+  const data = await mondayGraphQL<{
+    webhooks: Array<{ id: string; board_id: string; url: string; event: string }>;
+  }>(accessToken, `{ webhooks(ids: [${webhookId}]) { id board_id url event } }`);
+  const wh = data.webhooks?.[0];
+  if (!wh) return null;
+  return { id: wh.id, boardId: wh.board_id, url: wh.url, event: wh.event };
 }

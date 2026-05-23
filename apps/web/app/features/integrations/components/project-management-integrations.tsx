@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import { IntegrationSection } from "../components/integration-section";
-import { OAuthIntegrationCard } from "../components/oauth-integration-card";
+import { IntegrationTile } from "../components/integration-tile";
 import type { IntegrationsLoaderData } from "../server/loader";
 import { createProjectManagementIntegrations } from "./oauth-integrations";
 
@@ -10,10 +10,7 @@ interface Props {
 
 export function ProjectManagementIntegrations({ loaderData }: Props) {
   const navigate = useNavigate();
-
-  const { orgSlug } = useParams<{
-    orgSlug: string;
-  }>();
+  const { orgSlug } = useParams<{ orgSlug: string }>();
 
   const integrations = createProjectManagementIntegrations({
     loaderData,
@@ -24,7 +21,13 @@ export function ProjectManagementIntegrations({ loaderData }: Props) {
   return (
     <IntegrationSection title="Project Management">
       {integrations.map((integration) => (
-        <OAuthIntegrationCard key={integration.name} {...integration} />
+        <IntegrationTile
+          key={integration.name}
+          name={integration.name}
+          icon={integration.icon}
+          connected={integration.connected}
+          onClick={integration.onClick}
+        />
       ))}
     </IntegrationSection>
   );

@@ -1,5 +1,7 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { runDuplicateDetection } from "@features/autopilot/server/service";
+import { assignPostOwner } from "@features/feedback/server/owner";
+import { getPostTagsBatch } from "@features/feedback/server/tags.server";
 import { triggerSmartReply } from "@features/feedback/server/smart-replies.server";
 import { autoCreateAsanaTask } from "@features/integrations/asana/server/auto-create";
 import { autoCreateGithubIssue } from "@features/integrations/github/server/auto-create";
@@ -61,6 +63,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       jiraIntegration,
       asanaLinkRow,
       asanaIntegration,
+      ownerRow,
+      orgAdminRows,
     ] = await Promise.all([
       db.query.feedbackBoards.findFirst({
         where: eq(feedbackBoards.id, post.boardId),
@@ -82,7 +86,9 @@ export async function loader({ request }: Route.LoaderArgs) {
         .select({ type: reactions.type })
         .from(reactions)
         .where(and(eq(reactions.postId, postId), eq(reactions.userId, session.user.id))),
-      db.query.user.findFirst({ where: eq(user.id, post.createdBy) }),
+      post.createdBy
+        ? db.query.user.findFirst({ where: eq(user.id, post.createdBy) })
+        : Promise.resolve(null),
       db.query.member.findFirst({
         where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       }),
@@ -119,6 +125,17 @@ export async function loader({ request }: Route.LoaderArgs) {
         ),
         columns: { id: true },
       }),
+      post.ownerId
+        ? db.query.user.findFirst({
+            where: eq(user.id, post.ownerId),
+            columns: { id: true, name: true, image: true },
+          })
+        : Promise.resolve(null),
+      db
+        .select({ id: member.userId, name: user.name, image: user.image })
+        .from(member)
+        .innerJoin(user, eq(member.userId, user.id))
+        .where(eq(member.organizationId, organizationId)),
     ]);
 
     let mergedIntoPost: { id: string; title: string } | null = null;
@@ -165,6 +182,9 @@ export async function loader({ request }: Route.LoaderArgs) {
         authorImage: authorRow?.image ?? null,
         aiSummary: post.aiSummary ?? null,
         aiSummaryGeneratedAt: post.aiSummaryGeneratedAt?.toISOString() ?? null,
+        ownerId: post.ownerId ?? null,
+        ownerName: ownerRow?.name ?? null,
+        ownerImage: ownerRow?.image ?? null,
       },
       board: {
         name: board?.name ?? "General",
@@ -202,6 +222,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       mergedIntoPost,
       mergedChildren,
       canUnmerge,
+      orgAdmins: orgAdminRows,
     });
   }
 
@@ -231,7 +252,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const postIds = posts.map((p) => p.id);
 
-  const [allVotes, commentCountRows, voterTraitCounts] = await Promise.all([
+  const [allVotes, commentCountRows, voterTraitCounts, postTagRows] = await Promise.all([
     postIds.length > 0
       ? db.query.votes.findMany({ where: eq(votes.organizationId, organizationId) })
       : Promise.resolve([]),
@@ -248,9 +269,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     postIds.length > 0
       ? getVoterTraitCountsByPost(organizationId, postIds)
       : Promise.resolve({} as Record<string, VoterTraitCounts>),
+    postIds.length > 0 ? getPostTagsBatch(postIds) : Promise.resolve([]),
   ]);
 
   const commentCountMap = Object.fromEntries(commentCountRows.map((r) => [r.postId, r.count]));
+  const tagsByPost: Record<string, string[]> = {};
+  for (const row of postTagRows) {
+    if (!tagsByPost[row.postId]) tagsByPost[row.postId] = [];
+    tagsByPost[row.postId].push(row.id);
+  }
 
   const enriched = posts.map((post) => {
     const postVotes = allVotes.filter((v) => v.postId === post.id);
@@ -260,6 +287,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       hasVoted: postVotes.some((v) => v.userId === session.user.id),
       commentCount: commentCountMap[post.id] ?? 0,
       voterTraitCounts: voterTraitCounts[post.id] ?? EMPTY_TRAITS,
+      tagIds: tagsByPost[post.id] ?? [],
     };
   });
 
@@ -436,6 +464,26 @@ export async function action({ request, context }: Route.ActionArgs) {
       }).catch(() => {});
     }
 
+    return data({ success: true });
+  }
+
+  if (body.intent === "assign_owner") {
+    if (role !== "admin") {
+      return data({ error: "Only admins can assign post owners" }, { status: 403 });
+    }
+    const id = body.id as string;
+    const newOwnerId = (body.ownerId as string | null) ?? null;
+    if (!id) return data({ error: "Post id is required" }, { status: 400 });
+
+    const result = await assignPostOwner({
+      postId: id,
+      organizationId,
+      actorId: session.user.id,
+      actorName: session.user.name ?? session.user.email ?? "Someone",
+      newOwnerId,
+    });
+
+    if (result.error) return data({ error: result.error }, { status: 400 });
     return data({ success: true });
   }
 

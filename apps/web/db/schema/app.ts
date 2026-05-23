@@ -14,7 +14,7 @@ import {
   uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
-import { organization } from "./better-auth";
+import { organization, user } from "./better-auth";
 
 // ============ Enums ============
 
@@ -26,6 +26,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "mention",
   "vote_milestone",
   "autopilot_duplicate",
+  "owner_assigned",
 ]);
 
 export const boardVisibilityEnum = pgEnum("board_visibility", ["public", "private"]);
@@ -51,6 +52,22 @@ export const domainStatusEnum = pgEnum("domain_status", ["pending", "active", "f
 export const changelogStatusEnum = pgEnum("changelog_status", ["draft", "published"]);
 export const widgetPositionEnum = pgEnum("widget_position", ["left", "right"]);
 export const widgetThemeEnum = pgEnum("widget_theme", ["light", "dark", "auto"]);
+export const reactionTypeEnum = pgEnum("reaction_type", [
+  "heart",
+  "thumbsup",
+  "thumbsdown",
+  "laugh",
+  "wow",
+  "sad",
+]);
+export const confidenceEnum = pgEnum("confidence_level", ["low", "medium", "high"]);
+export const postActivityTypeEnum = pgEnum("post_activity_type", [
+  "status_changed",
+  "owner_assigned",
+  "merged",
+  "merged_into",
+  "unmerged",
+]);
 
 // ============ Subscription (Dodo Payments — managed here due to custom columns) ============
 
@@ -88,7 +105,9 @@ export const feedbackBoards = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 255 }).notNull(),
     slug: varchar("slug", { length: 255 }).notNull(),
     description: text("description"),
@@ -96,7 +115,10 @@ export const feedbackBoards = pgTable(
     isDefault: boolean("is_default").notNull().default(false),
     smartRepliesEnabled: boolean("smart_replies_enabled").notNull().default(false),
     smartRepliesInstructions: text("smart_replies_instructions"),
-    createdBy: varchar("created_by", { length: 36 }).notNull().default(""),
+    anonymizeUsers: boolean("anonymize_users").notNull().default(false),
+    createdBy: varchar("created_by", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -106,6 +128,10 @@ export const feedbackBoards = pgTable(
   (t) => ({
     orgIdIdx: index("fb_org_id_idx").on(t.organizationId),
     orgSlugUniqueIdx: uniqueIndex("fb_org_slug_unique_idx").on(t.organizationId, t.slug),
+    // Only one board per org may be the default
+    orgDefaultUniqueIdx: uniqueIndex("fb_org_default_unique_idx")
+      .on(t.organizationId)
+      .where(sql`is_default = true`),
   }),
 );
 
@@ -115,12 +141,19 @@ export const feedbackPosts = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
-    boardId: varchar("board_id", { length: 128 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    boardId: varchar("board_id", { length: 128 })
+      .notNull()
+      .references(() => feedbackBoards.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 500 }).notNull(),
     description: text("description"),
     status: postStatusEnum("status").notNull().default("open"),
-    createdBy: varchar("created_by", { length: 36 }).notNull(),
+    createdBy: varchar("created_by", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
+    isPublicSubmission: boolean("is_public_submission").notNull().default(false),
     submitterEmail: varchar("submitter_email", { length: 255 }),
     submitterName: varchar("submitter_name", { length: 255 }),
     // Cached total: own votes + all transitively merged posts' votes.
@@ -138,7 +171,12 @@ export const feedbackPosts = pgTable(
       { onDelete: "set null" },
     ),
     mergedAt: timestamp("merged_at"),
-    mergedByUserId: varchar("merged_by_user_id", { length: 36 }),
+    mergedByUserId: varchar("merged_by_user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
+    ownerId: varchar("owner_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     aiSummary: text("ai_summary"),
     aiSummaryGeneratedAt: timestamp("ai_summary_generated_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -156,6 +194,13 @@ export const feedbackPosts = pgTable(
     orgBoardStatusIdx: index("fp_org_board_status_idx").on(t.organizationId, t.boardId, t.status),
     // Lets us efficiently find all posts merged into a given post (for vote/comment aggregation)
     mergedIntoIdx: index("fp_merged_into_idx").on(t.mergedIntoPostId),
+    ownerIdx: index("fp_owner_id_idx").on(t.ownerId),
+    // Vote-sorted board view — ORDER BY vote_count DESC within a board
+    boardVotesIdx: index("fp_board_votes_idx").on(t.boardId, t.voteCount),
+    // Active-posts filter: every board listing excludes merged posts
+    activeBoardIdx: index("fp_active_board_idx")
+      .on(t.organizationId, t.boardId, t.createdAt)
+      .where(sql`merged_into_post_id IS NULL`),
     voteCountNonNegative: check("fp_vote_count_non_negative", sql`vote_count >= 0`),
   }),
 );
@@ -166,9 +211,15 @@ export const votes = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    postId: varchar("post_id", { length: 128 }).notNull(),
-    userId: varchar("user_id", { length: 36 }).notNull(),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    postId: varchar("post_id", { length: 128 })
+      .notNull()
+      .references(() => feedbackPosts.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
@@ -184,10 +235,19 @@ export const comments = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    postId: varchar("post_id", { length: 128 }).notNull(),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
-    userId: varchar("user_id", { length: 36 }).notNull(),
-    parentId: varchar("parent_id", { length: 128 }),
+    postId: varchar("post_id", { length: 128 })
+      .notNull()
+      .references(() => feedbackPosts.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    parentId: varchar("parent_id", { length: 128 }).references(
+      (): PgColumn => comments.id,
+      { onDelete: "set null" },
+    ),
     body: text("body").notNull(),
     isInternal: boolean("is_internal").notNull().default(false),
     isAiGenerated: boolean("is_ai_generated").notNull().default(false),
@@ -238,12 +298,17 @@ export const changelogs = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 500 }).notNull(),
-    slug: varchar("slug", { length: 500 }).notNull().default(""),
+    // Nullable: drafts have no slug; slug is assigned at publish time
+    slug: varchar("slug", { length: 500 }),
     body: text("body").notNull().default("[]"),
     status: changelogStatusEnum("status").notNull().default("draft"),
-    createdBy: varchar("created_by", { length: 36 }).notNull().default(""),
+    createdBy: varchar("created_by", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     publishedAt: timestamp("published_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
@@ -253,8 +318,37 @@ export const changelogs = pgTable(
   },
   (t) => ({
     orgIdIdx: index("changelogs_org_id_idx").on(t.organizationId),
-    orgSlugUniqueIdx: uniqueIndex("changelogs_org_slug_unique_idx").on(t.organizationId, t.slug),
+    // Partial: only enforce uniqueness when slug is assigned
+    orgSlugUniqueIdx: uniqueIndex("changelogs_org_slug_unique_idx")
+      .on(t.organizationId, t.slug)
+      .where(sql`slug IS NOT NULL`),
     orgStatusIdx: index("changelogs_org_status_idx").on(t.organizationId, t.status),
+  }),
+);
+
+export const changelogViews = pgTable(
+  "changelog_views",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    changelogId: varchar("changelog_id", { length: 128 })
+      .notNull()
+      .references(() => changelogs.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    // Nullable: logged-in users can be tracked; anonymous visitors get null
+    userId: varchar("user_id", { length: 36 }).references(() => user.id, { onDelete: "set null" }),
+    // Hash of IP + User-Agent for unique visitor counting without storing PII
+    visitorHash: varchar("visitor_hash", { length: 64 }).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    changelogIdIdx: index("clv_changelog_id_idx").on(t.changelogId),
+    orgIdIdx: index("clv_org_id_idx").on(t.organizationId),
+    // Unique visitor lookup per changelog
+    changelogVisitorIdx: index("clv_changelog_visitor_idx").on(t.changelogId, t.visitorHash),
   }),
 );
 
@@ -264,10 +358,16 @@ export const reactions = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    postId: varchar("post_id", { length: 128 }).notNull(),
-    userId: varchar("user_id", { length: 36 }).notNull(),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
-    type: varchar("type", { length: 50 }).notNull().default("heart"),
+    postId: varchar("post_id", { length: 128 })
+      .notNull()
+      .references(() => feedbackPosts.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    type: reactionTypeEnum("type").notNull().default("heart"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
@@ -283,10 +383,17 @@ export const postActivities = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    postId: varchar("post_id", { length: 128 }).notNull(),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
-    userId: varchar("user_id", { length: 36 }).notNull(),
-    type: varchar("type", { length: 50 }).notNull().default("status_changed"),
+    postId: varchar("post_id", { length: 128 })
+      .notNull()
+      .references(() => feedbackPosts.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    // Nullable so audit rows survive user deletion
+    userId: varchar("user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
+    type: postActivityTypeEnum("type").notNull().default("status_changed"),
     oldValue: varchar("old_value", { length: 100 }),
     newValue: varchar("new_value", { length: 100 }).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -308,6 +415,10 @@ export const changelogTags = pgTable(
       .references(() => organization.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 100 }).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (t) => ({
     orgIdIdx: index("changelog_tags_org_id_idx").on(t.organizationId),
@@ -315,6 +426,27 @@ export const changelogTags = pgTable(
       t.organizationId,
       t.name,
     ),
+  }),
+);
+
+export const changelogSubscribers = pgTable(
+  "changelog_subscribers",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    email: varchar("email", { length: 255 }).notNull(),
+    unsubscribeToken: varchar("unsubscribe_token", { length: 128 }).notNull(),
+    subscribedAt: timestamp("subscribed_at").notNull().defaultNow(),
+    unsubscribedAt: timestamp("unsubscribed_at"),
+  },
+  (t) => ({
+    orgIdIdx: index("cls_org_id_idx").on(t.organizationId),
+    orgEmailUniqueIdx: uniqueIndex("cls_org_email_unique_idx").on(t.organizationId, t.email),
+    tokenIdx: uniqueIndex("cls_token_idx").on(t.unsubscribeToken),
   }),
 );
 
@@ -332,7 +464,9 @@ export const widgetConfigs = pgTable(
       .$defaultFn(() => createId()),
     signingSecret: varchar("signing_secret", { length: 64 }),
     enabled: boolean("enabled").notNull().default(true),
-    boardId: varchar("board_id", { length: 128 }),
+    boardId: varchar("board_id", { length: 128 }).references(() => feedbackBoards.id, {
+      onDelete: "set null",
+    }),
     position: widgetPositionEnum("position").notNull().default("right"),
     theme: widgetThemeEnum("theme").notNull().default("auto"),
     allowedOrigins: text("allowed_origins"),
@@ -393,7 +527,9 @@ export const integrations = pgTable(
     refreshToken: text("refresh_token"),
     tokenExpiresAt: timestamp("token_expires_at"),
     // Audit only — who ran the OAuth connect flow. Token belongs to the org, not this user.
-    connectedByUserId: varchar("connected_by_user_id", { length: 36 }),
+    connectedByUserId: varchar("connected_by_user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     // Provider-specific config as JSON (e.g. repoOwner/repoName for GitHub, defaultTeamId for Linear)
     settings: text("settings"),
     enabled: boolean("enabled").notNull().default(true),
@@ -424,7 +560,9 @@ export const postExternalLinks = pgTable(
       .notNull()
       .references(() => feedbackPosts.id, { onDelete: "cascade" }),
     // Denormalized for fast org-scoped queries without joining feedback_posts
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     provider: varchar("provider", { length: 50 }).notNull(),
     externalId: varchar("external_id", { length: 255 }).notNull(),
     externalUrl: varchar("external_url", { length: 2048 }),
@@ -433,7 +571,9 @@ export const postExternalLinks = pgTable(
     // Cached from provider — may be stale, refreshed on demand
     externalTitle: text("external_title"),
     externalStatus: varchar("external_status", { length: 100 }),
-    linkedByUserId: varchar("linked_by_user_id", { length: 36 }),
+    linkedByUserId: varchar("linked_by_user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     // Provider-specific extras that don't fit standard columns (e.g. GitHub issueNumber integer, Jira projectKey)
     metadata: text("metadata"),
     lastSyncedAt: timestamp("last_synced_at"),
@@ -460,10 +600,16 @@ export const feedbackCategories = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 100 }).notNull(),
     color: varchar("color", { length: 7 }).notNull().default("#6366f1"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (t) => ({
     orgIdIdx: index("fc_org_id_idx").on(t.organizationId),
@@ -479,10 +625,16 @@ export const feedbackTags = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 100 }).notNull(),
     color: varchar("color", { length: 7 }).notNull().default("#6366f1"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (t) => ({
     orgIdIdx: index("ft_org_id_idx").on(t.organizationId),
@@ -498,7 +650,9 @@ export const feedbackViews = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 100 }).notNull(),
     emoji: varchar("emoji", { length: 10 }).notNull().default("📌"),
     isSystem: boolean("is_system").notNull().default(false),
@@ -507,6 +661,10 @@ export const feedbackViews = pgTable(
     // JSON string of ViewFilters
     filters: text("filters").notNull().default("{}"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (t) => ({
     orgIdIdx: index("fv_org_id_idx").on(t.organizationId),
@@ -522,8 +680,12 @@ export const userProfiles = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
-    userId: varchar("user_id", { length: 36 }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     externalId: varchar("external_id", { length: 255 }),
     email: varchar("email", { length: 255 }).notNull(),
     name: varchar("name", { length: 255 }),
@@ -542,7 +704,14 @@ export const userProfiles = pgTable(
   (t) => ({
     orgIdIdx: index("up_org_id_idx").on(t.organizationId),
     orgEmailUniqueIdx: uniqueIndex("up_org_email_unique_idx").on(t.organizationId, t.email),
-    orgExternalIdIdx: index("up_org_external_id_idx").on(t.organizationId, t.externalId),
+    // Unique per org so widget identity lookups are unambiguous
+    orgExternalIdUniqueIdx: uniqueIndex("up_org_external_id_unique_idx").on(
+      t.organizationId,
+      t.externalId,
+    ),
+    // Segmentation filter columns
+    orgPlanIdx: index("up_org_plan_idx").on(t.organizationId, t.plan),
+    orgRoleIdx: index("up_org_role_idx").on(t.organizationId, t.role),
   }),
 );
 
@@ -554,7 +723,9 @@ export const segments = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 100 }).notNull(),
     color: varchar("color", { length: 7 }).notNull().default("#6366f1"),
     filters: text("filters").notNull().default("{}"),
@@ -582,7 +753,9 @@ export const postTags = pgTable(
       .notNull()
       .references(() => feedbackTags.id, { onDelete: "cascade" }),
     addedAt: timestamp("added_at").notNull().defaultNow(),
-    addedByUserId: varchar("added_by_user_id", { length: 36 }),
+    addedByUserId: varchar("added_by_user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.postId, t.tagId] }),
@@ -599,7 +772,9 @@ export const autopilotSuggestions = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     type: autopilotSuggestionTypeEnum("type").notNull(),
     status: autopilotSuggestionStatusEnum("status").notNull().default("pending"),
     // The newly created post that triggered the suggestion
@@ -610,16 +785,20 @@ export const autopilotSuggestions = pgTable(
     targetPostId: varchar("target_post_id", { length: 128 }).references(() => feedbackPosts.id, {
       onDelete: "cascade",
     }),
-    confidence: varchar("confidence", { length: 20 }).notNull(), // "low" | "medium" | "high"
+    confidence: confidenceEnum("confidence").notNull(),
     reason: text("reason"),
     resolvedAt: timestamp("resolved_at"),
-    resolvedByUserId: varchar("resolved_by_user_id", { length: 36 }),
+    resolvedByUserId: varchar("resolved_by_user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
     orgIdIdx: index("ap_org_id_idx").on(t.organizationId),
     orgStatusIdx: index("ap_org_status_idx").on(t.organizationId, t.status),
     sourcePostIdx: index("ap_source_post_idx").on(t.sourcePostId),
+    // Prune old resolved suggestions efficiently
+    resolvedAtIdx: index("ap_resolved_at_idx").on(t.resolvedAt),
   }),
 );
 
@@ -631,11 +810,20 @@ export const notifications = pgTable(
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 }).notNull(),
-    userId: varchar("user_id", { length: 36 }).notNull(),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     type: notificationTypeEnum("type").notNull(),
-    postId: varchar("post_id", { length: 128 }),
-    actorId: varchar("actor_id", { length: 36 }),
+    postId: varchar("post_id", { length: 128 }).references(() => feedbackPosts.id, {
+      onDelete: "set null",
+    }),
+    // Nullable so notification survives actor deletion
+    actorId: varchar("actor_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
     // JSON: { postTitle, commentBody, oldStatus, newStatus, voteCount, actorName }
     metadata: text("metadata"),
     readAt: timestamp("read_at"),
@@ -652,5 +840,7 @@ export const notifications = pgTable(
     ),
     // "Unread notifications for user" is the hottest read on this table
     userUnreadIdx: index("notif_user_unread_idx").on(t.userId, t.readAt),
+    // Enables efficient time-based cleanup of old notifications
+    createdAtIdx: index("notif_created_at_idx").on(t.createdAt),
   }),
 );

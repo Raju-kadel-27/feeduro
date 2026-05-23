@@ -11,6 +11,7 @@ export interface FeedbackBoard {
   isDefault: boolean;
   smartRepliesEnabled: boolean;
   smartRepliesInstructions: string | null;
+  anonymizeUsers: boolean;
   postCount: number;
   color: BoardColor;
 }

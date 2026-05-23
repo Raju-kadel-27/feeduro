@@ -1,6 +1,7 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
+import { Dialog, DialogContent } from "@components/ui/dialog";
+import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
@@ -78,109 +79,108 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
   }
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent className="max-w-lg p-0">
-        <DialogHeader className="px-5 pt-5 pb-4 border-b">
-          <DialogTitle className="text-base font-semibold">Submit feedback</DialogTitle>
-        </DialogHeader>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-[520px] p-0 rounded-xl overflow-hidden gap-0 [&>button]:hidden">
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Short, clear summary of your idea or issue"
-              required
-            />
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/60">
+          {showBoardPicker ? (
+            <select
+              value={selectedBoardId}
+              onChange={(e) => setSelectedBoardId(e.target.value)}
+              className="w-auto bg-transparent text-[13px] font-medium text-foreground focus:outline-none cursor-pointer"
+            >
+              {boards.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          ) : (
+            <span className="text-[13px] font-medium text-foreground">
+              {boards[0]?.name ?? "New feedback"}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {/* Body */}
+          <div className="px-4 pt-4 pb-2 space-y-4">
+            <div>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Submission title"
+                autoFocus
+                className="w-full bg-transparent text-[15px] font-medium text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add details (optional)"
+                rows={4}
+                className="w-full resize-none bg-transparent text-[13px] text-muted-foreground placeholder:text-muted-foreground/35 focus:outline-none"
+              />
+            </div>
+
+            {categories.length > 0 && (
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                  Category
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedCategoryId}
+                    onChange={(e) => setSelectedCategoryId(e.target.value)}
+                    className="w-full appearance-none h-8 pl-3 pr-8 rounded-md border border-border bg-background text-[12.5px] text-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                  >
+                    <option value="">No category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <p className="text-[12px] text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+                {(error as Error).message}
+              </p>
+            )}
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              Details <span className="text-muted-foreground font-normal">(optional)</span>
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              placeholder="Describe the problem or idea in more detail…"
-              rows={4}
-            />
-          </div>
-
-          {categories.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Category <span className="text-muted-foreground font-normal">(optional)</span>
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedCategoryId}
-                  onChange={(e) => setSelectedCategoryId(e.target.value)}
-                  className="w-full appearance-none px-3 py-2 pr-8 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">No category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
-            </div>
-          )}
-
-          {showBoardPicker && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Board</label>
-              <div className="relative">
-                <select
-                  value={selectedBoardId}
-                  onChange={(e) => setSelectedBoardId(e.target.value)}
-                  className="w-full appearance-none px-3 py-2 pr-8 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  {boards.map((board) => (
-                    <option key={board.id} value={board.id}>
-                      {board.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
-              {(error as Error).message}
-            </p>
-          )}
-
-          <div className="flex justify-end gap-2">
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border/60">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium rounded-md border hover:bg-muted transition-colors"
+              className="px-4 h-8 rounded-lg border border-border text-[13px] font-medium text-foreground/70 hover:text-foreground hover:bg-muted transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending || !title.trim()}
-              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className={cn(
+                "px-5 h-8 rounded-lg bg-foreground text-background text-[13px] font-semibold hover:bg-foreground/90 disabled:opacity-40 transition-colors",
+              )}
             >
-              {isPending ? "Submitting…" : "Submit feedback"}
+              {isPending ? "Creating…" : "Create"}
             </button>
           </div>
         </form>
+
       </DialogContent>
     </Dialog>
   );

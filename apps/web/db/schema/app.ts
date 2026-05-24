@@ -226,6 +226,7 @@ export const votes = pgTable(
     uniqueVote: uniqueIndex("unique_vote_idx").on(t.postId, t.userId),
     postIdIdx: index("votes_post_id_idx").on(t.postId),
     orgIdIdx: index("votes_org_id_idx").on(t.organizationId),
+    orgCreatedAtIdx: index("votes_org_created_at_idx").on(t.organizationId, t.createdAt),
   }),
 );
 
@@ -263,6 +264,8 @@ export const comments = pgTable(
     parentIdIdx: index("comments_parent_id_idx").on(t.parentId),
     // Chronological listing within a post; covers both the filter and the ORDER BY
     postCreatedAtIdx: index("comments_post_created_at_idx").on(t.postId, t.createdAt),
+    // Period-based analytics queries: filter by org + date range
+    orgCreatedAtIdx: index("comments_org_created_at_idx").on(t.organizationId, t.createdAt),
   }),
 );
 
@@ -377,6 +380,31 @@ export const reactions = pgTable(
   }),
 );
 
+export const boardViews = pgTable(
+  "board_views",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    // Nullable: logged-in users can be tracked; anonymous visitors get null
+    userId: varchar("user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
+    // Hash of IP + User-Agent for unique visitor counting without storing PII
+    visitorHash: varchar("visitor_hash", { length: 64 }).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    // Primary analytics query: filter by org + date range
+    orgCreatedAtIdx: index("bv_org_created_at_idx").on(t.organizationId, t.createdAt),
+    // Unique visitor lookup per org (for deduplication in COUNT DISTINCT)
+    orgVisitorIdx: index("bv_org_visitor_idx").on(t.organizationId, t.visitorHash),
+  }),
+);
+
 export const postActivities = pgTable(
   "post_activities",
   {
@@ -401,6 +429,7 @@ export const postActivities = pgTable(
   (t) => ({
     postIdIdx: index("pa_post_id_idx").on(t.postId),
     orgIdIdx: index("pa_org_id_idx").on(t.organizationId),
+    orgPostCreatedAtIdx: index("pa_org_post_created_at_idx").on(t.organizationId, t.postId, t.createdAt),
   }),
 );
 
@@ -712,6 +741,9 @@ export const userProfiles = pgTable(
     // Segmentation filter columns
     orgPlanIdx: index("up_org_plan_idx").on(t.organizationId, t.plan),
     orgRoleIdx: index("up_org_role_idx").on(t.organizationId, t.role),
+    orgIndustryIdx: index("up_org_industry_idx").on(t.organizationId, t.industry),
+    orgLocationIdx: index("up_org_location_idx").on(t.organizationId, t.location),
+    orgCompanySizeIdx: index("up_org_company_size_idx").on(t.organizationId, t.companySize),
   }),
 );
 

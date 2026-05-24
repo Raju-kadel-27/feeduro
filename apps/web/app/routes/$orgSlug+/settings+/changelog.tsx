@@ -62,7 +62,7 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
           <span className="text-sm font-medium">Changelog</span>
         </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full space-y-8">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>
             <h1 className="text-xl font-semibold">Changelog</h1>
             <p className="text-sm text-muted-foreground mt-0.5">

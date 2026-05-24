@@ -1,3 +1,4 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { BackupCodesStep } from "@features/auth/components/two-factor/backup-codes-step";
 import { ConfigureTotpStep } from "@features/auth/components/two-factor/configure-totp-step";
@@ -6,12 +7,14 @@ import { TwoFactorPasswordStep } from "@features/auth/components/two-factor/pass
 import { TwoFactorStatus } from "@features/auth/components/two-factor/status";
 import { useTwoFactor } from "@features/auth/hooks/use-two-factor";
 import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
-import { ShieldCheck } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 function copyToClipboard(text: string, label: string) {
   navigator.clipboard.writeText(text).then(() => toast.success(`${label} copied`));
 }
+
+const ENABLE_STEPS = ["enable-password", "configure-totp", "backup-codes"] as const;
 
 export function TwoFactorSettingsPanel() {
   const {
@@ -35,84 +38,56 @@ export function TwoFactorSettingsPanel() {
     handleRegenCodes,
   } = useTwoFactor();
 
+  const [showEnableDialog, setShowEnableDialog] = useState(false);
+
+  function openEnableDialog() {
+    setStep("enable-password");
+    setError("");
+    setShowEnableDialog(true);
+  }
+
+  function closeEnableDialog() {
+    reset();
+    setShowEnableDialog(false);
+  }
+
+  const enableDialogOpen = showEnableDialog || ENABLE_STEPS.includes(step as typeof ENABLE_STEPS[number]);
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-4 border-b px-6 bg-muted/10">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <span className="text-lg font-semibold">Two-Factor Authentication</span>
+          <span className="text-sm font-medium">Two-Factor Authentication</span>
         </header>
 
-        <main className="p-8 max-w-[720px] mx-auto w-full space-y-10">
-          <div>
-            <h2 className="text-base font-bold text-foreground">Two-Factor Authentication</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Add an extra layer of security to your account by requiring a verification code when
-              signing in.
-            </p>
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold">Two-Factor Authentication</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Add an extra layer of security to your account by requiring a verification code when
+                signing in.
+              </p>
+            </div>
+            {!twoFactorEnabled && (
+              <button
+                type="button"
+                onClick={openEnableDialog}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
+              >
+                Enable
+              </button>
+            )}
           </div>
 
           <TwoFactorStatus enabled={twoFactorEnabled} />
 
-          {!twoFactorEnabled && step === "idle" && (
-            <section>
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("enable-password");
-                  setError("");
-                }}
-                className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors shadow-sm"
-              >
-                <ShieldCheck className="size-4" />
-                Enable Two-Factor Authentication
-              </button>
-            </section>
-          )}
-
-          {step === "enable-password" && (
-            <TwoFactorPasswordStep
-              title="Confirm your password"
-              description="Enter your current password to begin the setup."
-              submitLabel="Continue"
-              password={password}
-              onPasswordChange={setPassword}
-              loading={loading}
-              error={error}
-              onSubmit={handleEnable}
-              onCancel={reset}
-            />
-          )}
-
-          {step === "configure-totp" && (
-            <ConfigureTotpStep
-              qrDataUrl={qrDataUrl}
-              secret={secret}
-              verifyCode={verifyCode}
-              onVerifyCodeChange={setVerifyCode}
-              loading={loading}
-              error={error}
-              onVerify={handleVerifyTotp}
-              onCancel={reset}
-              onCopy={copyToClipboard}
-            />
-          )}
-
-          {step === "backup-codes" && backupCodes.length > 0 && (
-            <BackupCodesStep backupCodes={backupCodes} onCopy={copyToClipboard} onDone={reset} />
-          )}
-
           {twoFactorEnabled && step === "idle" && (
             <TwoFactorManageSection
-              onRegenCodes={() => {
-                setStep("regen-password");
-                setError("");
-              }}
-              onDisable={() => {
-                setStep("disable-password");
-                setError("");
-              }}
+              onRegenCodes={() => { setStep("regen-password"); setError(""); }}
+              onDisable={() => { setStep("disable-password"); setError(""); }}
             />
           )}
 
@@ -145,7 +120,7 @@ export function TwoFactorSettingsPanel() {
             />
           )}
 
-          <section className="rounded-lg border border-border bg-muted/10 px-6 py-4 space-y-2 shadow-md">
+          <section className="rounded-lg border border-border bg-muted/10 px-6 py-4 space-y-2">
             <p className="text-sm font-medium text-foreground">
               What is two-factor authentication?
             </p>
@@ -157,6 +132,47 @@ export function TwoFactorSettingsPanel() {
           </section>
         </main>
       </SidebarInset>
+
+      <Dialog open={enableDialogOpen} onOpenChange={(v) => { if (!v) closeEnableDialog(); }}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Two Factor Auth</DialogTitle>
+          </DialogHeader>
+          {step === "enable-password" && (
+            <TwoFactorPasswordStep
+              title="Confirm your password"
+              description="Enter your current password to begin the setup."
+              submitLabel="Continue"
+              password={password}
+              onPasswordChange={setPassword}
+              loading={loading}
+              error={error}
+              onSubmit={handleEnable}
+              onCancel={closeEnableDialog}
+            />
+          )}
+          {step === "configure-totp" && (
+            <ConfigureTotpStep
+              qrDataUrl={qrDataUrl}
+              secret={secret}
+              verifyCode={verifyCode}
+              onVerifyCodeChange={setVerifyCode}
+              loading={loading}
+              error={error}
+              onVerify={handleVerifyTotp}
+              onCancel={closeEnableDialog}
+              onCopy={copyToClipboard}
+            />
+          )}
+          {step === "backup-codes" && backupCodes.length > 0 && (
+            <BackupCodesStep
+              backupCodes={backupCodes}
+              onCopy={copyToClipboard}
+              onDone={closeEnableDialog}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

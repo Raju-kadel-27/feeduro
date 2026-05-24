@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { UpdatesView } from "@features/changelog/components/updates-view";
 import { DetailPanel } from "@features/feedback/components/detail-panel";
 import { FeedbackCard } from "@features/feedback/components/feedback-card";
@@ -42,6 +43,15 @@ export function PublicBoardPage({ loaderData }: Props) {
     publicUser,
     widgetToken,
   } = loaderData;
+
+  // Fire-and-forget: record the board visit for analytics without blocking render
+  useEffect(() => {
+    fetch("/api/board-view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orgId: org.id }),
+    }).catch(() => {});
+  }, [org.id]);
 
   const safeVotedIds = votedPostIds ?? [];
 

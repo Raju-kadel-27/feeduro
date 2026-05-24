@@ -11,7 +11,7 @@ import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar"
 import { cn } from "@lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { and, desc, eq } from "drizzle-orm";
-import { AlertCircle, Check, Copy, Key, Plus, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Copy, Key, Plus, Terminal, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -143,22 +143,80 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-4 border-b px-6 bg-muted/10">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <span className="text-lg font-semibold">API Tokens</span>
+          <span className="text-sm font-medium">API Tokens</span>
         </header>
 
-        <main className="p-8 max-w-[720px] mx-auto w-full space-y-10">
-          <div>
-            <h2 className="text-base font-bold text-foreground">API Tokens</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Generate tokens to authenticate API requests for this workspace.
-            </p>
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold">API Tokens</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Generate tokens to authenticate API requests for this workspace.
+              </p>
+            </div>
+            {isAdmin && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
+                  >
+                    <Plus size={16} />
+                    Generate New Key
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>New API Key</DialogTitle>
+                  </DialogHeader>
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); createKey(); }}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Name</label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. CI / Production"
+                        required
+                        maxLength={32}
+                        className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Expiration</label>
+                      <select
+                        value={expiresIn ?? ""}
+                        onChange={(e) => setExpiresIn(e.target.value === "" ? null : Number(e.target.value))}
+                        className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        {EXPIRY_OPTIONS.map((opt) => (
+                          <option key={String(opt.value)} value={opt.value ?? ""}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="submit"
+                        disabled={creating || !name.trim()}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                      >
+                        {creating ? "Generating…" : "Generate Key"}
+                      </button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           {/* One-time key reveal */}
           {newKey && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-6 space-y-4 shadow-md">
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-6 space-y-4">
               <div className="flex items-center gap-3 text-amber-600">
                 <AlertCircle size={16} />
                 <span className="text-sm font-semibold">
@@ -181,7 +239,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
 
           {/* Keys table */}
           <section>
-            <h3 className="text-base font-bold text-foreground mb-4">Active Keys</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Active Keys</h3>
 
             {keys.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-10 text-center bg-muted/10">
@@ -189,7 +247,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
                 <p className="text-sm text-muted-foreground">No API keys yet.</p>
               </div>
             ) : (
-              <div className="rounded-lg border border-border overflow-hidden bg-card shadow-md">
+              <div className="rounded-lg border border-border overflow-hidden bg-card">
                 <div className="grid grid-cols-[1fr_auto_auto] items-center px-4 h-12 bg-muted/20 border-b border-border gap-4">
                   <div className="text-sm text-muted-foreground">Name</div>
                   <div className="text-sm text-muted-foreground">Created</div>
@@ -247,86 +305,43 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
               </div>
             )}
 
-            {isAdmin && (
-              <section>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-2 mt-2 rounded-md border border-border bg-secondary px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors shadow-sm"
-                    >
-                      <Plus size={16} />
-                      <span>Generate New Key</span>
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>New API Key</DialogTitle>
-                    </DialogHeader>
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        createKey();
-                      }}
-                      className="space-y-4"
-                    >
-                      <div className="space-y-2">
-                        <label className="text-sm text-muted-foreground">Name</label>
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="e.g. CI / Production"
-                          required
-                          maxLength={32}
-                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm text-muted-foreground">Expiration</label>
-                        <select
-                          value={expiresIn ?? ""}
-                          onChange={(e) =>
-                            setExpiresIn(e.target.value === "" ? null : Number(e.target.value))
-                          }
-                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                          {EXPIRY_OPTIONS.map((opt) => (
-                            <option key={String(opt.value)} value={opt.value ?? ""}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex gap-4 pt-2">
-                        <button
-                          type="submit"
-                          disabled={creating || !name.trim()}
-                          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm"
-                        >
-                          {creating ? "Generating…" : "Generate Key"}
-                        </button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </section>
-            )}
           </section>
 
           {/* Usage hint */}
-          <section className="rounded-lg border border-border bg-muted/10 px-6 py-4 space-y-4 shadow-md">
-            <p className="text-sm font-medium text-foreground">Using the API</p>
-            <p className="text-sm text-muted-foreground">
-              Pass your token in the <code className="font-mono text-foreground">x-api-key</code>{" "}
-              header with every request.
-            </p>
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3">
-              <code className="text-sm font-mono text-muted-foreground flex-1">
-                curl -H "x-api-key: fdy_••••••••" https://api.feediyo.com/v1/...
-              </code>
+          <section className="rounded-xl border border-border overflow-hidden">
+            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border bg-muted/40">
+              <Terminal className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-semibold text-foreground">Using the API</span>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Authenticate requests by passing your token in the{" "}
+                <code className="rounded px-1.5 py-0.5 bg-muted font-mono text-xs text-foreground">
+                  x-api-key
+                </code>{" "}
+                header.
+              </p>
+              <div className="rounded-lg bg-zinc-950 dark:bg-zinc-900 border border-zinc-800">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800">
+                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Shell</span>
+                  <CopyButton
+                    value={`curl -H "x-api-key: fdy_YOUR_TOKEN" https://api.feediyo.com/v1/`}
+                    className="text-zinc-400 hover:text-zinc-200 bg-transparent hover:bg-zinc-800"
+                  />
+                </div>
+                <div className="px-4 py-3">
+                  <code className="text-sm font-mono text-zinc-300 block">
+                    <span className="text-zinc-500 select-none">$ </span>
+                    {"curl \\\n"}
+                    <span className="text-zinc-500 select-none">{"  "}</span>
+                    {"-H "}
+                    <span className="text-emerald-400">"x-api-key: fdy_••••••••"</span>
+                    {" \\\n"}
+                    <span className="text-zinc-500 select-none">{"  "}</span>
+                    <span className="text-sky-400">https://api.feediyo.com/v1/...</span>
+                  </code>
+                </div>
+              </div>
             </div>
           </section>
         </main>

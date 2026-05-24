@@ -1,6 +1,6 @@
 import { Button } from "@components/ui/button";
-import { Input } from "@components/ui/input";
 import { authClient } from "@lib/auth/client";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 
 export function ChangePasswordForm() {
@@ -11,7 +11,7 @@ export function ChangePasswordForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match.");
@@ -41,26 +41,23 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-          Current password
-        </label>
-        <Input
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm text-muted-foreground">Current password</label>
+        <input
           type="password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           required
           disabled={loading}
           autoComplete="current-password"
-          className="mt-1 text-[13px]"
+          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
       </div>
-      <div>
-        <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-          New password
-        </label>
-        <Input
+
+      <div className="space-y-2">
+        <label className="text-sm text-muted-foreground">New password</label>
+        <input
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
@@ -68,14 +65,14 @@ export function ChangePasswordForm() {
           minLength={8}
           disabled={loading}
           autoComplete="new-password"
-          className="mt-1 text-[13px]"
+          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
+        <p className="text-xs text-muted-foreground">Minimum 8 characters</p>
       </div>
-      <div>
-        <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-          Confirm new password
-        </label>
-        <Input
+
+      <div className="space-y-2">
+        <label className="text-sm text-muted-foreground">Confirm new password</label>
+        <input
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -83,24 +80,28 @@ export function ChangePasswordForm() {
           minLength={8}
           disabled={loading}
           autoComplete="new-password"
-          className="mt-1 text-[13px]"
+          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
       </div>
 
       {error && (
-        <p className="text-[12px] text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <XCircle size={14} className="shrink-0" />
           {error}
-        </p>
+        </div>
       )}
       {success && (
-        <p className="text-[12px] text-green-600 bg-green-50 px-3 py-2 rounded-md">
+        <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-600">
+          <CheckCircle2 size={14} className="shrink-0" />
           Password updated successfully.
-        </p>
+        </div>
       )}
 
-      <Button type="submit" disabled={loading} size="sm" className="mt-1">
-        {loading ? "Saving…" : "Update password"}
-      </Button>
+      <div className="pt-1">
+        <Button type="submit" disabled={loading} size="sm">
+          {loading ? "Saving…" : "Update password"}
+        </Button>
+      </div>
     </form>
   );
 }

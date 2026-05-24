@@ -107,7 +107,7 @@ export default function DataImport({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium">Data & Import</span>
         </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full space-y-10">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-10">
           <div>
             <h1 className="text-xl font-semibold">Data & Import</h1>
             <p className="text-sm text-muted-foreground mt-0.5">

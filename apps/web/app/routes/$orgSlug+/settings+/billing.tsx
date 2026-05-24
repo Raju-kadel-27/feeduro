@@ -284,7 +284,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium">Billing</span>
         </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full">
+        <main className="p-6 max-w-[840px] mx-auto w-full">
           <div className="mb-8">
             <h1 className="text-xl font-semibold">Billing & Plans</h1>
             <p className="text-sm text-muted-foreground mt-0.5">

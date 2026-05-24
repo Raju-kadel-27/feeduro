@@ -1,3 +1,4 @@
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@components/ui/input-otp";
 import { Spinner } from "@components/ui/spinner";
 import { Copy } from "lucide-react";
 
@@ -25,7 +26,7 @@ export function ConfigureTotpStep({
   onCopy,
 }: Props) {
   return (
-    <section className="space-y-6 rounded-lg border border-border p-6 bg-card shadow-sm">
+    <section className="space-y-6">
       <div>
         <h3 className="text-sm font-semibold text-foreground">Set up authenticator app</h3>
         <p className="text-sm text-muted-foreground mt-1">
@@ -35,29 +36,28 @@ export function ConfigureTotpStep({
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center">
           Scan with authenticator app
         </p>
-        {qrDataUrl ? (
-          <div className="inline-block rounded-lg border border-border bg-white dark:bg-white p-3">
-            <img src={qrDataUrl} alt="TOTP QR code" width={200} height={200} />
-          </div>
-        ) : (
-          <div className="flex size-[224px] items-center justify-center rounded-lg border border-border bg-muted">
-            <Spinner className="size-6 text-muted-foreground" />
-          </div>
-        )}
-        <p className="text-xs text-muted-foreground">
-          Use Google Authenticator, Authy, or any TOTP-compatible app to scan the code above.
-        </p>
+        <div className="flex justify-center">
+          {qrDataUrl ? (
+            <div className="inline-block rounded-lg border border-border bg-white dark:bg-white p-3">
+              <img src={qrDataUrl} alt="TOTP QR code" width={200} height={200} />
+            </div>
+          ) : (
+            <div className="flex size-[224px] items-center justify-center rounded-lg border border-border bg-muted">
+              <Spinner className="size-6 text-muted-foreground" />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center">
           Or enter the secret key manually
         </p>
         <div className="flex items-center gap-2">
-          <code className="flex-1 rounded-md border border-border bg-muted px-3 py-2 text-sm font-mono tracking-widest break-all">
+          <code className="flex-1 rounded-md border border-border bg-muted px-3 py-2 text-xs font-mono tracking-widest break-all">
             {secret}
           </code>
           <button
@@ -72,23 +72,31 @@ export function ConfigureTotpStep({
       </div>
 
       <div className="space-y-3 pt-2 border-t border-border">
-        <p className="text-sm font-medium text-foreground">Verification code</p>
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]{6}"
-          maxLength={6}
-          value={verifyCode}
-          onChange={(e) => onVerifyCodeChange(e.target.value.replace(/\D/g, ""))}
-          placeholder="000000"
-          disabled={loading}
-          autoComplete="one-time-code"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-center tracking-widest ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+        <p className="text-sm font-medium text-foreground text-center">Verification code</p>
+        <div className="flex justify-center py-3">
+          <InputOTP maxLength={6} value={verifyCode} onChange={onVerifyCodeChange} disabled={loading}>
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
         {error && (
           <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{error}</p>
         )}
-        <div className="flex gap-2">
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+          >
+            Cancel
+          </button>
           <button
             type="button"
             onClick={onVerify}
@@ -97,14 +105,6 @@ export function ConfigureTotpStep({
           >
             {loading && <Spinner />}
             Verify & Enable
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
-          >
-            Cancel
           </button>
         </div>
       </div>

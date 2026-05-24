@@ -111,7 +111,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium">Roles & Permissions</span>
         </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full">
+        <main className="p-6 max-w-[840px] mx-auto w-full">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-semibold">Roles & Permissions</h1>

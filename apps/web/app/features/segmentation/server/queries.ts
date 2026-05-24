@@ -1,7 +1,7 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { segments, user, userProfiles, votes } from "@/db/schema";
-import type { SegmentFilters } from "../types";
+import type { Segment, SegmentFilters, VoterTraitCounts } from "../types";
 
 export interface VoterProfileRow {
   name: string | null;
@@ -11,8 +11,6 @@ export interface VoterProfileRow {
   industry: string | null;
   location: string | null;
 }
-
-import type { Segment, VoterTraitCounts } from "../types";
 
 export async function getOrgSegments(organizationId: string): Promise<Segment[]> {
   const db = getDb();
@@ -43,7 +41,6 @@ export async function getVoterTraitCountsByPost(
   if (postIds.length === 0) return {};
   const db = getDb();
 
-  // Single query — one row per (vote × profile). We aggregate the 4 dimensions in JS.
   const rows = await db
     .select({
       postId: votes.postId,
@@ -87,31 +84,26 @@ export async function getSegmentMemberCounts(
   if (segmentList.length === 0) return {};
   const db = getDb();
 
-  const profiles = await db
-    .select({
-      plan: userProfiles.plan,
-      role: userProfiles.role,
-      industry: userProfiles.industry,
-      location: userProfiles.location,
-      companySize: userProfiles.companySize,
-    })
-    .from(userProfiles)
-    .where(eq(userProfiles.organizationId, organizationId));
+  const counts = await Promise.all(
+    segmentList.map(async ({ id, filters }) => {
+      const conditions = [eq(userProfiles.organizationId, organizationId)];
+      if (filters.plan?.length) conditions.push(inArray(userProfiles.plan, filters.plan));
+      if (filters.role?.length) conditions.push(inArray(userProfiles.role, filters.role));
+      if (filters.industry?.length) conditions.push(inArray(userProfiles.industry, filters.industry));
+      if (filters.location?.length) conditions.push(inArray(userProfiles.location, filters.location));
+      if (filters.minCompanySize != null) conditions.push(gte(userProfiles.companySize, filters.minCompanySize));
+      if (filters.maxCompanySize != null) conditions.push(lte(userProfiles.companySize, filters.maxCompanySize));
 
-  const counts: Record<string, number> = {};
-  for (const seg of segmentList) {
-    const f = seg.filters;
-    counts[seg.id] = profiles.filter((p) => {
-      if (f.plan?.length && !f.plan.includes(p.plan ?? "")) return false;
-      if (f.role?.length && !f.role.includes(p.role ?? "")) return false;
-      if (f.industry?.length && !f.industry.includes(p.industry ?? "")) return false;
-      if (f.location?.length && !f.location.includes(p.location ?? "")) return false;
-      if (f.minCompanySize != null && (p.companySize ?? 0) < f.minCompanySize) return false;
-      if (f.maxCompanySize != null && (p.companySize ?? 0) > f.maxCompanySize) return false;
-      return true;
-    }).length;
-  }
-  return counts;
+      const [row] = await db
+        .select({ count: sql<number>`cast(count(*) as int)` })
+        .from(userProfiles)
+        .where(and(...conditions));
+
+      return { id, count: row?.count ?? 0 };
+    }),
+  );
+
+  return Object.fromEntries(counts.map(({ id, count }) => [id, count]));
 }
 
 export async function getVoterProfilesByPost(

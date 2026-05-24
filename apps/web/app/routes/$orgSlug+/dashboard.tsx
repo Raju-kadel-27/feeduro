@@ -3,7 +3,6 @@ import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { ListView } from "@features/dashboard/components/list-view";
 import { RefineChipBar } from "@features/dashboard/components/refine-chip-bar";
-import { SaveAsViewPopover } from "@features/dashboard/components/save-as-view-popover";
 import { useViewState } from "@features/dashboard/hooks/use-view-state";
 import { getOrgViewsWithCounts } from "@features/dashboard/server/views.server";
 import { CreateFeedbackDialog } from "@features/feedback/components/create-feedback-dialog";
@@ -13,11 +12,10 @@ import { getOrgTags } from "@features/feedback/server/tags.server";
 import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { PostDetailPanel } from "@features/post-detail-panel/components/post-detail-panel";
 import { getOrgSegments } from "@features/segmentation/server/service";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { useState } from "react";
 import { redirect, useParams } from "react-router";
-import { toast } from "sonner";
 import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
 import type { Board, Category, Post, Tag, View } from "@features/dashboard/types";
@@ -75,7 +73,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [showSaveAsPopover, setShowSaveAsPopover] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
@@ -157,75 +154,6 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
 
   const viewState = useViewState(views, allPosts, "", segments);
 
-  const { mutate: saveViewChanges } = useMutation({
-    mutationFn: async ({
-      viewId,
-      filters,
-      sort,
-    }: {
-      viewId: string;
-      filters: object;
-      sort: string;
-    }) => {
-      const res = await fetch("/api/views", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent: "update", viewId, filters, sort }),
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["views", orgSlug] });
-      viewState.clearRefinements();
-      toast.success("View updated");
-    },
-  });
-
-  const { mutate: createView } = useMutation({
-    mutationFn: async ({
-      name,
-      emoji,
-      filters,
-      sort,
-    }: {
-      name: string;
-      emoji: string;
-      filters: object;
-      sort: string;
-    }) => {
-      const res = await fetch("/api/views", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent: "create", name, emoji, filters, sort }),
-      });
-      return res.json() as Promise<{ view: View }>;
-    },
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ["views", orgSlug] });
-      setShowSaveAsPopover(false);
-      viewState.clearRefinements();
-      viewState.switchView(data.view.id);
-      toast.success("View created");
-    },
-  });
-
-  function handleSaveChanges() {
-    if (!viewState.activeView) return;
-    const merged = viewState.saveRefinementsToView();
-    if (!merged) return;
-    saveViewChanges({
-      viewId: viewState.activeView.id,
-      filters: merged.filters,
-      sort: merged.sort,
-    });
-  }
-
-  function handleSaveAsNew(name: string, emoji: string) {
-    const merged = viewState.saveRefinementsToView();
-    if (!merged) return;
-    createView({ name, emoji, filters: merged.filters, sort: merged.sort });
-  }
-
   const {
     sortedPosts,
     activeViewId,
@@ -260,19 +188,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
               onNewRequest={() => setShowCreate(true)}
               onSetRefinement={viewState.setRefinement}
               onClearRefinements={viewState.clearRefinements}
-              onSaveChanges={handleSaveChanges}
-              onSaveAsNew={() => setShowSaveAsPopover(true)}
             />
-            {showSaveAsPopover && (
-              <div className="absolute right-0 top-full mt-1 z-50">
-                <SaveAsViewPopover
-                  defaultName={`${activeView?.name ?? "View"} (refined)`}
-                  defaultEmoji={activeView?.emoji ?? "📌"}
-                  onSave={handleSaveAsNew}
-                  onCancel={() => setShowSaveAsPopover(false)}
-                />
-              </div>
-            )}
           </div>
 
           <div className="flex-1 overflow-auto min-w-0">

@@ -152,6 +152,9 @@ importers:
       i18next:
         specifier: ^26.0.8
         version: 26.0.8(typescript@5.9.3)
+      input-otp:
+        specifier: ^1.4.2
+        version: 1.4.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       isbot:
         specifier: ^5.1.36
         version: 5.1.39
@@ -161,6 +164,9 @@ importers:
       nodemailer:
         specifier: ^8.0.6
         version: 8.0.6
+      papaparse:
+        specifier: ^5.5.3
+        version: 5.5.3
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -243,6 +249,9 @@ importers:
       '@types/nodemailer':
         specifier: ^8.0.0
         version: 8.0.0
+      '@types/papaparse':
+        specifier: ^5.5.2
+        version: 5.5.2
       '@types/pg':
         specifier: ^8.20.0
         version: 8.20.0
@@ -2986,6 +2995,9 @@ packages:
   '@types/nodemailer@8.0.0':
     resolution: {integrity: sha512-fyf8jWULsCo0d0BuoQ75i6IeoHs47qcqxWc7yUdUcV0pOZGjUTTOvwdG1PRXUDqN/8A64yQdQdnA2pZgcdi+cA==}
 
+  '@types/papaparse@5.5.2':
+    resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
+
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
 
@@ -3946,6 +3958,12 @@ packages:
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
 
+  input-otp@1.4.2:
+    resolution: {integrity: sha512-l3jWwYNvrEa6NTCt7BECfCm48GvwuZzkoeG3gBL2w4CHeOXW3eKFmf9UNYkNfYc3mxMrthMnxjIE07MT0zLBQA==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+
   inquirer@13.4.2:
     resolution: {integrity: sha512-ziXEKBO6nxsX9Z3XEh7LNiUvYN/o5PYuYK+27l69NpjSUOh6JXQsQAKEw2AnZq5xvHeb3ZwkpzOxvNOswIX1fg==}
     engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
@@ -4461,6 +4479,9 @@ packages:
 
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+
+  papaparse@5.5.3:
+    resolution: {integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==}
 
   parse-css-color@0.2.1:
     resolution: {integrity: sha512-bwS/GGIFV3b6KS4uwpzCFj4w297Yl3uqnSgIPsoQkx7GMLROXfMnWvxfNkL0oh8HVhZA4hvJoEoEIqonfJ3BWg==}
@@ -7873,6 +7894,10 @@ snapshots:
     dependencies:
       '@types/node': 22.19.17
 
+  '@types/papaparse@5.5.2':
+    dependencies:
+      '@types/node': 22.19.17
+
   '@types/pg@8.11.6':
     dependencies:
       '@types/node': 22.19.17
@@ -8848,6 +8873,11 @@ snapshots:
 
   inherits@2.0.4: {}
 
+  input-otp@1.4.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
+    dependencies:
+      react: 19.2.5
+      react-dom: 19.2.5(react@19.2.5)
+
   inquirer@13.4.2(@types/node@22.19.17):
     dependencies:
       '@inquirer/ansi': 2.0.5
@@ -9467,6 +9497,8 @@ snapshots:
   pako@0.2.9: {}
 
   pako@1.0.11: {}
+
+  papaparse@5.5.3: {}
 
   parse-css-color@0.2.1:
     dependencies:

@@ -143,7 +143,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium">Team</span>
         </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full">
+        <main className="p-6 max-w-[840px] mx-auto w-full">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-semibold">Team</h1>
@@ -155,7 +155,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
               <button
                 type="button"
                 onClick={() => setShowInvite(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
               >
                 Invite Member
               </button>

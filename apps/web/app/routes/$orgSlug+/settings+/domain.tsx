@@ -122,7 +122,7 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium">Domain</span>
         </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full space-y-10">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-10">
           <div>
             <h1 className="text-xl font-semibold">Domain</h1>
             <p className="text-sm text-muted-foreground mt-0.5">

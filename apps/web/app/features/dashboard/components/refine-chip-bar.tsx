@@ -58,8 +58,6 @@ interface RefineChipBarProps {
     value: string | string[] | boolean | undefined,
   ) => void;
   onClearRefinements: () => void;
-  onSaveChanges: () => void;
-  onSaveAsNew: () => void;
   onNewRequest: () => void;
   className?: string;
 }
@@ -173,8 +171,6 @@ export function RefineChipBar({
   onClearView,
   onSetRefinement,
   onClearRefinements,
-  onSaveChanges,
-  onSaveAsNew,
   onNewRequest,
   className,
 }: RefineChipBarProps) {
@@ -344,29 +340,13 @@ export function RefineChipBar({
         />
 
         {hasRefinements && (
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={onClearRefinements}
-              className="px-2.5 py-1 text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
-            >
-              Reset
-            </button>
-            <button
-              type="button"
-              onClick={onSaveChanges}
-              className="px-2.5 py-1 text-[13.5px] rounded-md border border-border hover:bg-accent transition-colors font-medium"
-            >
-              Save changes
-            </button>
-            <button
-              type="button"
-              onClick={onSaveAsNew}
-              className="px-2.5 py-1 text-[13.5px] rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium"
-            >
-              Save as new view
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onClearRefinements}
+            className="px-2.5 py-1 text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors shrink-0"
+          >
+            Reset
+          </button>
         )}
       </div>
     </div>

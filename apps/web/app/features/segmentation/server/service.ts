@@ -1,4 +1,10 @@
-export { createSegment, deleteSegment, updateSegment, upsertUserProfile } from "./mutations";
+export {
+  bulkUpsertUserProfiles,
+  createSegment,
+  deleteSegment,
+  updateSegment,
+  upsertUserProfile,
+} from "./mutations";
 export type { VoterProfileRow } from "./queries";
 export {
   getOrgSegments,

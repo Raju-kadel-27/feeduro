@@ -1,12 +1,14 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
+import { CsvImportDialog } from "@features/segmentation/components/csv-import-dialog";
 import { getOrgSegments } from "@features/segmentation/server/service";
 import type { Segment, SegmentFilters } from "@features/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -227,7 +229,8 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   const qc = useQueryClient();
   const revalidator = useRevalidator();
   const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingSegment, setEditingSegment] = useState<Segment | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["segments", orgSlug],
@@ -277,7 +280,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
       color: form.color,
       filters: filtersFromForm(form),
     });
-    setEditingId(null);
+    setEditingSegment(null);
     toast.success("Segment updated");
   }
 
@@ -291,28 +294,41 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-14 items-center gap-2 border-b px-4">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <div className="flex-1">
-            <h1 className="text-sm font-semibold">Segments</h1>
-            <p className="text-xs text-muted-foreground">
-              Group end-users by traits to filter feedback by audience.
-            </p>
-          </div>
-          {loaderData.isAdmin && !creating && (
-            <button
-              type="button"
-              onClick={() => setCreating(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" /> New segment
-            </button>
-          )}
+          <span className="text-sm font-medium">Segments</span>
         </header>
 
-        <div className="flex flex-1 items-center justify-center p-6">
-          <div className="w-full max-w-2xl space-y-4">
-            <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
+        <div className="p-6">
+          <div className="max-w-[840px] mx-auto w-full space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-semibold">Segments</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Group end-users by traits to filter feedback by audience.
+                </p>
+              </div>
+              {loaderData.isAdmin && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setImportOpen(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold border border-border hover:bg-accent transition-colors cursor-pointer"
+                  >
+                    <Upload className="h-4 w-4" /> Import CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreating(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" /> New segment
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="space-y-4">
+              <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
               <p className="font-medium text-foreground mb-1">Identify users via API</p>
               <p className="text-muted-foreground text-[13px] mb-2">
                 Push customer traits from your backend using your API key:
@@ -332,15 +348,7 @@ Authorization: Bearer <your-api-key>
 }`}</pre>
             </div>
 
-            {creating && (
-              <SegmentForm
-                initial={defaultForm()}
-                onSave={handleCreate}
-                onCancel={() => setCreating(false)}
-              />
-            )}
-
-            {segments.length === 0 && !creating ? (
+            {segments.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground">
                 <p className="text-sm font-medium">No segments yet</p>
                 <p className="text-xs mt-1">
@@ -349,63 +357,89 @@ Authorization: Bearer <your-api-key>
               </div>
             ) : (
               <div className="space-y-2">
-                {segments.map((seg) =>
-                  editingId === seg.id ? (
-                    <SegmentForm
-                      key={seg.id}
-                      initial={formFromSegment(seg)}
-                      onSave={(form) => handleUpdate(seg.id, form)}
-                      onCancel={() => setEditingId(null)}
+                {segments.map((seg) => (
+                  <div
+                    key={seg.id}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full shrink-0"
+                      style={{ backgroundColor: seg.color }}
                     />
-                  ) : (
-                    <div
-                      key={seg.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
-                    >
-                      <span
-                        className="h-3 w-3 rounded-full shrink-0"
-                        style={{ backgroundColor: seg.color }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium truncate">{seg.name}</p>
-                          {seg.memberCount != null && (
-                            <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
-                              {seg.memberCount.toLocaleString()}{" "}
-                              {seg.memberCount === 1 ? "user" : "users"}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[12px] text-muted-foreground truncate">
-                          {describeFilters(seg.filters)}
-                        </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate">{seg.name}</p>
+                        {seg.memberCount != null && (
+                          <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                            {seg.memberCount.toLocaleString()}{" "}
+                            {seg.memberCount === 1 ? "user" : "users"}
+                          </span>
+                        )}
                       </div>
-                      {loaderData.isAdmin && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setEditingId(seg.id)}
-                            className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(seg.id, seg.name)}
-                            className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      )}
+                      <p className="text-[12px] text-muted-foreground truncate">
+                        {describeFilters(seg.filters)}
+                      </p>
                     </div>
-                  ),
-                )}
+                    {loaderData.isAdmin && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setEditingSegment(seg)}
+                          className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(seg.id, seg.name)}
+                          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
+            </div>
           </div>
         </div>
       </SidebarInset>
+      <CsvImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onSuccess={() => {
+          qc.invalidateQueries({ queryKey: ["segments", orgSlug] });
+          revalidator.revalidate();
+        }}
+      />
+      <Dialog open={creating} onOpenChange={(v) => { if (!v) setCreating(false); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>New segment</DialogTitle>
+          </DialogHeader>
+          <SegmentForm
+            initial={defaultForm()}
+            onSave={handleCreate}
+            onCancel={() => setCreating(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={editingSegment !== null} onOpenChange={(v) => { if (!v) setEditingSegment(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit segment</DialogTitle>
+          </DialogHeader>
+          {editingSegment && (
+            <SegmentForm
+              initial={formFromSegment(editingSegment)}
+              onSave={(form) => handleUpdate(editingSegment.id, form)}
+              onCancel={() => setEditingSegment(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

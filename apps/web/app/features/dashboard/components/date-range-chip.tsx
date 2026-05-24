@@ -127,7 +127,7 @@ export function DateRangeChip({
         align="start"
         side="bottom"
         sideOffset={6}
-        className="![width:700px] p-0 shadow-lg dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]"
+        className="![width:780px] p-0 shadow-lg dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]"
       >
         <div className="flex">
           {/* Presets — vertical left panel */}

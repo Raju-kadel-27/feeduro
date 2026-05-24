@@ -1,11 +1,11 @@
 import type { loadAnalyticsOverview } from "../server/overview.server";
-import { AdminActivityTable } from "./admin-activity-table";
 import { ChangelogEngagementList } from "./changelog-engagement";
 import { CompanyEngagementTable } from "./company-engagement-table";
+import { TopPostsChart } from "./top-posts-chart";
 
 type ReportData = Pick<
   Awaited<ReturnType<typeof loadAnalyticsOverview>>,
-  "changelogEngagement" | "adminActivity" | "companyEngagement" | "range"
+  "changelogEngagement" | "topPosts" | "companyEngagement" | "range"
 >;
 
 const RANGE_LABEL: Record<string, string | undefined> = {
@@ -16,7 +16,7 @@ const RANGE_LABEL: Record<string, string | undefined> = {
 };
 
 export function AnalyticsReports({ data }: { data: ReportData }) {
-  const { changelogEngagement, adminActivity, companyEngagement, range } = data;
+  const { changelogEngagement, topPosts, companyEngagement, range } = data;
   const rangeLabel = RANGE_LABEL[range];
 
   return (
@@ -30,16 +30,11 @@ export function AnalyticsReports({ data }: { data: ReportData }) {
         <ChangelogEngagementList entries={changelogEngagement} />
       </div>
 
-      {/* Admin activity + company engagement side-by-side */}
+      {/* Top requested + company engagement side-by-side */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-xl border bg-card p-5 space-y-4">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Team Activity</h2>
-            <p className="text-xs text-muted-foreground">
-              {rangeLabel ? rangeLabel : "all time"} · posts · votes · comments
-            </p>
-          </div>
-          <AdminActivityTable activity={adminActivity} />
+          <h2 className="text-sm font-semibold text-foreground">Top Requested Features</h2>
+          <TopPostsChart posts={topPosts} />
         </div>
 
         <div className="rounded-xl border bg-card p-5 space-y-4">

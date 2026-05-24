@@ -10,36 +10,34 @@ export async function getStatusFunnel(
   const db = getDb();
 
   const boardFilter = boardId
-    ? sql`AND a1.post_id IN (
+    ? sql`AND pa.post_id IN (
         SELECT id FROM feedback_posts
         WHERE board_id = ${boardId} AND organization_id = ${organizationId}
       )`
     : sql``;
 
-  const sinceFilter = since ? sql`AND a1.created_at >= ${since}` : sql``;
+  const sinceFilter = since ? sql`AND pa.created_at >= ${since}` : sql``;
 
   const result = await db.execute(sql`
+    WITH transitions AS (
+      SELECT
+        new_value                                                             AS "fromStatus",
+        LEAD(new_value)  OVER (PARTITION BY post_id ORDER BY created_at)     AS "toStatus",
+        LEAD(created_at) OVER (PARTITION BY post_id ORDER BY created_at)     AS "nextAt",
+        created_at                                                            AS "thisAt"
+      FROM post_activities pa
+      WHERE pa.organization_id = ${organizationId}
+        ${boardFilter}
+        ${sinceFilter}
+    )
     SELECT
-      a1.new_value                                                               AS "fromStatus",
-      a2.new_value                                                               AS "toStatus",
-      round(avg(extract(epoch from (a2.created_at - a1.created_at)) / 86400)
-            ::numeric, 1)::float                                                AS "avgDays",
-      count(*)::int                                                              AS "transitionCount"
-    FROM post_activities a1
-    INNER JOIN post_activities a2
-      ON  a2.post_id          = a1.post_id
-      AND a2.created_at       > a1.created_at
-      AND a2.organization_id  = a1.organization_id
-    WHERE a1.organization_id = ${organizationId}
-      AND NOT EXISTS (
-        SELECT 1 FROM post_activities a3
-        WHERE a3.post_id    = a1.post_id
-          AND a3.created_at > a1.created_at
-          AND a3.created_at < a2.created_at
-      )
-      ${boardFilter}
-      ${sinceFilter}
-    GROUP BY a1.new_value, a2.new_value
+      "fromStatus",
+      "toStatus",
+      round(avg(extract(epoch from ("nextAt" - "thisAt")) / 86400)::numeric, 1)::float AS "avgDays",
+      count(*)::int                                                                     AS "transitionCount"
+    FROM transitions
+    WHERE "toStatus" IS NOT NULL
+    GROUP BY "fromStatus", "toStatus"
     ORDER BY count(*) DESC
   `);
 

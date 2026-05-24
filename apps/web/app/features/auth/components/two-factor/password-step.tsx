@@ -35,7 +35,7 @@ export function TwoFactorPasswordStep({
   onCancel,
 }: Props) {
   return (
-    <section className="space-y-4 rounded-lg border border-border p-6 bg-card shadow-sm">
+    <section className="space-y-4">
       <div>
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         <p className="text-sm text-muted-foreground mt-1">{description}</p>
@@ -51,7 +51,15 @@ export function TwoFactorPasswordStep({
       {error && (
         <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{error}</p>
       )}
-      <div className="flex gap-2">
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+        >
+          Cancel
+        </button>
         <button
           type="button"
           onClick={onSubmit}
@@ -60,14 +68,6 @@ export function TwoFactorPasswordStep({
         >
           {loading && <Spinner />}
           {submitLabel}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
-        >
-          Cancel
         </button>
       </div>
     </section>

@@ -235,7 +235,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
           <span className="text-sm font-medium">GitHub Integration</span>
         </header>
 
-        <main className="p-6 max-w-[640px] mx-auto w-full space-y-8">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>
             <h2 className="text-[13px] font-semibold text-foreground">GitHub Issues</h2>
             <p className="text-[13px] text-muted-foreground mt-0.5">

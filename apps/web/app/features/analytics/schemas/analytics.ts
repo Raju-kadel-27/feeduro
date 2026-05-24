@@ -104,6 +104,47 @@ export const SegmentDemandSchema = z.object({
 
 export const SegmentDemandListSchema = z.array(SegmentDemandSchema);
 
+export const StatsDeltaSchema = z.object({
+  posts: z.number().nullable(),
+  votes: z.number().nullable(),
+  resolutionRate: z.number().nullable(),
+  avgVotesPerPost: z.number().nullable(),
+});
+export type StatsDelta = z.infer<typeof StatsDeltaSchema>;
+
+export const BoardVisitorPointSchema = z.object({
+  period: z.string(),
+  uniqueVisitors: z.number(),
+  totalViews: z.number(),
+});
+export const BoardVisitorsSchema = z.array(BoardVisitorPointSchema);
+export type BoardVisitorPoint = z.infer<typeof BoardVisitorPointSchema>;
+export type BoardVisitors = z.infer<typeof BoardVisitorsSchema>;
+
+export const CommentedPostSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  status: z.string(),
+  commentCount: z.number(),
+});
+export const CommentsAnalyticsSchema = z.object({
+  totalComments: z.number(),
+  delta: z.number().nullable(),
+  topPosts: z.array(CommentedPostSchema),
+});
+export type CommentedPost = z.infer<typeof CommentedPostSchema>;
+export type CommentsAnalytics = z.infer<typeof CommentsAnalyticsSchema>;
+
+export const UnrespondedPostSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  voteCount: z.number(),
+  daysOpen: z.number(),
+});
+export const UnrespondedPostsSchema = z.array(UnrespondedPostSchema);
+export type UnrespondedPost = z.infer<typeof UnrespondedPostSchema>;
+export type UnrespondedPosts = z.infer<typeof UnrespondedPostsSchema>;
+
 export type VoteTrends = z.infer<typeof VoteTrendsSchema>;
 export type VoteTrendPoint = z.infer<typeof VoteTrendPointSchema>;
 export type StatusFunnelStep = z.infer<typeof StatusFunnelStepSchema>;

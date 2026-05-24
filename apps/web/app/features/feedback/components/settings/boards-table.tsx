@@ -55,11 +55,6 @@ function BoardRow({
               default
             </span>
           )}
-          {board.postCount > 0 && (
-            <span className="text-xs text-muted-foreground tabular-nums shrink-0">
-              {board.postCount} {board.postCount === 1 ? "post" : "posts"}
-            </span>
-          )}
         </div>
 
         {/* Smart Replies toggle */}

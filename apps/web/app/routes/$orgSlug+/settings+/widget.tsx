@@ -288,7 +288,7 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium text-foreground">Widget</span>
         </header>
 
-        <main className="p-6 max-w-2xl mx-auto w-full space-y-6">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* Page header */}
           <div>
             <h1 className="text-lg font-semibold tracking-tight">Embed Widget</h1>

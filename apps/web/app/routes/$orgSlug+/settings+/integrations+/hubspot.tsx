@@ -130,7 +130,7 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
           <span className="text-sm font-medium">HubSpot</span>
         </header>
 
-        <main className="p-6 max-w-[600px] mx-auto w-full space-y-6">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted">
               <HubSpotLogo size={20} />

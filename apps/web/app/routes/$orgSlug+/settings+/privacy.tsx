@@ -138,7 +138,7 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
           <span className="text-sm font-medium">Privacy & Access</span>
         </header>
 
-        <main className="p-6 max-w-2xl mx-auto w-full space-y-6">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           <div>
             <h1 className="text-lg font-semibold tracking-tight">Privacy & Access</h1>
             <p className="text-sm text-muted-foreground mt-1">

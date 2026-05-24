@@ -8,7 +8,7 @@ type Props = {
 
 export function BackupCodesStep({ backupCodes, onCopy, onDone }: Props) {
   return (
-    <section className="space-y-4 rounded-lg border border-border p-6 bg-card shadow-sm">
+    <section className="space-y-4">
       <div className="flex items-start gap-3">
         <CheckCircle2 className="size-5 text-green-500 shrink-0 mt-0.5" />
         <div>
@@ -26,7 +26,7 @@ export function BackupCodesStep({ backupCodes, onCopy, onDone }: Props) {
           </code>
         ))}
       </div>
-      <div className="flex gap-2">
+      <div className="flex justify-end gap-2">
         <button
           type="button"
           onClick={() => onCopy(backupCodes.join("\n"), "Backup codes")}

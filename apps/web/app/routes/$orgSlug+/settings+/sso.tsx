@@ -144,22 +144,132 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-4 border-b px-6 bg-muted/10">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <span className="text-lg font-semibold">Login & SSO</span>
+          <span className="text-sm font-medium">Login & SSO</span>
         </header>
 
-        <main className="p-8 max-w-[720px] mx-auto w-full space-y-10">
-          <div>
-            <h2 className="text-base font-bold text-foreground">Single Sign-On</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Allow workspace members to sign in with your identity provider via OIDC or SAML.
-            </p>
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold">Single Sign-On</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Allow workspace members to sign in with your identity provider via OIDC or SAML.
+              </p>
+            </div>
+            {isAdmin && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
+                  >
+                    <Plus size={16} />
+                    Add Provider
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Configure OIDC Provider</DialogTitle>
+                  </DialogHeader>
+                  <div className="mb-4 rounded-lg border border-border bg-muted/20 px-4 py-3">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Register this redirect URI with your identity provider:
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <code className="text-sm text-foreground font-mono break-all flex-1">
+                        {callbackUrl}
+                      </code>
+                      <CopyButton value={callbackUrl} />
+                    </div>
+                  </div>
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); registerProvider(); }}
+                    className="space-y-4"
+                  >
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Provider ID</label>
+                        <input
+                          type="text"
+                          value={providerId}
+                          onChange={(e) => setProviderId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+                          placeholder="e.g. acme-corp"
+                          required
+                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                        <p className="text-xs text-muted-foreground">Unique slug, used in the callback URL</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Domain</label>
+                        <input
+                          type="text"
+                          value={domain}
+                          onChange={(e) => setDomain(e.target.value)}
+                          placeholder="e.g. yourcompany.com"
+                          required
+                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                        <p className="text-xs text-muted-foreground">Users with this email domain</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Issuer URL</label>
+                      <input
+                        type="url"
+                        value={issuer}
+                        onChange={(e) => setIssuer(e.target.value)}
+                        placeholder="https://your-org.okta.com"
+                        required
+                        className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        OIDC discovery fetched from{" "}
+                        <span className="font-mono">{"{issuer}/.well-known/openid-configuration"}</span>
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Client ID</label>
+                        <input
+                          type="text"
+                          value={clientId}
+                          onChange={(e) => setClientId(e.target.value)}
+                          placeholder="Client ID from your IdP"
+                          required
+                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Client Secret</label>
+                        <input
+                          type="password"
+                          value={clientSecret}
+                          onChange={(e) => setClientSecret(e.target.value)}
+                          placeholder="Client secret from your IdP"
+                          required
+                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="submit"
+                        disabled={registering || !providerId || !issuer || !domain || !clientId || !clientSecret}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                      >
+                        {registering ? "Saving…" : "Save Provider"}
+                      </button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           {/* Existing providers */}
           <section>
-            <h3 className="text-base font-bold text-foreground mb-4">Configured Providers</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Configured Providers</h3>
 
             {providers.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-10 text-center bg-muted/10">
@@ -167,7 +277,7 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
                 <p className="text-sm text-muted-foreground">No SSO provider configured yet.</p>
               </div>
             ) : (
-              <div className="rounded-lg border border-border overflow-hidden bg-card shadow-md">
+              <div className="rounded-lg border border-border overflow-hidden bg-card">
                 <div className="grid grid-cols-[1fr_auto] items-center px-4 h-12 bg-muted/20 border-b border-border">
                   <div className="text-sm text-muted-foreground">Provider</div>
                   <div className="text-sm text-muted-foreground pr-8">Type</div>
@@ -211,149 +321,13 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-            {isAdmin && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors shadow-sm"
-                    >
-                      <Plus size={16} />
-                      <span>Add Provider</span>
-                    </button>
-                  </div>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Configure OIDC Provider</DialogTitle>
-                  </DialogHeader>
-
-                  {/* Callback URL */}
-                  <div className="mb-6 rounded-lg border border-border bg-muted/20 px-4 py-3">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Register this redirect URI with your identity provider:
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <code className="text-sm text-foreground font-mono break-all">
-                        {callbackUrl}
-                      </code>
-                      <CopyButton value={callbackUrl} />
-                    </div>
-                  </div>
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      registerProvider();
-                    }}
-                    className="space-y-4"
-                  >
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm text-muted-foreground">Provider ID</label>
-                        <input
-                          type="text"
-                          value={providerId}
-                          onChange={(e) =>
-                            setProviderId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))
-                          }
-                          placeholder="e.g. acme-corp"
-                          required
-                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Unique slug, used in the callback URL
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm text-muted-foreground">Domain</label>
-                        <input
-                          type="text"
-                          value={domain}
-                          onChange={(e) => setDomain(e.target.value)}
-                          placeholder="e.g. yourcompany.com"
-                          required
-                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Users with this email domain
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground">Issuer URL</label>
-                      <input
-                        type="url"
-                        value={issuer}
-                        onChange={(e) => setIssuer(e.target.value)}
-                        placeholder="https://your-org.okta.com"
-                        required
-                        className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        OIDC discovery is fetched automatically from
-                        <span className="font-mono">
-                          {" {issuer}/.well-known/openid-configuration"}
-                        </span>
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm text-muted-foreground">Client ID</label>
-                        <input
-                          type="text"
-                          value={clientId}
-                          onChange={(e) => setClientId(e.target.value)}
-                          placeholder="Client ID from your IdP"
-                          required
-                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm text-muted-foreground">Client Secret</label>
-                        <input
-                          type="password"
-                          value={clientSecret}
-                          onChange={(e) => setClientSecret(e.target.value)}
-                          placeholder="Client secret from your IdP"
-                          required
-                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 pt-2">
-                      <button
-                        type="submit"
-                        disabled={
-                          registering ||
-                          !providerId ||
-                          !issuer ||
-                          !domain ||
-                          !clientId ||
-                          !clientSecret
-                        }
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm"
-                      >
-                        {registering ? "Saving…" : "Save Provider"}
-                      </button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
           </section>
 
           {/* Sign in via SSO info */}
-          <section className="rounded-lg border border-border bg-muted/10 px-6 py-4 space-y-4 shadow-md">
-            <div className="flex items-center gap-3">
-              <KeyRound size={16} className="text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">SSO sign-in endpoint</span>
+          <section className="rounded-lg border border-border bg-muted/10 px-6 py-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <KeyRound size={15} className="text-muted-foreground shrink-0" />
+              <span className="text-sm font-semibold text-foreground">SSO sign-in endpoint</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Users can sign in with SSO from the login page by entering their work email. They will

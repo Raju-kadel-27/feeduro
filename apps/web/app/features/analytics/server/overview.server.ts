@@ -5,10 +5,14 @@ import { DATE_RANGE_OPTIONS } from "../schemas/analytics";
 import { getAnalyticsCache } from "./analytics-cache.server";
 import { getActivityOverTime } from "./activity-over-time.server";
 import { getAdminActivity } from "./admin-activity.server";
+import { getBoardVisitorsLast7Days } from "./board-visitors.server";
 import { getBoardSummaries } from "./board-summary.server";
 import { getChangelogEngagement } from "./changelog-engagement.server";
+import { getCommentsAnalytics } from "./comments-analytics.server";
 import { getCompanyEngagement } from "./company-engagement.server";
 import { getCompletedInPeriod } from "./completed-posts.server";
+import { getPeriodDeltas } from "./previous-period.server";
+import { getUnrespondedPosts } from "./unresponded-posts.server";
 import { getStatusBreakdown } from "./status-breakdown.server";
 import { getStatusFunnel } from "./status-funnel.server";
 import { getTagBreakdown } from "./tag-breakdown.server";
@@ -24,10 +28,16 @@ function parseSince(range: string): Date | undefined {
 }
 
 async function fetchAll(organizationId: string, range: DateRange, since: Date | undefined) {
+  const nowMs = Date.now();
+  const prevSince = since
+    ? new Date(since.getTime() - (nowMs - since.getTime()))
+    : undefined;
+
   const [
     boards, topPosts, funnel, statusBreakdown,
     activityOverTime, completedPosts, tagBreakdown, trendingPosts,
     changelogEngagement, adminActivity, companyEngagement,
+    boardVisitors, commentsAnalytics, unrespondedPosts, deltas,
   ] = await Promise.all([
     getBoardSummaries(organizationId, since),
     getTopPostsByVotes(organizationId, undefined, 8, since),
@@ -40,6 +50,10 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
     getChangelogEngagement(organizationId),
     getAdminActivity(organizationId, since),
     getCompanyEngagement(organizationId, since),
+    getBoardVisitorsLast7Days(organizationId),
+    getCommentsAnalytics(organizationId, since),
+    getUnrespondedPosts(organizationId),
+    since ? getPeriodDeltas(organizationId, since) : Promise.resolve(null),
   ]);
 
   const totalPosts = boards.reduce((s, b) => s + b.totalPosts, 0);
@@ -50,7 +64,7 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
 
   return {
     range,
-    stats: { totalPosts, totalVotes, resolutionRate, avgVotesPerPost },
+    stats: { totalPosts, totalVotes, resolutionRate, avgVotesPerPost, deltas },
     boards,
     topPosts,
     funnel,
@@ -62,6 +76,9 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
     changelogEngagement,
     adminActivity,
     companyEngagement,
+    boardVisitors,
+    commentsAnalytics,
+    unrespondedPosts,
     fetchedAt: Date.now(),
   };
 }

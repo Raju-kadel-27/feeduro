@@ -54,28 +54,28 @@ export function StatusFunnelSteps({ steps }: StatusFunnelStepsProps) {
         }));
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-8">
       {display.map((step, i) => (
-        <div key={`${step.from}-${step.to}`} className="flex items-center gap-2">
+        <div key={`${step.from}-${step.to}`} className="flex items-center gap-8">
           {i === 0 && (
             <div
               className={cn(
-                "rounded-md border px-3 py-1.5 text-sm font-medium",
+                "rounded-md border px-4 py-2 text-base font-semibold",
                 STATUS_COLOR[step.from] ?? FALLBACK_COLOR,
               )}
             >
               {STATUS_LABEL[step.from] ?? step.from}
             </div>
           )}
-          <div className="flex flex-col items-center gap-0.5">
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col items-center gap-1">
+            <ArrowRight className="h-5 w-8 text-muted-foreground" />
             <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-              {step.avgDays}d avg · {step.count}
+              {step.avgDays}d avg
             </span>
           </div>
           <div
             className={cn(
-              "rounded-md border px-3 py-1.5 text-sm font-medium",
+              "rounded-md border px-4 py-2 text-base font-semibold",
               STATUS_COLOR[step.to] ?? FALLBACK_COLOR,
             )}
           >

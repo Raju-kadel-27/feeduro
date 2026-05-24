@@ -3,15 +3,17 @@ import type { loadAnalyticsOverview } from "../server/overview.server";
 import { ActivityChart } from "./activity-chart";
 import { AnalyticsReports } from "./analytics-reports";
 import { BoardHealthList } from "./board-health-list";
+import { BoardVisitorsChart } from "./board-visitors-chart";
 import { CacheFreshnessBanner } from "./cache-freshness-banner";
+import { CommentsAnalyticsPanel } from "./comments-analytics";
 import { CompletedPostsList } from "./completed-posts-list";
-import { DateRangePicker } from "./date-range-picker";
 import { StatCard } from "./stat-card";
 import { StatusBreakdownBar } from "./status-breakdown";
 import { StatusFunnelSteps } from "./status-funnel-steps";
 import { TagBreakdownChart } from "./tag-breakdown-chart";
-import { TopPostsChart } from "./top-posts-chart";
 import { TrendingPostsList } from "./trending-posts-list";
+import { UnrespondedPostsCard } from "./unresponded-posts-card";
+import { AdminActivityTable } from "./admin-activity-table";
 
 type OverviewData = Awaited<ReturnType<typeof loadAnalyticsOverview>>;
 
@@ -33,30 +35,63 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
   const {
     stats, boards, topPosts, funnel, statusBreakdown, activityOverTime,
     completedPosts, tagBreakdown, trendingPosts, range,
-    changelogEngagement, adminActivity, companyEngagement, fetchedAt,
+    changelogEngagement, adminActivity, companyEngagement,
+    boardVisitors, commentsAnalytics, unrespondedPosts, fetchedAt,
   } = data;
+
+  const { deltas } = stats;
   const rangeLabel = RANGE_LABEL[range];
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <DateRangePicker />
-        {rangeLabel && (
-          <span className="text-xs text-muted-foreground">Showing data for {rangeLabel}</span>
-        )}
-      </div>
-
       <CacheFreshnessBanner fetchedAt={fetchedAt} />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Total Posts" value={stats.totalPosts} sub={rangeLabel} />
-        <StatCard label="Total Votes" value={stats.totalVotes} sub={rangeLabel} />
-        <StatCard label="Resolution Rate" value={`${stats.resolutionRate}%`} sub="posts marked completed" />
-        <StatCard label="Avg Votes / Post" value={stats.avgVotesPerPost} sub="across all boards" />
+        <StatCard
+          label="Total Posts"
+          value={stats.totalPosts}
+          sub={rangeLabel}
+          delta={deltas?.posts}
+        />
+        <StatCard
+          label="Total Votes"
+          value={stats.totalVotes}
+          sub={rangeLabel}
+          delta={deltas?.votes}
+        />
+        <StatCard
+          label="Resolution Rate"
+          value={`${stats.resolutionRate}%`}
+          sub="posts marked completed"
+          delta={deltas?.resolutionRate}
+        />
+        <StatCard
+          label="Avg Votes / Post"
+          value={stats.avgVotesPerPost}
+          sub="across all boards"
+          delta={deltas?.avgVotesPerPost}
+        />
       </div>
 
-      {/* Status funnel — full width, above activity */}
+      {/* Unresponded posts — amber alert, only renders when there are items */}
+      <UnrespondedPostsCard posts={unrespondedPosts} />
+
+      {/* Board traffic — full width, above status funnel */}
+      <div className="rounded-xl border bg-card">
+        <div className="px-5 pt-5">
+          <h2 className="text-sm font-semibold">Board Traffic</h2>
+        </div>
+        <div className="mt-3">
+          <BoardVisitorsChart
+            chart={boardVisitors.chart}
+            totalViews={boardVisitors.totalViews}
+            uniqueVisitors={boardVisitors.uniqueVisitors}
+          />
+        </div>
+      </div>
+
+      {/* Status funnel — full width */}
       <div className="rounded-xl border bg-card p-5 space-y-4">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-semibold">Status Funnel</h2>
@@ -74,10 +109,30 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
         <ActivityChart data={activityOverTime} range={range} />
       </div>
 
-      {/* Top features — full width so titles + bars have room */}
+      {/* Top tags — full width */}
       <div className="rounded-xl border bg-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold">Top Requested Features</h2>
-        <TopPostsChart posts={topPosts} />
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold">Top Tags</h2>
+          <p className="text-xs text-muted-foreground">by post count</p>
+        </div>
+        <TagBreakdownChart tags={tagBreakdown} />
+      </div>
+
+      {/* Team activity — full width */}
+      <div className="rounded-xl border bg-card p-5 space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold">Team Activity</h2>
+          <p className="text-xs text-muted-foreground">
+            {rangeLabel ? rangeLabel : "all time"} · posts · votes · comments
+          </p>
+        </div>
+        <AdminActivityTable activity={adminActivity} />
+      </div>
+
+      {/* Comments analytics — full width, before status breakdown */}
+      <div className="rounded-xl border bg-card p-5 space-y-4">
+        <h2 className="text-sm font-semibold">Most Discussed Posts</h2>
+        <CommentsAnalyticsPanel data={commentsAnalytics} rangeLabel={rangeLabel} />
       </div>
 
       {/* Status distribution + Trending */}
@@ -98,22 +153,13 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
         </div>
       </div>
 
-      {/* Top tags — full width */}
-      <div className="rounded-xl border bg-card p-5 space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold">Top Tags</h2>
-          <p className="text-xs text-muted-foreground">by post count</p>
-        </div>
-        <TagBreakdownChart tags={tagBreakdown} />
-      </div>
-
       {/* Board health + Completed */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-xl border bg-card p-5 space-y-4">
           <h2 className="text-sm font-semibold">Board Health</h2>
           <BoardHealthList boards={boards} />
         </div>
-        <div className="lg:col-span-2 rounded-xl border bg-card p-5 space-y-4">
+        <div className="rounded-xl border bg-card p-5 space-y-4">
           <div className="flex items-baseline justify-between">
             <h2 className="text-sm font-semibold">
               {rangeLabel ? `Completed in ${rangeLabel}` : "Recently Completed"}
@@ -124,7 +170,7 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
         </div>
       </div>
 
-      <AnalyticsReports data={{ changelogEngagement, adminActivity, companyEngagement, range }} />
+      <AnalyticsReports data={{ changelogEngagement, topPosts, companyEngagement, range }} />
     </div>
   );
 }
@@ -139,6 +185,7 @@ export function AnalyticsOverviewSkeleton() {
         ))}
       </div>
       <Skeleton className="h-60 rounded-xl" />
+      <Skeleton className="h-64 rounded-xl" />
       <Skeleton className="h-64 rounded-xl" />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Skeleton className="h-48 rounded-xl" />

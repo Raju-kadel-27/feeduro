@@ -2,7 +2,7 @@ import type { Category, Tag } from "@features/dashboard/types";
 import type { Segment } from "@features/segmentation/types";
 import { DateRangeChip } from "./date-range-chip";
 import { cn } from "@lib/utils";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { PageTitle } from "@/app/components/common/page-title";
 import type {
@@ -59,6 +59,7 @@ interface RefineChipBarProps {
   ) => void;
   onClearRefinements: () => void;
   onNewRequest: () => void;
+  onSearchOpen: () => void;
   className?: string;
 }
 
@@ -172,6 +173,7 @@ export function RefineChipBar({
   onSetRefinement,
   onClearRefinements,
   onNewRequest,
+  onSearchOpen,
   className,
 }: RefineChipBarProps) {
   const viewFilters: ViewFilters = activeView?.filters ?? {};
@@ -190,14 +192,25 @@ export function RefineChipBar({
         title="Feedbacks"
         className="border-b-0 px-[18px] h-auto pt-2 pb-0"
         action={
-          <button
-            type="button"
-            onClick={onNewRequest}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
-          >
-            <span className="text-base leading-none">+</span>
-            New feedback
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onSearchOpen}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+              aria-label="Search feedback"
+            >
+              <Search className="h-4 w-4" />
+              <kbd className="hidden sm:inline text-[11px] font-mono bg-muted px-1 py-0.5 rounded">⌘K</kbd>
+            </button>
+            <button
+              type="button"
+              onClick={onNewRequest}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+            >
+              <span className="text-base leading-none">+</span>
+              New feedback
+            </button>
+          </div>
         }
       />
 

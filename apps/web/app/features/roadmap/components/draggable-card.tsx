@@ -56,10 +56,10 @@ export function DraggableCard({
       ref={ref}
       onClick={() => navigate(`/${orgSlug}/feedback/${post.id}`)}
       className={cn(
-        "group flex flex-col gap-2.5 p-3 rounded-lg border border-border/70 bg-card",
-        "hover:border-border hover:shadow-sm transition-all duration-100",
+        "group flex flex-col gap-2.5 p-3 rounded-lg border border-border/60 bg-card",
+        "hover:border-border hover:shadow-md hover:-translate-y-0.5 transition-all duration-150",
         "cursor-grab active:cursor-grabbing select-none",
-        isDragging && "opacity-0",
+        isDragging && "opacity-30 border-dashed",
       )}
     >
       <p className="text-xs font-medium leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors">
@@ -72,7 +72,7 @@ export function DraggableCard({
         </span>
       )}
 
-      <div className="flex items-center gap-2 text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-muted-foreground">
         {post.authorImage ? (
           <img
             src={post.authorImage}
@@ -84,16 +84,18 @@ export function DraggableCard({
             {post.authorName?.[0]?.toUpperCase() ?? "?"}
           </div>
         )}
-        <span className="flex items-center gap-1 text-[10px] tabular-nums ml-auto">
-          <ChevronUp className="h-3 w-3" />
-          {post.voteCount}
-        </span>
-        {post.commentCount > 0 && (
-          <span className="flex items-center gap-1 text-[10px] tabular-nums">
-            <MessageSquare className="h-3 w-3" />
-            {post.commentCount}
+        <div className="flex items-center gap-1 ml-auto">
+          <span className="inline-flex items-center gap-0.5 text-[10px] tabular-nums bg-muted/70 rounded-full px-1.5 py-0.5">
+            <ChevronUp className="h-3 w-3" />
+            {post.voteCount}
           </span>
-        )}
+          {post.commentCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] tabular-nums bg-muted/70 rounded-full px-1.5 py-0.5">
+              <MessageSquare className="h-2.5 w-2.5" />
+              {post.commentCount}
+            </span>
+          )}
+        </div>
         <div onClick={(e) => e.stopPropagation()}>
           {post.githubIssueNumber ? (
             <a

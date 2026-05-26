@@ -1,6 +1,7 @@
 import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { FeedbackSearchModal } from "@features/dashboard/components/feedback-search-modal";
 import { ListView } from "@features/dashboard/components/list-view";
 import { RefineChipBar } from "@features/dashboard/components/refine-chip-bar";
 import { useViewState } from "@features/dashboard/hooks/use-view-state";
@@ -14,7 +15,7 @@ import { PostDetailPanel } from "@features/post-detail-panel/components/post-det
 import { getOrgSegments } from "@features/segmentation/server/service";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { redirect, useParams } from "react-router";
 import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
@@ -74,6 +75,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
 
@@ -152,6 +154,18 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const boardMap = Object.fromEntries(boards.map((b) => [b.id, b]));
   const defaultBoard = boards.find((b) => b.isDefault) ?? boards[0];
 
+  // ⌘K / Ctrl+K opens the search modal
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setShowSearch((prev) => !prev);
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const viewState = useViewState(views, allPosts, "", segments);
 
   const {
@@ -185,6 +199,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
               orgAdmins={loaderData.orgAdmins}
               onSwitchView={viewState.switchView}
               onClearView={viewState.clearView}
+              onSearchOpen={() => setShowSearch(true)}
               onNewRequest={() => setShowCreate(true)}
               onSetRefinement={viewState.setRefinement}
               onClearRefinements={viewState.clearRefinements}
@@ -248,6 +263,13 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
           onSuccess={() => qc.invalidateQueries({ queryKey: ["feedback", "all"] })}
         />
       )}
+
+      <FeedbackSearchModal
+        boards={boards}
+        open={showSearch}
+        onClose={() => setShowSearch(false)}
+        onOpen={setSelectedPostId}
+      />
     </SidebarProvider>
   );
 }

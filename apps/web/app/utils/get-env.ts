@@ -41,6 +41,8 @@ const envSchema = z.object({
   DODO_PRO_ANNUAL_PRODUCT_ID: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),
+  // Comma-separated list of emails allowed to access /affiliate-admin
+  AFFILIATE_ADMIN_EMAILS: z.string().optional(),
 });
 
 export const getEnv = () => {

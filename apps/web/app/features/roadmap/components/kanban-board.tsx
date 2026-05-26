@@ -1,9 +1,9 @@
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
-import { ChevronUp, MessageSquare } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { COLUMNS } from "../constants";
 import type { Groups, Post, Status } from "../types";
+import { DragOverlayCard } from "./drag-overlay-card";
 import { DraggableCard } from "./draggable-card";
 import { DroppableColumn } from "./droppable-column";
 
@@ -45,7 +45,6 @@ export function KanbanBoard({
       return;
     }
 
-    // Preserve local drag order — only re-place posts that changed status or are new
     setGroups((current) => {
       const postStatusMap = new Map(posts.map((p) => [p.id, p.status]));
       const postIds = new Set(posts.map((p) => p.id));
@@ -132,41 +131,7 @@ export function KanbanBoard({
         {(source) => {
           const post = postMap.get(source.id as string);
           if (!post) return null;
-          return (
-            <div className="flex flex-col gap-2.5 p-3 w-[300px] rounded-lg border border-border bg-card shadow-2xl rotate-[1.5deg] opacity-95 cursor-grabbing">
-              <p className="text-xs font-medium leading-snug line-clamp-2 text-foreground">
-                {post.title}
-              </p>
-              {post.boardName && (
-                <span className="inline-flex self-start items-center px-1.5 py-0.5 rounded-full text-[10px] border border-border/80 text-muted-foreground font-medium">
-                  {post.boardName}
-                </span>
-              )}
-              <div className="flex items-center gap-2 text-muted-foreground">
-                {post.authorImage ? (
-                  <img
-                    src={post.authorImage}
-                    alt={post.authorName ?? ""}
-                    className="h-5 w-5 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center text-[9px] font-semibold shrink-0">
-                    {post.authorName?.[0]?.toUpperCase() ?? "?"}
-                  </div>
-                )}
-                <span className="flex items-center gap-1 text-[10px] tabular-nums ml-auto">
-                  <ChevronUp className="h-3 w-3" />
-                  {post.voteCount}
-                </span>
-                {post.commentCount > 0 && (
-                  <span className="flex items-center gap-1 text-[10px] tabular-nums">
-                    <MessageSquare className="h-3 w-3" />
-                    {post.commentCount}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
+          return <DragOverlayCard post={post} />;
         }}
       </DragOverlay>
     </DragDropProvider>

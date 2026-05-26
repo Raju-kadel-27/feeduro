@@ -6,7 +6,7 @@ import {
   SidebarMenuItem,
 } from "@components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart2, Bot, FileText, Map, Settings, Share2 } from "lucide-react";
+import { BarChart2, Bot, FileText, Gift, Map, Settings, Share2 } from "lucide-react";
 import type { ElementType } from "react";
 import { Link, useLocation } from "react-router";
 
@@ -35,6 +35,7 @@ export function WorkspaceNav({ base, orgSlug }: Props) {
     { title: "Changelog", url: `${base}/changelog`, icon: FileText },
     { title: "Autopilot", url: `${base}/autopilot`, icon: Bot, badge: pendingAutopilotCount },
     { title: "Share", url: `${base}/share`, icon: Share2 },
+    { title: "Affiliate", url: `${base}/affiliate`, icon: Gift },
     { title: "Settings", url: `${base}/settings`, icon: Settings },
   ];
 

@@ -1,7 +1,7 @@
 import { CollisionPriority } from "@dnd-kit/abstract";
 import { useDroppable } from "@dnd-kit/react";
 import { cn } from "@lib/utils";
-import { Plus } from "lucide-react";
+import { Inbox } from "lucide-react";
 import type { COLUMNS } from "../constants";
 
 export function DroppableColumn({
@@ -35,34 +35,41 @@ export function DroppableColumn({
           {column.label}
         </div>
         <span className="text-[11px] font-medium tabular-nums text-muted-foreground">{count}</span>
-        <button
-          type="button"
-          className="ml-auto p-1 rounded text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/60 transition-colors"
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </button>
       </div>
 
       <div
         ref={ref}
         className={cn(
-          "flex-1 flex flex-col gap-2 rounded-lg p-1.5 min-h-[200px] overflow-y-auto transition-colors duration-150",
-          "[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent",
-          "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border",
-          isDropTarget && isDraggingActive ? "bg-muted/30" : "bg-transparent",
+          "flex-1 flex flex-col rounded-xl border overflow-hidden min-h-[200px]",
+          "transition-colors duration-150",
+          column.bg,
+          isDropTarget && isDraggingActive
+            ? "border-primary/25 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.1)]"
+            : "border-border/50",
         )}
       >
-        {count === 0 && !isDraggingActive && (
-          <div className="flex flex-1 items-center justify-center min-h-[80px]">
-            <p className="text-[10px] text-muted-foreground/30 select-none">No items</p>
-          </div>
-        )}
-        {count > 0 && children}
-        {isDraggingActive && isDropTarget && (
-          <div className="flex items-center justify-center rounded-md border-2 border-dashed border-primary/40 py-3 mt-0.5">
-            <p className="text-[11px] font-medium text-primary/50 select-none">Drop here</p>
-          </div>
-        )}
+        <div className={cn("h-1 w-full shrink-0", column.accent)} />
+
+        <div
+          className={cn(
+            "flex-1 flex flex-col gap-2 p-2 overflow-y-auto",
+            "[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent",
+            "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border",
+          )}
+        >
+          {count === 0 && !isDraggingActive && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 min-h-[120px]">
+              <Inbox className="h-5 w-5 text-muted-foreground/20" />
+              <p className="text-[11px] text-muted-foreground/35 select-none">No items</p>
+            </div>
+          )}
+
+          {count > 0 && children}
+
+          {isDraggingActive && isDropTarget && (
+            <div className="h-0.5 rounded-full bg-primary/40 mx-1 mt-1 shrink-0" />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,13 +1,17 @@
 import { createTransport } from "nodemailer";
 
-const EMAIL_FROM = "'Feediyo' <support@feediyo.com>";
-const EMAIL_SERVER = "smtp://feediyo:password@localhost:1025";
-
-const _transport: ReturnType<typeof createTransport> | null = null;
+let _transport: ReturnType<typeof createTransport> | null = null;
 
 function getTransport() {
   if (_transport) return _transport;
-  return createTransport(EMAIL_SERVER);
+  const server = process.env.EMAIL_SERVER;
+  if (!server) throw new Error("EMAIL_SERVER env var is not set");
+  _transport = createTransport(server);
+  return _transport;
+}
+
+function getFrom() {
+  return process.env.EMAIL_FROM ?? "Feediyo <noreply@feediyo.com>";
 }
 
 interface SendEmailOptions {
@@ -18,5 +22,5 @@ interface SendEmailOptions {
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
   const transport = getTransport();
-  await transport.sendMail({ from: EMAIL_FROM, to, subject, html });
+  await transport.sendMail({ from: getFrom(), to, subject, html });
 }

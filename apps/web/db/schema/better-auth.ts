@@ -22,6 +22,11 @@ export const user = pgTable("user", {
     .notNull(),
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
   dodoCustomerId: text("dodo_customer_id"),
+  // admin plugin fields
+  role: text("role"),
+  banned: boolean("banned"),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
 });
 
 export const session = pgTable(
@@ -40,6 +45,8 @@ export const session = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     activeOrganizationId: text("active_organization_id"),
+    // admin plugin field
+    impersonatedBy: text("impersonated_by"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 );

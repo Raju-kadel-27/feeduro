@@ -10,6 +10,7 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   uniqueIndex,
@@ -146,6 +147,11 @@ export const feedbackBoards = pgTable(
     smartRepliesEnabled: boolean("smart_replies_enabled").notNull().default(false),
     smartRepliesInstructions: text("smart_replies_instructions"),
     anonymizeUsers: boolean("anonymize_users").notNull().default(false),
+    // Unique token for per-board inline embeds (data-fdy-embed / FeediyoBoard)
+    embedToken: varchar("embed_token", { length: 128 })
+      .notNull()
+      .default(sql`replace(gen_random_uuid()::text, '-', '')`)
+      .$defaultFn(() => createId()),
     createdBy: varchar("created_by", { length: 36 }).references(() => user.id, {
       onDelete: "set null",
     }),
@@ -158,6 +164,7 @@ export const feedbackBoards = pgTable(
   (t) => ({
     orgIdIdx: index("fb_org_id_idx").on(t.organizationId),
     orgSlugUniqueIdx: uniqueIndex("fb_org_slug_unique_idx").on(t.organizationId, t.slug),
+    embedTokenIdx: uniqueIndex("fb_embed_token_idx").on(t.embedToken),
     // Only one board per org may be the default
     orgDefaultUniqueIdx: uniqueIndex("fb_org_default_unique_idx")
       .on(t.organizationId)
@@ -207,6 +214,7 @@ export const feedbackPosts = pgTable(
     ownerId: varchar("owner_id", { length: 36 }).references(() => user.id, {
       onDelete: "set null",
     }),
+    rank: real("rank"),
     aiSummary: text("ai_summary"),
     aiSummaryGeneratedAt: timestamp("ai_summary_generated_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -229,6 +237,7 @@ export const feedbackPosts = pgTable(
     // Lets us efficiently find all posts merged into a given post (for vote/comment aggregation)
     mergedIntoIdx: index("fp_merged_into_idx").on(t.mergedIntoPostId),
     ownerIdx: index("fp_owner_id_idx").on(t.ownerId),
+    orgStatusRankIdx: index("fp_org_status_rank_idx").on(t.organizationId, t.status, t.rank),
     // Vote-sorted board view — ORDER BY vote_count DESC within a board
     boardVotesIdx: index("fp_board_votes_idx").on(t.boardId, t.voteCount),
     // Active-posts filter: every board listing excludes merged posts
@@ -315,7 +324,6 @@ export const customDomains = pgTable(
       .references(() => organization.id, { onDelete: "cascade" }),
     domain: varchar("domain", { length: 253 }).notNull(),
     status: domainStatusEnum("status").notNull().default("pending"),
-    verificationToken: varchar("verification_token", { length: 64 }).notNull(),
     verifiedAt: timestamp("verified_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")

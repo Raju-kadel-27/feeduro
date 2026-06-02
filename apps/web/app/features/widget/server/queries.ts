@@ -12,7 +12,7 @@ import {
 import type { StatusKey } from "../constants";
 import type { WidgetPost } from "../types";
 
-function toStatusKey(dbStatus: string): StatusKey {
+export function toStatusKey(dbStatus: string): StatusKey {
   const map: Record<string, StatusKey> = {
     open: "pending",
     reviewing: "reviewing",
@@ -24,7 +24,7 @@ function toStatusKey(dbStatus: string): StatusKey {
   return map[dbStatus] ?? "pending";
 }
 
-export async function getWidgetLoaderData(widgetToken: string) {
+export async function getWidgetLoaderData(widgetToken: string, mode: "popup" | "inline" = "popup") {
   const db = getDb();
 
   const config = await db.query.widgetConfigs.findFirst({
@@ -76,6 +76,7 @@ export async function getWidgetLoaderData(widgetToken: string) {
       board: null,
       posts: [] as WidgetPost[],
       theme: config.theme,
+      mode,
     };
   }
 
@@ -116,8 +117,9 @@ export async function getWidgetLoaderData(widgetToken: string) {
   return {
     token: widgetToken,
     org: { name: org.name ?? "", slug: org.slug ?? "" },
-    board: { id: board.id, name: board.name },
+    board: { id: board.id, name: board.name, description: board.description ?? null },
     posts,
     theme: config.theme,
+    mode,
   };
 }

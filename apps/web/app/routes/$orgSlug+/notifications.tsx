@@ -1,6 +1,5 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrganization } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { NotificationItem } from "@features/notifications/components/notification-item";
 import type { Notification } from "@features/notifications/schemas/notification";
 import { markAllNotificationsRead } from "@features/notifications/server/mutations";
@@ -72,9 +71,7 @@ export default function NotificationsPage() {
     filter === "all" ? notifications : notifications.filter((n) => n.type === filter);
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex-1" />
@@ -145,7 +142,6 @@ export default function NotificationsPage() {
             </div>
           )}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

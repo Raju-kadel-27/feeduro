@@ -1,0 +1,266 @@
+/* ── Feediyo brand — indigo accent ───────────────────────────────────────── */
+
+:root,
+:root[data-theme='light'] {
+  --sl-color-accent-low: #e0e7ff;
+  --sl-color-accent: #4f46e5;
+  --sl-color-accent-high: #3730a3;
+}
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #1e1b4b;
+  --sl-color-accent: #818cf8;
+  --sl-color-accent-high: #c7d2fe;
+}
+
+/* ── Inline code tint ─────────────────────────────────────────────────────── */
+:root[data-theme='light'] :not(pre) > code {
+  background-color: #ede9fe;
+  color: #4338ca;
+}
+:root[data-theme='dark'] :not(pre) > code {
+  background-color: #1e1b4b;
+  color: #a5b4fc;
+}
+
+/* ── HTTP method badges (used in endpoint tables and endpoint-url blocks) ─── */
+.badge-method {
+  display: inline-block;
+  padding: 0.15em 0.55em;
+  border-radius: 4px;
+  font-size: 0.72em;
+  font-weight: 700;
+  font-family: var(--sl-font-mono);
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.badge-get    { background: #dcfce7; color: #15803d; }
+.badge-post   { background: #dbeafe; color: #1d4ed8; }
+.badge-patch  { background: #fef3c7; color: #b45309; }
+.badge-delete { background: #fee2e2; color: #b91c1c; }
+
+[data-theme='dark'] .badge-get    { background: #14532d; color: #4ade80; }
+[data-theme='dark'] .badge-post   { background: #1e3a5f; color: #60a5fa; }
+[data-theme='dark'] .badge-patch  { background: #451a03; color: #fbbf24; }
+[data-theme='dark'] .badge-delete { background: #450a0a; color: #f87171; }
+
+/* ── Endpoint URL display block ──────────────────────────────────────────── */
+/* Usage: <div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/path</code></div> */
+.endpoint-url {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.85rem;
+  margin: 0.1rem 0 1.25rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 6px;
+  background: var(--sl-color-gray-7);
+  font-family: var(--sl-font-mono);
+  font-size: 0.92em;
+}
+.endpoint-url code {
+  background: none !important;
+  padding: 0 !important;
+  color: var(--sl-color-text) !important;
+  font-size: inherit;
+}
+
+/* ── Code block copy button — always visible, pinned in title bar ────────── */
+.expressive-code .copy button {
+  opacity: 0.75 !important;
+}
+
+/* Pin copy button into the title/header bar by zeroing out the spacing offset */
+[data-theme] .expressive-code .frame.has-title,
+[data-theme] .expressive-code .frame.is-terminal {
+  --button-spacing: 0px !important;
+}
+
+/* Center the button vertically within the title bar height */
+[data-theme] .expressive-code .frame.has-title .copy,
+[data-theme] .expressive-code .frame.is-terminal .copy {
+  align-items: center;
+  padding-block: 0.4rem;
+}
+
+/* ── See also section ─────────────────────────────────────────────────────── */
+.see-also {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+  font-size: 0.9rem;
+}
+.see-also ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.25rem;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Polish: typography · animations · transitions
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Fonts ─────────────────────────────────────────────────────────────────── */
+:root {
+  --sl-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sl-font-mono: 'JetBrains Mono', ui-monospace, Menlo, 'Cascadia Code', monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv01' 1, 'ss01' 1, 'liga' 1;
+}
+
+/* ── Smooth scrolling ──────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Page fade-in-up on load ───────────────────────────────────────────────── */
+@keyframes sl-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Main content fades in on every full-page navigation */
+.sl-markdown-content {
+  animation: sl-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Page title + breadcrumbs slide in slightly faster */
+.page-title,
+.sl-breadcrumbs {
+  animation: sl-fade-up 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Right-sidebar (TOC) fades in a beat after content */
+starlight-toc {
+  animation: sl-fade-up 0.38s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+}
+
+/* Prev/Next pagination row */
+.pagination-links {
+  animation: sl-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+/* ── Sidebar nav transitions ───────────────────────────────────────────────── */
+.sidebar-content a {
+  transition: color 0.14s ease, background-color 0.14s ease,
+              border-left-color 0.14s ease;
+  border-left: 2px solid transparent;
+  padding-left: calc(var(--sl-sidebar-item-padding-inline, 0.5rem) - 2px);
+}
+
+.sidebar-content a:hover:not([aria-current='page']) {
+  background-color: var(--sl-color-gray-7);
+}
+
+.sidebar-content a[aria-current='page'] {
+  border-left-color: var(--sl-color-accent);
+}
+
+/* Section group labels */
+.sidebar-content summary,
+.group-label span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+/* ── Heading refinements ───────────────────────────────────────────────────── */
+.sl-markdown-content h1 {
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sl-markdown-content h2 {
+  letter-spacing: -0.02em;
+  font-weight: 650;
+  line-height: 1.3;
+  margin-top: 2.25rem;
+}
+
+.sl-markdown-content h3 {
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+/* ── Body text ─────────────────────────────────────────────────────────────── */
+.sl-markdown-content p,
+.sl-markdown-content li {
+  line-height: 1.78;
+  color: var(--sl-color-text);
+}
+
+/* ── Link underline hover ──────────────────────────────────────────────────── */
+.sl-markdown-content a:not(.badge):not(.not-content a) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.14s ease, text-decoration-color 0.14s ease;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+.sl-markdown-content a:hover:not(.badge) {
+  text-decoration-color: currentColor;
+}
+
+/* ── Table row hover ───────────────────────────────────────────────────────── */
+.sl-markdown-content table tbody tr {
+  transition: background-color 0.12s ease;
+}
+.sl-markdown-content table tbody tr:hover {
+  background-color: var(--sl-color-gray-7);
+}
+.sl-markdown-content table th {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Code block refinements ────────────────────────────────────────────────── */
+.expressive-code .frame {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:not(pre) > code {
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+}
+
+/* Mono font size slightly tighter in code blocks for density */
+.expressive-code code,
+.expressive-code pre {
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+/* ── Aside / callout transitions ───────────────────────────────────────────── */
+.starlight-aside {
+  border-radius: 8px;
+  transition: box-shadow 0.2s ease;
+}
+.starlight-aside:hover {
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+}
+
+/* ── Header border softens ─────────────────────────────────────────────────── */
+header.header {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: color-mix(in srgb, var(--sl-color-bg) 85%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--sl-color-hairline) 60%, transparent);
+}
+
+/* ── Pagination links ──────────────────────────────────────────────────────── */
+.pagination-links a {
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+              transform 0.15s ease;
+  border-radius: 8px;
+}
+.pagination-links a:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-1px);
+}

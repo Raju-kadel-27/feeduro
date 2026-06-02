@@ -1,0 +1,106 @@
+---
+title: Errors
+description: All error codes returned by the Feediyo API with handling guidance.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import ErrorTable from '../../components/ErrorTable.astro';
+
+Every error response has the same shape:
+
+```json title="Error shape"
+{
+  "error": "Human-readable message",
+  "code": "machine_readable_code"
+}
+```
+
+Validation errors (422) and parameter errors (400) include per-field detail:
+
+```json title="Validation error shape"
+{
+  "error": "Validation failed",
+  "code": "validation_error",
+  "details": {
+    "fieldErrors": { "url": ["URL must use HTTPS"] },
+    "formErrors": ["At least one of status or rank must be provided"]
+  }
+}
+```
+
+Always check `code` in your error handler — the `error` message is for humans and may change between versions.
+
+---
+
+## Error code reference
+
+### 400 — Bad Request
+
+<ErrorTable status={400} />
+
+### 401 — Unauthorized
+
+<ErrorTable status={401} />
+
+### 404 — Not Found
+
+<ErrorTable status={404} />
+
+### 405 — Method Not Allowed
+
+<ErrorTable status={405} />
+
+### 409 — Conflict
+
+<ErrorTable status={409} />
+
+### 422 — Validation Error
+
+<ErrorTable status={422} />
+
+### 429 — Rate Limited
+
+<ErrorTable status={429} />
+
+### 500 — Internal Server Error
+
+<ErrorTable status={500} />
+
+---
+
+## Handling errors in code
+
+<Aside type="tip">
+  Always handle `400`, `401`, `404`, `409`, and `429` explicitly. Everything else can fall through to a generic error handler.
+</Aside>
+
+```ts title="TypeScript error handler"
+async function apiFetch(path: string, init?: RequestInit) {
+  const res = await fetch(`https://app.feediyo.com/v1${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${process.env.FEEDIYO_API_KEY}`,
+      'Content-Type': 'application/json',
+      ...init?.headers,
+    },
+  });
+
+  if (res.ok) return res.json();
+
+  const body = await res.json().catch(() => ({}));
+  const code = body.code ?? 'unknown';
+
+  switch (res.status) {
+    case 400: throw new Error(`Bad request: ${code} — ${JSON.stringify(body.details ?? {})}`);
+    case 401: throw new Error(`Auth failed: ${code}`);
+    case 404: throw new Error(`Not found: ${code}`);
+    case 409: throw new Error(`Conflict: ${code}`);
+    case 422: throw new Error(`Validation: ${JSON.stringify(body.details)}`);
+    case 429: {
+      const wait = Number(res.headers.get('Retry-After') ?? 30);
+      throw new Error(`Rate limited — retry after ${wait}s`);
+    }
+    default: throw new Error(`API error ${res.status}: ${body.error}`);
+  }
+}
+```

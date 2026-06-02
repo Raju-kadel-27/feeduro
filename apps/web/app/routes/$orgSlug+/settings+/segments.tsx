@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { CsvImportDialog } from "@features/segmentation/components/csv-import-dialog";
 import { getOrgSegments } from "@features/segmentation/server/service";
 import type { Segment, SegmentFilters } from "@features/segmentation/types";
@@ -291,9 +290,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Segments</span>
@@ -405,7 +402,6 @@ Authorization: Bearer <your-api-key>
             </div>
           </div>
         </div>
-      </SidebarInset>
       <CsvImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
@@ -440,7 +436,7 @@ Authorization: Bearer <your-api-key>
           )}
         </DialogContent>
       </Dialog>
-    </SidebarProvider>
+        </>
   );
 }
 

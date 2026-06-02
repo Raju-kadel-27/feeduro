@@ -1,4 +1,4 @@
-import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
+
 import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { FeedbackSearchModal } from "@features/dashboard/components/feedback-search-modal";
@@ -10,7 +10,6 @@ import { CreateFeedbackDialog } from "@features/feedback/components/create-feedb
 import { getBoards, getEnrichedPosts } from "@features/feedback/server/queries";
 import { getOrgCategories } from "@features/feedback/server/categories.server";
 import { getOrgTags } from "@features/feedback/server/tags.server";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { PostDetailPanel } from "@features/post-detail-panel/components/post-detail-panel";
 import { getOrgSegments } from "@features/segmentation/server/service";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -179,9 +178,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
   } = viewState;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <div className={`flex flex-col h-full transition-opacity duration-200 ${selectedPostId ? "opacity-50" : "opacity-100"}`}>
           <div className="relative shrink-0">
             <RefineChipBar
@@ -243,7 +240,6 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
             )}
           </div>
         </div>
-      </SidebarInset>
 
       {selectedPostId && orgSlug && (
         <PostDetailPanel
@@ -270,6 +266,6 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
         onClose={() => setShowSearch(false)}
         onOpen={setSelectedPostId}
       />
-    </SidebarProvider>
+        </>
   );
 }

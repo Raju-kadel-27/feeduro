@@ -1,0 +1,185 @@
+---
+title: Quick Start
+description: Make your first API call in under 5 minutes.
+---
+
+import { Tabs, TabItem, Aside, Steps } from '@astrojs/starlight/components';
+
+This guide walks you through the minimal end-to-end flow: authenticate, find a board, identify a user, and submit feedback on their behalf.
+
+<Aside type="tip">
+  You need a Feediyo API key. [Create one here](https://app.feediyo.com/settings/api-keys) — it takes 30 seconds.
+</Aside>
+
+---
+
+<Steps>
+
+1. ## Verify authentication
+
+   List your boards to confirm your key works. Every subsequent call follows this same pattern.
+
+   <Tabs>
+     <TabItem label="curl">
+       ```bash
+       curl https://app.feediyo.com/v1/boards \
+         -H "Authorization: Bearer YOUR_KEY"
+       ```
+     </TabItem>
+     <TabItem label="TypeScript">
+       ```ts
+       const res = await fetch('https://app.feediyo.com/v1/boards', {
+         headers: { Authorization: 'Bearer YOUR_KEY' },
+       });
+       const { data } = await res.json();
+       console.log(data); // [{ id: "board_01...", name: "Feature Requests", ... }]
+       ```
+     </TabItem>
+   </Tabs>
+
+   ```json title="Response"
+   {
+     "data": [
+       { "id": "board_01abc123", "name": "Feature Requests", "postCount": 42 }
+     ]
+   }
+   ```
+
+   Copy the `id` of the board you want to post to — you'll need it in step 3.
+
+2. ## Identify a user
+
+   Before submitting feedback on a user's behalf, upsert their profile. Pass back the `id` — you need it for posts and votes.
+
+   <Tabs>
+     <TabItem label="curl">
+       ```bash
+       curl -X POST https://app.feediyo.com/v1/users/identify \
+         -H "Authorization: Bearer YOUR_KEY" \
+         -H "Content-Type: application/json" \
+         -d '{
+           "email": "alice@example.com",
+           "name": "Alice",
+           "plan": "pro"
+         }'
+       ```
+     </TabItem>
+     <TabItem label="TypeScript">
+       ```ts
+       const res = await fetch('https://app.feediyo.com/v1/users/identify', {
+         method: 'POST',
+         headers: {
+           Authorization: 'Bearer YOUR_KEY',
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({ email: 'alice@example.com', name: 'Alice', plan: 'pro' }),
+       });
+       const { data } = await res.json();
+       const userId = data.id; // "up_01zzz999"
+       ```
+     </TabItem>
+   </Tabs>
+
+   ```json title="Response"
+   { "data": { "id": "up_01zzz999" } }
+   ```
+
+3. ## Submit feedback
+
+   Create a post on the board using the `boardId` from step 1.
+
+   <Tabs>
+     <TabItem label="curl">
+       ```bash
+       curl -X POST https://app.feediyo.com/v1/posts \
+         -H "Authorization: Bearer YOUR_KEY" \
+         -H "Content-Type: application/json" \
+         -d '{
+           "boardId": "board_01abc123",
+           "title": "Dark mode support",
+           "description": "Add a dark mode toggle to the dashboard"
+         }'
+       ```
+     </TabItem>
+     <TabItem label="TypeScript">
+       ```ts
+       const res = await fetch('https://app.feediyo.com/v1/posts', {
+         method: 'POST',
+         headers: {
+           Authorization: 'Bearer YOUR_KEY',
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({
+           boardId: 'board_01abc123',
+           title: 'Dark mode support',
+           description: 'Add a dark mode toggle to the dashboard',
+         }),
+       });
+       const { data } = await res.json();
+       const postId = data.id; // "post_01xyz789"
+       ```
+     </TabItem>
+   </Tabs>
+
+   ```json title="Response"
+   {
+     "data": {
+       "id": "post_01xyz789",
+       "title": "Dark mode support",
+       "status": "open",
+       "voteCount": 0
+     }
+   }
+   ```
+
+4. ## Cast a vote
+
+   Attach the user's vote to the post using the `userId` from step 2 and the `postId` from step 3.
+
+   <Tabs>
+     <TabItem label="curl">
+       ```bash
+       curl -X POST https://app.feediyo.com/v1/votes \
+         -H "Authorization: Bearer YOUR_KEY" \
+         -H "Content-Type: application/json" \
+         -d '{
+           "postId": "post_01xyz789",
+           "userId": "up_01zzz999"
+         }'
+       ```
+     </TabItem>
+     <TabItem label="TypeScript">
+       ```ts
+       await fetch('https://app.feediyo.com/v1/votes', {
+         method: 'POST',
+         headers: {
+           Authorization: 'Bearer YOUR_KEY',
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({ postId: 'post_01xyz789', userId: 'up_01zzz999' }),
+       });
+       ```
+     </TabItem>
+   </Tabs>
+
+   ```json title="Response"
+   {
+     "data": {
+       "id": "vote_01aaa111",
+       "postId": "post_01xyz789",
+       "userId": "up_01zzz999",
+       "voterName": "Alice"
+     }
+   }
+   ```
+
+5. ## You're done
+
+   The post is live on your board with one vote. From here you can:
+
+   - Subscribe to [webhooks](/webhooks) to react when post status changes
+   - Read the [roadmap](/roadmap) to build a custom roadmap view
+   - Use [changelog](/changelog) to publish release notes programmatically
+   - See [recipes](/recipes) for complete integration patterns
+
+</Steps>

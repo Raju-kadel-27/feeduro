@@ -1,4 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
+import { notifyCustomerReplyByEmail } from "@features/notifications/server/email";
 import { notifyMentions, notifyNewComment } from "@features/notifications/server/service";
 import { dispatchWebhook } from "@features/webhooks/server/dispatch";
 import { createId } from "@paralleldrive/cuid2";
@@ -110,6 +111,13 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     if (!isInternal) {
       const actorName = session.user.name ?? session.user.email ?? "Someone";
+      notifyCustomerReplyByEmail({
+        postId,
+        organizationId,
+        actorId: session.user.id,
+        actorName,
+        commentBody,
+      }).catch((err) => console.error("[notifications] customer reply email failed", err));
       await Promise.all([
         notifyNewComment({
           postId,

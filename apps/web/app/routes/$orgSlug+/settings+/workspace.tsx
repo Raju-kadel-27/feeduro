@@ -6,9 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@components/ui/dialog";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { isAdmin } from "@features/roles/server/queries";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
@@ -86,9 +85,7 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
   });
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Workspace</span>
@@ -193,7 +190,6 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
             </section>
           )}
         </main>
-      </SidebarInset>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
@@ -231,6 +227,6 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarProvider>
+        </>
   );
 }

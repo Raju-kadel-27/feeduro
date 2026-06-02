@@ -1,0 +1,404 @@
+---
+title: Posts
+description: Create, read, update, and delete feedback posts.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Posts are the core unit of feedback. Each post belongs to a board and has a status that drives the roadmap.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/posts` | List posts |
+| <span class="badge-method badge-post">POST</span> | `/v1/posts` | Create a post |
+| <span class="badge-method badge-get">GET</span> | `/v1/posts/:id` | Get a post |
+| <span class="badge-method badge-patch">PATCH</span> | `/v1/posts/:id` | Update a post |
+| <span class="badge-method badge-delete">DELETE</span> | `/v1/posts/:id` | Delete a post |
+
+---
+
+## List posts
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/posts</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `boardId` | query | string | No | Filter to a specific board |
+| `status` | query | string | No | `open` \| `reviewing` \| `planned` \| `in-progress` \| `completed` \| `closed` |
+| `limit` | query | integer | No | Page size — default `25`, max `100` |
+| `cursor` | query | string | No | Pagination cursor from previous response |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl "https://app.feediyo.com/v1/posts?boardId=board_01abc123&status=planned&limit=25" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const url = new URL('https://app.feediyo.com/v1/posts');
+    url.searchParams.set('boardId', 'board_01abc123');
+    url.searchParams.set('status', 'planned');
+
+    const res = await fetch(url, {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data, hasMore, cursor } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        {
+          "id": "post_01xyz789",
+          "boardId": "board_01abc123",
+          "title": "Dark mode support",
+          "description": "Add a dark mode toggle to the dashboard",
+          "status": "planned",
+          "voteCount": 87,
+          "categoryId": "cat_01aaa",
+          "isPublicSubmission": false,
+          "createdBy": "user_01zzz",
+          "tags": [
+            { "id": "tag_01bbb", "name": "UX" },
+            { "id": "tag_01ccc", "name": "dashboard" }
+          ],
+          "createdAt": "2025-03-10T12:00:00.000Z",
+          "updatedAt": "2025-05-01T09:00:00.000Z"
+        }
+      ],
+      "hasMore": false,
+      "cursor": null
+    }
+    ```
+  </TabItem>
+  <TabItem label="400 Bad Request">
+    ```json
+    {
+      "error": "Invalid query parameters",
+      "code": "invalid_params",
+      "details": { "fieldErrors": { "status": ["Invalid enum value"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique post ID |
+| `boardId` | string | No | Board this post belongs to |
+| `title` | string | No | Post title |
+| `description` | string | Yes | Longer description |
+| `status` | string | No | `open` · `reviewing` · `planned` · `in-progress` · `completed` · `closed` |
+| `voteCount` | integer | No | Total vote count including merged posts |
+| `categoryId` | string | Yes | Assigned category ID |
+| `isPublicSubmission` | boolean | No | `true` if submitted via the public widget |
+| `createdBy` | string | Yes | User ID of the author (`null` for anonymous) |
+| `tags` | array | No | Tags assigned to this post |
+| `createdAt` | string | No | ISO 8601 timestamp |
+| `updatedAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Create a post
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/posts</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `boardId` | body | string | Yes | Board ID — must belong to your organization |
+| `title` | body | string | Yes | Max 500 characters |
+| `description` | body | string | No | Max 10,000 characters |
+| `status` | body | string | No | Default `open` |
+| `categoryId` | body | string | No | Category ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/posts \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "boardId": "board_01abc123",
+        "title": "Dark mode support",
+        "description": "Add a dark mode toggle to the dashboard"
+      }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/posts', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId: 'board_01abc123',
+        title: 'Dark mode support',
+        description: 'Add a dark mode toggle to the dashboard',
+      }),
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="201 Created">
+    ```json
+    {
+      "data": {
+        "id": "post_01xyz789",
+        "boardId": "board_01abc123",
+        "title": "Dark mode support",
+        "description": "Add a dark mode toggle to the dashboard",
+        "status": "open",
+        "voteCount": 0,
+        "categoryId": null,
+        "isPublicSubmission": false,
+        "createdBy": null,
+        "tags": [],
+        "createdAt": "2026-05-30T10:00:00.000Z",
+        "updatedAt": "2026-05-30T10:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "title": ["Required"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Get a post
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/posts/:id</code></div>
+
+Returns the post with its assigned tags.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Post ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/posts/post_01xyz789 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/posts/post_01xyz789', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": {
+        "id": "post_01xyz789",
+        "boardId": "board_01abc123",
+        "title": "Dark mode support",
+        "description": "Add a dark mode toggle to the dashboard",
+        "status": "planned",
+        "voteCount": 87,
+        "categoryId": "cat_01aaa",
+        "isPublicSubmission": false,
+        "createdBy": "user_01zzz",
+        "tags": [{ "id": "tag_01bbb", "name": "UX" }],
+        "createdAt": "2025-03-10T12:00:00.000Z",
+        "updatedAt": "2025-05-01T09:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Update a post
+
+<div class="endpoint-url"><span class="badge-method badge-patch">PATCH</span><code>/v1/posts/:id</code></div>
+
+All fields are optional — send only what you want to change.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Post ID |
+| `title` | body | string | No | Max 500 characters |
+| `description` | body | string \| null | No | Set to `null` to clear |
+| `status` | body | string | No | New status value |
+| `categoryId` | body | string \| null | No | Set to `null` to clear |
+| `boardId` | body | string | No | Move to a different board |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X PATCH https://app.feediyo.com/v1/posts/post_01xyz789 \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "status": "in-progress" }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/posts/post_01xyz789', {
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'in-progress' }),
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": {
+        "id": "post_01xyz789",
+        "boardId": "board_01abc123",
+        "title": "Dark mode support",
+        "description": "Add a dark mode toggle to the dashboard",
+        "status": "in-progress",
+        "voteCount": 87,
+        "categoryId": "cat_01aaa",
+        "isPublicSubmission": false,
+        "createdBy": "user_01zzz",
+        "tags": [{ "id": "tag_01bbb", "name": "UX" }],
+        "createdAt": "2025-03-10T12:00:00.000Z",
+        "updatedAt": "2026-05-30T10:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "status": ["Invalid enum value"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Delete a post
+
+<div class="endpoint-url"><span class="badge-method badge-delete">DELETE</span><code>/v1/posts/:id</code></div>
+
+Permanently deletes the post along with all its votes, comments, and tag assignments.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Post ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X DELETE https://app.feediyo.com/v1/posts/post_01xyz789 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/posts/post_01xyz789', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Votes](/votes) · [Comments](/comments) · [Tags](/tags) · [Status Changes](/status-changes) — all child resources of a post · [Roadmap](/roadmap) — read posts grouped by status column
+
+</div>

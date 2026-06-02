@@ -1,0 +1,143 @@
+---
+title: Boards
+description: List and retrieve feedback boards in your organization.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Boards group feedback posts by topic — e.g. "Feature Requests", "Bug Reports". They are created and managed in the Feediyo dashboard; the API provides read access.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/boards` | List all boards |
+| <span class="badge-method badge-get">GET</span> | `/v1/boards/:id` | Get a single board |
+
+---
+
+## List boards
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/boards</code></div>
+
+Returns all boards for the organization, each with a live post count.
+
+### Parameters
+
+_No parameters._
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/boards \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/boards', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        {
+          "id": "board_01abc123",
+          "name": "Feature Requests",
+          "description": "Ideas and suggestions for new features",
+          "postCount": 42,
+          "createdAt": "2025-01-15T08:00:00.000Z"
+        },
+        {
+          "id": "board_01def456",
+          "name": "Bug Reports",
+          "description": null,
+          "postCount": 17,
+          "createdAt": "2025-01-15T08:05:00.000Z"
+        }
+      ]
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique board ID |
+| `name` | string | No | Display name shown to users |
+| `description` | string | Yes | Optional board description |
+| `postCount` | integer | No | Count of active (non-merged) posts |
+| `createdAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Get a board
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/boards/:id</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Board ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/boards/board_01abc123 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/boards/board_01abc123', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": {
+        "id": "board_01abc123",
+        "name": "Feature Requests",
+        "description": "Ideas and suggestions for new features",
+        "postCount": 42,
+        "createdAt": "2025-01-15T08:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Posts](/posts) — list and manage posts within a board · [Roadmap](/roadmap) — posts grouped by status column
+
+</div>

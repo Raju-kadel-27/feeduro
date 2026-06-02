@@ -1,6 +1,5 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { AlertCircle, CheckCircle2, Clock, Copy, Globe, RefreshCw, Trash2 } from "lucide-react";
@@ -38,7 +37,6 @@ type DomainRecord = {
   id: string;
   domain: string;
   status: "pending" | "active" | "failed";
-  verificationToken: string;
   verifiedAt: Date | null;
 };
 
@@ -114,9 +112,7 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
   const showDnsInstructions = domain && (domain.status === "pending" || domain.status === "failed");
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Domain</span>
@@ -200,10 +196,10 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
                 {showDnsInstructions && (
                   <div className="rounded-lg border p-4 space-y-4">
                     <div>
-                      <h3 className="text-sm font-semibold mb-1">Configure DNS records</h3>
+                      <h3 className="text-sm font-semibold mb-1">Configure DNS</h3>
                       <p className="text-xs text-muted-foreground">
-                        Add these two records at your DNS provider. Changes can take up to 48 hours
-                        to propagate.
+                        Add this CNAME record at your DNS provider, then click Verify. Changes can
+                        take up to 48 hours to propagate.
                       </p>
                     </div>
 
@@ -213,11 +209,11 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
                         <span className="text-xs font-medium">CNAME record</span>
                         <button
                           type="button"
-                          onClick={() => copy(domain.domain, "cname")}
+                          onClick={() => copy("cname.feediyo.com", "cname")}
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Copy className="h-3 w-3" />
-                          {copied === "cname" ? "Copied!" : "Copy name"}
+                          {copied === "cname" ? "Copied!" : "Copy value"}
                         </button>
                       </div>
                       <div className="grid grid-cols-[56px_1fr] gap-x-3 gap-y-1 text-xs font-mono">
@@ -225,32 +221,6 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
                         <span className="break-all">{domain.domain}</span>
                         <span className="text-muted-foreground font-sans">Value</span>
                         <span className="break-all">cname.feediyo.com</span>
-                      </div>
-                    </div>
-
-                    {/* TXT verification record */}
-                    <div className="rounded-md bg-muted/50 p-3 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium">
-                          TXT record{" "}
-                          <span className="text-muted-foreground font-normal">
-                            (ownership verification)
-                          </span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => copy(domain.verificationToken, "txt")}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <Copy className="h-3 w-3" />
-                          {copied === "txt" ? "Copied!" : "Copy value"}
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-[56px_1fr] gap-x-3 gap-y-1 text-xs font-mono">
-                        <span className="text-muted-foreground font-sans">Name</span>
-                        <span className="break-all">_feediyo.{domain.domain}</span>
-                        <span className="text-muted-foreground font-sans">Value</span>
-                        <span className="break-all">{domain.verificationToken}</span>
                       </div>
                     </div>
 
@@ -290,7 +260,6 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
             )}
           </section>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

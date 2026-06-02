@@ -1,0 +1,110 @@
+---
+title: Status Changes
+description: Retrieve the full status change history for any feedback post.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Every time a post's status is updated in Feediyo, an immutable audit record is created. This endpoint exposes that history — useful for reporting, timeline views, and integration sync.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/posts/:id/status-changes` | List status changes for a post |
+
+---
+
+## List status changes
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/posts/:id/status-changes</code></div>
+
+Returns status change events in reverse-chronological order (newest first).
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Post ID |
+| `limit` | query | integer | No | Page size — default `25`, max `100` |
+| `cursor` | query | string | No | Pagination cursor from previous response |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl "https://app.feediyo.com/v1/posts/post_01xyz789/status-changes?limit=25" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch(
+      'https://app.feediyo.com/v1/posts/post_01xyz789/status-changes?limit=25',
+      { headers: { Authorization: 'Bearer YOUR_KEY' } },
+    );
+    const { data, hasMore, cursor } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        {
+          "id": "act_01aaa111",
+          "postId": "post_01xyz789",
+          "oldStatus": "reviewing",
+          "newStatus": "planned",
+          "changedById": "user_01zzz999",
+          "changedByName": "Raju Kadel",
+          "createdAt": "2026-05-28T14:30:00.000Z"
+        },
+        {
+          "id": "act_01ccc333",
+          "postId": "post_01xyz789",
+          "oldStatus": null,
+          "newStatus": "open",
+          "changedById": null,
+          "changedByName": null,
+          "createdAt": "2025-03-10T12:00:00.000Z"
+        }
+      ],
+      "hasMore": false,
+      "cursor": null
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique activity record ID |
+| `postId` | string | No | Post this change belongs to |
+| `oldStatus` | string | Yes | Status before the change. `null` for the initial creation record. |
+| `newStatus` | string | No | Status after the change |
+| `changedById` | string | Yes | Profile ID of the user who made the change. `null` if the user was later deleted. |
+| `changedByName` | string | Yes | Display name at time of lookup. `null` if the user was deleted. |
+| `createdAt` | string | No | ISO 8601 timestamp of the change |
+
+<Aside type="note">
+  `changedById` and `changedByName` are intentionally nullable. Feediyo preserves audit records even after a user is deleted — the change is recorded, but the actor is no longer resolvable.
+</Aside>
+
+---
+
+<div class="see-also">
+
+**See also:** [Posts](/posts) — read and update posts · [Webhooks](/webhooks) — subscribe to `feedback.status_changed` events in real time
+
+</div>

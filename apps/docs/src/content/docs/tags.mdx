@@ -1,0 +1,301 @@
+---
+title: Tags
+description: Create and manage tags, and assign them to posts.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Tags are admin-applied labels for classifying posts (e.g. "mobile", "api", "performance"). Unlike categories, multiple tags can be assigned to one post, and they are not user-selectable.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/tags` | List all tags |
+| <span class="badge-method badge-post">POST</span> | `/v1/tags` | Create a tag |
+| <span class="badge-method badge-delete">DELETE</span> | `/v1/tags/:id` | Delete a tag |
+| <span class="badge-method badge-post">POST</span> | `/v1/posts/:id/tags` | Assign a tag to a post |
+| <span class="badge-method badge-delete">DELETE</span> | `/v1/posts/:id/tags/:tagId` | Remove a tag from a post |
+
+---
+
+## List tags
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/tags</code></div>
+
+### Parameters
+
+_No parameters._
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/tags \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/tags', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        { "id": "tag_01aaa111", "name": "mobile", "createdAt": "2025-06-01T00:00:00.000Z" },
+        { "id": "tag_01bbb222", "name": "api", "createdAt": "2025-06-02T00:00:00.000Z" }
+      ]
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique tag ID |
+| `name` | string | No | Tag label — unique within the organization |
+| `createdAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Create a tag
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/tags</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `name` | body | string | Yes | Unique within the organization — max 100 characters |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/tags \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "name": "mobile" }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/tags', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: 'mobile' }),
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="201 Created">
+    ```json
+    {
+      "data": { "id": "tag_01aaa111", "name": "mobile", "createdAt": "2026-05-30T10:00:00.000Z" }
+    }
+    ```
+  </TabItem>
+  <TabItem label="409 Conflict">
+    ```json
+    { "error": "Conflict — duplicate name", "code": "conflict" }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "name": ["Required"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Delete a tag
+
+<div class="endpoint-url"><span class="badge-method badge-delete">DELETE</span><code>/v1/tags/:id</code></div>
+
+Deletes the tag and removes it from all posts it was assigned to.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Tag ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X DELETE https://app.feediyo.com/v1/tags/tag_01aaa111 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/tags/tag_01aaa111', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Assign a tag to a post
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/posts/:id/tags</code></div>
+
+This operation is **idempotent** — assigning a tag already on the post returns `200`, not an error.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Post ID |
+| `tagId` | body | string | Yes | ID of the tag to assign — must belong to your organization |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/posts/post_01xyz789/tags \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "tagId": "tag_01aaa111" }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/posts/post_01xyz789/tags', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tagId: 'tag_01aaa111' }),
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="201 Created">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "tagId": ["Required"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Remove a tag from a post
+
+<div class="endpoint-url"><span class="badge-method badge-delete">DELETE</span><code>/v1/posts/:id/tags/:tagId</code></div>
+
+Removes the assignment only — the tag itself is not deleted.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Post ID |
+| `tagId` | path | string | Yes | Tag ID to remove |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X DELETE "https://app.feediyo.com/v1/posts/post_01xyz789/tags/tag_01aaa111" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/posts/post_01xyz789/tags/tag_01aaa111', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Posts](/posts) — the `tags` array is returned on every post · [Categories](/categories) — single-select alternative to multi-select tags
+
+</div>

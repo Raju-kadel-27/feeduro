@@ -1,0 +1,117 @@
+---
+title: API Explorer
+description: Interactive API reference — try any endpoint directly from your browser.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The API Explorer gives you a live, interactive view of every endpoint. Enter your API key, fill in parameters, and send real requests without leaving the docs.
+
+<Aside type="tip">
+  Need an API key? Go to **Settings → API Keys** in your Feediyo workspace, or [create one now](https://app.feediyo.com/settings/api-keys).
+</Aside>
+
+## Download the spec
+
+Use the OpenAPI 3.1 spec to import into Postman, Insomnia, or generate a typed client.
+
+<div class="spec-actions">
+  <a href="/openapi.yaml" download="feediyo-openapi.yaml" class="spec-btn spec-btn--primary">
+    Download openapi.yaml
+  </a>
+  <a
+    href="https://www.postman.com/product/rest-client?url=https%3A%2F%2Fdocs.feediyo.com%2Fopenapi.yaml"
+    target="_blank"
+    rel="noopener"
+    class="spec-btn"
+  >
+    Open in Postman
+  </a>
+  <a
+    href="https://editor.swagger.io/?url=https%3A%2F%2Fdocs.feediyo.com%2Fopenapi.yaml"
+    target="_blank"
+    rel="noopener"
+    class="spec-btn"
+  >
+    Open in Swagger Editor
+  </a>
+</div>
+
+<style>{`
+  .spec-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.25rem 0 2rem;
+  }
+  .spec-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    border: 1px solid var(--sl-color-gray-4);
+    color: var(--sl-color-text) !important;
+    background: var(--sl-color-gray-6);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .spec-btn:hover { border-color: var(--sl-color-accent); background: var(--sl-color-gray-5); }
+  .spec-btn--primary {
+    background: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+    color: #fff !important;
+  }
+  .spec-btn--primary:hover { opacity: 0.88; background: var(--sl-color-accent); }
+`}</style>
+
+## Interactive explorer
+
+<div id="scalar-container">
+  <p id="scalar-status" style="color: var(--sl-color-gray-3); font-size: 0.875rem; margin: 0;">
+    Loading API explorer…
+  </p>
+</div>
+
+<script type="module">{`
+  const container = document.getElementById('scalar-container');
+  const status = document.getElementById('scalar-status');
+
+  // Fallback shown if Scalar doesn't load within 6 seconds
+  const fallbackTimer = setTimeout(() => {
+    if (status) {
+      status.innerHTML =
+        'API explorer failed to load. ' +
+        '<a href="/openapi.yaml" download>Download the OpenAPI spec</a> ' +
+        'to import into Postman or Insomnia.';
+      status.style.color = 'var(--sl-color-text)';
+    }
+  }, 6000);
+
+  try {
+    const { createScalarApiReference } = await import(
+      'https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/index.js'
+    );
+    clearTimeout(fallbackTimer);
+    status?.remove();
+    createScalarApiReference(container, {
+      url: '/openapi.yaml',
+      configuration: {
+        theme: 'default',
+        hideModels: false,
+        hideDownloadButton: true,
+        authentication: { preferredSecurityScheme: 'bearerAuth' },
+      },
+    });
+  } catch {
+    clearTimeout(fallbackTimer);
+    if (status) {
+      status.innerHTML =
+        'API explorer failed to load. ' +
+        '<a href="/openapi.yaml" download>Download the OpenAPI spec</a> ' +
+        'to import into Postman or Insomnia.';
+      status.style.color = 'var(--sl-color-text)';
+    }
+  }
+`}</script>

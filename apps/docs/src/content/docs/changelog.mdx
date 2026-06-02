@@ -1,0 +1,248 @@
+---
+title: Changelog
+description: Create and retrieve changelog entries programmatically.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Changelog entries are release notes and product updates published to your users. Creating an entry with `status: "published"` automatically fires both `changelog.created` and `changelog.published` webhooks.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/changelog` | List entries |
+| <span class="badge-method badge-post">POST</span> | `/v1/changelog` | Create an entry |
+| <span class="badge-method badge-get">GET</span> | `/v1/changelog/:id` | Get a single entry (includes full body) |
+
+---
+
+## List changelog entries
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/changelog</code></div>
+
+<Aside type="note">
+  The `body` field is omitted from list responses for performance. Use `GET /v1/changelog/:id` to retrieve full content.
+</Aside>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `status` | query | string | No | Filter by `draft` or `published` |
+| `limit` | query | integer | No | Page size — default `25`, max `100` |
+| `cursor` | query | string | No | Pagination cursor from previous response |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl "https://app.feediyo.com/v1/changelog?status=published&limit=25" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch(
+      'https://app.feediyo.com/v1/changelog?status=published&limit=25',
+      { headers: { Authorization: 'Bearer YOUR_KEY' } },
+    );
+    const { data, hasMore, cursor } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        {
+          "id": "cl_01aaa111",
+          "title": "New dashboard redesign",
+          "slug": "new-dashboard-redesign",
+          "status": "published",
+          "publishedAt": "2026-04-01T09:00:00.000Z",
+          "createdAt": "2026-03-28T14:00:00.000Z",
+          "updatedAt": "2026-04-01T09:00:00.000Z"
+        }
+      ],
+      "hasMore": false,
+      "cursor": null
+    }
+    ```
+  </TabItem>
+  <TabItem label="400 Bad Request">
+    ```json
+    {
+      "error": "Invalid query parameters",
+      "code": "invalid_params",
+      "details": { "fieldErrors": { "status": ["Invalid enum value"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique entry ID |
+| `title` | string | No | Entry title |
+| `slug` | string | No | URL-safe identifier — auto-generated from the title |
+| `status` | string | No | `draft` or `published` |
+| `publishedAt` | string | Yes | ISO 8601 timestamp. `null` for drafts. |
+| `createdAt` | string | No | ISO 8601 timestamp |
+| `updatedAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Create an entry
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/changelog</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `title` | body | string | Yes | Max 500 characters |
+| `body` | body | string | Yes | Entry content — HTML or Markdown |
+| `status` | body | string | No | `draft` (default) or `published` |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/changelog \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "title": "New dashboard redesign",
+        "body": "<p>We redesigned the dashboard for speed and clarity.</p>",
+        "status": "published"
+      }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/changelog', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: 'New dashboard redesign',
+        body: '<p>We redesigned the dashboard for speed and clarity.</p>',
+        status: 'published',
+      }),
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="201 Created">
+    ```json
+    {
+      "data": {
+        "id": "cl_01aaa111",
+        "title": "New dashboard redesign",
+        "slug": "new-dashboard-redesign",
+        "status": "published",
+        "publishedAt": "2026-05-30T10:00:00.000Z",
+        "createdAt": "2026-05-30T10:00:00.000Z",
+        "updatedAt": "2026-05-30T10:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "title": ["Required"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+**Webhooks fired on create:**
+
+| `status` sent | Webhooks fired |
+|---------------|---------------|
+| `draft` | `changelog.created` |
+| `published` | `changelog.created` + `changelog.published` |
+
+---
+
+## Get an entry
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/changelog/:id</code></div>
+
+Returns the full entry including the `body` field.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Changelog entry ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/changelog/cl_01aaa111 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/changelog/cl_01aaa111', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": {
+        "id": "cl_01aaa111",
+        "title": "New dashboard redesign",
+        "slug": "new-dashboard-redesign",
+        "status": "published",
+        "body": "<p>We redesigned the dashboard for speed and clarity.</p>",
+        "publishedAt": "2026-04-01T09:00:00.000Z",
+        "createdAt": "2026-03-28T14:00:00.000Z",
+        "updatedAt": "2026-04-01T09:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Webhooks](/webhooks) — subscribe to `changelog.created` and `changelog.published` events · [Recipes](/recipes) — automate changelog publishing from CI/CD
+
+</div>

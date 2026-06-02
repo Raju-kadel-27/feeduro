@@ -1,7 +1,6 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { desc, eq } from "drizzle-orm";
@@ -109,9 +108,7 @@ function ChangelogList({
   const entries = data?.changelogs ?? [];
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex-1" />
@@ -239,8 +236,7 @@ function ChangelogList({
             </div>
           )}
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }
 

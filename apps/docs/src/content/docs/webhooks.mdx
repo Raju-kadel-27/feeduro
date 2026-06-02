@@ -1,0 +1,409 @@
+---
+title: Webhooks
+description: Register HTTPS endpoints to receive real-time event notifications from Feediyo.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Webhooks let you react to events in real time — send Slack notifications when feedback status changes, sync tasks to Linear when a post goes "in-progress", or update your changelog CMS when an entry is published.
+
+## Supported events
+
+| Event | Fires when |
+|-------|------------|
+| `feedback.created` | A new post is submitted |
+| `feedback.status_changed` | A post's status is updated |
+| `comment.created` | A public comment is added to a post |
+| `changelog.created` | A changelog entry is created |
+| `changelog.published` | A changelog entry is published |
+
+Use `["*"]` to subscribe to all current and future events.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/webhooks` | List endpoints |
+| <span class="badge-method badge-post">POST</span> | `/v1/webhooks` | Create an endpoint |
+| <span class="badge-method badge-get">GET</span> | `/v1/webhooks/:id` | Get an endpoint |
+| <span class="badge-method badge-patch">PATCH</span> | `/v1/webhooks/:id` | Update an endpoint |
+| <span class="badge-method badge-delete">DELETE</span> | `/v1/webhooks/:id` | Delete an endpoint |
+
+---
+
+## Payload format
+
+Every delivery is a signed `POST` request to your URL:
+
+```http title="Delivery headers"
+Content-Type: application/json
+X-Webhook-Event: feedback.created
+X-Webhook-Signature: sha256=a1b2c3d4e5f6...
+```
+
+```json title="Payload body"
+{
+  "event": "feedback.status_changed",
+  "organizationId": "org_01aaa111",
+  "data": {
+    "id": "post_01xyz789",
+    "oldStatus": "open",
+    "newStatus": "planned",
+    "changedBy": "user_01zzz999"
+  },
+  "timestamp": "2026-05-30T10:00:00.000Z"
+}
+```
+
+### Verifying the signature
+
+Validate every incoming webhook by recomputing the HMAC-SHA256 of the raw request body using your endpoint's `secret`.
+
+```ts title="Node.js / TypeScript verification"
+import { createHmac, timingSafeEqual } from 'crypto';
+
+function verifyWebhook(rawBody: string, secret: string, signatureHeader: string): boolean {
+  const expected = 'sha256=' + createHmac('sha256', secret).update(rawBody).digest('hex');
+  const actual = Buffer.from(signatureHeader);
+  const expectedBuf = Buffer.from(expected);
+  if (actual.length !== expectedBuf.length) return false;
+  return timingSafeEqual(actual, expectedBuf);
+}
+```
+
+<Aside type="caution">
+  Always verify the signature before processing the payload. Feediyo retries deliveries that receive a non-2xx response up to 3 times with exponential backoff.
+</Aside>
+
+---
+
+## List endpoints
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/webhooks</code></div>
+
+The `secret` is **never returned** from list or get endpoints.
+
+### Parameters
+
+_No parameters._
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/webhooks \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/webhooks', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        {
+          "id": "wh_01aaa111",
+          "name": "Production webhook",
+          "url": "https://example.com/feediyo/events",
+          "events": ["feedback.created", "feedback.status_changed"],
+          "isActive": true,
+          "createdAt": "2026-01-01T00:00:00.000Z",
+          "updatedAt": "2026-01-01T00:00:00.000Z"
+        }
+      ]
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique endpoint ID |
+| `name` | string | Yes | Optional display label |
+| `url` | string | No | HTTPS delivery URL |
+| `events` | string[] | No | Subscribed event names, or `["*"]` for all |
+| `isActive` | boolean | No | `false` = deliveries paused |
+| `createdAt` | string | No | ISO 8601 timestamp |
+| `updatedAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Create an endpoint
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/webhooks</code></div>
+
+Maximum **10 endpoints** per organization. URL must use HTTPS.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `url` | body | string | Yes | HTTPS URL — HTTP is rejected |
+| `name` | body | string | No | Human-readable label (max 100 chars) |
+| `events` | body | string[] | No | Event names or `["*"]` — defaults to `["*"]` |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/webhooks \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "url": "https://example.com/feediyo/events",
+        "name": "Production webhook",
+        "events": ["feedback.created", "feedback.status_changed"]
+      }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/webhooks', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: 'https://example.com/feediyo/events',
+        name: 'Production webhook',
+        events: ['feedback.created', 'feedback.status_changed'],
+      }),
+    });
+    const { data } = await res.json();
+    // Save data.secret — it won't be shown again
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="201 Created">
+    ```json
+    {
+      "data": {
+        "id": "wh_01aaa111",
+        "name": "Production webhook",
+        "url": "https://example.com/feediyo/events",
+        "events": ["feedback.created", "feedback.status_changed"],
+        "isActive": true,
+        "secret": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+        "createdAt": "2026-05-30T10:00:00.000Z",
+        "updatedAt": "2026-05-30T10:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="422 limit_reached">
+    ```json
+    { "error": "Resource limit reached", "code": "limit_reached" }
+    ```
+  </TabItem>
+  <TabItem label="422 validation_error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "url": ["URL must use HTTPS"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+<Aside type="caution">
+  The `secret` is returned **only on creation**. Store it in a secure secret manager immediately — it cannot be retrieved again. If lost, delete and recreate the endpoint.
+</Aside>
+
+---
+
+## Get an endpoint
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/webhooks/:id</code></div>
+
+The `secret` is never returned.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Webhook endpoint ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/webhooks/wh_01aaa111 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/webhooks/wh_01aaa111', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": {
+        "id": "wh_01aaa111",
+        "name": "Production webhook",
+        "url": "https://example.com/feediyo/events",
+        "events": ["feedback.created", "feedback.status_changed"],
+        "isActive": true,
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Update an endpoint
+
+<div class="endpoint-url"><span class="badge-method badge-patch">PATCH</span><code>/v1/webhooks/:id</code></div>
+
+All fields are optional — send only what you want to change.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Webhook endpoint ID |
+| `url` | body | string | No | New HTTPS delivery URL |
+| `name` | body | string \| null | No | Set to `null` to clear the label |
+| `events` | body | string[] | No | Replace event subscriptions entirely |
+| `isActive` | body | boolean | No | `false` to pause, `true` to resume |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    # Pause deliveries
+    curl -X PATCH https://app.feediyo.com/v1/webhooks/wh_01aaa111 \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "isActive": false }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/webhooks/wh_01aaa111', {
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ isActive: false }),
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "url": ["URL must use HTTPS"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Delete an endpoint
+
+<div class="endpoint-url"><span class="badge-method badge-delete">DELETE</span><code>/v1/webhooks/:id</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Webhook endpoint ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X DELETE https://app.feediyo.com/v1/webhooks/wh_01aaa111 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/webhooks/wh_01aaa111', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Recipes](/recipes) — complete Slack notification handler with signature verification · [Errors](/errors) — `401` is returned for invalid API keys, not for signature failures (those should return `401` from your own handler)
+
+</div>

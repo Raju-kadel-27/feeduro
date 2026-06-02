@@ -1,11 +1,6 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { AnalyticsOverview } from "@features/analytics/components/analytics-overview";
 import { loadAnalyticsOverview } from "@features/analytics/server/overview.server";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 
 import type { Route } from "./+types/analytics";
 
@@ -21,9 +16,6 @@ export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
   const data = loaderData;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
         <div className="flex flex-col overflow-y-auto">
           <div className="flex items-center justify-between px-6 py-3 border-b shrink-0">
             <div className="flex items-center gap-3">
@@ -33,7 +25,5 @@ export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
           </div>
           <AnalyticsOverview data={data} />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
   );
 }

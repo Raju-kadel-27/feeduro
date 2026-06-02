@@ -1,0 +1,224 @@
+---
+title: Votes
+description: Read and manage votes on feedback posts.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Votes represent a user's support for a post. Each user can vote exactly once per post. Vote counts are cached on the post and drive roadmap priority ordering.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/votes` | List votes for a post |
+| <span class="badge-method badge-post">POST</span> | `/v1/votes` | Cast a vote |
+| <span class="badge-method badge-delete">DELETE</span> | `/v1/votes/:id` | Remove a vote |
+
+---
+
+## List votes
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/votes</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `postId` | query | string | Yes | Post to list votes for |
+| `limit` | query | integer | No | Page size — default `25`, max `100` |
+| `cursor` | query | string | No | Pagination cursor from previous response |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl "https://app.feediyo.com/v1/votes?postId=post_01xyz789&limit=25" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch(
+      'https://app.feediyo.com/v1/votes?postId=post_01xyz789&limit=25',
+      { headers: { Authorization: 'Bearer YOUR_KEY' } },
+    );
+    const { data, hasMore, cursor } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        {
+          "id": "vote_01aaa111",
+          "postId": "post_01xyz789",
+          "userId": "up_01zzz999",
+          "voterName": "Alice",
+          "voterEmail": "alice@example.com",
+          "createdAt": "2026-01-10T08:30:00.000Z"
+        }
+      ],
+      "hasMore": false,
+      "cursor": null
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 post_not_found">
+    ```json
+    { "error": "Post not found", "code": "post_not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique vote ID |
+| `postId` | string | No | Post that was voted on |
+| `userId` | string | Yes | User profile ID of the voter |
+| `voterName` | string | Yes | Voter's display name |
+| `voterEmail` | string | Yes | Voter's email address |
+| `createdAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Cast a vote
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/votes</code></div>
+
+<Aside type="tip">
+  Need a `userId`? Call [`POST /v1/users/identify`](/users) with your user's email — it returns the profile ID in one step.
+</Aside>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `postId` | body | string | Yes | Post to vote on |
+| `userId` | body | string | Yes | Feediyo user profile ID from `/v1/users/identify` |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/votes \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "postId": "post_01xyz789",
+        "userId": "up_01zzz999"
+      }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/votes', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        postId: 'post_01xyz789',
+        userId: 'up_01zzz999',
+      }),
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="201 Created">
+    ```json
+    {
+      "data": {
+        "id": "vote_01aaa111",
+        "postId": "post_01xyz789",
+        "userId": "up_01zzz999",
+        "voterName": "Alice",
+        "voterEmail": "alice@example.com",
+        "createdAt": "2026-05-30T10:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 post_not_found">
+    ```json
+    { "error": "Post not found", "code": "post_not_found" }
+    ```
+  </TabItem>
+  <TabItem label="404 user_not_found">
+    ```json
+    { "error": "User not found", "code": "user_not_found" }
+    ```
+  </TabItem>
+  <TabItem label="409 already_voted">
+    ```json
+    { "error": "User has already voted on this post", "code": "already_voted" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Remove a vote
+
+<div class="endpoint-url"><span class="badge-method badge-delete">DELETE</span><code>/v1/votes/:id</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Vote ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X DELETE https://app.feediyo.com/v1/votes/vote_01aaa111 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/votes/vote_01aaa111', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Posts](/posts) — the `voteCount` field reflects cumulative votes · [Users](/users) — identify a user to get a `userId` before voting
+
+</div>

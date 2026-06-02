@@ -1,0 +1,1694 @@
+openapi: '3.1.0'
+
+info:
+  title: Feediyo API
+  version: '1'
+  description: |
+    Public REST API for Feediyo — manage feedback boards, changelog, roadmap,
+    users, and webhooks programmatically.
+
+    **Base URL:** `https://app.feediyo.com/v1`
+
+    All endpoints require a Bearer token API key. Create keys at
+    https://app.feediyo.com/settings/api-keys.
+  contact:
+    url: https://feediyo.com
+    email: support@feediyo.com
+
+servers:
+  - url: https://app.feediyo.com/v1
+    description: Production
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Boards
+    description: List and retrieve feedback boards
+  - name: Posts
+    description: Create, read, update, and delete feedback posts
+  - name: Status Changes
+    description: Audit trail of post status transitions
+  - name: Votes
+    description: Read and manage votes on posts
+  - name: Comments
+    description: Read and manage public comments on posts
+  - name: Tags
+    description: Create tags and assign them to posts
+  - name: Categories
+    description: Create and manage user-selectable post categories
+  - name: Changelog
+    description: Create and retrieve changelog entries
+  - name: Users
+    description: Identify users and manage profiles
+  - name: Roadmap
+    description: Read and update the kanban roadmap
+  - name: Webhooks
+    description: Register and manage webhook endpoints
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Reusable components
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Pass your API key as `Authorization: Bearer <key>`.
+        Create keys at https://app.feediyo.com/settings/api-keys.
+
+  parameters:
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 25
+        minimum: 1
+        maximum: 100
+      description: Number of results per page
+    cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+      description: Opaque pagination cursor from the previous response
+    postId:
+      name: postId
+      in: query
+      required: true
+      schema:
+        type: string
+      description: Post ID to scope the request to
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Invalid or expired API key
+            code: invalid_api_key
+    NotFound:
+      description: Resource not found or outside your organization
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Resource not found
+            code: not_found
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+    Success:
+      description: Operation succeeded
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success]
+            properties:
+              success:
+                type: boolean
+                example: true
+
+  schemas:
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+
+    ValidationError:
+      type: object
+      required: [error, code, details]
+      properties:
+        error:
+          type: string
+          example: Validation failed
+        code:
+          type: string
+          example: validation_error
+        details:
+          type: object
+          required: [fieldErrors, formErrors]
+          properties:
+            fieldErrors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+            formErrors:
+              type: array
+              items:
+                type: string
+
+    PaginatedMeta:
+      type: object
+      required: [hasMore, cursor]
+      properties:
+        hasMore:
+          type: boolean
+        cursor:
+          type: ['string', 'null']
+
+    PostStatus:
+      type: string
+      enum: [open, reviewing, planned, in-progress, completed, closed]
+
+    Tag:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: string
+          example: tag_01aaa111
+        name:
+          type: string
+          example: mobile
+        createdAt:
+          type: string
+          format: date-time
+
+    Board:
+      type: object
+      required: [id, name, postCount, createdAt]
+      properties:
+        id:
+          type: string
+          example: board_01abc123
+        name:
+          type: string
+          example: Feature Requests
+        description:
+          type: ['string', 'null']
+          example: Ideas and suggestions for new features
+        postCount:
+          type: integer
+          example: 42
+        createdAt:
+          type: string
+          format: date-time
+
+    Post:
+      type: object
+      required: [id, boardId, title, status, voteCount, isPublicSubmission, tags, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: post_01xyz789
+        boardId:
+          type: string
+          example: board_01abc123
+        title:
+          type: string
+          example: Dark mode support
+        description:
+          type: ['string', 'null']
+          example: Add a dark mode toggle to the dashboard
+        status:
+          $ref: '#/components/schemas/PostStatus'
+        voteCount:
+          type: integer
+          example: 87
+        categoryId:
+          type: ['string', 'null']
+          example: cat_01aaa
+        isPublicSubmission:
+          type: boolean
+          example: false
+        createdBy:
+          type: ['string', 'null']
+          example: user_01zzz
+        tags:
+          type: array
+          items:
+            type: object
+            required: [id, name]
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Vote:
+      type: object
+      required: [id, postId, createdAt]
+      properties:
+        id:
+          type: string
+          example: vote_01aaa111
+        postId:
+          type: string
+          example: post_01xyz789
+        userId:
+          type: ['string', 'null']
+          example: up_01zzz999
+        voterName:
+          type: ['string', 'null']
+          example: Alice
+        voterEmail:
+          type: ['string', 'null']
+          example: alice@example.com
+        createdAt:
+          type: string
+          format: date-time
+
+    Comment:
+      type: object
+      required: [id, postId, body, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: cmt_01aaa111
+        postId:
+          type: string
+          example: post_01xyz789
+        parentId:
+          type: ['string', 'null']
+          example: null
+        body:
+          type: string
+          example: This would be really useful for power users!
+        authorId:
+          type: ['string', 'null']
+          example: up_01zzz999
+        authorName:
+          type: ['string', 'null']
+          example: Alice
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Category:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: string
+          example: cat_01aaa111
+        name:
+          type: string
+          example: Bug
+        createdAt:
+          type: string
+          format: date-time
+
+    ChangelogEntry:
+      type: object
+      required: [id, title, slug, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: cl_01aaa111
+        title:
+          type: string
+          example: New dashboard redesign
+        slug:
+          type: string
+          example: new-dashboard-redesign
+        status:
+          type: string
+          enum: [draft, published]
+        body:
+          type: string
+          description: Full HTML/Markdown content — only returned by GET /changelog/:id
+        publishedAt:
+          type: ['string', 'null']
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      required: [id, email, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: up_01zzz999
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        name:
+          type: ['string', 'null']
+          example: Alice
+        externalId:
+          type: ['string', 'null']
+          example: cus_stripe_abc123
+        plan:
+          type: ['string', 'null']
+          example: pro
+        role:
+          type: ['string', 'null']
+          example: admin
+        industry:
+          type: ['string', 'null']
+          example: SaaS
+        location:
+          type: ['string', 'null']
+          example: US
+        companySize:
+          type: ['integer', 'null']
+          example: 50
+        customAttributes:
+          type: ['object', 'null']
+          additionalProperties: true
+          example:
+            mrr: 299
+            accountAge: 365
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StatusChange:
+      type: object
+      required: [id, postId, newStatus, createdAt]
+      properties:
+        id:
+          type: string
+          example: act_01aaa111
+        postId:
+          type: string
+          example: post_01xyz789
+        oldStatus:
+          type: ['string', 'null']
+          description: null for the initial creation record
+        newStatus:
+          type: string
+        changedById:
+          type: ['string', 'null']
+          example: user_01zzz999
+        changedByName:
+          type: ['string', 'null']
+          example: Raju Kadel
+        createdAt:
+          type: string
+          format: date-time
+
+    RoadmapPost:
+      type: object
+      required: [id, title, status, voteCount, boardId, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: post_01xyz789
+        title:
+          type: string
+          example: Dark mode support
+        description:
+          type: ['string', 'null']
+        status:
+          $ref: '#/components/schemas/PostStatus'
+        rank:
+          type: ['number', 'null']
+          example: 1.5
+          description: Sort position within column. Lower = higher. null = unranked.
+        voteCount:
+          type: integer
+          example: 87
+        boardId:
+          type: string
+          example: board_01abc123
+        categoryId:
+          type: ['string', 'null']
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WebhookEndpoint:
+      type: object
+      required: [id, url, events, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: wh_01aaa111
+        name:
+          type: ['string', 'null']
+          example: Production webhook
+        url:
+          type: string
+          format: uri
+          example: https://example.com/feediyo/events
+        events:
+          type: array
+          items:
+            type: string
+          example: [feedback.created, feedback.status_changed]
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Boards ──────────────────────────────────────────────────────────────────
+  /boards:
+    get:
+      operationId: listBoards
+      tags: [Boards]
+      summary: List all boards
+      description: Returns all boards for the organization, each with a live post count.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Board'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /boards/{id}:
+    get:
+      operationId: getBoard
+      tags: [Boards]
+      summary: Get a board
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: board_01abc123
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Board'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Posts ───────────────────────────────────────────────────────────────────
+  /posts:
+    get:
+      operationId: listPosts
+      tags: [Posts]
+      summary: List posts
+      parameters:
+        - name: boardId
+          in: query
+          schema:
+            type: string
+          description: Filter to a specific board
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PostStatus'
+          description: Filter by status
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Post'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createPost
+      tags: [Posts]
+      summary: Create a post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [boardId, title]
+              properties:
+                boardId:
+                  type: string
+                  example: board_01abc123
+                title:
+                  type: string
+                  maxLength: 500
+                  example: Dark mode support
+                description:
+                  type: string
+                  maxLength: 10000
+                status:
+                  $ref: '#/components/schemas/PostStatus'
+                categoryId:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Post'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /posts/{id}:
+    get:
+      operationId: getPost
+      tags: [Posts]
+      summary: Get a post
+      description: Returns the post including its assigned tags.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: post_01xyz789
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Post'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updatePost
+      tags: [Posts]
+      summary: Update a post
+      description: All fields are optional — send only what you want to change.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: post_01xyz789
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 500
+                description:
+                  type: ['string', 'null']
+                status:
+                  $ref: '#/components/schemas/PostStatus'
+                categoryId:
+                  type: ['string', 'null']
+                boardId:
+                  type: string
+      responses:
+        '200':
+          description: OK — returns the updated post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Post'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      operationId: deletePost
+      tags: [Posts]
+      summary: Delete a post
+      description: Permanently deletes the post and all its votes, comments, and tag assignments.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: post_01xyz789
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Status Changes ───────────────────────────────────────────────────────────
+  /posts/{id}/status-changes:
+    get:
+      operationId: listStatusChanges
+      tags: [Status Changes]
+      summary: List status changes for a post
+      description: Returns status change events in reverse-chronological order (newest first).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Post ID
+          example: post_01xyz789
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/StatusChange'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Post Tags ────────────────────────────────────────────────────────────────
+  /posts/{id}/tags:
+    post:
+      operationId: assignTag
+      tags: [Tags]
+      summary: Assign a tag to a post
+      description: Idempotent — assigning a tag already on the post returns 200, not an error.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: post_01xyz789
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tagId]
+              properties:
+                tagId:
+                  type: string
+                  example: tag_01aaa111
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /posts/{id}/tags/{tagId}:
+    delete:
+      operationId: removeTag
+      tags: [Tags]
+      summary: Remove a tag from a post
+      description: Removes the assignment only — the tag itself is not deleted.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: post_01xyz789
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: tag_01aaa111
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Votes ───────────────────────────────────────────────────────────────────
+  /votes:
+    get:
+      operationId: listVotes
+      tags: [Votes]
+      summary: List votes for a post
+      parameters:
+        - $ref: '#/components/parameters/postId'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Vote'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: castVote
+      tags: [Votes]
+      summary: Cast a vote
+      description: |
+        Each user can vote on a post exactly once. Use `POST /v1/users/identify`
+        to get a `userId` from an email address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [postId, userId]
+              properties:
+                postId:
+                  type: string
+                  example: post_01xyz789
+                userId:
+                  type: string
+                  description: Feediyo user profile ID from /v1/users/identify
+                  example: up_01zzz999
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Vote'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Post or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: User has already voted on this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User has already voted on this post
+                code: already_voted
+
+  /votes/{id}:
+    delete:
+      operationId: removeVote
+      tags: [Votes]
+      summary: Remove a vote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: vote_01aaa111
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Comments ─────────────────────────────────────────────────────────────────
+  /comments:
+    get:
+      operationId: listComments
+      tags: [Comments]
+      summary: List comments on a post
+      description: Only public comments are returned. Internal (admin-only) comments are excluded.
+      parameters:
+        - $ref: '#/components/parameters/postId'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createComment
+      tags: [Comments]
+      summary: Add a comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [postId, userId, body]
+              properties:
+                postId:
+                  type: string
+                  example: post_01xyz789
+                userId:
+                  type: string
+                  example: up_01zzz999
+                body:
+                  type: string
+                  maxLength: 10000
+                  example: This would be really useful for power users!
+                parentId:
+                  type: string
+                  description: Reply to a specific comment (one level max)
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /comments/{id}:
+    get:
+      operationId: getComment
+      tags: [Comments]
+      summary: Get a comment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: cmt_01aaa111
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteComment
+      tags: [Comments]
+      summary: Delete a comment
+      description: Deletes the comment and all its replies.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: cmt_01aaa111
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Tags ─────────────────────────────────────────────────────────────────────
+  /tags:
+    get:
+      operationId: listTags
+      tags: [Tags]
+      summary: List all tags
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createTag
+      tags: [Tags]
+      summary: Create a tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: mobile
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Tag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Tag with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Tag with this name already exists
+                code: conflict
+
+  /tags/{id}:
+    delete:
+      operationId: deleteTag
+      tags: [Tags]
+      summary: Delete a tag
+      description: Deletes the tag and removes it from all posts it was assigned to.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: tag_01aaa111
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Categories ───────────────────────────────────────────────────────────────
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [Categories]
+      summary: List all categories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createCategory
+      tags: [Categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Bug
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Category with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Category with this name already exists
+                code: conflict
+
+  /categories/{id}:
+    delete:
+      operationId: deleteCategory
+      tags: [Categories]
+      summary: Delete a category
+      description: Posts assigned to the category will have their categoryId set to null.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: cat_01aaa111
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Changelog ────────────────────────────────────────────────────────────────
+  /changelog:
+    get:
+      operationId: listChangelog
+      tags: [Changelog]
+      summary: List changelog entries
+      description: |
+        The `body` field is omitted from list responses.
+        Use `GET /changelog/:id` to retrieve full content.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published]
+          description: Filter by status
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ChangelogEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createChangelogEntry
+      tags: [Changelog]
+      summary: Create a changelog entry
+      description: |
+        Creating with `status: "published"` fires both `changelog.created`
+        and `changelog.published` webhooks.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, body]
+              properties:
+                title:
+                  type: string
+                  maxLength: 500
+                  example: New dashboard redesign
+                body:
+                  type: string
+                  description: HTML or Markdown content
+                  example: <p>We redesigned the dashboard for speed and clarity.</p>
+                status:
+                  type: string
+                  enum: [draft, published]
+                  default: draft
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ChangelogEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /changelog/{id}:
+    get:
+      operationId: getChangelogEntry
+      tags: [Changelog]
+      summary: Get a changelog entry
+      description: Returns the full entry including the `body` field.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: cl_01aaa111
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ChangelogEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Users ─────────────────────────────────────────────────────────────────────
+  /users:
+    get:
+      operationId: listUsers
+      tags: [Users]
+      summary: List user profiles
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/identify:
+    post:
+      operationId: identifyUser
+      tags: [Users]
+      summary: Identify (upsert) a user
+      description: |
+        Creates or updates a user profile matched by email. Returns the profile
+        `id` immediately — use it when creating votes or comments.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: alice@example.com
+                name:
+                  type: string
+                  example: Alice
+                externalId:
+                  type: string
+                  example: cus_stripe_abc123
+                plan:
+                  type: string
+                  example: pro
+                role:
+                  type: string
+                  example: admin
+                industry:
+                  type: string
+                  example: SaaS
+                location:
+                  type: string
+                  example: US
+                companySize:
+                  type: integer
+                  example: 50
+                customAttributes:
+                  type: object
+                  additionalProperties: true
+                  example:
+                    mrr: 299
+      responses:
+        '200':
+          description: Upserted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [id]
+                    properties:
+                      id:
+                        type: string
+                        example: up_01zzz999
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [Users]
+      summary: Get a user profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: up_01zzz999
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteUser
+      tags: [Users]
+      summary: Delete a user profile
+      description: |
+        Removes the profile and its segmentation data. Does **not** delete
+        the underlying auth account. Votes and comments are retained but their
+        `authorId`/`userId` fields become null.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: up_01zzz999
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Roadmap ───────────────────────────────────────────────────────────────────
+  /roadmap:
+    get:
+      operationId: getRoadmap
+      tags: [Roadmap]
+      summary: Get the roadmap
+      description: |
+        Returns all active (non-merged) posts grouped into status columns,
+        sorted by `rank` ascending within each column, then `createdAt`
+        descending for unranked posts.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PostStatus'
+          description: Limit response to a single column
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      columns:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/RoadmapPost'
+                        example:
+                          open: []
+                          reviewing: []
+                          planned: []
+                          in-progress: []
+                          completed: []
+                          closed: []
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /roadmap/posts/{id}:
+    patch:
+      operationId: updateRoadmapPost
+      tags: [Roadmap]
+      summary: Update a post's status or rank
+      description: |
+        Move a post to a different column or reorder it within its current column.
+        At least one of `status` or `rank` is required.
+
+        **Rank arithmetic:** To insert between two posts with `rank: 1.0` and
+        `rank: 2.0`, use `rank: 1.5`. Any float value works — no need to
+        renumber existing posts.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: post_01xyz789
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/PostStatus'
+                rank:
+                  type: ['number', 'null']
+                  description: Set to null to remove manual ordering
+                  example: 1.5
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [id, status, rank, updatedAt]
+                    properties:
+                      id:
+                        type: string
+                      status:
+                        $ref: '#/components/schemas/PostStatus'
+                      rank:
+                        type: ['number', 'null']
+                      updatedAt:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # ── Webhooks ──────────────────────────────────────────────────────────────────
+  /webhooks:
+    get:
+      operationId: listWebhooks
+      tags: [Webhooks]
+      summary: List webhook endpoints
+      description: The `secret` is never returned from list or get endpoints.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookEndpoint'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createWebhook
+      tags: [Webhooks]
+      summary: Create a webhook endpoint
+      description: |
+        Maximum **10 endpoints** per organization. URL must use HTTPS.
+
+        The `secret` is returned **only on creation** — store it immediately.
+        If lost, delete and recreate the endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  description: HTTPS only — HTTP is rejected
+                  example: https://example.com/feediyo/events
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Production webhook
+                events:
+                  type: array
+                  items:
+                    type: string
+                  description: |
+                    Event names to subscribe to, or `["*"]` for all events.
+                    Defaults to `["*"]` if omitted.
+                  example: [feedback.created, feedback.status_changed]
+      responses:
+        '201':
+          description: Created — save the secret now, it won't be shown again
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/WebhookEndpoint'
+                      - type: object
+                        required: [secret]
+                        properties:
+                          secret:
+                            type: string
+                            description: HMAC-SHA256 signing secret — shown only once
+                            example: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Endpoint limit reached or invalid URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                limit_reached:
+                  summary: Endpoint limit reached
+                  value:
+                    error: Webhook endpoint limit reached (max 10)
+                    code: limit_reached
+                invalid_url:
+                  summary: HTTP URL rejected
+                  value:
+                    error: Validation failed
+                    code: validation_error
+                    details:
+                      fieldErrors:
+                        url: ['URL must use HTTPS']
+                      formErrors: []
+
+  /webhooks/{id}:
+    get:
+      operationId: getWebhook
+      tags: [Webhooks]
+      summary: Get a webhook endpoint
+      description: The `secret` is never returned.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: wh_01aaa111
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/WebhookEndpoint'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateWebhook
+      tags: [Webhooks]
+      summary: Update a webhook endpoint
+      description: All fields are optional — send only what you want to change.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: wh_01aaa111
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                name:
+                  type: ['string', 'null']
+                events:
+                  type: array
+                  items:
+                    type: string
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteWebhook
+      tags: [Webhooks]
+      summary: Delete a webhook endpoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: wh_01aaa111
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'

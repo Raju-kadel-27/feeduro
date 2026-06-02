@@ -1,8 +1,7 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getIntegration } from "@features/integrations/server/queries";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
@@ -15,8 +14,7 @@ import {
   Link2,
   RefreshCw,
   Settings2,
-  Trash2,
-  Unlink,
+  Unplug,
 } from "lucide-react";
 import { useState } from "react";
 import { useRevalidator } from "react-router";
@@ -227,9 +225,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
       : null;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">GitHub Integration</span>
@@ -267,10 +263,23 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                   </p>
                 </div>
                 {githubConnected ? (
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
-                    <Check size={11} />
-                    Connected
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
+                      <Check size={11} />
+                      Connected
+                    </span>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => disconnect()}
+                        disabled={disconnecting}
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      >
+                        <Unplug size={12} />
+                        {disconnecting ? "Disconnecting…" : "Disconnect"}
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   isAdmin && (
                     <a
@@ -431,30 +440,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
             </section>
           )}
 
-          {isAdmin && githubConnected && (
-            <section className="space-y-2">
-              <h3 className="text-[13px] font-semibold text-foreground">Danger zone</h3>
-              <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-medium text-foreground">Remove integration</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Disconnects GitHub. Existing issue links on posts are preserved.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => disconnect()}
-                  disabled={disconnecting}
-                  className="flex items-center gap-1.5 rounded-md border border-destructive/30 text-destructive px-3 py-1.5 text-xs font-medium hover:bg-destructive/10 disabled:opacity-50 transition-colors shrink-0"
-                >
-                  {disconnecting ? <Spinner className="size-3" /> : <Trash2 size={12} />}
-                  Remove
-                </button>
-              </div>
-            </section>
-          )}
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

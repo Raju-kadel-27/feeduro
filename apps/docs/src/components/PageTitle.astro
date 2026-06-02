@@ -1,0 +1,139 @@
+---
+import type { Props } from "@astrojs/starlight/props";
+import StarlightPageTitle from "@astrojs/starlight/components/PageTitle.astro";
+---
+
+<StarlightPageTitle {...Astro.props} />
+
+<button class="copy-page" type="button" title="Copy page content to paste into AI">
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+  <span class="copy-label">Copy page</span>
+</button>
+
+<div class="copy-fallback" hidden>
+  <p>Copy the text below and paste it into your AI:</p>
+  <textarea readonly rows="8"></textarea>
+  <button class="close-fallback" type="button">Close</button>
+</div>
+
+<script>
+  // astro:page-load fires on initial load AND after every View Transition navigation.
+  // DOMContentLoaded only fires once on the initial page load, so it must not be used here.
+  document.addEventListener("astro:page-load", () => {
+    const btn = document.querySelector<HTMLButtonElement>(".copy-page");
+    const fallback = document.querySelector<HTMLDivElement>(".copy-fallback");
+    const closeBtn = document.querySelector<HTMLButtonElement>(".close-fallback");
+    if (!btn || !fallback) return;
+
+    function getPageText(): string {
+      const title = document.querySelector("h1")?.textContent?.trim() ?? "";
+      // Prefer the raw MDX source if injected; otherwise fall back to innerText.
+      // innerText collapses tables — acceptable for AI ingestion but not perfect.
+      const article = document.querySelector(".sl-markdown-content");
+      const body = article ? (article as HTMLElement).innerText.trim() : "";
+      return `# ${title}\n\n${body}`;
+    }
+
+    btn.addEventListener("click", async () => {
+      const text = getPageText();
+      const label = btn.querySelector<HTMLSpanElement>(".copy-label");
+
+      try {
+        await navigator.clipboard.writeText(text);
+        if (label) {
+          label.textContent = "Copied!";
+          btn.classList.add("copied");
+          setTimeout(() => {
+            label.textContent = "Copy page";
+            btn.classList.remove("copied");
+          }, 2000);
+        }
+      } catch {
+        // Clipboard API unavailable (non-HTTPS or blocked) — show fallback textarea.
+        const ta = fallback.querySelector("textarea");
+        if (ta) ta.value = text;
+        fallback.hidden = false;
+        ta?.select();
+      }
+    });
+
+    closeBtn?.addEventListener("click", () => {
+      fallback.hidden = true;
+    });
+  });
+</script>
+
+<style>
+  .copy-page {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    padding: 0.3rem 0.7rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-text-accent);
+    background: transparent;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+  }
+
+  .copy-page:hover {
+    background: var(--sl-color-gray-6);
+    border-color: var(--sl-color-gray-3);
+  }
+
+  .copy-page.copied {
+    color: var(--sl-color-green);
+    border-color: var(--sl-color-green);
+  }
+
+  .copy-fallback {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 8px;
+    background: var(--sl-color-gray-6);
+    font-size: var(--sl-text-sm);
+  }
+
+  .copy-fallback p {
+    margin: 0 0 0.5rem;
+    color: var(--sl-color-text);
+  }
+
+  .copy-fallback textarea {
+    width: 100%;
+    font-family: var(--sl-font-mono);
+    font-size: var(--sl-text-xs);
+    padding: 0.5rem;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 4px;
+    background: var(--sl-color-black);
+    color: var(--sl-color-text);
+    resize: vertical;
+    box-sizing: border-box;
+  }
+
+  .close-fallback {
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.6rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-text);
+    background: transparent;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .close-fallback:hover {
+    background: var(--sl-color-gray-5);
+  }
+</style>

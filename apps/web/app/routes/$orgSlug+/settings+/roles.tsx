@@ -1,6 +1,5 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { CreateRoleDialog } from "@features/roles/components/create-role-dialog";
 import { RolesTable } from "@features/roles/components/roles-table";
 import type { OrgRole } from "@features/roles/types";
@@ -8,6 +7,7 @@ import { authClient } from "@lib/auth/client";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "@/db";
 import { member } from "@/db/schema";
@@ -103,9 +103,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
   const roles = rolesData ?? loaderData.roles;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Roles & Permissions</span>
@@ -125,6 +123,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
                 onClick={() => setShowCreate(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
               >
+                <Plus className="h-4 w-4" />
                 New Role
               </button>
             )}
@@ -170,7 +169,6 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
             isPending={isCreating}
           />
         )}
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

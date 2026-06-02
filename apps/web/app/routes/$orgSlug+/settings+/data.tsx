@@ -1,7 +1,6 @@
 import { Button } from "@components/ui/button";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { DownloadIcon, FileSpreadsheetIcon, TriangleAlertIcon, UploadIcon } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -99,9 +98,7 @@ export default function DataImport({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Data & Import</span>
@@ -237,7 +234,6 @@ export default function DataImport({ loaderData }: Route.ComponentProps) {
             </div>
           </section>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

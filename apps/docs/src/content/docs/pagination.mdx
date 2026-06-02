@@ -1,0 +1,77 @@
+---
+title: Pagination
+description: All list endpoints use cursor-based pagination with a consistent interface.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Every list endpoint returns a page of results and a cursor you pass to fetch the next page. Cursors are based on `createdAt` timestamps and are stable — inserting new records won't shift earlier pages.
+
+## Query parameters
+
+| Parameter | Type | Default | Max | Description |
+|-----------|------|---------|-----|-------------|
+| `limit` | integer | `25` | `100` | Number of results per page |
+| `cursor` | string | — | — | Opaque token from the previous response's `cursor` field |
+
+## Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `data` | array | Array of results for this page |
+| `hasMore` | boolean | `true` when more pages exist |
+| `cursor` | string \| null | Pass as `?cursor=` on the next request. `null` when on the last page. |
+
+## Example
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash title="Page 1"
+    curl "https://app.feediyo.com/v1/posts?limit=50" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+
+    ```bash title="Page 2 — use cursor from previous response"
+    curl "https://app.feediyo.com/v1/posts?limit=50&cursor=eyIyMDI2LTA1..." \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts title="Fetch all pages"
+    async function fetchAll(endpoint: string, apiKey: string) {
+      const results = [];
+      let cursor: string | null = null;
+
+      do {
+        const url = new URL(`https://app.feediyo.com/v1/${endpoint}`);
+        url.searchParams.set('limit', '100');
+        if (cursor) url.searchParams.set('cursor', cursor);
+
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        const page = await res.json();
+
+        results.push(...page.data);
+        cursor = page.hasMore ? page.cursor : null;
+      } while (cursor);
+
+      return results;
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+```json title="Response"
+{
+  "data": [
+    { "id": "post_01xyz", "title": "Dark mode support", "..." : "..." }
+  ],
+  "hasMore": true,
+  "cursor": "eyIyMDI2LTA1LTMwVDEwOjAwOjAwLjAwMFoifQ"
+}
+```
+
+<Aside type="note">
+  The cursor is an opaque, base64-encoded timestamp. Do not parse or construct it manually — always use the value returned by the API.
+</Aside>

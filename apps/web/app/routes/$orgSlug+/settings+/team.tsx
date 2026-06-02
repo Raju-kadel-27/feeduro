@@ -1,11 +1,10 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { InviteMemberDialog } from "@features/workspace/components/invite-member-dialog";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Crown, Mail, UserMinus, X } from "lucide-react";
+import { Crown, Mail, Plus, UserMinus, X } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "@/db";
 import { invitation } from "@/db/schema";
@@ -135,14 +134,11 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
   };
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Team</span>
         </header>
-
         <main className="p-6 max-w-[840px] mx-auto w-full">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -157,6 +153,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
                 onClick={() => setShowInvite(true)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
               >
+                <Plus className="h-4 w-4" />
                 Invite Member
               </button>
             )}
@@ -252,7 +249,6 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
             </div>
           </section>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }

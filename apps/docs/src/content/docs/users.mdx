@@ -1,0 +1,291 @@
+---
+title: Users
+description: Identify users and manage profiles for segmentation and vote/comment attribution.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+User profiles link your customers to their feedback, votes, and comments. The typical flow is: call `identify` to upsert a profile → get back an `id` → use that `id` when creating votes or comments on the user's behalf.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/users` | List user profiles |
+| <span class="badge-method badge-post">POST</span> | `/v1/users/identify` | Upsert a user by email |
+| <span class="badge-method badge-get">GET</span> | `/v1/users/:id` | Get a user profile |
+| <span class="badge-method badge-delete">DELETE</span> | `/v1/users/:id` | Delete a user profile |
+
+---
+
+## List users
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/users</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `limit` | query | integer | No | Page size — default `25`, max `100` |
+| `cursor` | query | string | No | Pagination cursor from previous response |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl "https://app.feediyo.com/v1/users?limit=25" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/users?limit=25', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data, hasMore, cursor } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        {
+          "id": "up_01zzz999",
+          "email": "alice@example.com",
+          "name": "Alice",
+          "externalId": "cus_stripe_abc123",
+          "plan": "pro",
+          "role": "admin",
+          "industry": "SaaS",
+          "location": "US",
+          "companySize": 50,
+          "customAttributes": { "mrr": 299, "accountAge": 365 },
+          "createdAt": "2025-08-01T00:00:00.000Z",
+          "updatedAt": "2026-01-15T10:00:00.000Z"
+        }
+      ],
+      "hasMore": false,
+      "cursor": null
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Feediyo user profile ID |
+| `email` | string | No | User's email — unique per organization |
+| `name` | string | Yes | Display name |
+| `externalId` | string | Yes | Your system's user ID |
+| `plan` | string | Yes | Subscription plan name |
+| `role` | string | Yes | User's role within their company |
+| `industry` | string | Yes | Company industry |
+| `location` | string | Yes | Country or region |
+| `companySize` | integer | Yes | Number of employees |
+| `customAttributes` | object | Yes | Arbitrary JSON key-value pairs |
+| `createdAt` | string | No | ISO 8601 timestamp |
+| `updatedAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Identify (upsert) a user
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/users/identify</code></div>
+
+Creates or updates a user profile matched by email. Returns the profile `id` — use it for votes and comments.
+
+<Aside type="tip">
+  Call this once per user session (or on login) to keep traits in sync. Subsequent calls with the same email update the fields you send.
+</Aside>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `email` | body | string | Yes | Unique per organization — used to match existing profiles |
+| `name` | body | string | No | Display name |
+| `externalId` | body | string | No | Your internal user ID |
+| `plan` | body | string | No | Subscription plan name |
+| `role` | body | string | No | User's role |
+| `industry` | body | string | No | Company industry |
+| `location` | body | string | No | Country or region |
+| `companySize` | body | integer | No | Headcount |
+| `customAttributes` | body | object | No | Any JSON-serializable key-value pairs |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/users/identify \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "alice@example.com",
+        "name": "Alice",
+        "externalId": "cus_stripe_abc123",
+        "plan": "pro",
+        "customAttributes": { "mrr": 299 }
+      }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/users/identify', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'alice@example.com',
+        name: 'Alice',
+        externalId: 'cus_stripe_abc123',
+        plan: 'pro',
+        customAttributes: { mrr: 299 },
+      }),
+    });
+    const { data } = await res.json(); // { id: "up_01zzz999" }
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": { "id": "up_01zzz999" }
+    }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "email": ["Required"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Get a user profile
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/users/:id</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | User profile ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/users/up_01zzz999 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/users/up_01zzz999', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": {
+        "id": "up_01zzz999",
+        "email": "alice@example.com",
+        "name": "Alice",
+        "externalId": "cus_stripe_abc123",
+        "plan": "pro",
+        "customAttributes": { "mrr": 299 },
+        "createdAt": "2025-08-01T00:00:00.000Z",
+        "updatedAt": "2026-01-15T10:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Delete a user profile
+
+<div class="endpoint-url"><span class="badge-method badge-delete">DELETE</span><code>/v1/users/:id</code></div>
+
+Removes the profile and its segmentation data. Does **not** delete the underlying auth account. The user's votes and comments are retained but their `authorId` / `userId` fields will become `null`.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | User profile ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X DELETE https://app.feediyo.com/v1/users/up_01zzz999 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/users/up_01zzz999', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Votes](/votes) — cast votes on a user's behalf using their profile ID · [Comments](/comments) — add comments attributed to a user
+
+</div>

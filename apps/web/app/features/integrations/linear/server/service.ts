@@ -28,7 +28,9 @@ import {
   getLinearTeamStates,
   getLinearTeams,
   getLinearWorkspace,
+  parseLinearInput,
   registerLinearWebhook,
+  searchLinearIssues,
 } from "./client";
 import { linearOAuth } from "./oauth";
 import { LinearActionSchema, type LinearSettings } from "./schemas";
@@ -304,13 +306,14 @@ export async function handleLinearAction(request: Request) {
       `${LOG} create_issue postId=${input.postId} teamId=${teamId} orgId=${organizationId}`,
     );
     try {
-      const description = post.description
+      const baseTitle = input.title ?? post.title;
+      const description = input.description ?? (post.description
         ? `${post.description}\n\n---\n*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`
-        : `*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`;
+        : `*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`);
       const issue = await createLinearIssue(
         integration.accessToken,
         teamId,
-        post.title,
+        baseTitle,
         description,
       );
       console.log(
@@ -365,7 +368,7 @@ export async function handleLinearAction(request: Request) {
       `${LOG} link_issue postId=${input.postId} issueId=${input.issueId} orgId=${organizationId}`,
     );
     try {
-      const issue = await getLinearIssueById(integration.accessToken, input.issueId);
+      const issue = await getLinearIssueById(integration.accessToken, parseLinearInput(input.issueId));
       await upsertPostExternalLink({
         postId: input.postId,
         organizationId,
@@ -397,6 +400,20 @@ export async function handleLinearAction(request: Request) {
     console.log(`${LOG} unlink_issue postId=${input.postId} orgId=${organizationId}`);
     await deletePostExternalLink(input.postId, "linear", organizationId);
     return data({ success: true });
+  }
+
+  if (input.intent === "search_issues") {
+    try {
+      const integration = await getIntegration(organizationId, "linear");
+      if (!integration?.accessToken) return data({ error: "Linear not connected" }, { status: 400 });
+      const settings = parseSettings<LinearSettings>(integration.settings);
+      const issues = await searchLinearIssues(
+        integration.accessToken, input.query, settings?.defaultTeamId,
+      );
+      return data({ results: issues.map((i) => ({ id: i.id, identifier: i.identifier, title: i.title, status: i.state.name, url: i.url })) });
+    } catch (err) {
+      return data({ error: err instanceof Error ? err.message : "Search failed" }, { status: 400 });
+    }
   }
 
   return data({ error: "Unknown intent" }, { status: 400 });

@@ -23,7 +23,9 @@ import {
   getJiraIssueByKey,
   getJiraProjectStatuses,
   getJiraProjects,
+  parseJiraInput,
   registerJiraWebhook,
+  searchJiraIssues,
 } from "./client";
 import { jiraOAuth } from "./oauth";
 import { JiraActionSchema, type JiraSettings } from "./schemas";
@@ -45,6 +47,8 @@ function requireJiraEnv() {
 }
 
 // Retries fn once after refreshing the access token on a 401 error.
+const RECONNECT_MSG = "Jira session expired — please reconnect Jira in Settings → Integrations";
+
 async function withTokenRefresh<T>(
   organizationId: string,
   fn: (token: string) => Promise<T>,
@@ -56,9 +60,14 @@ async function withTokenRefresh<T>(
   try {
     return await fn(integration.accessToken);
   } catch (err) {
-    if (err instanceof Error && err.message.includes("401") && integration.refreshToken) {
-      const env = getEnv();
-      if (!env.JIRA_CLIENT_ID || !env.JIRA_CLIENT_SECRET) throw err;
+    if (!(err instanceof Error && err.message.includes("401"))) throw err;
+
+    if (!integration.refreshToken) throw new Error(RECONNECT_MSG);
+
+    const env = getEnv();
+    if (!env.JIRA_CLIENT_ID || !env.JIRA_CLIENT_SECRET) throw new Error(RECONNECT_MSG);
+
+    try {
       const { accessToken: newToken, refreshToken: newRefresh } = await refreshAccessToken(
         jiraOAuth,
         integration.refreshToken,
@@ -76,8 +85,9 @@ async function withTokenRefresh<T>(
           and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "jira")),
         );
       return await fn(newToken);
+    } catch {
+      throw new Error(RECONNECT_MSG);
     }
-    throw err;
   }
 }
 
@@ -435,12 +445,13 @@ export async function handleJiraAction(request: Request) {
       return data({ error: "Post already linked to a Jira issue" }, { status: 400 });
 
     try {
-      const description = post.description
+      const baseSummary = input.summary ?? post.title;
+      const baseDescription = input.description ?? (post.description
         ? `${post.description}\n\nCreated from Feediyo feedback #${post.id}`
-        : `Created from Feediyo feedback #${post.id}`;
+        : `Created from Feediyo feedback #${post.id}`);
       const { cloudId, cloudUrl } = settings;
       const issue = await withTokenRefresh(organizationId, (token) =>
-        createJiraIssue(token, cloudId, cloudUrl, projectKey, post.title, description),
+        createJiraIssue(token, cloudId, cloudUrl, projectKey, baseSummary, baseDescription),
       );
       await insertPostExternalLink({
         postId: input.postId,
@@ -483,7 +494,7 @@ export async function handleJiraAction(request: Request) {
     try {
       const { cloudId, cloudUrl } = settings;
       const issue = await withTokenRefresh(organizationId, (token) =>
-        getJiraIssueByKey(token, cloudId, cloudUrl, input.issueKeyOrId),
+        getJiraIssueByKey(token, cloudId, cloudUrl, parseJiraInput(input.issueKeyOrId)),
       );
       await upsertPostExternalLink({
         postId: input.postId,
@@ -508,6 +519,22 @@ export async function handleJiraAction(request: Request) {
   if (input.intent === "unlink_issue") {
     await deletePostExternalLink(input.postId, "jira", organizationId);
     return data({ success: true });
+  }
+
+  if (input.intent === "search_issues") {
+    try {
+      const integration = await getIntegration(organizationId, "jira");
+      const settings = parseSettings<JiraSettings>(integration?.settings ?? null);
+      if (!settings?.cloudId || !settings.cloudUrl)
+        return data({ error: "No Jira Cloud selected" }, { status: 400 });
+      const { cloudId, cloudUrl } = settings;
+      const issues = await withTokenRefresh(organizationId, (token) =>
+        searchJiraIssues(token, cloudId, cloudUrl, input.query),
+      );
+      return data({ results: issues.map((i) => ({ id: i.key, identifier: i.key, title: i.summary, status: i.statusName, url: i.url })) });
+    } catch (err) {
+      return data({ error: err instanceof Error ? err.message : "Search failed" }, { status: 400 });
+    }
   }
 
   return data({ error: "Unknown intent" }, { status: 400 });

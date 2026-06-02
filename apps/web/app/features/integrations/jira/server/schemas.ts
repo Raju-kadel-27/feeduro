@@ -71,6 +71,8 @@ export const JiraActionSchema = z.discriminatedUnion("intent", [
     intent: z.literal("create_issue"),
     postId: z.string().min(1),
     projectKey: z.string().optional(),
+    summary: z.string().optional(),
+    description: z.string().optional(),
   }),
   z.object({
     intent: z.literal("link_issue"),
@@ -78,6 +80,7 @@ export const JiraActionSchema = z.discriminatedUnion("intent", [
     issueKeyOrId: z.string().min(1),
   }),
   z.object({ intent: z.literal("unlink_issue"), postId: z.string().min(1) }),
+  z.object({ intent: z.literal("search_issues"), query: z.string().min(1) }),
 ]);
 
 export type JiraCloudResource = z.infer<typeof JiraCloudResourceSchema>;

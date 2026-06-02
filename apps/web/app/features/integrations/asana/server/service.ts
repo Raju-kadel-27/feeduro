@@ -25,6 +25,7 @@ import {
   getAsanaWorkspaces,
   parseAsanaTaskInput,
   registerAsanaWebhook,
+  searchAsanaTasks,
 } from "./client";
 import { asanaOAuth } from "./oauth";
 import { AsanaActionSchema, type AsanaSettings } from "./schemas";
@@ -43,6 +44,8 @@ function requireAsanaEnv() {
   return { clientId: env.ASANA_CLIENT_ID, clientSecret: env.ASANA_CLIENT_SECRET };
 }
 
+const RECONNECT_MSG = "Asana session expired — please reconnect Asana in Settings → Integrations";
+
 // Retries fn once after refreshing the access token on a 401 error.
 async function withTokenRefresh<T>(
   organizationId: string,
@@ -55,9 +58,14 @@ async function withTokenRefresh<T>(
   try {
     return await fn(integration.accessToken);
   } catch (err) {
-    if (err instanceof Error && err.message.includes("401") && integration.refreshToken) {
-      const env = getEnv();
-      if (!env.ASANA_CLIENT_ID || !env.ASANA_CLIENT_SECRET) throw err;
+    if (!(err instanceof Error && err.message.includes("401"))) throw err;
+
+    if (!integration.refreshToken) throw new Error(RECONNECT_MSG);
+
+    const env = getEnv();
+    if (!env.ASANA_CLIENT_ID || !env.ASANA_CLIENT_SECRET) throw new Error(RECONNECT_MSG);
+
+    try {
       const { accessToken: newToken, refreshToken: newRefresh } = await refreshAccessToken(
         asanaOAuth,
         integration.refreshToken,
@@ -75,8 +83,9 @@ async function withTokenRefresh<T>(
           and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "asana")),
         );
       return await fn(newToken);
+    } catch {
+      throw new Error(RECONNECT_MSG);
     }
-    throw err;
   }
 }
 
@@ -291,11 +300,12 @@ export async function handleAsanaAction(request: Request) {
 
     try {
       const { workspaceGid, defaultProjectGid } = settings;
-      const notes = post.description
+      const baseName = input.name ?? post.title;
+      const notes = input.notes ?? (post.description
         ? `${post.description}\n\nCreated from Feediyo feedback #${post.id}`
-        : `Created from Feediyo feedback #${post.id}`;
+        : `Created from Feediyo feedback #${post.id}`);
       const task = await withTokenRefresh(organizationId, (token) =>
-        createAsanaTask(token, workspaceGid, defaultProjectGid, post.title, notes),
+        createAsanaTask(token, workspaceGid, defaultProjectGid, baseName, notes),
       );
       await insertPostExternalLink({
         postId: input.postId,
@@ -363,6 +373,21 @@ export async function handleAsanaAction(request: Request) {
   if (input.intent === "unlink_task") {
     await deletePostExternalLink(input.postId, "asana", organizationId);
     return data({ success: true });
+  }
+
+  if (input.intent === "search_tasks") {
+    try {
+      const integration = await getIntegration(organizationId, "asana");
+      const settings = parseSettings<AsanaSettings>(integration?.settings ?? null);
+      if (!integration?.accessToken || !settings?.workspaceGid)
+        return data({ error: "Asana not connected" }, { status: 400 });
+      const tasks = await withTokenRefresh(organizationId, (token) =>
+        searchAsanaTasks(token, settings.workspaceGid!, input.query),
+      );
+      return data({ results: tasks.map((t) => ({ id: t.gid, identifier: t.gid, title: t.name, status: t.completed ? "Completed" : (t.sectionName ?? ""), url: t.url })) });
+    } catch (err) {
+      return data({ error: err instanceof Error ? err.message : "Search failed" }, { status: 400 });
+    }
   }
 
   return data({ error: "Unknown intent" }, { status: 400 });

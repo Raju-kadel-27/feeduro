@@ -1,4 +1,3 @@
-import type { AdminStatus } from "@features/feedback/schemas/admin";
 import { useEffect, useRef } from "react";
 import { useCommentActions } from "../hooks/use-comment-actions";
 import { useIntegrationLinks } from "../hooks/use-integration-links";
@@ -6,11 +5,12 @@ import { useMergeActions } from "../hooks/use-merge-actions";
 import { useOwnerPicker } from "../hooks/use-owner-picker";
 import { usePostData } from "../hooks/use-post-data";
 import { useVoteStatus } from "../hooks/use-vote-status";
-import type { FeedItem } from "./post-activity-feed";
 import { PostComposeFooter } from "./post-compose-footer";
 import { PostDetailBody } from "./post-detail-body";
 import { PostDetailHeader } from "./post-detail-header";
 import { PostMergeDialog } from "./post-merge-dialog";
+import type { AdminStatus } from "@features/feedback/schemas/admin";
+import type { FeedItem } from "./post-activity-feed";
 
 export function PostDetailPanel({
   postId,
@@ -84,7 +84,7 @@ export function PostDetailPanel({
           className="fixed inset-0 z-40 bg-background/30 backdrop-blur-[4px]"
           onClick={onClose}
         />
-        <div className="fixed right-0 top-0 h-screen w-[800px] z-50 bg-background border-l shadow-2xl flex items-center justify-center">
+        <div className="fixed right-0 top-0 h-screen w-[1100px] z-50 bg-background border-l shadow-2xl flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
             <p className="text-sm text-muted-foreground">Loading…</p>
@@ -97,7 +97,7 @@ export function PostDetailPanel({
   return (
     <>
       <div className="fixed inset-0 z-40 bg-background/30 backdrop-blur-[4px]" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-screen w-[780px] max-w-[95vw] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
+      <div className="fixed right-0 top-0 h-screen w-[1100px] max-w-[95vw] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
         <PostDetailHeader
           orgSlug={orgSlug}
           postId={postId}

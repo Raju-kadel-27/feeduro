@@ -1,10 +1,11 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@components/ui/sheet";
+import { FeedbackAvatar } from "@features/post-detail-panel/components/feedback-avatar";
 import { cn } from "@lib/utils";
-import { ArrowUp, Star } from "lucide-react";
+import { ChevronUp, X } from "lucide-react";
 import { useState } from "react";
-import { BOARD_COLORS } from "../constants";
 import type { PublicPost, SessionUser } from "../schemas/public";
 import { VoteResponseSchema } from "../schemas/public";
+import { PublicCommentsSection } from "./public-comments-section";
+import { PublicComposeFooter } from "./public-compose-footer";
 import { StatusPill } from "./status-pill";
 
 export function DetailPanel({
@@ -25,15 +26,13 @@ export function DetailPanel({
   const [voted, setVoted] = useState(initialVoted);
   const [voteCount, setVoteCount] = useState(post?.voteCount ?? 0);
   const [voting, setVoting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   if (!post) return null;
   const postId = post.id;
 
   async function handleVote() {
-    if (!sessionUser) {
-      onAuthRequired();
-      return;
-    }
+    if (!sessionUser) { onAuthRequired(); return; }
     if (voting) return;
     const wasVoted = voted;
     setVoted(!wasVoted);
@@ -59,78 +58,85 @@ export function DetailPanel({
   }
 
   return (
-    <Sheet open={!!post} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent
-        side="right"
-        className="flex flex-col w-full sm:max-w-[480px] lg:max-w-[980px] p-0 data-[state=open]:duration-200 data-[state=closed]:duration-150"
-      >
-        <SheetHeader className="border-b border-border px-6 py-4 space-y-3">
-          <div className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
-            <span className="font-medium text-foreground">{post.authorName}</span>
-            {post.authorIsAdmin && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-primary">
-                <Star className="h-3 w-3 fill-current" />
-                Admin
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1 rounded border border-border px-1.5 py-px text-[11.5px] text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full" style={{ background: BOARD_COLORS[0] }} />
-              {post.boardName}
-            </span>
-          </div>
-          <SheetTitle className="text-lg font-semibold leading-snug text-foreground">
-            {post.title}
-          </SheetTitle>
-          <div>
-            <StatusPill id={post.status} />
-          </div>
-        </SheetHeader>
+    <>
+      <div className="fixed inset-0 z-40 bg-background/30 backdrop-blur-[4px]" onClick={onClose} />
+      <div className="fixed right-0 top-0 h-screen w-[780px] max-w-[95vw] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
+        <header className="flex items-center h-12 px-4 border-b shrink-0 gap-2">
+          <StatusPill id={post.status} />
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </header>
 
-        <div className="flex-1 overflow-auto px-6 py-4">
-          <p className="text-sm leading-relaxed text-foreground/80">{post.description}</p>
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-5 pt-3 pb-4 max-w-2xl space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap flex-1">
+                <FeedbackAvatar name={post.authorName} size={16} />
+                <span className="font-medium text-foreground/80">{post.authorName}</span>
+                <span>·</span>
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-muted font-medium text-foreground/60">
+                  {post.boardName}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleVote}
+                disabled={voting}
+                className={cn(
+                  "group/vote flex flex-col items-center justify-center gap-0.5 w-8 h-8 border-[1.5px] transition-all duration-150 shrink-0 select-none",
+                  voted
+                    ? "border-foreground/50 bg-muted text-foreground"
+                    : "border-border bg-card text-muted-foreground",
+                  voting && "opacity-50 cursor-not-allowed",
+                )}
+              >
+                <ChevronUp
+                  className={cn(
+                    "h-3 w-3 transition-transform duration-150 group-hover/vote:-translate-y-0.5",
+                    voted ? "stroke-[2.5]" : "stroke-[1.75]",
+                  )}
+                />
+                <span className="text-[10px] font-semibold leading-none tabular-nums">
+                  {voteCount}
+                </span>
+              </button>
+            </div>
 
-          <div className="mt-6 flex items-center gap-4">
-            <button
-              onClick={handleVote}
-              disabled={voting}
-              className={cn(
-                "flex flex-col items-center justify-center rounded-lg border h-16 w-16 transition-all disabled:opacity-60 shrink-0",
-                voted
-                  ? "border-foreground/50 bg-muted text-foreground"
-                  : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:bg-muted/50",
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold leading-snug">{post.title}</h2>
+              {post.description && (
+                <p className="text-xs text-foreground/60 leading-relaxed whitespace-pre-wrap">
+                  {post.description}
+                </p>
               )}
-            >
-              <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
-              <span className="text-xs font-bold leading-none mt-1">{voteCount}</span>
-            </button>
-            <div>
-              <p className="text-[12.5px] font-medium text-foreground">
-                {voteCount} {voteCount === 1 ? "person" : "people"} upvoted
-              </p>
-              <p className="text-[12px] text-muted-foreground mt-1">
-                {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
-              </p>
+            </div>
+
+            <div className="pt-3 space-y-3">
+              <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Comments
+                {post.commentCount > 0 && (
+                  <span className="ml-1.5 normal-case font-normal">· {post.commentCount}</span>
+                )}
+              </h3>
+              <PublicCommentsSection postId={postId} orgSlug={orgSlug} refreshKey={refreshKey} />
             </div>
           </div>
-
-          <div className="my-6 h-px bg-border" />
-
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-            Comments
-          </div>
-          <div className="py-8 text-center text-[13px] text-muted-foreground">
-            Comment section would display here
-          </div>
         </div>
 
-        <div className="border-t border-border px-6 py-4 shrink-0">
-          <input
-            type="text"
-            placeholder="Add a comment..."
-            className="w-full h-9 rounded-md border border-border bg-background px-3 text-[12.5px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
+        <PublicComposeFooter
+          postId={postId}
+          orgSlug={orgSlug}
+          sessionUser={sessionUser}
+          onAuthRequired={onAuthRequired}
+          onCommentPosted={() => setRefreshKey((k) => k + 1)}
+        />
+      </div>
+    </>
   );
 }

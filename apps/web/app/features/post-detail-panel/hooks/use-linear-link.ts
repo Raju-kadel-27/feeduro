@@ -9,11 +9,11 @@ export function useLinearLink(postId: string) {
   const [linkIssueInput, setLinkIssueInput] = useState("");
 
   const { mutate: createLinearIssue, isPending: creatingLinearIssue } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (params?: { title?: string; description?: string }) => {
       const res = await fetch("/api/linear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent: "create_issue", postId }),
+        body: JSON.stringify({ intent: "create_issue", postId, ...params }),
       });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error ?? "Failed");

@@ -230,6 +230,12 @@ export const feedbackPosts = pgTable(
     externalId: varchar("external_id", { length: 255 }),
     // Preserves the original creation timestamp from the source platform
     originalCreatedAt: timestamp("original_created_at"),
+    // Links to the import job that created this post. set null (not cascade) so accidentally
+    // deleting a job record does not wipe posts. Rollback: DELETE WHERE import_job_id = $id.
+    importJobId: varchar("import_job_id", { length: 128 }).references(
+      (): PgColumn => importJobs.id,
+      { onDelete: "set null" },
+    ),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -262,6 +268,8 @@ export const feedbackPosts = pgTable(
     importDedupIdx: uniqueIndex("fp_import_dedup_idx")
       .on(t.organizationId, t.importSource, t.externalId)
       .where(sql`import_source IS NOT NULL`),
+    // Rollback lookup: DELETE WHERE import_job_id = $id must be fast on large tables
+    importJobIdIdx: index("fp_import_job_id_idx").on(t.importJobId),
     searchVectorGinIdx: index("fp_search_vector_gin_idx").using("gin", t.searchVector),
   }),
 );

@@ -1,93 +1,75 @@
-import { Button } from "@components/ui/button";
-import { authClient } from "@lib/auth/client";
-import { CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { authClient } from "@lib/auth/client";
+import { changePasswordSchema } from "../schemas/password";
+import { PasswordField } from "./password-field";
+import { PasswordStrengthMeter } from "./password-strength-meter";
+import { Button } from "@components/ui/button";
+import { CheckCircle2, XCircle } from "lucide-react";
+
+import type { ChangePasswordValues } from "../schemas/password";
 
 export function ChangePasswordForm() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.SyntheticEvent) {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    setLoading(true);
-    setError("");
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ChangePasswordValues>({
+    resolver: zodResolver(changePasswordSchema),
+    mode: "onTouched",
+  });
+
+  const newPassword = watch("newPassword", "");
+
+  async function onSubmit(values: ChangePasswordValues) {
+    setServerError("");
     setSuccess(false);
     await authClient.changePassword({
-      currentPassword,
-      newPassword,
+      currentPassword: values.currentPassword,
+      newPassword: values.newPassword,
       revokeOtherSessions: true,
       fetchOptions: {
         onSuccess() {
           setSuccess(true);
-          setCurrentPassword("");
-          setNewPassword("");
-          setConfirmPassword("");
-          setLoading(false);
+          reset();
         },
         onError(ctx) {
-          setError(ctx.error.message ?? "Failed to update password.");
-          setLoading(false);
+          setServerError(ctx.error.message ?? "Failed to update password.");
         },
       },
     });
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <PasswordField
+        label="Current password"
+        registration={register("currentPassword")}
+        error={errors.currentPassword?.message}
+      />
       <div className="space-y-2">
-        <label className="text-sm text-muted-foreground">Current password</label>
-        <input
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          required
-          disabled={loading}
-          autoComplete="current-password"
-          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        <PasswordField
+          label="New password"
+          registration={register("newPassword")}
+          error={errors.newPassword?.message}
         />
+        <PasswordStrengthMeter password={newPassword} />
       </div>
-
-      <div className="space-y-2">
-        <label className="text-sm text-muted-foreground">New password</label>
-        <input
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-          minLength={8}
-          disabled={loading}
-          autoComplete="new-password"
-          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-        />
-        <p className="text-xs text-muted-foreground">Minimum 8 characters</p>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm text-muted-foreground">Confirm new password</label>
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          minLength={8}
-          disabled={loading}
-          autoComplete="new-password"
-          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-        />
-      </div>
-
-      {error && (
+      <PasswordField
+        label="Confirm new password"
+        registration={register("confirmPassword")}
+        error={errors.confirmPassword?.message}
+      />
+      {serverError && (
         <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <XCircle size={14} className="shrink-0" />
-          {error}
+          {serverError}
         </div>
       )}
       {success && (
@@ -96,10 +78,9 @@ export function ChangePasswordForm() {
           Password updated successfully.
         </div>
       )}
-
       <div className="pt-1">
-        <Button type="submit" disabled={loading} size="sm">
-          {loading ? "Saving…" : "Update password"}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving…" : "Update password"}
         </Button>
       </div>
     </form>

@@ -18,6 +18,12 @@ import { getStatusFunnel } from "./status-funnel.server";
 import { getTagBreakdown } from "./tag-breakdown.server";
 import { getTrendingPosts } from "./trending-posts.server";
 import { getTopPostsByVotes } from "./vote-trends.server";
+import { getResolutionTime } from "./resolution-time.server";
+import { getResponseRate } from "./response-rate.server";
+import { getBacklogAging } from "./backlog-aging.server";
+import { getMergeRate } from "./merge-rate.server";
+import { getVoteConversion } from "./vote-conversion.server";
+import { getSubscriberMetrics } from "./subscriber-metrics.server";
 
 function parseSince(range: string): Date | undefined {
   const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : null;
@@ -38,6 +44,7 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
     activityOverTime, completedPosts, tagBreakdown, trendingPosts,
     changelogEngagement, adminActivity, companyEngagement,
     boardVisitors, commentsAnalytics, unrespondedPosts, deltas,
+    resolutionTime, responseRate, backlogAging, mergeRate, voteConversion, subscriberMetrics,
   ] = await Promise.all([
     getBoardSummaries(organizationId, since),
     getTopPostsByVotes(organizationId, undefined, 8, since),
@@ -54,6 +61,12 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
     getCommentsAnalytics(organizationId, since),
     getUnrespondedPosts(organizationId),
     since ? getPeriodDeltas(organizationId, since) : Promise.resolve(null),
+    getResolutionTime(organizationId, since),
+    getResponseRate(organizationId, since),
+    getBacklogAging(organizationId),
+    getMergeRate(organizationId, since),
+    getVoteConversion(organizationId, since),
+    getSubscriberMetrics(organizationId, since),
   ]);
 
   const totalPosts = boards.reduce((s, b) => s + b.totalPosts, 0);
@@ -79,6 +92,12 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
     boardVisitors,
     commentsAnalytics,
     unrespondedPosts,
+    resolutionTime,
+    responseRate,
+    backlogAging,
+    mergeRate,
+    voteConversion,
+    subscriberMetrics,
     fetchedAt: Date.now(),
   };
 }

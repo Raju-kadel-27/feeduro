@@ -14,6 +14,8 @@ import { TagBreakdownChart } from "./tag-breakdown-chart";
 import { TrendingPostsList } from "./trending-posts-list";
 import { UnrespondedPostsCard } from "./unresponded-posts-card";
 import { AdminActivityTable } from "./admin-activity-table";
+import { HealthKpiRow } from "./health-kpi-row";
+import { BacklogAgingChart } from "./backlog-aging-chart";
 
 type OverviewData = Awaited<ReturnType<typeof loadAnalyticsOverview>>;
 
@@ -37,6 +39,7 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
     completedPosts, tagBreakdown, trendingPosts, range,
     changelogEngagement, adminActivity, companyEngagement,
     boardVisitors, commentsAnalytics, unrespondedPosts, fetchedAt,
+    resolutionTime, responseRate, backlogAging, mergeRate, voteConversion, subscriberMetrics,
   } = data;
 
   const { deltas } = stats;
@@ -74,6 +77,14 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
         />
       </div>
 
+      {/* Health KPIs — resolution time, response rate, merge rate, conversion */}
+      <HealthKpiRow
+        resolutionTime={resolutionTime}
+        responseRate={responseRate}
+        mergeRate={mergeRate}
+        voteConversion={voteConversion}
+      />
+
       {/* Unresponded posts — amber alert, only renders when there are items */}
       <UnrespondedPostsCard posts={unrespondedPosts} />
 
@@ -89,6 +100,15 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
             uniqueVisitors={boardVisitors.uniqueVisitors}
           />
         </div>
+      </div>
+
+      {/* Backlog aging — open post age distribution */}
+      <div className="rounded-xl border bg-card p-5 space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold">Backlog Aging</h2>
+          <p className="text-xs text-muted-foreground">open posts by age</p>
+        </div>
+        <BacklogAgingChart aging={backlogAging} />
       </div>
 
       {/* Status funnel — full width */}
@@ -170,7 +190,7 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
         </div>
       </div>
 
-      <AnalyticsReports data={{ changelogEngagement, topPosts, companyEngagement, range }} />
+      <AnalyticsReports data={{ changelogEngagement, topPosts, companyEngagement, range, subscriberMetrics }} />
     </div>
   );
 }

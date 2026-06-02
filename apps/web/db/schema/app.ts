@@ -343,6 +343,9 @@ export const comments = pgTable(
     body: text("body").notNull(),
     isInternal: boolean("is_internal").notNull().default(false),
     isAiGenerated: boolean("is_ai_generated").notNull().default(false),
+    // Import provenance — null on all natively created comments
+    importSource: varchar("import_source", { length: 50 }),
+    externalId: varchar("external_id", { length: 255 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -364,6 +367,10 @@ export const comments = pgTable(
     ),
     // "All comments by customer X" — needed once import is live
     commenterProfileIdIdx: index("comments_commenter_profile_id_idx").on(t.commenterProfileId),
+    // Idempotent re-imports: (org, platform, external comment id) must be unique
+    commentImportDedupIdx: uniqueIndex("comment_import_dedup_idx")
+      .on(t.organizationId, t.importSource, t.externalId)
+      .where(sql`import_source IS NOT NULL`),
   }),
 );
 

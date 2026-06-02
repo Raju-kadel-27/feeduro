@@ -1,8 +1,7 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { Check, Copy, Eye, EyeOff, RefreshCw } from "lucide-react";
@@ -40,6 +39,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         eq(feedbackBoards.organizationId, org.id),
         eq(feedbackBoards.visibility, "public"),
       ),
+      columns: { id: true, name: true, isDefault: true, embedToken: true },
     }),
   ]);
 
@@ -65,7 +65,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return data({
     orgSlug: org.slug ?? "",
     config: config!,
-    boards: publicBoards.map((b) => ({ id: b.id, name: b.name, isDefault: b.isDefault })),
+    boards: publicBoards.map((b) => ({
+      id: b.id,
+      name: b.name,
+      isDefault: b.isDefault,
+      embedToken: b.embedToken,
+    })),
   });
 }
 
@@ -138,6 +143,12 @@ function buildSnippet(token: string, position: string, theme: string) {
   document.head.appendChild(Object.assign(document.createElement('script'), { src: 'https://feediyo.com/sdk/v1/fdy.js', async: true }));
   window.feediyo.init('${token}', { position: '${position}', theme: '${theme}' });
 </script>`;
+}
+
+function buildBoardInlineSnippet(embedToken: string, theme: string) {
+  return `<!-- Place this div where you want the board to appear -->
+<div data-fdy-embed="${embedToken}" data-fdy-theme="${theme}" style="height:600px;"></div>
+<script src="https://feediyo.com/sdk/v1/fdy.js" async></script>`;
 }
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
@@ -234,6 +245,10 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
   const [position, setPosition] = useState<"left" | "right">(config.position);
   const [theme, setTheme] = useState<"light" | "dark" | "auto">(config.theme);
 
+  const defaultEmbedBoardId = boards.find((b) => b.isDefault)?.id ?? boards[0]?.id ?? "";
+  const [inlineBoardId, setInlineBoardId] = useState(defaultEmbedBoardId);
+  const selectedEmbedBoard = boards.find((b) => b.id === inlineBoardId) ?? boards[0];
+
   const currentToken = (regenFetcher.data as { ok?: boolean } | undefined)?.ok
     ? "(regenerated — reload to see new snippet)"
     : config.token;
@@ -280,9 +295,7 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium text-foreground">Widget</span>
@@ -293,7 +306,7 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
           <div>
             <h1 className="text-lg font-semibold tracking-tight">Embed Widget</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Add a floating feedback button to any website or React app.
+              Embed feedback on your site — as a floating button or an inline board.
             </p>
           </div>
 
@@ -426,8 +439,9 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
 
             <Tabs defaultValue="html">
               <TabsList className="h-9">
-                <TabsTrigger value="html">HTML</TabsTrigger>
-                <TabsTrigger value="react">React</TabsTrigger>
+                <TabsTrigger value="html">Floating (HTML)</TabsTrigger>
+                <TabsTrigger value="react">Floating (React)</TabsTrigger>
+                <TabsTrigger value="inline">Inline embed</TabsTrigger>
               </TabsList>
 
               <TabsContent value="html" className="space-y-2">
@@ -439,6 +453,43 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
                 <CodeBlock label="HTML" code={snippet} />
               </TabsContent>
 
+              <TabsContent value="inline" className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Renders a feedback board directly inside a{" "}
+                  <code className="text-xs bg-muted px-1 py-0.5 rounded">&lt;div&gt;</code> on your
+                  page — no floating button. Each board has its own embed token. Give the container a
+                  height (e.g.{" "}
+                  <code className="text-xs bg-muted px-1 py-0.5 rounded">height:600px</code>).
+                </p>
+                {boards.length > 1 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-muted-foreground">Board</span>
+                    <select
+                      value={inlineBoardId}
+                      onChange={(e) => setInlineBoardId(e.target.value)}
+                      className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring transition"
+                    >
+                      {boards.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                          {b.isDefault ? " ✓" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {selectedEmbedBoard ? (
+                  <CodeBlock
+                    label="HTML"
+                    code={buildBoardInlineSnippet(selectedEmbedBoard.embedToken, theme)}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No public boards available. Create a board first.
+                  </p>
+                )}
+              </TabsContent>
+
               <TabsContent value="react" className="space-y-3">
                 <StepBadge n={1} label="Install the package" />
                 <CodeBlock
@@ -447,7 +498,7 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
 # or: pnpm add @feediyo/react  /  yarn add @feediyo/react`}
                 />
 
-                <StepBadge n={2} label="Wrap your app with FeediyoProvider" />
+                <StepBadge n={2} label="Floating widget — wrap your app with FeediyoProvider" />
                 <CodeBlock
                   label="App.tsx  ·  layout.tsx  ·  root.tsx"
                   code={`import { FeediyoProvider } from '@feediyo/react';
@@ -455,7 +506,7 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
 export default function App() {
   return (
     <FeediyoProvider
-      projectId="${currentToken}"
+      token="${currentToken}"
       position="${position}"
       theme="${theme}"
     >
@@ -469,6 +520,41 @@ export default function App() {
                   — the provider loads the SDK automatically. Works with Next.js App Router, Remix,
                   React Router, and plain Vite.
                 </p>
+
+                <StepBadge n={3} label="Inline board — drop FeediyoBoard anywhere" />
+                {boards.length > 1 && (
+                  <div className="flex items-center gap-2 pl-7">
+                    <span className="text-xs font-medium text-muted-foreground">Board</span>
+                    <select
+                      value={inlineBoardId}
+                      onChange={(e) => setInlineBoardId(e.target.value)}
+                      className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring transition"
+                    >
+                      {boards.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                          {b.isDefault ? " ✓" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <CodeBlock
+                  label="feedback/page.tsx"
+                  code={`import { FeediyoBoard } from '@feediyo/react';
+
+// Renders the board inline — no floating button, no provider needed.
+// Give it a height; width is always 100%.
+export default function FeedbackPage() {
+  return (
+    <FeediyoBoard
+      token="${selectedEmbedBoard?.embedToken ?? currentToken}"
+      theme="${theme}"
+      style={{ height: 600 }}
+    />
+  );
+}`}
+                />
               </TabsContent>
             </Tabs>
 
@@ -601,7 +687,7 @@ export default function Root({ loaderData }) {
 
   return (
     <FeediyoProvider
-      projectId="${currentToken}"
+      token="${currentToken}"
       position="${position}"
       theme="${theme}"
       user={user && feediyoAuth
@@ -823,7 +909,6 @@ def my_view(request):
             </div>
           </section>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

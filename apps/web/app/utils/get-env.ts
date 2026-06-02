@@ -43,6 +43,8 @@ const envSchema = z.object({
   GROQ_API_KEY: z.string().optional(),
   // Comma-separated list of emails allowed to access /affiliate-admin
   AFFILIATE_ADMIN_EMAILS: z.string().optional(),
+  // Comma-separated list of user IDs with platform-admin access (impersonation, admin-users page)
+  PLATFORM_ADMIN_USER_IDS: z.string().optional(),
 });
 
 export const getEnv = () => {

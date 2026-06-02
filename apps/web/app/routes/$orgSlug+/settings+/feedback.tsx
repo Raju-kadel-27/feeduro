@@ -1,10 +1,9 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { FeedbackSettingsPanel } from "@features/feedback/components/settings/feedback-settings-panel";
 import { getOrgCategories } from "@features/feedback/server/categories.server";
 import { parseFeedbackSettings } from "@features/feedback/server/feedback-settings";
 import { getOrgTags } from "@features/feedback/server/tags.server";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts, member, organization } from "@/db/schema";
@@ -74,9 +73,7 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
   } = loaderData;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Feedback</span>
@@ -93,7 +90,6 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
             weeklyDigest={weeklyDigest}
           />
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

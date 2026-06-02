@@ -24,7 +24,7 @@ export function SettingsSidebar({ base }: Props) {
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild className="text-sm">
+              <SidebarMenuButton asChild className="text-base">
                 <Link to={`${base}/dashboard`}>
                   <ArrowLeft />
                   <span>Back to dashboard</span>
@@ -38,12 +38,12 @@ export function SettingsSidebar({ base }: Props) {
         <div key={label}>
           <SidebarSeparator />
           <SidebarGroup>
-            <SidebarGroupLabel>{label}</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-wider">{label}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-sm">
+                    <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-base">
                       <Link to={item.url}>
                         <item.icon />
                         <span>{item.title}</span>

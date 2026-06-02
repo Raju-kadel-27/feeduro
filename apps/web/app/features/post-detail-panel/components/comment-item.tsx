@@ -3,6 +3,15 @@ import { timeAgo } from "@features/feedback/utils";
 import { CornerDownRight, Lock, Trash2 } from "lucide-react";
 import { FeedbackAvatar } from "./feedback-avatar";
 
+function renderBody(body: string): React.ReactNode {
+  const parts = body.split(/(@\w+)/g);
+  return parts.map((part, i) =>
+    /^@\w+$/.test(part)
+      ? <span key={i} className="font-medium text-violet-600 dark:text-violet-400">{part}</span>
+      : part,
+  );
+}
+
 export function CommentItem({
   comment,
   isAdmin,
@@ -41,7 +50,7 @@ export function CommentItem({
             )}
           </div>
           <p className="text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
-            {comment.body}
+            {renderBody(comment.body)}
           </p>
           <div className="flex items-center gap-3 mt-1">
             <button
@@ -111,7 +120,7 @@ export function CommentItem({
                       </span>
                     </div>
                     <p className="text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
-                      {reply.body}
+                      {renderBody(reply.body)}
                     </p>
                     {isAdmin && (
                       <button

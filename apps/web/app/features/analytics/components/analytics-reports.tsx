@@ -1,11 +1,12 @@
 import type { loadAnalyticsOverview } from "../server/overview.server";
 import { ChangelogEngagementList } from "./changelog-engagement";
 import { CompanyEngagementTable } from "./company-engagement-table";
+import { SubscriberMetricsCard } from "./subscriber-metrics-card";
 import { TopPostsChart } from "./top-posts-chart";
 
 type ReportData = Pick<
   Awaited<ReturnType<typeof loadAnalyticsOverview>>,
-  "changelogEngagement" | "topPosts" | "companyEngagement" | "range"
+  "changelogEngagement" | "topPosts" | "companyEngagement" | "range" | "subscriberMetrics"
 >;
 
 const RANGE_LABEL: Record<string, string | undefined> = {
@@ -16,18 +17,27 @@ const RANGE_LABEL: Record<string, string | undefined> = {
 };
 
 export function AnalyticsReports({ data }: { data: ReportData }) {
-  const { changelogEngagement, topPosts, companyEngagement, range } = data;
+  const { changelogEngagement, topPosts, companyEngagement, range, subscriberMetrics } = data;
   const rangeLabel = RANGE_LABEL[range];
 
   return (
     <div className="space-y-6">
-      {/* Changelog engagement */}
-      <div className="rounded-xl border bg-card p-5 space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Changelog Engagement</h2>
-          <p className="text-xs text-muted-foreground">views · unique readers</p>
+      {/* Changelog engagement + subscribers side-by-side */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Changelog Engagement</h2>
+            <p className="text-xs text-muted-foreground">views · unique readers</p>
+          </div>
+          <ChangelogEngagementList entries={changelogEngagement} />
         </div>
-        <ChangelogEngagementList entries={changelogEngagement} />
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Changelog Subscribers</h2>
+            <p className="text-xs text-muted-foreground">active · new · churn</p>
+          </div>
+          <SubscriberMetricsCard metrics={subscriberMetrics} rangeLabel={rangeLabel} />
+        </div>
       </div>
 
       {/* Top requested + company engagement side-by-side */}

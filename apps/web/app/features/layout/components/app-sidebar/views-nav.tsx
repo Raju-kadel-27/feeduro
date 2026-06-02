@@ -20,12 +20,12 @@ export function ViewsNav({ base, sp, isDashboard }: Props) {
           Status
         </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-0.5">
           {COLUMNS.map((col) => {
             const isActive = isDashboard && sp.getAll("status").includes(col.id);
             return (
               <SidebarMenuItem key={col.id}>
-                <SidebarMenuButton asChild isActive={isActive}>
+                <SidebarMenuButton asChild isActive={isActive} className="text-sm">
                   <Link to={buildToggleUrl(base, sp, "status", col.id, isDashboard)}>
                     <span
                       className={`flex items-center justify-center h-3 w-3 rounded-sm border shrink-0 transition-colors ${isActive ? "bg-sidebar-primary border-sidebar-primary" : "border-sidebar-foreground/30"}`}

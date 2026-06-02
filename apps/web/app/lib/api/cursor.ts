@@ -1,0 +1,11 @@
+export function encodeCursor(date: Date): string {
+  return Buffer.from(date.toISOString()).toString("base64url");
+}
+
+export function decodeCursor(cursor: string): Date | null {
+  try {
+    return new Date(Buffer.from(cursor, "base64url").toString("utf8"));
+  } catch {
+    return null;
+  }
+}

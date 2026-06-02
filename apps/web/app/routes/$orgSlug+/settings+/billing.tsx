@@ -1,7 +1,7 @@
 import { Alert, AlertDescription } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { getAffiliateCodeFromRequest } from "@features/affiliate/server/cookies";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import {
@@ -9,7 +9,6 @@ import {
   changeDodoPlan,
   createDodoCheckoutSession,
 } from "@features/billing/server/dodo";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { authClient } from "@lib/auth/client";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, or } from "drizzle-orm";
@@ -282,9 +281,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Billing</span>
@@ -520,7 +517,6 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
             any time.
           </p>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

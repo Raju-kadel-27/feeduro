@@ -1,6 +1,5 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { authClient } from "@lib/auth/client";
 import { Fingerprint, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -73,9 +72,7 @@ export default function PasskeysSettings() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Passkeys</span>
@@ -158,7 +155,6 @@ export default function PasskeysSettings() {
             </p>
           </section>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

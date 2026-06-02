@@ -1,0 +1,187 @@
+---
+title: Categories
+description: Create and manage user-selectable post categories.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Categories are user-facing classifications that submitters choose when creating a post (e.g. "Bug", "Feature Request", "Improvement"). A post can have only one category; users can set it themselves.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/categories` | List all categories |
+| <span class="badge-method badge-post">POST</span> | `/v1/categories` | Create a category |
+| <span class="badge-method badge-delete">DELETE</span> | `/v1/categories/:id` | Delete a category |
+
+---
+
+## List categories
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/categories</code></div>
+
+### Parameters
+
+_No parameters._
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl https://app.feediyo.com/v1/categories \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/categories', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": [
+        { "id": "cat_01aaa111", "name": "Bug", "createdAt": "2025-06-01T00:00:00.000Z" },
+        { "id": "cat_01bbb222", "name": "Feature Request", "createdAt": "2025-06-01T00:01:00.000Z" },
+        { "id": "cat_01ccc333", "name": "Improvement", "createdAt": "2025-06-01T00:02:00.000Z" }
+      ]
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Unique category ID |
+| `name` | string | No | Display name — unique within the organization |
+| `createdAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Create a category
+
+<div class="endpoint-url"><span class="badge-method badge-post">POST</span><code>/v1/categories</code></div>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `name` | body | string | Yes | Unique within the organization — max 100 characters |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X POST https://app.feediyo.com/v1/categories \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "name": "Bug" }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/categories', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: 'Bug' }),
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="201 Created">
+    ```json
+    {
+      "data": { "id": "cat_01aaa111", "name": "Bug", "createdAt": "2026-05-30T10:00:00.000Z" }
+    }
+    ```
+  </TabItem>
+  <TabItem label="409 Conflict">
+    ```json
+    { "error": "Conflict — duplicate name", "code": "conflict" }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "fieldErrors": { "name": ["Required"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Delete a category
+
+<div class="endpoint-url"><span class="badge-method badge-delete">DELETE</span><code>/v1/categories/:id</code></div>
+
+Deletes the category. Posts that were assigned to it will have `categoryId` set to `null` automatically.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Category ID |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X DELETE https://app.feediyo.com/v1/categories/cat_01aaa111 \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    await fetch('https://app.feediyo.com/v1/categories/cat_01aaa111', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    { "success": true }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Posts](/posts) — assign a `categoryId` when creating or updating a post · [Tags](/tags) — multi-label alternative to categories
+
+</div>

@@ -1,0 +1,74 @@
+---
+title: Limits
+description: All hard limits and constraints for the Feediyo API.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Rate limits
+
+| Limit | Value |
+|-------|-------|
+| Requests per minute | **60 per API key** |
+| Response header when exceeded | `Retry-After: <seconds>` |
+
+When the limit is exceeded you receive `429 Too Many Requests`. Read the `Retry-After` header and wait that many seconds before retrying.
+
+To stay within the limit during bulk operations: use `limit: 100` (maximum page size) to minimize round trips, and add a small delay between paginated requests when iterating large datasets.
+
+---
+
+## Resource limits
+
+| Resource | Limit |
+|----------|-------|
+| Webhook endpoints per org | **10** |
+
+---
+
+## Field length limits
+
+| Resource | Field | Max length |
+|----------|-------|-----------|
+| Post | `title` | 500 characters |
+| Post | `description` | 10,000 characters |
+| Comment | `body` | 10,000 characters |
+| Tag | `name` | 100 characters |
+| Category | `name` | 100 characters |
+| Changelog entry | `title` | 500 characters |
+| Webhook endpoint | `name` | 100 characters |
+| User profile | `name`, `plan`, `role`, `industry`, `location` | No documented limit |
+
+---
+
+## Pagination limits
+
+| Parameter | Default | Maximum |
+|-----------|---------|---------|
+| `limit` | 25 | 100 |
+
+Requesting more than 100 results per page returns a `422` validation error.
+
+---
+
+## URL constraints
+
+| Constraint | Details |
+|-----------|---------|
+| Webhook endpoint URL | Must use **HTTPS** — HTTP URLs are rejected with a `422` |
+
+---
+
+## Nesting constraints
+
+| Resource | Constraint |
+|----------|-----------|
+| Comment replies | One level deep — replies cannot have their own replies |
+| Post tags | No documented per-post maximum |
+| Post categories | One category per post |
+
+---
+
+<Aside type="note">
+  Limits may change. Check this page or the [changelog](/changelog) when building integrations that approach these boundaries.
+</Aside>

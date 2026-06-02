@@ -1,5 +1,4 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { ColumnSkeleton } from "@features/roadmap/components/column-skeleton";
 import { KanbanBoard } from "@features/roadmap/components/kanban-board";
 import { useRoadmap } from "@features/roadmap/hooks/use-roadmap";
@@ -18,16 +17,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function RoadmapPage() {
   const loaderData = useLoaderData<typeof loader>();
-  const { posts, isLoading, updateStatus, patchGithubIssue } = useRoadmap(
+  const { posts, isLoading, updateStatus, updateRank, patchGithubIssue } = useRoadmap(
     loaderData.posts as Post[],
     loaderData.fetchedAt,
   );
   const total = posts.length;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <h1 className="text-sm font-semibold">Roadmap</h1>
@@ -50,13 +47,13 @@ export default function RoadmapPage() {
               <KanbanBoard
                 posts={posts}
                 onStatusChange={(id, status) => updateStatus({ id, status })}
+                onRankChange={(status, orderedIds) => updateRank({ status, orderedIds })}
                 hasGithubIntegration={loaderData.hasGithubIntegration}
                 onIssueCreated={patchGithubIssue}
               />
             )}
           </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

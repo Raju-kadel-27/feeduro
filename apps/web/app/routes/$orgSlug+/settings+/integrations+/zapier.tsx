@@ -1,9 +1,8 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getIntegration, parseSettings } from "@features/integrations/server/queries";
 import type { ZapierSettings } from "@features/integrations/zapier/server/schemas";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
@@ -136,9 +135,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm text-muted-foreground">
@@ -214,9 +211,22 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
                 <span className="text-sm font-medium">Configure webhook</span>
               </div>
               {connected && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-600">
-                  Connected
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-600">
+                    Connected
+                  </span>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={handleDisconnect}
+                      disabled={disconnecting}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                    >
+                      <Unplug className="h-3 w-3" />
+                      {disconnecting ? "Disconnecting…" : "Disconnect"}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
@@ -300,30 +310,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
             </div>
           </section>
 
-          {/* Disconnect */}
-          {connected && isAdmin && (
-            <section className="rounded-lg border border-destructive/30 overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">
-                <span className="text-sm font-medium text-destructive">Danger zone</span>
-              </div>
-              <div className="p-4 flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                  Remove the Zapier webhook. Events will stop being forwarded.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleDisconnect}
-                  disabled={disconnecting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-destructive/40 text-destructive hover:bg-destructive/5 disabled:opacity-50 transition-colors"
-                >
-                  <Unplug className="h-3 w-3" />
-                  {disconnecting ? "Disconnecting…" : "Disconnect"}
-                </button>
-              </div>
-            </section>
-          )}
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

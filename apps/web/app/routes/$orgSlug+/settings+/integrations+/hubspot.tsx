@@ -1,9 +1,8 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import type { HubSpotSettings } from "@features/integrations/hubspot/server/schemas";
 import { getIntegration, parseSettings } from "@features/integrations/server/queries";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getEnv } from "@utils/get-env";
@@ -116,9 +115,7 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
       : "Connected";
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm text-muted-foreground">
@@ -161,32 +158,33 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
                 <span className="text-sm font-medium">Connect HubSpot</span>
               </div>
               {connected && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-600">
-                  {connectedLabel}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-600">
+                    {connectedLabel}
+                  </span>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={handleDisconnect}
+                      disabled={disconnecting}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                    >
+                      <Unplug className="h-3 w-3" />
+                      {disconnecting ? "Disconnecting…" : "Disconnect"}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
             <div className="p-4 space-y-3">
               {connected ? (
-                <div className="flex items-center gap-2">
-                  <a
-                    href="/api/hubspot?intent=connect"
-                    className="text-xs text-muted-foreground hover:text-foreground underline"
-                  >
-                    Reconnect
-                  </a>
-                  <span className="text-muted-foreground/40">·</span>
-                  <button
-                    type="button"
-                    onClick={handleDisconnect}
-                    disabled={disconnecting}
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-                  >
-                    <Unplug className="h-3 w-3" />
-                    {disconnecting ? "Disconnecting…" : "Disconnect"}
-                  </button>
-                </div>
+                <a
+                  href="/api/hubspot?intent=connect"
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Reconnect
+                </a>
               ) : (
                 <div className="space-y-3">
                   {!configured && (
@@ -291,7 +289,6 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
             </section>
           )}
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

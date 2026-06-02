@@ -1,11 +1,10 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
 import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { SubscriptionsSection } from "@features/changelog/components/settings/subscriptions-section";
 import { TagsSection } from "@features/changelog/components/settings/tags-section";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -54,9 +53,7 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Changelog</span>
@@ -89,7 +86,6 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
 
           <TagsSection initialTags={loaderData.tags} />
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

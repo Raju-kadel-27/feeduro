@@ -1,9 +1,8 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { organization } from "@/db/schema";
@@ -48,9 +47,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Branding</span>
@@ -66,7 +63,6 @@ export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
 
           <BrandingForm defaultValues={loaderData} />
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

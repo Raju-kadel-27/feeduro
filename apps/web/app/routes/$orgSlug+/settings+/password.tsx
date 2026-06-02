@@ -1,7 +1,6 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { ChangePasswordForm } from "@features/auth/components/change-password-form";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { LogOut, ShieldCheck } from "lucide-react";
 
 import type { Route } from "./+types/password";
@@ -17,9 +16,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function PasswordSettings() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Change Password</span>
@@ -40,7 +37,7 @@ export default function PasswordSettings() {
                 Choose a strong, unique password you don't use elsewhere.
               </p>
             </div>
-            <div className="px-6 py-6 max-w-sm">
+            <div className="px-6 py-6">
               <ChangePasswordForm />
             </div>
           </section>
@@ -70,7 +67,6 @@ export default function PasswordSettings() {
             </div>
           </section>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

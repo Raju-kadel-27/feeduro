@@ -1,0 +1,32 @@
+---
+import { API_ERRORS } from "@feediyo/errors";
+
+interface Props {
+  status: number;
+}
+
+const { status } = Astro.props;
+
+const errors = Object.entries(API_ERRORS)
+  .filter(([, def]) => def.status === status)
+  .map(([code, def]) => ({ code, cause: def.cause, fix: def.fix }));
+---
+
+<table>
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Cause</th>
+      <th>Fix</th>
+    </tr>
+  </thead>
+  <tbody>
+    {errors.map(({ code, cause, fix }) => (
+      <tr>
+        <td><code>{code}</code></td>
+        <td set:html={cause} />
+        <td set:html={fix} />
+      </tr>
+    ))}
+  </tbody>
+</table>

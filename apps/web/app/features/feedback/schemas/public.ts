@@ -72,3 +72,19 @@ export const FeedbackSubmitResponseSchema = z.object({
   error: z.string().optional(),
   id: z.string().optional(),
 });
+
+export const PublicCommentReplySchema = z.object({
+  id: z.string(),
+  body: z.string(),
+  parentId: z.string().nullable(),
+  userId: z.string().nullable(),
+  createdAt: z.string(),
+  authorName: z.string().nullable(),
+  authorImage: z.string().nullable(),
+});
+
+export const PublicCommentSchema = PublicCommentReplySchema.extend({
+  replies: z.array(PublicCommentReplySchema),
+});
+
+export type PublicComment = z.infer<typeof PublicCommentSchema>;

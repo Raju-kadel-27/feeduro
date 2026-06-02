@@ -27,10 +27,40 @@ export function useRoadmap(initialPosts: Post[], fetchedAt: number) {
       if (!json.success) throw new Error(json.error ?? "Failed");
       return json;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["roadmap"] }),
+    onSuccess: (_, { id, status }) => {
+      qc.setQueryData<{ posts: Post[] }>(["roadmap"], (old) => {
+        if (!old) return old;
+        return { posts: old.posts.map((p) => (p.id === id ? { ...p, status } : p)) };
+      });
+    },
     onError: (err) => {
       qc.invalidateQueries({ queryKey: ["roadmap"] });
       toast.error(err instanceof Error ? err.message : "Failed to update status");
+    },
+  });
+
+  const { mutate: updateRank } = useMutation({
+    mutationFn: async ({ status, orderedIds }: { status: Status; orderedIds: string[] }) => {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "update_rank", status, orderedIds }),
+      });
+      const json = (await res.json()) as { success?: boolean; error?: string };
+      if (!json.success) throw new Error(json.error ?? "Failed");
+      return json;
+    },
+    onSuccess: (_, { orderedIds }) => {
+      qc.setQueryData<{ posts: Post[] }>(["roadmap"], (old) => {
+        if (!old) return old;
+        const rankMap = new Map(orderedIds.map((id, i) => [id, i]));
+        return {
+          posts: old.posts.map((p) => (rankMap.has(p.id) ? { ...p, rank: rankMap.get(p.id) } : p)),
+        };
+      });
+    },
+    onError: () => {
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
     },
   });
 
@@ -49,6 +79,7 @@ export function useRoadmap(initialPosts: Post[], fetchedAt: number) {
     posts: data?.posts ?? [],
     isLoading,
     updateStatus,
+    updateRank,
     patchGithubIssue,
   };
 }

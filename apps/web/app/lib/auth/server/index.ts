@@ -3,9 +3,10 @@ import { passkey } from "@better-auth/passkey";
 import { sso } from "@better-auth/sso";
 import { sendResetPasswordEmail } from "@features/jobs/send-reset-password-email";
 import { getBaseUrl } from "@utils/base-url";
+import { getEnv } from "@utils/get-env";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { lastLoginMethod, twoFactor } from "better-auth/plugins";
+import { admin, lastLoginMethod, twoFactor } from "better-auth/plugins";
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
 import { buildDodoPlugin } from "./dodo-plugin";
@@ -64,6 +65,12 @@ export const auth = betterAuth({
   socialProviders,
 
   plugins: [
+    admin({
+      adminUserIds: (getEnv().PLATFORM_ADMIN_USER_IDS ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    }),
     lastLoginMethod(),
     twoFactor(),
     passkey(),

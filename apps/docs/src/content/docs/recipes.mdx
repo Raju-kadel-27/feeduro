@@ -1,0 +1,202 @@
+---
+title: Recipes
+description: End-to-end integration patterns for common Feediyo use cases.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+These recipes show how to combine multiple endpoints to solve real integration problems. Each is a complete, runnable TypeScript snippet.
+
+---
+
+## Recipe 1 — Submit feedback as a signed-in user
+
+The most common integration: your app identifies the current user and submits a post (and optional vote) on their behalf.
+
+```ts title="submit-feedback.ts"
+const API_KEY = process.env.FEEDIYO_API_KEY!;
+const BOARD_ID = 'board_01abc123'; // from GET /v1/boards
+
+async function submitFeedback(user: {
+  email: string;
+  name: string;
+  plan?: string;
+}, feedback: { title: string; description?: string }) {
+  const headers = {
+    Authorization: `Bearer ${API_KEY}`,
+    'Content-Type': 'application/json',
+  };
+
+  // 1. Upsert the user profile — safe to call on every session
+  const identifyRes = await fetch('https://app.feediyo.com/v1/users/identify', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(user),
+  });
+  const { data: { id: userId } } = await identifyRes.json();
+
+  // 2. Create the post
+  const postRes = await fetch('https://app.feediyo.com/v1/posts', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ boardId: BOARD_ID, ...feedback }),
+  });
+  const { data: post } = await postRes.json();
+
+  // 3. Cast one vote for the submitter
+  await fetch('https://app.feediyo.com/v1/votes', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ postId: post.id, userId }),
+  });
+
+  return post;
+}
+```
+
+---
+
+## Recipe 2 — Slack notification on status change
+
+Listen to the `feedback.status_changed` webhook and post a formatted message to Slack.
+
+<Aside type="caution">
+  Always verify the webhook signature before processing the payload. See the [Webhooks](/webhooks) page for the full verification code.
+</Aside>
+
+```ts title="webhook-handler.ts (Node.js / Hono / Express)"
+import { createHmac, timingSafeEqual } from 'crypto';
+
+const WEBHOOK_SECRET = process.env.FEEDIYO_WEBHOOK_SECRET!;
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL!;
+
+function verifySignature(rawBody: string, header: string): boolean {
+  const expected = 'sha256=' + createHmac('sha256', WEBHOOK_SECRET).update(rawBody).digest('hex');
+  const a = Buffer.from(header);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+// Express handler — adapt for your framework
+export async function handleFeediyo(req: Request): Promise<Response> {
+  const rawBody = await req.text();
+  const sig = req.headers.get('x-webhook-signature') ?? '';
+
+  if (!verifySignature(rawBody, sig)) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const event = JSON.parse(rawBody);
+
+  if (event.event === 'feedback.status_changed') {
+    const { id, oldStatus, newStatus } = event.data;
+    await fetch(SLACK_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: `📋 Post \`${id}\` moved *${oldStatus}* → *${newStatus}*`,
+      }),
+    });
+  }
+
+  return new Response('ok', { status: 200 });
+}
+```
+
+---
+
+## Recipe 3 — Export all feedback to CSV
+
+Paginate through every post and write a CSV file. Uses the `fetchAll` pattern from the [Pagination](/pagination) page.
+
+```ts title="export-to-csv.ts"
+import { writeFileSync } from 'fs';
+
+const API_KEY = process.env.FEEDIYO_API_KEY!;
+
+async function fetchAllPosts() {
+  const rows: object[] = [];
+  let cursor: string | null = null;
+
+  do {
+    const url = new URL('https://app.feediyo.com/v1/posts');
+    url.searchParams.set('limit', '100');
+    if (cursor) url.searchParams.set('cursor', cursor);
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${API_KEY}` },
+    });
+    const page = await res.json();
+    rows.push(...page.data);
+    cursor = page.hasMore ? page.cursor : null;
+  } while (cursor);
+
+  return rows;
+}
+
+async function exportCSV() {
+  const posts = await fetchAllPosts() as any[];
+
+  const header = 'id,title,status,voteCount,boardId,createdAt';
+  const lines = posts.map((p) =>
+    [p.id, `"${p.title.replace(/"/g, '""')}"`, p.status, p.voteCount, p.boardId, p.createdAt].join(',')
+  );
+
+  writeFileSync('feedback-export.csv', [header, ...lines].join('\n'));
+  console.log(`Exported ${posts.length} posts to feedback-export.csv`);
+}
+
+exportCSV();
+```
+
+---
+
+## Recipe 4 — Publish a changelog entry from CI/CD
+
+Automate changelog publishing as part of your release pipeline. Run this after tagging a release.
+
+```ts title="publish-changelog.ts"
+import { execSync } from 'child_process';
+
+const API_KEY = process.env.FEEDIYO_API_KEY!;
+
+function getReleaseNotes(): string {
+  // Extract commits since last tag
+  const tag = execSync('git describe --tags --abbrev=0 HEAD^').toString().trim();
+  const log = execSync(`git log ${tag}..HEAD --oneline`).toString().trim();
+  return log
+    .split('\n')
+    .map((line) => `- ${line.replace(/^[a-f0-9]+ /, '')}`)
+    .join('\n');
+}
+
+async function publishChangelog(version: string) {
+  const notes = getReleaseNotes();
+
+  const res = await fetch('https://app.feediyo.com/v1/changelog', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: `Release ${version}`,
+      body: `<pre>${notes}</pre>`,
+      status: 'published',
+    }),
+  });
+
+  const { data } = await res.json();
+  console.log(`Published changelog: ${data.id} (slug: ${data.slug})`);
+}
+
+const version = process.argv[2] ?? 'v0.0.0';
+publishChangelog(version);
+```
+
+```bash title="In your GitHub Actions release workflow"
+- name: Publish changelog
+  run: npx tsx publish-changelog.ts ${{ github.ref_name }}
+  env:
+    FEEDIYO_API_KEY: ${{ secrets.FEEDIYO_API_KEY }}
+```

@@ -1,9 +1,8 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
 import { PublishConfirmPopover } from "@features/changelog/components/publish-confirm-popover";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { ArrowLeft, Check, Clock, Globe } from "lucide-react";
@@ -229,9 +228,7 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
   const isBusy = saving || publishing || unpublishing;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <button
@@ -318,7 +315,6 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
             )}
           </div>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }

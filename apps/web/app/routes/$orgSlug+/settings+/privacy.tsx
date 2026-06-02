@@ -1,9 +1,8 @@
 import { Badge } from "@components/ui/badge";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { eq } from "drizzle-orm";
 import { EyeOff, Lock, ShieldCheck, Users } from "lucide-react";
 import { useState } from "react";
@@ -130,9 +129,7 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Privacy & Access</span>
@@ -178,7 +175,6 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
             lockedPlan={!loaderData.canMaskIdentities ? "Professional" : undefined}
           />
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

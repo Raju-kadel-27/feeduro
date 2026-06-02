@@ -1,0 +1,91 @@
+---
+title: Introduction
+description: Feediyo public REST API — manage feedback boards, changelog, users, and roadmaps programmatically.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The Feediyo API lets you read and write your product data from any external system — sync roadmap status, push user segments, build integrations, or automate changelog publishing.
+
+## Base URL
+
+```
+https://app.feediyo.com/v1
+```
+
+All requests and responses use JSON. Every endpoint requires authentication — see [Authentication](/authentication). Want to try endpoints interactively? Jump to the [API Explorer](/api-explorer).
+
+## Response format
+
+**List endpoints**
+
+```json title="List response shape"
+{
+  "data": [ { "id": "..." } ],
+  "hasMore": true,
+  "cursor": "eyIyMDI2LTA1LTMwVDEwOjAwOjAwLjAwMFoifQ"
+}
+```
+
+**Single resource**
+
+```json title="Single resource shape"
+{
+  "data": { "id": "..." }
+}
+```
+
+**Errors**
+
+```json title="Error shape"
+{
+  "error": "Human-readable message",
+  "code": "machine_readable_code"
+}
+```
+
+Validation errors (422) include per-field details:
+
+```json title="Validation error"
+{
+  "error": "Validation failed",
+  "code": "validation_error",
+  "details": {
+    "fieldErrors": { "title": ["Required"] },
+    "formErrors": []
+  }
+}
+```
+
+## HTTP status codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `201` | Resource created |
+| `400` | Bad request — invalid query parameters |
+| `401` | Missing or invalid API key |
+| `404` | Resource not found or outside your org |
+| `405` | Method not allowed |
+| `409` | Conflict — duplicate name, already voted, etc. |
+| `422` | Validation error — check `details` for field errors |
+| `429` | Rate limit exceeded (60 req/min per key) |
+
+## Rate limits
+
+The API enforces a limit of **60 requests per minute** per API key. When exceeded, all requests return `429 Too Many Requests` until the window resets.
+
+```http title="429 response headers"
+HTTP/1.1 429 Too Many Requests
+Retry-After: 30
+```
+
+```json title="429 body"
+{ "error": "Rate limit exceeded", "code": "rate_limit_exceeded" }
+```
+
+Respect the `Retry-After` header value (seconds) before retrying. For bulk operations, use cursor pagination's `limit: 100` to minimise round trips.
+
+<Aside type="tip">
+  All timestamps are ISO 8601 strings in UTC — e.g. `"2026-05-30T10:00:00.000Z"`. All IDs are CUID2 strings.
+</Aside>

@@ -126,6 +126,30 @@ export async function createJiraIssue(
   };
 }
 
+export async function searchJiraIssues(
+  accessToken: string,
+  cloudId: string,
+  cloudUrl: string,
+  query: string,
+): Promise<JiraIssueResult[]> {
+  const jql = encodeURIComponent(`text ~ "${query.replace(/"/g, "")}" ORDER BY updated DESC`);
+  const d = await jiraFetch<{
+    issues: Array<{ id: string; key: string; fields: { summary: string; status: { name: string } } }>;
+  }>(accessToken, `${jiraApiBase(cloudId)}/issue/search?jql=${jql}&fields=summary,status&maxResults=10`);
+  return d.issues.map((i) => ({
+    id: i.id, key: i.key,
+    url: `${cloudUrl}/browse/${i.key}`,
+    summary: i.fields.summary,
+    statusName: i.fields.status.name,
+  }));
+}
+
+// Extracts the issue key from a Jira URL (browse/PROJ-42) or returns the value unchanged.
+export function parseJiraInput(input: string): string {
+  const match = input.trim().match(/\/(?:browse|issues)\/([A-Z][A-Z0-9_]*-\d+)/i);
+  return match?.[1]?.toUpperCase() ?? input.trim();
+}
+
 export async function getJiraIssueByKey(
   accessToken: string,
   cloudId: string,

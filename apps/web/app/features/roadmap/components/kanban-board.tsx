@@ -17,11 +17,13 @@ function buildGroups(posts: Post[]): Groups {
 export function KanbanBoard({
   posts,
   onStatusChange,
+  onRankChange,
   hasGithubIntegration,
   onIssueCreated,
 }: {
   posts: Post[];
   onStatusChange: (id: string, status: Status) => void;
+  onRankChange: (status: Status, orderedIds: string[]) => void;
   hasGithubIntegration: boolean;
   onIssueCreated: (postId: string, issueNumber: number, issueUrl: string) => void;
 }) {
@@ -45,25 +47,24 @@ export function KanbanBoard({
       return;
     }
 
-    setGroups((current) => {
-      const postStatusMap = new Map(posts.map((p) => [p.id, p.status]));
-      const postIds = new Set(posts.map((p) => p.id));
-      const result = {} as Groups;
+    const current = latestGroups.current;
+    const postStatusMap = new Map(posts.map((p) => [p.id, p.status]));
+    const postIds = new Set(posts.map((p) => p.id));
+    const result = {} as Groups;
 
-      for (const col of COLUMNS) {
-        result[col.id] = current[col.id].filter(
-          (id) => postIds.has(id) && postStatusMap.get(id) === col.id,
-        );
-      }
+    for (const col of COLUMNS) {
+      result[col.id] = current[col.id].filter(
+        (id) => postIds.has(id) && postStatusMap.get(id) === col.id,
+      );
+    }
 
-      const tracked = new Set(Object.values(result).flat());
-      for (const post of posts) {
-        if (!tracked.has(post.id)) result[post.status].push(post.id);
-      }
+    const tracked = new Set(Object.values(result).flat());
+    for (const post of posts) {
+      if (!tracked.has(post.id)) result[post.status].push(post.id);
+    }
 
-      latestGroups.current = result;
-      return result;
-    });
+    latestGroups.current = result;
+    setGroups(result);
   }, [posts]);
 
   return (
@@ -91,10 +92,20 @@ export function KanbanBoard({
         const prev = previousGroups.current;
         const curr = latestGroups.current;
         for (const { id: status } of COLUMNS) {
-          for (const itemId of curr[status]) {
-            if (!prev[status].includes(itemId)) {
+          const prevSet = new Set(prev[status]);
+          const currOrder = curr[status];
+          for (const itemId of currOrder) {
+            if (!prevSet.has(itemId)) {
               onStatusChange(itemId, status);
             }
+          }
+          // Persist rank when items were added or reordered within this column
+          const orderChanged =
+            currOrder.some((id) => !prevSet.has(id)) ||
+            (currOrder.length === prev[status].length &&
+              currOrder.some((id, i) => id !== prev[status][i]));
+          if (orderChanged) {
+            onRankChange(status as Status, currOrder);
           }
         }
       }}

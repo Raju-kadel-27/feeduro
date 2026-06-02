@@ -33,10 +33,11 @@
     "db:nuke": "dotenv -e .env -- tsx db/nuke.ts",
     "schema:generate": "dotenv -e .env -- npx @better-auth/cli@latest generate --config ./app/lib/auth/server.ts --output ./db/schema/better-auth.ts --yes",
     "dodo:login": "dodo login",
-    "dodo:webhook": "NODE_OPTIONS=--experimental-websocket dodo wh listen --forward-to localhost:3000/api/auth/dodopayments/webhooks",
+    "dodo:webhook": "NODE_OPTIONS=--experimental-websocket dodo wh listen --forward-to http://localhost:3000/api/auth/dodopayments/webhooks",
     "prepare": "husky"
   },
   "dependencies": {
+    "@feediyo/errors": "workspace:*",
     "@better-auth/api-key": "^1.6.9",
     "@better-auth/passkey": "^1.6.5",
     "@better-auth/sso": "^1.6.9",
@@ -101,6 +102,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
+    "unique-names-generator": "^4.7.1",
     "vite-tsconfig-paths": "^6.1.1",
     "zod": "^4.3.6"
   },

@@ -200,13 +200,14 @@
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 
 @keyframes fade-in {
   from { opacity: 0; }
@@ -219,7 +220,7 @@
 }
 
 .animate-page-enter {
-  animation: page-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: page-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-in {
@@ -240,8 +241,8 @@
   }
 
   ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;

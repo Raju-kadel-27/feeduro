@@ -12,6 +12,7 @@ export interface Post {
   commentCount: number;
   githubIssueNumber: number | null;
   githubIssueUrl: string | null;
+  rank?: number | null;
   boardName?: string | null;
   authorName?: string | null;
   authorImage?: string | null;

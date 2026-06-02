@@ -38,12 +38,22 @@ export async function loadRoadmapData(request: Request, orgSlug: string) {
     const boardMap = Object.fromEntries(boards.map((b) => [b.id, b.name]));
     const userMap = Object.fromEntries(users.map((u) => [u.id, { name: u.name, image: u.image }]));
 
-    posts = enrichedPosts.map((p) => ({
-      ...p,
-      boardName: boardMap[p.boardId] ?? null,
-      authorName: userMap[p.createdBy]?.name ?? null,
-      authorImage: userMap[p.createdBy]?.image ?? null,
-    }));
+    posts = enrichedPosts
+      .map((p) => ({
+        ...p,
+        boardName: boardMap[p.boardId] ?? null,
+        authorName: userMap[p.createdBy]?.name ?? null,
+        authorImage: userMap[p.createdBy]?.image ?? null,
+      }))
+      .sort((a, b) => {
+        if (a.rank == null && b.rank == null)
+          return b.createdAt.getTime() - a.createdAt.getTime();
+        if (a.rank == null) return 1;
+        if (b.rank == null) return -1;
+        return a.rank !== b.rank
+          ? a.rank - b.rank
+          : b.createdAt.getTime() - a.createdAt.getTime();
+      });
   }
 
   return {

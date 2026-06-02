@@ -68,6 +68,29 @@ export function useCommentActions(postId: string, onDataChange: () => void) {
     },
   });
 
+  const { mutate: createCommentWithStatus, isPending: creatingWithStatus } = useMutation({
+    mutationFn: async (afterStatus: string) => {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "create", postId, body: newComment.trim(), isInternal }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "update_status", id: postId, status: afterStatus }),
+      });
+    },
+    onSuccess: () => {
+      setNewComment("");
+      setIsInternal(false);
+      qc.invalidateQueries({ queryKey: ["comments", postId] });
+      qc.invalidateQueries({ queryKey: ["feedback"] });
+      onDataChange();
+    },
+  });
+
   const { mutate: generateSummary, isPending: generatingSummary } = useMutation({
     mutationFn: async () => {
       const res = await fetch("/api/comment-summary", {
@@ -100,6 +123,8 @@ export function useCommentActions(postId: string, onDataChange: () => void) {
     setSummaryGeneratedAt,
     createComment,
     creating,
+    createCommentWithStatus,
+    creatingWithStatus,
     createReply,
     replying,
     deleteComment,

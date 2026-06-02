@@ -1,7 +1,6 @@
-import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
+
 import { Spinner } from "@components/ui/spinner";
 import type { SuggestionWithPosts } from "@features/autopilot/types";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bot, Check, ExternalLink, Merge, X } from "lucide-react";
 import { Link, useParams } from "react-router";
@@ -48,9 +47,6 @@ export default function AutopilotPage() {
   const suggestions = data ?? [];
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
           <div className="flex items-center gap-3">
             <Bot className="h-6 w-6 text-primary" />
@@ -146,8 +142,6 @@ export default function AutopilotPage() {
             </div>
           ))}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
   );
 }
 

@@ -66,6 +66,8 @@ export const LinearActionSchema = z.discriminatedUnion("intent", [
     intent: z.literal("create_issue"),
     postId: z.string().min(1),
     teamId: z.string().optional(),
+    title: z.string().optional(),
+    description: z.string().optional(),
   }),
   z.object({
     intent: z.literal("link_issue"),
@@ -73,6 +75,7 @@ export const LinearActionSchema = z.discriminatedUnion("intent", [
     issueId: z.string().min(1),
   }),
   z.object({ intent: z.literal("unlink_issue"), postId: z.string().min(1) }),
+  z.object({ intent: z.literal("search_issues"), query: z.string().min(1) }),
 ]);
 
 export type LinearWorkspace = z.infer<typeof LinearWorkspaceSchema>;

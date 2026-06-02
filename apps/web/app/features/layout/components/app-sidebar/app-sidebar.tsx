@@ -20,11 +20,13 @@ export function AppSidebar() {
         <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarSeparator />
-      {isSettingsRoute ? (
-        <SettingsSidebar base={base} />
-      ) : (
-        <WorkspaceSidebar base={base} orgSlug={orgSlug} isDashboard={isDashboard} />
-      )}
+      <div key={isSettingsRoute ? "settings" : "workspace"} className="animate-in fade-in slide-in-from-left-1 duration-150 flex flex-col flex-1 overflow-hidden">
+        {isSettingsRoute ? (
+          <SettingsSidebar base={base} />
+        ) : (
+          <WorkspaceSidebar base={base} orgSlug={orgSlug} isDashboard={isDashboard} />
+        )}
+      </div>
       <div className="px-3">
         <button
           type="button"

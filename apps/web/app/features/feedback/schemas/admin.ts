@@ -85,9 +85,9 @@ export const PostDetailSchema = z.object({
   ownerId: z.string().nullable(),
   ownerName: z.string().nullable(),
   ownerImage: z.string().nullable(),
+  submitterEmail: z.string().nullable(),
 });
 export type PostDetail = z.infer<typeof PostDetailSchema>;
-
 export const DetailDataSchema = z.object({
   postDetail: PostDetailSchema,
   board: z.object({ name: z.string(), slug: z.string(), visibility: z.string() }),

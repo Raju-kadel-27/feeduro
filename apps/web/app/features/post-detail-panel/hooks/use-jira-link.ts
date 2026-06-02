@@ -9,11 +9,11 @@ export function useJiraLink(postId: string) {
   const [linkJiraInput, setLinkJiraInput] = useState("");
 
   const { mutate: createJiraIssue, isPending: creatingJiraIssue } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (params?: { summary?: string; description?: string; projectKey?: string }) => {
       const res = await fetch("/api/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent: "create_issue", postId }),
+        body: JSON.stringify({ intent: "create_issue", postId, ...params }),
       });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error ?? "Failed");

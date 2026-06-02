@@ -9,6 +9,7 @@
   var isOpen = false;
   var pendingIdentity = null;
   var initialized = false;
+  var inlineIframes = [];
 
   // ─── Styles ─────────────────────────────────────────────────────────────────
 
@@ -83,8 +84,44 @@
   }
 
   function sendPendingIdentity() {
-    if (pendingIdentity && iframeEl?.contentWindow) {
-      iframeEl.contentWindow.postMessage({ type: "fdy:identify", data: pendingIdentity }, BASE_URL);
+    if (!pendingIdentity) return;
+    var all = (iframeEl ? [iframeEl] : []).concat(inlineIframes);
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].contentWindow) {
+        all[i].contentWindow.postMessage({ type: "fdy:identify", data: pendingIdentity }, BASE_URL);
+      }
+    }
+  }
+
+  function embed(token, target, options) {
+    options = options || {};
+    var theme = options.theme || "auto";
+    var container = typeof target === "string" ? document.querySelector(target) : target;
+    if (!container) return;
+
+    var f = document.createElement("iframe");
+    f.src = BASE_URL + "/widget/" + token + "?mode=inline&theme=" + encodeURIComponent(theme);
+    f.style.cssText = "width:100%;height:100%;border:none;display:block;";
+    f.setAttribute("title", "Feedback");
+    f.setAttribute("loading", "lazy");
+    f.setAttribute("allow", "clipboard-write");
+    f.addEventListener("load", function () {
+      if (pendingIdentity && f.contentWindow) {
+        f.contentWindow.postMessage({ type: "fdy:identify", data: pendingIdentity }, BASE_URL);
+      }
+    });
+    container.style.overflow = "hidden";
+    container.appendChild(f);
+    inlineIframes.push(f);
+  }
+
+  function autoDetectEmbeds() {
+    var containers = document.querySelectorAll("[data-fdy-embed]");
+    for (var i = 0; i < containers.length; i++) {
+      var el = containers[i];
+      var token = el.getAttribute("data-fdy-embed");
+      var theme = el.getAttribute("data-fdy-theme") || "auto";
+      if (token) embed(token, el, { theme: theme });
     }
   }
 
@@ -140,11 +177,53 @@
     sendPendingIdentity();
   }
 
+  function showWidget() {
+    if (!initialized || isOpen) return;
+    toggle();
+  }
+
+  function hideWidget() {
+    if (!initialized || !isOpen) return;
+    toggle();
+  }
+
+  function setTheme(theme) {
+    var msg = { type: "fdy:setTheme", theme: theme };
+    var all = (iframeEl ? [iframeEl] : []).concat(inlineIframes);
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].contentWindow) {
+        all[i].contentWindow.postMessage(msg, BASE_URL);
+      }
+    }
+  }
+
+  function destroy() {
+    panelEl?.remove();
+    btnEl?.remove();
+    document.getElementById("fdy-styles")?.remove();
+    for (var i = 0; i < inlineIframes.length; i++) {
+      inlineIframes[i].remove();
+    }
+    iframeEl = null;
+    panelEl = null;
+    btnEl = null;
+    inlineIframes = [];
+    isOpen = false;
+    initialized = false;
+  }
+
   // ─── Queue processing ────────────────────────────────────────────────────────
 
   var queue = Array.isArray(window.$fdyq) ? window.$fdyq.slice() : [];
 
-  window.feediyo = { init: init, identify: identify };
+  window.feediyo = { init, identify, embed, showWidget, hideWidget, setTheme, destroy };
+
+  // Auto-detect <... data-fdy-embed="TOKEN"> containers
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", autoDetectEmbeds);
+  } else {
+    autoDetectEmbeds();
+  }
 
   // Make future calls via the still-existing proxy hit the real functions
   window.$fdyq = {

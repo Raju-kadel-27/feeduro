@@ -17,6 +17,7 @@ import type { VoterTraitCounts } from "@features/segmentation/types";
 import { dispatchWebhook } from "@features/webhooks/server/dispatch";
 import { getEnv } from "@utils/get-env";
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { z } from "zod";
 import { data } from "react-router";
 import { getDb } from "@/db";
 import {
@@ -247,12 +248,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const posts = await db.query.feedbackPosts.findMany({
     where: and(...conditions),
-    orderBy: [desc(feedbackPosts.createdAt)],
+    orderBy: [sql`rank ASC NULLS LAST`, desc(feedbackPosts.createdAt)],
   });
 
   const postIds = posts.map((p) => p.id);
 
-  const [allVotes, commentCountRows, voterTraitCounts, postTagRows] = await Promise.all([
+  const authorIds = [...new Set(posts.map((p) => p.createdBy).filter(Boolean))];
+
+  const [allVotes, commentCountRows, voterTraitCounts, postTagRows, authors] = await Promise.all([
     postIds.length > 0
       ? db.query.votes.findMany({ where: eq(votes.organizationId, organizationId) })
       : Promise.resolve([]),
@@ -270,9 +273,16 @@ export async function loader({ request }: Route.LoaderArgs) {
       ? getVoterTraitCountsByPost(organizationId, postIds)
       : Promise.resolve({} as Record<string, VoterTraitCounts>),
     postIds.length > 0 ? getPostTagsBatch(postIds) : Promise.resolve([]),
+    authorIds.length > 0
+      ? db
+          .select({ id: user.id, name: user.name, image: user.image })
+          .from(user)
+          .where(inArray(user.id, authorIds))
+      : Promise.resolve([]),
   ]);
 
   const commentCountMap = Object.fromEntries(commentCountRows.map((r) => [r.postId, r.count]));
+  const authorMap = Object.fromEntries(authors.map((u) => [u.id, { name: u.name, image: u.image }]));
   const tagsByPost: Record<string, string[]> = {};
   for (const row of postTagRows) {
     if (!tagsByPost[row.postId]) tagsByPost[row.postId] = [];
@@ -288,6 +298,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       commentCount: commentCountMap[post.id] ?? 0,
       voterTraitCounts: voterTraitCounts[post.id] ?? EMPTY_TRAITS,
       tagIds: tagsByPost[post.id] ?? [],
+      authorName: authorMap[post.createdBy ?? ""]?.name ?? null,
+      authorImage: authorMap[post.createdBy ?? ""]?.image ?? null,
     };
   });
 
@@ -464,6 +476,27 @@ export async function action({ request, context }: Route.ActionArgs) {
       }).catch(() => {});
     }
 
+    return data({ success: true });
+  }
+
+  if (body.intent === "update_rank") {
+    const parsed = z
+      .object({
+        status: z.enum(["open", "reviewing", "planned", "in-progress", "completed", "closed"]),
+        orderedIds: z.array(z.string().min(1)).min(1).max(500),
+      })
+      .safeParse(body);
+    if (!parsed.success) return data({ error: "Invalid payload" }, { status: 400 });
+    const { orderedIds } = parsed.data;
+
+    await Promise.all(
+      orderedIds.map((id, rank) =>
+        db
+          .update(feedbackPosts)
+          .set({ rank })
+          .where(and(eq(feedbackPosts.id, id), eq(feedbackPosts.organizationId, organizationId))),
+      ),
+    );
     return data({ success: true });
   }
 

@@ -69,6 +69,29 @@ export async function createLinearIssue(
   return d.issueCreate.issue;
 }
 
+export async function searchLinearIssues(
+  accessToken: string,
+  query: string,
+  teamId?: string,
+): Promise<LinearIssue[]> {
+  const d = await linearGql<{ issues: { nodes: LinearIssue[] } }>(
+    accessToken,
+    `query SearchIssues($filter: IssueFilter) {
+      issues(filter: $filter, first: 10, orderBy: updatedAt) {
+        nodes { id identifier url title state { name } }
+      }
+    }`,
+    { filter: { title: { containsIgnoreCase: query }, ...(teamId ? { team: { id: { eq: teamId } } } : {}) } },
+  );
+  return d.issues.nodes;
+}
+
+// Extracts the issue identifier from a Linear URL (linear.app/org/issue/ENG-123) or returns unchanged.
+export function parseLinearInput(input: string): string {
+  const match = input.trim().match(/linear\.app\/[^/]+\/issue\/([A-Z][A-Z0-9_]*-\d+)/i);
+  return match?.[1]?.toUpperCase() ?? input.trim();
+}
+
 export async function getLinearIssueById(
   accessToken: string,
   issueId: string,

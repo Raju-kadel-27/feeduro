@@ -20,7 +20,9 @@ export function IntegrationTile({ name, icon, connected, onClick }: Props) {
       )}
     >
       {connected && (
-        <span className="absolute top-2.5 right-2.5 h-1.5 w-1.5 rounded-full bg-green-500" />
+        <span className="absolute top-2.5 right-2.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600">
+          Connected
+        </span>
       )}
       <div className="flex h-10 w-10 items-center justify-center">{icon}</div>
       <span className="text-sm font-medium text-foreground leading-tight">{name}</span>

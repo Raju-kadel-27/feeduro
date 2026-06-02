@@ -37,7 +37,7 @@ export function PostRow({
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2 hover:bg-accent/40 transition-colors cursor-pointer group border-b last:border-b-0"
+      className="flex items-center gap-3 px-4 py-2 cursor-pointer border-b border-border/30 last:border-b-0"
       onClick={() => onOpen(post.id)}
     >
       <div className="shrink-0">
@@ -46,7 +46,7 @@ export function PostRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <p className="text-sm font-medium leading-snug group-hover:text-primary transition-colors truncate min-w-0">
+          <p className="text-sm font-medium leading-snug truncate min-w-0">
             {post.title}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">

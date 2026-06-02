@@ -1456,7 +1456,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
+    <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* ── Top toolbar ─────────────────────────────────────────────────── */}
       <header className="flex items-center h-11 px-4 border-b shrink-0 gap-2">
         <button

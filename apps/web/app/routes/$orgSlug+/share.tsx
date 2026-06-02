@@ -46,9 +46,8 @@ function RedditIcon({ className }: { className?: string }) {
   );
 }
 
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { cn } from "@lib/utils";
 import { getEnv } from "@utils/get-env";
 import { getDb } from "@/db";
@@ -352,9 +351,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
     : null;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <span className="text-sm font-medium">Share</span>
@@ -592,7 +589,6 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
             )}
           </section>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

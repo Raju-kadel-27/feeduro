@@ -1,0 +1,211 @@
+---
+title: Roadmap
+description: Read and update the roadmap — posts grouped by status column with rank ordering.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+The roadmap is a kanban view of your feedback posts organized into status columns. Use this endpoint to sync your roadmap with external project management tools, trigger column moves from CI/CD pipelines, or build custom roadmap views.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| <span class="badge-method badge-get">GET</span> | `/v1/roadmap` | Get all posts grouped by status column |
+| <span class="badge-method badge-patch">PATCH</span> | `/v1/roadmap/posts/:id` | Update a post's status and/or rank |
+
+---
+
+## Get the roadmap
+
+<div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/roadmap</code></div>
+
+Returns all active (non-merged) posts grouped into status columns, sorted by `rank` ascending within each column, then `createdAt` descending for unranked posts.
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `status` | query | string | No | Limit to one column: `open` \| `reviewing` \| `planned` \| `in-progress` \| `completed` \| `closed` |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    # All columns
+    curl https://app.feediyo.com/v1/roadmap \
+      -H "Authorization: Bearer YOUR_KEY"
+
+    # Single column
+    curl "https://app.feediyo.com/v1/roadmap?status=planned" \
+      -H "Authorization: Bearer YOUR_KEY"
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    // All columns
+    const res = await fetch('https://app.feediyo.com/v1/roadmap', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    const { data: { columns } } = await res.json();
+
+    // Single column
+    const res = await fetch('https://app.feediyo.com/v1/roadmap?status=planned', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK (all columns)">
+    ```json
+    {
+      "data": {
+        "columns": {
+          "open": [
+            {
+              "id": "post_01aaa111",
+              "title": "CSV export",
+              "description": null,
+              "status": "open",
+              "rank": null,
+              "voteCount": 12,
+              "boardId": "board_01abc123",
+              "categoryId": null,
+              "createdAt": "2025-09-01T00:00:00.000Z",
+              "updatedAt": "2025-09-01T00:00:00.000Z"
+            }
+          ],
+          "reviewing": [],
+          "planned": [],
+          "in-progress": [],
+          "completed": [],
+          "closed": []
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="200 OK (?status=planned)">
+    ```json
+    {
+      "data": {
+        "columns": {
+          "planned": [ { "id": "post_01xyz789", "title": "Dark mode support", "status": "planned" } ]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="400 Bad Request">
+    ```json
+    {
+      "error": "Invalid query parameters",
+      "code": "invalid_params",
+      "details": { "fieldErrors": { "status": ["Invalid enum value"] }, "formErrors": [] }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `id` | string | No | Post ID |
+| `title` | string | No | Post title |
+| `description` | string | Yes | Post description |
+| `status` | string | No | Current column |
+| `rank` | number | Yes | Sort position — lower = higher. `null` = unranked (falls to bottom). |
+| `voteCount` | integer | No | Total vote count |
+| `boardId` | string | No | Board this post belongs to |
+| `categoryId` | string | Yes | Assigned category |
+| `createdAt` | string | No | ISO 8601 timestamp |
+| `updatedAt` | string | No | ISO 8601 timestamp |
+
+---
+
+## Update a post's status or rank
+
+<div class="endpoint-url"><span class="badge-method badge-patch">PATCH</span><code>/v1/roadmap/posts/:id</code></div>
+
+Move a post to a different column or reorder it within its current column. At least one of `status` or `rank` is required.
+
+<Aside type="tip">
+  **Rank arithmetic:** To insert between two posts with `rank: 1.0` and `rank: 2.0`, use `rank: 1.5`. Any float value works — there is no need to renumber existing posts.
+</Aside>
+
+### Parameters
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | Yes | Post ID |
+| `status` | body | string | One of these two | New status column |
+| `rank` | body | number \| null | One of these two | Sort position. `null` removes manual ordering. |
+
+### Request
+
+<Tabs>
+  <TabItem label="curl">
+    ```bash
+    curl -X PATCH https://app.feediyo.com/v1/roadmap/posts/post_01xyz789 \
+      -H "Authorization: Bearer YOUR_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "status": "in-progress", "rank": 1.0 }'
+    ```
+  </TabItem>
+  <TabItem label="TypeScript">
+    ```ts
+    const res = await fetch('https://app.feediyo.com/v1/roadmap/posts/post_01xyz789', {
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer YOUR_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'in-progress', rank: 1.0 }),
+    });
+    const { data } = await res.json();
+    ```
+  </TabItem>
+</Tabs>
+
+### Responses
+
+<Tabs>
+  <TabItem label="200 OK">
+    ```json
+    {
+      "data": {
+        "id": "post_01xyz789",
+        "status": "in-progress",
+        "rank": 1.0,
+        "updatedAt": "2026-05-30T10:00:00.000Z"
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="404 Not Found">
+    ```json
+    { "error": "Resource not found", "code": "not_found" }
+    ```
+  </TabItem>
+  <TabItem label="422 Validation Error">
+    ```json
+    {
+      "error": "Validation failed",
+      "code": "validation_error",
+      "details": { "formErrors": ["At least one of status or rank must be provided"], "fieldErrors": {} }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+<div class="see-also">
+
+**See also:** [Posts](/posts) — full post CRUD · [Status Changes](/status-changes) — audit trail of every status transition · [Webhooks](/webhooks) — subscribe to `feedback.status_changed` events
+
+</div>

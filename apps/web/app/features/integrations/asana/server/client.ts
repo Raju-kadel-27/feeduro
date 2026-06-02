@@ -123,6 +123,19 @@ export async function getAsanaTaskByGid(
   return parseTaskResult(task.data, workspaceGid);
 }
 
+export async function searchAsanaTasks(
+  accessToken: string,
+  workspaceGid: string,
+  query: string,
+): Promise<AsanaTaskResult[]> {
+  const params = new URLSearchParams({ text: query, "opt_fields": "gid,name,completed,permalink_url,memberships.project.gid,memberships.section.gid,memberships.section.name", limit: "10" });
+  const d = await asanaFetch<{ data: RawAsanaTask[] }>(
+    accessToken,
+    `/workspaces/${workspaceGid}/tasks/search?${params}`,
+  );
+  return d.data.map((t) => parseTaskResult(t, workspaceGid));
+}
+
 export async function registerAsanaWebhook(
   accessToken: string,
   workspaceGid: string,

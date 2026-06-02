@@ -1,11 +1,10 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { isAdmin } from "@features/roles/server/queries";
 import { getBindings } from "@middleware/cloudflare.server";
-import { createId } from "@paralleldrive/cuid2";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
-import { customDomains, member } from "@/db/schema";
+import { customDomains } from "@/db/schema";
 
 import type { Route } from "./+types/domain";
 
@@ -22,15 +21,16 @@ async function purgeKvCache(context: Route.ActionArgs["context"], domain: string
 
 const DOMAIN_RE = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
 
-async function resolveTxt(hostname: string): Promise<string[]> {
-  const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=TXT`;
+async function resolveCname(hostname: string): Promise<string | null> {
+  const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=CNAME`;
   try {
     const res = await fetch(url, { headers: { Accept: "application/dns-json" } });
-    if (!res.ok) return [];
+    if (!res.ok) return null;
     const json = (await res.json()) as { Answer?: { data: string }[] };
-    return (json.Answer ?? []).map((a) => a.data.replace(/^"|"$/g, ""));
+    const answer = json.Answer?.[0];
+    return answer ? answer.data.replace(/\.$/, "").toLowerCase() : null;
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -80,13 +80,11 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ error: "This domain is already in use" }, { status: 409 });
     }
 
-    const verificationToken = `feediyo-verify=${createId()}`;
     await purgeKvCache(context, rawDomain);
     await db.insert(customDomains).values({
       organizationId,
       domain: rawDomain,
       status: "pending",
-      verificationToken,
     });
 
     const created = await db.query.customDomains.findFirst({
@@ -108,20 +106,20 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (body.intent === "verify_domain") {
     const record = await db.query.customDomains.findFirst({
       where: eq(customDomains.organizationId, organizationId),
+      columns: { domain: true, organizationId: true },
     });
     if (!record) {
       return data({ error: "No domain configured" }, { status: 404 });
     }
 
-    const txtRecords = await resolveTxt(`_feediyo.${record.domain}`);
-    const verified = txtRecords.some((r) => r === record.verificationToken);
+    const cname = await resolveCname(record.domain);
+    const verified = cname === "cname.feediyo.com";
 
     if (verified) {
       await db
         .update(customDomains)
         .set({ status: "active", verifiedAt: new Date() })
         .where(eq(customDomains.organizationId, organizationId));
-      // Purge stale "not found" cache entry so routing picks up the new active domain immediately
       await purgeKvCache(context, record.domain);
       return data({ verified: true });
     }
@@ -132,7 +130,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       .where(eq(customDomains.organizationId, organizationId));
     return data({
       verified: false,
-      error: "TXT record not found — DNS changes can take up to 48 hours to propagate",
+      error: "CNAME record not found — DNS changes can take up to 48 hours to propagate",
     });
   }
 

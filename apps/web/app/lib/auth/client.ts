@@ -4,6 +4,7 @@ import { passkeyClient } from "@better-auth/passkey/client";
 import { ssoClient } from "@better-auth/sso/client";
 import { dodopaymentsClient } from "@dodopayments/better-auth";
 import {
+  adminClient,
   genericOAuthClient,
   lastLoginMethodClient,
   organizationClient,
@@ -15,6 +16,7 @@ import { ac, adminRole, memberRole, viewerRole } from "@/app/lib/auth/server/per
 export const authClient = createAuthClient({
   baseURL: typeof window !== "undefined" ? window.location.origin : "http://localhost:3000",
   plugins: [
+    adminClient(),
     lastLoginMethodClient(),
     organizationClient({
       ac,

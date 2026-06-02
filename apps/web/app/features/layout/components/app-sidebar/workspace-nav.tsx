@@ -45,7 +45,7 @@ export function WorkspaceNav({ base, orgSlug }: Props) {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+              <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-sm">
                 <Link to={item.url}>
                   <item.icon />
                   <span>{item.title}</span>

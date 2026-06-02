@@ -58,13 +58,19 @@ export const AsanaActionSchema = z.discriminatedUnion("intent", [
     statusMappings: z.array(AsanaStatusMappingSchema).optional(),
   }),
   z.object({ intent: z.literal("disconnect") }),
-  z.object({ intent: z.literal("create_task"), postId: z.string().min(1) }),
+  z.object({
+    intent: z.literal("create_task"),
+    postId: z.string().min(1),
+    name: z.string().optional(),
+    notes: z.string().optional(),
+  }),
   z.object({
     intent: z.literal("link_task"),
     postId: z.string().min(1),
     taskInput: z.string().min(1),
   }),
   z.object({ intent: z.literal("unlink_task"), postId: z.string().min(1) }),
+  z.object({ intent: z.literal("search_tasks"), query: z.string().min(1) }),
 ]);
 
 export type AsanaWorkspace = z.infer<typeof AsanaWorkspaceSchema>;

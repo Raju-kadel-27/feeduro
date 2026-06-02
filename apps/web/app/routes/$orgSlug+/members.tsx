@@ -1,6 +1,5 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Crown, UserMinus } from "lucide-react";
@@ -69,9 +68,7 @@ export default function Members({ loaderData }: Route.ComponentProps) {
   const members: Member[] = loaderData.members as Member[];
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+        <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
         </header>
@@ -149,7 +146,6 @@ export default function Members({ loaderData }: Route.ComponentProps) {
             </table>
           </div>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </>
   );
 }

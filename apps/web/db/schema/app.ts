@@ -277,10 +277,11 @@ export const votes = pgTable(
       .references(() => feedbackPosts.id, { onDelete: "cascade" }),
     // Null for imported votes attributed to a userProfile rather than an auth user
     userId: varchar("user_id", { length: 36 }).references(() => user.id, { onDelete: "cascade" }),
-    // Populated for imported votes (Canny/Productboard/CSV) and optionally for widget votes
+    // Populated for imported votes (Canny/Productboard/CSV) and optionally for widget votes.
+    // cascade: deleting a userProfile removes their imported votes, matching userId's behaviour.
     userProfileId: varchar("user_profile_id", { length: 128 }).references(
       (): PgColumn => userProfiles.id,
-      { onDelete: "set null" },
+      { onDelete: "cascade" },
     ),
     organizationId: varchar("organization_id", { length: 36 })
       .notNull()
@@ -303,6 +304,8 @@ export const votes = pgTable(
     postIdIdx: index("votes_post_id_idx").on(t.postId),
     orgIdIdx: index("votes_org_id_idx").on(t.organizationId),
     orgCreatedAtIdx: index("votes_org_created_at_idx").on(t.organizationId, t.createdAt),
+    // "All posts voted on by customer X" — essential once import is live
+    userProfileIdIdx: index("votes_user_profile_id_idx").on(t.userProfileId),
   }),
 );
 
@@ -318,9 +321,8 @@ export const comments = pgTable(
     organizationId: varchar("organization_id", { length: 36 })
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    userId: varchar("user_id", { length: 36 })
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+    // Null for imported comments attributed to a userProfile rather than an auth user
+    userId: varchar("user_id", { length: 36 }).references(() => user.id, { onDelete: "cascade" }),
     parentId: varchar("parent_id", { length: 128 }).references(
       (): PgColumn => comments.id,
       { onDelete: "set null" },
@@ -347,6 +349,13 @@ export const comments = pgTable(
     postCreatedAtIdx: index("comments_post_created_at_idx").on(t.postId, t.createdAt),
     // Period-based analytics queries: filter by org + date range
     orgCreatedAtIdx: index("comments_org_created_at_idx").on(t.organizationId, t.createdAt),
+    // Every comment must have an actor (mirrors the votes pattern)
+    commenterActorCheck: check(
+      "commenter_actor_check",
+      sql`user_id IS NOT NULL OR commenter_profile_id IS NOT NULL`,
+    ),
+    // "All comments by customer X" — needed once import is live
+    commenterProfileIdIdx: index("comments_commenter_profile_id_idx").on(t.commenterProfileId),
   }),
 );
 

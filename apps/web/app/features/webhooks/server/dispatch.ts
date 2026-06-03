@@ -50,7 +50,10 @@ async function deliverWebhookBackground(
 
   const [endpoints, zapierIntegration, n8nIntegration] = await Promise.all([
     db.query.webhookEndpoints.findMany({
-      where: eq(webhookEndpoints.organizationId, organizationId),
+      where: and(
+        eq(webhookEndpoints.organizationId, organizationId),
+        eq(webhookEndpoints.isActive, true),
+      ),
     }),
     db.query.integrations.findFirst({
       where: and(
@@ -80,8 +83,13 @@ async function deliverWebhookBackground(
   const deliveries: Promise<void>[] = [];
 
   for (const ep of endpoints) {
-    if (!ep.isActive) continue;
-    const events: string[] = JSON.parse(ep.events);
+    let events: string[];
+    try {
+      events = JSON.parse(ep.events);
+    } catch {
+      console.error(`[webhooks] invalid events JSON for endpoint ${ep.id}`);
+      continue;
+    }
     if (events.includes("*") || events.includes(event)) {
       deliveries.push(deliverToEndpoint(ep.url, ep.secret, payload));
     }

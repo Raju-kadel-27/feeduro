@@ -1,9 +1,7 @@
 import { apiError } from "@feediyo/errors";
-import {
-  CreateWebhookSchema,
-  createWebhook,
-  listWebhooks,
-} from "@features/webhooks/server/api-webhooks";
+import { CreateWebhookSchema } from "@features/webhooks/schemas/endpoint";
+import { createWebhook } from "@features/webhooks/server/api-webhooks";
+import { listWebhooks } from "@features/webhooks/server/queries";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";
 

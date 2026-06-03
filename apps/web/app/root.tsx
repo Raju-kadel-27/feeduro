@@ -60,9 +60,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Meta />
           <Links />
         </head>
-        <body className="flex w-full overflow-hidden h-screen">
+        <body className="flex w-full h-screen overflow-hidden">
           <ThemeProvider defaultTheme="system" storageKey="feediyo-theme">
-            <div className="flex-1 overflow-y-auto">{children}</div>
+            <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
           </ThemeProvider>
           <Toaster richColors position="top-right" />
           <ScrollRestoration />

@@ -14,11 +14,11 @@ export function WorkspaceSidebar({ base, orgSlug, isDashboard }: Props) {
   const [newBoardOpen, setNewBoardOpen] = useState(false);
   return (
     <SidebarContent>
-      <SidebarGroup>
+      <SidebarGroup className="py-0">
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => setNewBoardOpen(true)}>
+              <SidebarMenuButton onClick={() => setNewBoardOpen(true)} className="text-base">
                 <Plus className="h-4 w-4" />
                 <span>New Board</span>
               </SidebarMenuButton>

@@ -67,7 +67,7 @@ export function RefineChip({
     <div className="relative" onMouseEnter={openMenu} onMouseLeave={scheduleClose}>
       <div
         className={cn(
-          "inline-flex items-center rounded-md text-[13.5px] transition-colors",
+          "inline-flex items-center rounded-md text-[15px] transition-colors",
           isActive
             ? "border border-border bg-accent font-medium text-foreground"
             : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
@@ -121,7 +121,7 @@ export function RefineChip({
                       if (!multiSelect) setOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center gap-2.5 px-3 py-2 text-[13.5px] hover:bg-accent transition-colors text-left",
+                      "w-full flex items-center gap-2.5 px-3 py-2 text-[15px] hover:bg-accent transition-colors text-left",
                       checked && "bg-accent",
                     )}
                   >
@@ -193,7 +193,7 @@ export function BooleanChip({ label, active, onToggle, onClear }: BooleanChipPro
       <button
         type="button"
         onClick={onToggle}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[13.5px] border font-medium transition-colors border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[15px] border font-medium transition-colors border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground"
       >
         {label}
       </button>
@@ -201,7 +201,7 @@ export function BooleanChip({ label, active, onToggle, onClear }: BooleanChipPro
   }
 
   return (
-    <div className="inline-flex items-center rounded-md text-[13.5px] border font-medium border-border bg-accent text-foreground">
+    <div className="inline-flex items-center rounded-md text-[15px] border font-medium border-border bg-accent text-foreground">
       <span className="pl-2.5 py-1">{label}</span>
       <button
         type="button"

@@ -6,7 +6,7 @@ import {
   SidebarMenuItem,
 } from "@components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart2, Bot, FileText, Gift, Map, Settings, Share2 } from "lucide-react";
+import { BarChart2, Bot, FileText, Gift, Map, Settings } from "lucide-react";
 import type { ElementType } from "react";
 import { Link, useLocation } from "react-router";
 
@@ -34,7 +34,6 @@ export function WorkspaceNav({ base, orgSlug }: Props) {
     { title: "Roadmap", url: `${base}/roadmap`, icon: Map },
     { title: "Changelog", url: `${base}/changelog`, icon: FileText },
     { title: "Autopilot", url: `${base}/autopilot`, icon: Bot, badge: pendingAutopilotCount },
-    { title: "Share", url: `${base}/share`, icon: Share2 },
     { title: "Affiliate", url: `${base}/affiliate`, icon: Gift },
     { title: "Settings", url: `${base}/settings`, icon: Settings },
   ];
@@ -45,7 +44,7 @@ export function WorkspaceNav({ base, orgSlug }: Props) {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-sm">
+              <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-base">
                 <Link to={item.url}>
                   <item.icon />
                   <span>{item.title}</span>

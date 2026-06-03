@@ -38,7 +38,7 @@ export function ViewsChip({
     <div className="relative" onMouseEnter={openMenu} onMouseLeave={scheduleClose}>
       <div
         className={cn(
-          "inline-flex items-center rounded-md text-[13.5px] transition-colors",
+          "inline-flex items-center rounded-md text-[15px] transition-colors",
           isActive
             ? "border border-border bg-accent font-medium text-foreground"
             : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
@@ -92,7 +92,7 @@ export function ViewsChip({
                       setOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center gap-2.5 px-3 py-2 text-[13.5px] hover:bg-accent transition-colors text-left",
+                      "w-full flex items-center gap-2.5 px-3 py-2 text-[15px] hover:bg-accent transition-colors text-left",
                       isSelected && "bg-accent",
                     )}
                   >

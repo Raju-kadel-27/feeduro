@@ -35,37 +35,39 @@ export function ActivityChart({ data, range }: ActivityChartProps) {
   const chartData = data.map((d) => ({ period: formatPeriod(d.period, range), count: d.count }));
 
   return (
-    <ChartContainer config={chartConfig} className="h-52 w-full">
-      <AreaChart
-        accessibilityLayer
-        data={chartData}
-        margin={{ left: 12, right: 12 }}
-      >
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey="period"
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-          tick={{ fontSize: 11 }}
-          interval="preserveStartEnd"
-        />
-        <YAxis
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-          allowDecimals={false}
-          width={36}
-        />
-        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-        <Area
-          dataKey="count"
-          type="natural"
-          fill="var(--color-count)"
-          fillOpacity={0.4}
-          stroke="var(--color-count)"
-        />
-      </AreaChart>
-    </ChartContainer>
+    <div className="h-52 w-full">
+      <ChartContainer config={chartConfig} className="h-full w-full">
+        <AreaChart
+          accessibilityLayer
+          data={chartData}
+          margin={{ top: 8, left: 12, right: 12, bottom: 12 }}
+        >
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="period"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tick={{ fontSize: 11 }}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            allowDecimals={false}
+            width={36}
+          />
+          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+          <Area
+            dataKey="count"
+            type="natural"
+            fill="var(--color-count)"
+            fillOpacity={0.4}
+            stroke="var(--color-count)"
+          />
+        </AreaChart>
+      </ChartContainer>
+    </div>
   );
 }

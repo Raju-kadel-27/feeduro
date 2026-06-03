@@ -100,6 +100,14 @@ export const postActivityTypeEnum = pgEnum("post_activity_type", [
   "unmerged",
 ]);
 
+export const importJobStatusEnum = pgEnum("import_job_status", [
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "rolled_back",
+]);
+
 // ============ Subscription (Dodo Payments — managed here due to custom columns) ============
 
 export const subscription = pgTable(
@@ -217,6 +225,17 @@ export const feedbackPosts = pgTable(
     rank: real("rank"),
     aiSummary: text("ai_summary"),
     aiSummaryGeneratedAt: timestamp("ai_summary_generated_at"),
+    // Import provenance — null on all natively created posts
+    importSource: varchar("import_source", { length: 50 }),
+    externalId: varchar("external_id", { length: 255 }),
+    // Preserves the original creation timestamp from the source platform
+    originalCreatedAt: timestamp("original_created_at"),
+    // Links to the import job that created this post. set null (not cascade) so accidentally
+    // deleting a job record does not wipe posts. Rollback: DELETE WHERE import_job_id = $id.
+    importJobId: varchar("import_job_id", { length: 128 }).references(
+      (): PgColumn => importJobs.id,
+      { onDelete: "set null" },
+    ),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -245,6 +264,12 @@ export const feedbackPosts = pgTable(
       .on(t.organizationId, t.boardId, t.createdAt)
       .where(sql`merged_into_post_id IS NULL`),
     voteCountNonNegative: check("fp_vote_count_non_negative", sql`vote_count >= 0`),
+    // Idempotent re-imports: a (org, platform, external post id) triple must be unique
+    importDedupIdx: uniqueIndex("fp_import_dedup_idx")
+      .on(t.organizationId, t.importSource, t.externalId)
+      .where(sql`import_source IS NOT NULL`),
+    // Rollback lookup: DELETE WHERE import_job_id = $id must be fast on large tables
+    importJobIdIdx: index("fp_import_job_id_idx").on(t.importJobId),
     searchVectorGinIdx: index("fp_search_vector_gin_idx").using("gin", t.searchVector),
   }),
 );
@@ -258,19 +283,37 @@ export const votes = pgTable(
     postId: varchar("post_id", { length: 128 })
       .notNull()
       .references(() => feedbackPosts.id, { onDelete: "cascade" }),
-    userId: varchar("user_id", { length: 36 })
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+    // Null for imported votes attributed to a userProfile rather than an auth user
+    userId: varchar("user_id", { length: 36 }).references(() => user.id, { onDelete: "cascade" }),
+    // Populated for imported votes (Canny/Productboard/CSV) and optionally for widget votes.
+    // cascade: deleting a userProfile removes their imported votes, matching userId's behaviour.
+    userProfileId: varchar("user_profile_id", { length: 128 }).references(
+      (): PgColumn => userProfiles.id,
+      { onDelete: "cascade" },
+    ),
     organizationId: varchar("organization_id", { length: 36 })
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
-    uniqueVote: uniqueIndex("unique_vote_idx").on(t.postId, t.userId),
+    // Two partial unique indexes instead of one — each covers its own actor type
+    nativeVoteUniqueIdx: uniqueIndex("native_vote_unique_idx")
+      .on(t.postId, t.userId)
+      .where(sql`user_id IS NOT NULL`),
+    profileVoteUniqueIdx: uniqueIndex("profile_vote_unique_idx")
+      .on(t.postId, t.userProfileId)
+      .where(sql`user_profile_id IS NOT NULL`),
+    // Every vote must be attributed to exactly one actor
+    voteActorCheck: check(
+      "vote_actor_check",
+      sql`user_id IS NOT NULL OR user_profile_id IS NOT NULL`,
+    ),
     postIdIdx: index("votes_post_id_idx").on(t.postId),
     orgIdIdx: index("votes_org_id_idx").on(t.organizationId),
     orgCreatedAtIdx: index("votes_org_created_at_idx").on(t.organizationId, t.createdAt),
+    // "All posts voted on by customer X" — essential once import is live
+    userProfileIdIdx: index("votes_user_profile_id_idx").on(t.userProfileId),
   }),
 );
 
@@ -286,16 +329,23 @@ export const comments = pgTable(
     organizationId: varchar("organization_id", { length: 36 })
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    userId: varchar("user_id", { length: 36 })
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+    // Null for imported comments attributed to a userProfile rather than an auth user
+    userId: varchar("user_id", { length: 36 }).references(() => user.id, { onDelete: "cascade" }),
     parentId: varchar("parent_id", { length: 128 }).references(
       (): PgColumn => comments.id,
+      { onDelete: "set null" },
+    ),
+    // Populated for imported comments from external platforms; null for native comments
+    commenterProfileId: varchar("commenter_profile_id", { length: 128 }).references(
+      (): PgColumn => userProfiles.id,
       { onDelete: "set null" },
     ),
     body: text("body").notNull(),
     isInternal: boolean("is_internal").notNull().default(false),
     isAiGenerated: boolean("is_ai_generated").notNull().default(false),
+    // Import provenance — null on all natively created comments
+    importSource: varchar("import_source", { length: 50 }),
+    externalId: varchar("external_id", { length: 255 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -310,6 +360,17 @@ export const comments = pgTable(
     postCreatedAtIdx: index("comments_post_created_at_idx").on(t.postId, t.createdAt),
     // Period-based analytics queries: filter by org + date range
     orgCreatedAtIdx: index("comments_org_created_at_idx").on(t.organizationId, t.createdAt),
+    // Every comment must have an actor (mirrors the votes pattern)
+    commenterActorCheck: check(
+      "commenter_actor_check",
+      sql`user_id IS NOT NULL OR commenter_profile_id IS NOT NULL`,
+    ),
+    // "All comments by customer X" — needed once import is live
+    commenterProfileIdIdx: index("comments_commenter_profile_id_idx").on(t.commenterProfileId),
+    // Idempotent re-imports: (org, platform, external comment id) must be unique
+    commentImportDedupIdx: uniqueIndex("comment_import_dedup_idx")
+      .on(t.organizationId, t.importSource, t.externalId)
+      .where(sql`import_source IS NOT NULL`),
   }),
 );
 
@@ -917,6 +978,40 @@ export const notifications = pgTable(
     userUnreadIdx: index("notif_user_unread_idx").on(t.userId, t.readAt),
     // Enables efficient time-based cleanup of old notifications
     createdAtIdx: index("notif_created_at_idx").on(t.createdAt),
+  }),
+);
+
+// ============ Import Jobs ============
+
+export const importJobs = pgTable(
+  "import_jobs",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    // Platform being imported from: "canny" | "productboard" | "uservoice" | "csv"
+    source: varchar("source", { length: 50 }).notNull(),
+    status: importJobStatusEnum("status").notNull().default("pending"),
+    totalRecords: integer("total_records").notNull().default(0),
+    importedRecords: integer("imported_records").notNull().default(0),
+    failedRecords: integer("failed_records").notNull().default(0),
+    // JSON array of { row: number; reason: string } entries
+    errorLog: text("error_log"),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    createdBy: varchar("created_by", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    orgIdIdx: index("ij_org_id_idx").on(t.organizationId),
+    orgStatusIdx: index("ij_org_status_idx").on(t.organizationId, t.status),
+    // Lets admin UIs show recent import history sorted by creation time
+    orgCreatedAtIdx: index("ij_org_created_at_idx").on(t.organizationId, t.createdAt),
   }),
 );
 

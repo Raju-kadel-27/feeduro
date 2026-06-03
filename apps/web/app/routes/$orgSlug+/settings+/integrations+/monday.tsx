@@ -1,5 +1,5 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
+import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import type { MondaySettings } from "@features/integrations/monday/server/schemas";
 import { getIntegration, parseSettings } from "@features/integrations/server/queries";
@@ -181,16 +181,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm text-muted-foreground">
-            <Link to={`/${orgSlug}/settings/integrations`} className="hover:text-foreground">
-              Integrations
-            </Link>
-            {" / "}
-          </span>
-          <span className="text-sm font-medium">Monday.com</span>
-        </header>
+        <IntegrationPageHeader title="Monday.com" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* Header */}

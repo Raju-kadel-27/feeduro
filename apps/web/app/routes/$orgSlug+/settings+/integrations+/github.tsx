@@ -1,6 +1,6 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
 import { getIntegration } from "@features/integrations/server/queries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -226,10 +226,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">GitHub Integration</span>
-        </header>
+        <IntegrationPageHeader title="GitHub Integration" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>

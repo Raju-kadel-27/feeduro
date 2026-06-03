@@ -1,5 +1,5 @@
 import { ShortcutIcon } from "@components/icons";
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getIntegration } from "@features/integrations/server/queries";
@@ -254,10 +254,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Shortcut Integration</span>
-        </header>
+        <IntegrationPageHeader title="Shortcut Integration" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>

@@ -1,8 +1,8 @@
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { getDb } from "@/db";
-import { user, votes } from "@/db/schema";
+import { user, userProfiles, votes } from "@/db/schema";
 
 export const ListVotesSchema = z.object({
   postId: z.string().optional(),
@@ -20,12 +20,21 @@ export async function listVotes(organizationId: string, params: z.infer<typeof L
       id: votes.id,
       postId: votes.postId,
       userId: votes.userId,
+      userProfileId: votes.userProfileId,
       createdAt: votes.createdAt,
-      voterName: user.name,
-      voterEmail: user.email,
+      // Coalesce: native vote → user table; imported vote → userProfiles table
+      voterName: sql<string | null>`coalesce(${user.name}, ${userProfiles.name})`,
+      voterEmail: sql<string | null>`coalesce(${user.email}, ${userProfiles.email})`,
     })
     .from(votes)
     .leftJoin(user, eq(votes.userId, user.id))
+    .leftJoin(
+      userProfiles,
+      and(
+        eq(userProfiles.organizationId, organizationId),
+        eq(userProfiles.id, votes.userProfileId),
+      ),
+    )
     .where(
       and(
         eq(votes.organizationId, organizationId),
@@ -45,6 +54,7 @@ export async function listVotes(organizationId: string, params: z.infer<typeof L
       id: r.id,
       postId: r.postId,
       userId: r.userId,
+      userProfileId: r.userProfileId,
       voter: { name: r.voterName, email: r.voterEmail },
       createdAt: r.createdAt,
     })),

@@ -44,6 +44,22 @@ const DEFAULT_VIEWS: Omit<View, "id" | "count">[] = [
     order: 4,
     filters: { status: ["completed"], maxAge: 7 },
   },
+  {
+    name: "Customer commented",
+    emoji: "💬",
+    isSystem: true,
+    sort: "newest",
+    order: 5,
+    filters: { hasCustomerComment: true },
+  },
+  {
+    name: "Has comments",
+    emoji: "🗨️",
+    isSystem: true,
+    sort: "newest",
+    order: 6,
+    filters: { hasComments: true },
+  },
 ];
 
 function parseFilters(raw: string): ViewFilters {

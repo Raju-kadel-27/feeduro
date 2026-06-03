@@ -46,7 +46,7 @@ export function PostRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <p className="text-sm font-medium leading-snug truncate min-w-0">
+          <p className="text-[15px] font-medium leading-snug truncate min-w-0">
             {post.title}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">

@@ -1,4 +1,5 @@
 import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { getDb } from "@/db";
 import { segments, user, userProfiles, votes } from "@/db/schema";
 import type { Segment, SegmentFilters, VoterTraitCounts } from "../types";
@@ -34,28 +35,54 @@ export async function getOrgSegments(organizationId: string): Promise<Segment[]>
   }));
 }
 
+// Native votes (userId set) are bridged via user.email → userProfiles.email (existing behaviour).
+// Imported votes (userProfileId set) are joined directly on userProfiles.id.
+// COALESCE merges both sources so callers see one unified profile row per vote.
+// The WHERE filter `(nativeProfile.id IS NOT NULL OR importedProfile.id IS NOT NULL)` replicates
+// the original INNER JOIN behaviour — votes with no linked profile are excluded.
+function voterProfileAliases() {
+  return {
+    nativeProfile: alias(userProfiles, "native_profile"),
+    importedProfile: alias(userProfiles, "imported_profile"),
+  };
+}
+
 export async function getVoterTraitCountsByPost(
   organizationId: string,
   postIds: string[],
 ): Promise<Record<string, VoterTraitCounts>> {
   if (postIds.length === 0) return {};
   const db = getDb();
+  const { nativeProfile, importedProfile } = voterProfileAliases();
 
   const rows = await db
     .select({
       postId: votes.postId,
-      plan: userProfiles.plan,
-      role: userProfiles.role,
-      industry: userProfiles.industry,
-      location: userProfiles.location,
+      plan: sql<string | null>`coalesce(${nativeProfile.plan}, ${importedProfile.plan})`,
+      role: sql<string | null>`coalesce(${nativeProfile.role}, ${importedProfile.role})`,
+      industry: sql<string | null>`coalesce(${nativeProfile.industry}, ${importedProfile.industry})`,
+      location: sql<string | null>`coalesce(${nativeProfile.location}, ${importedProfile.location})`,
     })
     .from(votes)
-    .innerJoin(user, eq(votes.userId, user.id))
-    .innerJoin(
-      userProfiles,
-      and(eq(userProfiles.organizationId, organizationId), eq(userProfiles.email, user.email)),
+    .leftJoin(user, eq(votes.userId, user.id))
+    .leftJoin(
+      nativeProfile,
+      and(eq(nativeProfile.organizationId, organizationId), eq(nativeProfile.email, user.email)),
     )
-    .where(and(eq(votes.organizationId, organizationId), inArray(votes.postId, postIds)));
+    .leftJoin(
+      importedProfile,
+      and(
+        eq(importedProfile.organizationId, organizationId),
+        eq(importedProfile.id, votes.userProfileId),
+      ),
+    )
+    .where(
+      and(
+        eq(votes.organizationId, organizationId),
+        inArray(votes.postId, postIds),
+        sql`(${nativeProfile.id} IS NOT NULL OR ${importedProfile.id} IS NOT NULL)`,
+      ),
+    );
 
   const result: Record<string, VoterTraitCounts> = {};
 
@@ -112,21 +139,37 @@ export async function getVoterProfilesByPost(
   limit = 50,
 ): Promise<VoterProfileRow[]> {
   const db = getDb();
+  const { nativeProfile, importedProfile } = voterProfileAliases();
+
   return db
     .select({
-      name: userProfiles.name,
-      email: userProfiles.email,
-      plan: userProfiles.plan,
-      role: userProfiles.role,
-      industry: userProfiles.industry,
-      location: userProfiles.location,
+      name: sql<string | null>`coalesce(${nativeProfile.name}, ${importedProfile.name})`,
+      // At least one profile is guaranteed by the WHERE filter, so email is always non-null
+      email: sql<string>`coalesce(${nativeProfile.email}, ${importedProfile.email})`,
+      plan: sql<string | null>`coalesce(${nativeProfile.plan}, ${importedProfile.plan})`,
+      role: sql<string | null>`coalesce(${nativeProfile.role}, ${importedProfile.role})`,
+      industry: sql<string | null>`coalesce(${nativeProfile.industry}, ${importedProfile.industry})`,
+      location: sql<string | null>`coalesce(${nativeProfile.location}, ${importedProfile.location})`,
     })
     .from(votes)
-    .innerJoin(user, eq(votes.userId, user.id))
-    .innerJoin(
-      userProfiles,
-      and(eq(userProfiles.organizationId, organizationId), eq(userProfiles.email, user.email)),
+    .leftJoin(user, eq(votes.userId, user.id))
+    .leftJoin(
+      nativeProfile,
+      and(eq(nativeProfile.organizationId, organizationId), eq(nativeProfile.email, user.email)),
     )
-    .where(and(eq(votes.organizationId, organizationId), eq(votes.postId, postId)))
+    .leftJoin(
+      importedProfile,
+      and(
+        eq(importedProfile.organizationId, organizationId),
+        eq(importedProfile.id, votes.userProfileId),
+      ),
+    )
+    .where(
+      and(
+        eq(votes.organizationId, organizationId),
+        eq(votes.postId, postId),
+        sql`(${nativeProfile.id} IS NOT NULL OR ${importedProfile.id} IS NOT NULL)`,
+      ),
+    )
     .limit(limit);
 }

@@ -13,6 +13,7 @@ import {
   Palette,
   Puzzle,
   Settings,
+  Share2,
   Shield,
   ShieldCheck,
   Users,
@@ -32,6 +33,7 @@ export function makeSettingsSections(base: string): SettingsSection[] {
         { title: "Workspace", url: `${base}/settings/workspace`, icon: Settings },
         { title: "Branding", url: `${base}/settings/branding`, icon: Palette },
         { title: "Domain", url: `${base}/settings/domain`, icon: Globe },
+        { title: "Share", url: `${base}/share`, icon: Share2 },
       ],
     },
     {

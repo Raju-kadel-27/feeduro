@@ -14,7 +14,7 @@ import { PostDetailPanel } from "@features/post-detail-panel/components/post-det
 import { getOrgSegments } from "@features/segmentation/server/service";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { redirect, useParams } from "react-router";
 import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
@@ -71,10 +71,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   };
 }
 
+const PAGE_SIZE = 25;
+
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
 
@@ -177,10 +181,32 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
     viewCounts,
   } = viewState;
 
+  const filterKey = `${activeViewId}|${effectiveSort}|${JSON.stringify(refinements)}`;
+
+  // Reset visible window whenever filters/sort change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filterKey]);
+
+  // Load more when sentinel scrolls into view
+  const hasMore = visibleCount < sortedPosts.length;
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisibleCount((n) => n + PAGE_SIZE); },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore]);
+
+  const visiblePosts = sortedPosts.slice(0, visibleCount);
+
   return (
         <>
-        <div className={`flex flex-col h-full transition-opacity duration-200 ${selectedPostId ? "opacity-50" : "opacity-100"}`}>
-          <div className="relative shrink-0">
+        <div className={`transition-opacity duration-200 ${selectedPostId ? "opacity-50" : "opacity-100"}`}>
+          <div className="sticky top-0 z-10 bg-background">
             <RefineChipBar
               views={views}
               activeViewId={activeViewId}
@@ -203,7 +229,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
             />
           </div>
 
-          <div className="flex-1 overflow-auto min-w-0">
+          <div className="min-w-0">
             {postsLoading ? (
               <div className="divide-y">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -229,14 +255,17 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
                 </p>
               </div>
             ) : (
-              <ListView
-                posts={sortedPosts}
-                group="none"
-                boardMap={boardMap}
-                queryKey={["feedback", "all", orgSlug ?? ""]}
-                usersMap={loaderData.usersMap}
-                onOpen={setSelectedPostId}
-              />
+              <>
+                <ListView
+                  posts={visiblePosts}
+                  group="none"
+                  boardMap={boardMap}
+                  queryKey={["feedback", "all", orgSlug ?? ""]}
+                  usersMap={loaderData.usersMap}
+                  onOpen={setSelectedPostId}
+                />
+                {hasMore && <div ref={sentinelRef} className="h-10" />}
+              </>
             )}
           </div>
         </div>

@@ -5,13 +5,11 @@ import { getDb } from "@/db";
 import { apikey } from "@/db/schema";
 
 export async function requireApiKey(request: Request): Promise<string> {
-  const bearer = request.headers.get("Authorization");
-  if (!bearer?.startsWith("Bearer ")) {
+  const token = request.headers.get("x-api-key");
+  if (!token) {
     const err = apiError("missing_api_key");
     throw data(err.body, err.init);
   }
-
-  const token = bearer.slice(7);
   const db = getDb();
 
   const key = await db.query.apikey.findFirst({

@@ -11,7 +11,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { orgSlug = "" } = useParams();
   const base = `/${orgSlug}`;
-  const isSettingsRoute = location.pathname.includes("/settings");
+  const isSettingsRoute = location.pathname.includes("/settings") || location.pathname === `${base}/share`;
   const isDashboard = location.pathname === `${base}/dashboard`;
 
   return (
@@ -27,11 +27,11 @@ export function AppSidebar() {
           <WorkspaceSidebar base={base} orgSlug={orgSlug} isDashboard={isDashboard} />
         )}
       </div>
-      <div className="px-3">
+      <div className="px-3 pt-2">
         <button
           type="button"
           onClick={() => navigate(`${base}/settings/billing`)}
-          className="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+          className="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground"
         >
           <Star className="h-3.5 w-3.5 shrink-0" />
           Upgrade Plan

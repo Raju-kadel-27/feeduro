@@ -39,7 +39,7 @@ export function SavedViewsNav({ base, orgSlug }: Props) {
             const isActive = activeViewId === view.id;
             return (
               <SidebarMenuItem key={view.id}>
-                <SidebarMenuButton asChild isActive={isActive}>
+                <SidebarMenuButton asChild isActive={isActive} className="text-base">
                   <Link to={url}>
                     <span>{view.emoji}</span>
                     <span className="flex-1 truncate">{view.name}</span>

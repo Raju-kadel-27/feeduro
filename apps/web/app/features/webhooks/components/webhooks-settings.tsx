@@ -1,5 +1,3 @@
-import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
-import { AppSidebar } from "@features/layout/components/app-sidebar/app-sidebar";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useRevalidator } from "react-router";
@@ -60,30 +58,26 @@ export default function WebhooksSettings({ loaderData }) {
   });
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <WebhooksHeader />
+    <>
+      <WebhooksHeader />
 
-        <main className="p-8 max-w-[840px] mx-auto w-full space-y-10">
-          <WebhooksDescription />
+      <main className="p-8 max-w-[840px] mx-auto w-full space-y-10">
+        <WebhooksDescription />
 
-          <EndpointsList
-            endpoints={endpoints}
-            isAdmin={isAdmin}
-            onToggle={(id, isActive) => toggleActive({ id, isActive })}
-            onRotate={rotateSecret}
-            onDelete={deleteEndpoint}
-            onAddEndpoint={() => setCreateOpen(true)}
-            rotating={rotating}
-            deleting={deleting}
-          />
+        <EndpointsList
+          endpoints={endpoints}
+          isAdmin={isAdmin}
+          onToggle={(id, isActive) => toggleActive({ id, isActive })}
+          onRotate={rotateSecret}
+          onDelete={deleteEndpoint}
+          onAddEndpoint={() => setCreateOpen(true)}
+          rotating={rotating}
+          deleting={deleting}
+        />
 
-          <SignatureGuide />
-        </main>
-      </SidebarInset>
+        <SignatureGuide />
+      </main>
 
-      {/* Dialogs rendered outside main to avoid layout nesting issues */}
       <CreateDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
@@ -93,6 +87,6 @@ export default function WebhooksSettings({ loaderData }) {
       {rotatedSecret && (
         <RotatedSecretDialog secret={rotatedSecret} onClose={() => setRotatedSecret(null)} />
       )}
-    </SidebarProvider>
+    </>
   );
 }

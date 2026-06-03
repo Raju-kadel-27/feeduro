@@ -1,5 +1,5 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
+import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import type { AsanaSettings } from "@features/integrations/asana/server/schemas";
 import { getIntegration, parseSettings } from "@features/integrations/server/queries";
@@ -183,16 +183,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm text-muted-foreground">
-            <Link to={`/${orgSlug}/settings/integrations`} className="hover:text-foreground">
-              Integrations
-            </Link>
-            {" / "}
-          </span>
-          <span className="text-sm font-medium">Asana</span>
-        </header>
+        <IntegrationPageHeader title="Asana" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* Header */}

@@ -1,5 +1,5 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
+import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getIntegration } from "@features/integrations/server/queries";
 import { cn } from "@lib/utils";
@@ -254,10 +254,7 @@ export default function LinearIntegrationSettings({ loaderData }: Route.Componen
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Linear Integration</span>
-        </header>
+        <IntegrationPageHeader title="Linear Integration" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>

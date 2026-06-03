@@ -160,13 +160,20 @@ export function DateRangeChip({
             <p className="text-[11px] text-muted-foreground font-medium mb-2 uppercase tracking-wide">
               Custom range
             </p>
-            <Calendar
-              mode="range"
-              selected={pendingRange}
-              onSelect={setPendingRange}
-              numberOfMonths={2}
-              defaultMonth={pendingRange?.from}
-            />
+            <div className="text-[16px]">
+              <Calendar
+                mode="range"
+                selected={pendingRange}
+                onSelect={setPendingRange}
+                numberOfMonths={2}
+                defaultMonth={pendingRange?.from}
+                className="[--cell-size:40px]"
+                classNames={{
+                  week: "py-[5px] flex w-full",
+                  day: "group/day relative h-[40px] w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+                }}
+              />
+            </div>
             <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border">
               <label className="flex items-center gap-1.5 text-[14px] text-muted-foreground">
                 From

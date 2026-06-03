@@ -1,9 +1,7 @@
 import type { Category, Tag } from "@features/dashboard/types";
 import type { Segment } from "@features/segmentation/types";
-import { DateRangeChip } from "./date-range-chip";
 import { cn } from "@lib/utils";
-import { ChevronDown, Search, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { Search } from "lucide-react";
 import { PageTitle } from "@/app/components/common/page-title";
 import type {
   Board,
@@ -13,6 +11,10 @@ import type {
   View,
   ViewFilters,
 } from "../types";
+import { ChipOptionRow } from "./chip-option-row";
+import { ChipPopover } from "./chip-popover";
+import { ChipTrigger } from "./chip-trigger";
+import { DateRangeChip } from "./date-range-chip";
 import { type ChipOption, RefineChip } from "./refine-chip";
 import { ViewsChip } from "./views-chip";
 
@@ -73,88 +75,29 @@ function SortMenu({
   hasOverride: boolean;
   onChange: (s: Sort | undefined) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const label = SORT_OPTIONS.find((o) => o.value === value)?.label ?? "Sort";
-  // Show the label whenever the effective sort isn't the plain default, even if it
-  // comes from the active view rather than an explicit user refinement.
+  const sortLabel = SORT_OPTIONS.find((o) => o.value === value)?.label ?? "Sort";
   const showLabel = value !== "newest";
 
-  function openMenu() {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setOpen(true);
-  }
-
-  function scheduleClose() {
-    closeTimer.current = setTimeout(() => setOpen(false), 150);
-  }
-
   return (
-    <div
-      className="relative"
-      onMouseEnter={openMenu}
-      onMouseLeave={scheduleClose}
+    <ChipTrigger
+      label="Sort"
+      isActive={hasOverride}
+      activeLabel={showLabel ? sortLabel : undefined}
+      onClear={() => onChange(undefined)}
     >
-      <div
-        className={cn(
-          "inline-flex items-center rounded-md text-[15px] transition-colors",
-          hasOverride
-            ? "border border-border bg-accent font-medium text-foreground"
-            : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
-        )}
-      >
-        <button
-          type="button"
-          onClick={() => setOpen((p) => !p)}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1"
-        >
-          {showLabel ? (
-            <>
-              <span className="text-muted-foreground font-normal">Sort:</span>
-              <span className={hasOverride ? "font-semibold" : ""}>{label}</span>
-            </>
-          ) : (
-            <>
-              <span>Sort</span>
-              <ChevronDown className="h-3 w-3 text-muted-foreground" />
-            </>
-          )}
-        </button>
-        {hasOverride && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange(undefined);
-            }}
-            className="pr-2 ml-0.5 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Reset sort"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        )}
-      </div>
-      {open && (
-        <div className="absolute left-0 top-full mt-1.5 z-50 min-w-[180px] rounded-lg border border-border bg-popover shadow-lg dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+      {(close) => (
+        <ChipPopover className="min-w-[180px]">
           {SORT_OPTIONS.map((opt) => (
-            <button
+            <ChipOptionRow
               key={opt.value}
-              type="button"
-              onClick={() => {
-                onChange(opt.value);
-                setOpen(false);
-              }}
-              className={cn(
-                "w-full px-3 py-2 text-[15px] text-left hover:bg-accent transition-colors",
-                value === opt.value && "font-medium text-foreground",
-              )}
-            >
-              {opt.label}
-            </button>
+              label={opt.label}
+              isSelected={value === opt.value}
+              onClick={() => { onChange(opt.value); close(); }}
+            />
           ))}
-        </div>
+        </ChipPopover>
       )}
-    </div>
+    </ChipTrigger>
   );
 }
 

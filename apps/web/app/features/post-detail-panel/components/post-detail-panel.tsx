@@ -84,7 +84,7 @@ export function PostDetailPanel({
           className="fixed inset-0 z-40 bg-background/30 backdrop-blur-[4px]"
           onClick={onClose}
         />
-        <div className="fixed right-0 top-0 h-screen w-[1100px] z-50 bg-background border-l shadow-2xl flex items-center justify-center">
+        <div className="fixed right-0 top-0 h-screen w-[95vw] md:w-[700px] lg:w-[1000px] xl:w-[1400px] z-50 bg-background border-l shadow-2xl flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
             <p className="text-sm text-muted-foreground">Loading…</p>
@@ -97,7 +97,7 @@ export function PostDetailPanel({
   return (
     <>
       <div className="fixed inset-0 z-40 bg-background/30 backdrop-blur-[4px]" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-screen w-[1100px] max-w-[95vw] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
+      <div className="fixed right-0 top-0 h-screen w-[95vw] md:w-[700px] lg:w-[1000px] xl:w-[1400px] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
         <PostDetailHeader
           orgSlug={orgSlug}
           postId={postId}

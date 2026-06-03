@@ -98,10 +98,19 @@ function formatDate(date: Date | null) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(date));
 }
 
+export function ErrorBoundary() {
+  return (
+    <div className="p-6 text-sm text-destructive">
+      Failed to load API tokens. Please refresh and try again.
+    </div>
+  );
+}
+
 export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) {
   const { keys, isAdmin } = loaderData;
   const revalidator = useRevalidator();
 
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
@@ -124,6 +133,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
       setNewKey(key);
       setName("");
       setExpiresIn(null);
+      setDialogOpen(false);
       revalidator.revalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -154,7 +164,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
               </p>
             </div>
             {isAdmin && (
-              <Dialog>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <button
                     type="button"
@@ -255,7 +265,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
                     <li
                       key={k.id}
                       className={cn(
-                        "grid grid-cols-[1fr_auto-auto] items-center px-4 py-3 gap-4",
+                        "grid grid-cols-[1fr_auto_auto] items-center px-4 py-3 gap-4",
                         i !== 0 && "border-t border-border",
                         !k.enabled && "opacity-50",
                       )}

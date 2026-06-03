@@ -2,9 +2,10 @@ import { requireOrganization } from "@features/auth/server/guards";
 import { isAdmin } from "@features/roles/server/queries";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
+import { z } from "zod";
 import { auth } from "@/app/lib/auth/server";
 import { getDb } from "@/db";
-import { apikey, member } from "@/db/schema";
+import { apikey } from "@/db/schema";
 
 import type { Route } from "./+types/api-keys";
 
@@ -30,6 +31,19 @@ export async function loader({ request }: Route.LoaderArgs) {
   return data({ keys });
 }
 
+const CreateKeySchema = z.object({
+  intent: z.literal("create"),
+  name: z.string().min(1, "Name is required").max(32, "Name must be 32 characters or fewer"),
+  expiresIn: z.number().int().positive().nullable().optional(),
+});
+
+const DeleteKeySchema = z.object({
+  intent: z.literal("delete"),
+  keyId: z.string().min(1, "keyId is required"),
+});
+
+const BodySchema = z.discriminatedUnion("intent", [CreateKeySchema, DeleteKeySchema]);
+
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
 
@@ -37,18 +51,28 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: "Only admins can manage API keys" }, { status: 403 });
   }
 
-  const body = (await request.json()) as { intent: string; [key: string]: unknown };
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return data({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = BodySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Invalid request";
+    return data({ error: message }, { status: 400 });
+  }
+
+  const body = parsed.data;
 
   if (body.intent === "create") {
-    const name = (body.name as string)?.trim();
-    if (!name) return data({ error: "Name is required" }, { status: 400 });
-
     try {
       const result = await auth.api.createApiKey({
         body: {
-          name,
+          name: body.name,
           organizationId,
-          expiresIn: (body.expiresIn as number | null) ?? null,
+          expiresIn: body.expiresIn ?? null,
         },
         headers: request.headers,
       });
@@ -59,21 +83,24 @@ export async function action({ request }: Route.ActionArgs) {
     }
   }
 
-  if (body.intent === "delete") {
-    const keyId = body.keyId as string;
-    if (!keyId) return data({ error: "keyId is required" }, { status: 400 });
-
-    try {
-      await auth.api.deleteApiKey({
-        body: { keyId },
-        headers: request.headers,
-      });
-      return data({ success: true });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to delete API key";
-      return data({ error: msg }, { status: 400 });
-    }
+  // Verify the key belongs to this org before deleting
+  const db = getDb();
+  const existing = await db.query.apikey.findFirst({
+    where: and(eq(apikey.id, body.keyId), eq(apikey.referenceId, organizationId)),
+    columns: { id: true },
+  });
+  if (!existing) {
+    return data({ error: "Key not found" }, { status: 404 });
   }
 
-  return data({ error: "Unknown intent" }, { status: 400 });
+  try {
+    await auth.api.deleteApiKey({
+      body: { keyId: body.keyId },
+      headers: request.headers,
+    });
+    return data({ success: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to delete API key";
+    return data({ error: msg }, { status: 400 });
+  }
 }

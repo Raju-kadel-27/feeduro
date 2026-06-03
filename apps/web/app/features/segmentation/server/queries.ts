@@ -1,4 +1,5 @@
-import { alias, and, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { getDb } from "@/db";
 import { segments, user, userProfiles, votes } from "@/db/schema";
 import type { Segment, SegmentFilters, VoterTraitCounts } from "../types";

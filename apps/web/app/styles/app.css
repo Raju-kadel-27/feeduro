@@ -236,13 +236,12 @@
 @layer base {
   * {
     border-color: var(--color-border);
-    scrollbar-width: thin;
     scrollbar-color: hsl(var(--border)) transparent;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 12px;
+    height: 12px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;

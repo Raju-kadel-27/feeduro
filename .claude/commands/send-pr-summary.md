@@ -15,11 +15,14 @@ Push a polished PR title and description to the open GitHub PR for the current b
 
 3. **Compose the PR** following the format below.
 
-4. **Push with `gh pr edit`**:
+4. **Push via the REST API** — `gh pr edit` can fail silently when the repo uses GitHub Projects (classic); use the REST endpoint instead:
    ```
-   gh pr edit --title "<title>" --body "<body>"
+   # Get repo slug and PR number first
+   REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+   PR=$(gh pr view --json number -q .number)
+   gh api repos/$REPO/pulls/$PR -X PATCH -f title="<title>" -f body="<body>" --jq '.html_url'
    ```
-   If no open PR exists for the branch yet, create one with `gh pr create --title "<title>" --body "<body>" --draft`.
+   If no open PR exists for the branch yet, create one first with `gh pr create --title "<title>" --body "<body>" --draft`, then edit with the REST call above.
 
 ---
 

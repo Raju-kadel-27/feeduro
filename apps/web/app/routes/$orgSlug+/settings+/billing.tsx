@@ -489,7 +489,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                           : handleCheckout(plan.id as Exclude<PlanId, "free">)
                       }
                     >
-                      {loading ? "Processing…" : `Upgrade to ${plan.name}`}
+                      {loading ? "Processing…" : `Upgrade to ${plan.id === "professional" ? "Pro" : plan.name}`}
                     </Button>
                   ) : isLowerPlan ? (
                     plan.id === "free" && isCancelingAtPeriodEnd ? (

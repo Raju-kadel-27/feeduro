@@ -13,7 +13,7 @@ import type {
   View,
   ViewFilters,
 } from "../types";
-import { BooleanChip, type ChipOption, RefineChip } from "./refine-chip";
+import { type ChipOption, RefineChip } from "./refine-chip";
 import { ViewsChip } from "./views-chip";
 
 interface OrgAdmin {
@@ -63,19 +63,22 @@ interface RefineChipBarProps {
   className?: string;
 }
 
-const DEFAULT_SORT: Sort = "newest";
 
 function SortMenu({
   value,
+  hasOverride,
   onChange,
 }: {
   value: Sort;
-  onChange: (s: Sort) => void;
+  hasOverride: boolean;
+  onChange: (s: Sort | undefined) => void;
 }) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isActive = value !== DEFAULT_SORT;
   const label = SORT_OPTIONS.find((o) => o.value === value)?.label ?? "Sort";
+  // Show the label whenever the effective sort isn't the plain default, even if it
+  // comes from the active view rather than an explicit user refinement.
+  const showLabel = value !== "newest";
 
   function openMenu() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -94,8 +97,8 @@ function SortMenu({
     >
       <div
         className={cn(
-          "inline-flex items-center rounded-md text-[13.5px] transition-colors",
-          isActive
+          "inline-flex items-center rounded-md text-[15px] transition-colors",
+          hasOverride
             ? "border border-border bg-accent font-medium text-foreground"
             : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
         )}
@@ -105,10 +108,10 @@ function SortMenu({
           onClick={() => setOpen((p) => !p)}
           className="inline-flex items-center gap-1.5 px-2.5 py-1"
         >
-          {isActive ? (
+          {showLabel ? (
             <>
               <span className="text-muted-foreground font-normal">Sort:</span>
-              <span className="font-semibold">{label}</span>
+              <span className={hasOverride ? "font-semibold" : ""}>{label}</span>
             </>
           ) : (
             <>
@@ -117,12 +120,12 @@ function SortMenu({
             </>
           )}
         </button>
-        {isActive && (
+        {hasOverride && (
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onChange(DEFAULT_SORT);
+              onChange(undefined);
             }}
             className="pr-2 ml-0.5 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Reset sort"
@@ -142,7 +145,7 @@ function SortMenu({
                 setOpen(false);
               }}
               className={cn(
-                "w-full px-3 py-2 text-[13.5px] text-left hover:bg-accent transition-colors",
+                "w-full px-3 py-2 text-[15px] text-left hover:bg-accent transition-colors",
                 value === opt.value && "font-medium text-foreground",
               )}
             >
@@ -225,6 +228,7 @@ export function RefineChipBar({
         />
         <SortMenu
           value={effectiveSort}
+          hasOverride={!!refinements.sort}
           onChange={(s) => onSetRefinement("sort", s)}
         />
         <RefineChip
@@ -241,19 +245,6 @@ export function RefineChipBar({
             );
           }}
           onClear={() => onSetRefinement("board", [])}
-        />
-
-        <DateRangeChip
-          datePreset={refinements.datePreset}
-          dateFrom={refinements.dateFrom}
-          dateTo={refinements.dateTo}
-          hidden={
-            viewFilters.minAge != null ||
-            viewFilters.maxAge != null ||
-            !!viewFilters.dateFrom ||
-            !!viewFilters.dateTo
-          }
-          onSetRefinement={onSetRefinement}
         />
 
         <RefineChip
@@ -339,24 +330,24 @@ export function RefineChipBar({
           onClear={() => onSetRefinement("segment", undefined)}
         />
 
-        <BooleanChip
-          label="Customer commented"
-          active={!!refinements.hasCustomerComment}
-          onToggle={() => onSetRefinement("cust", true)}
-          onClear={() => onSetRefinement("cust", undefined)}
-        />
-        <BooleanChip
-          label="Has comments"
-          active={!!refinements.hasComments}
-          onToggle={() => onSetRefinement("commented", true)}
-          onClear={() => onSetRefinement("commented", undefined)}
+        <DateRangeChip
+          datePreset={refinements.datePreset}
+          dateFrom={refinements.dateFrom}
+          dateTo={refinements.dateTo}
+          hidden={
+            viewFilters.minAge != null ||
+            viewFilters.maxAge != null ||
+            !!viewFilters.dateFrom ||
+            !!viewFilters.dateTo
+          }
+          onSetRefinement={onSetRefinement}
         />
 
         {hasRefinements && (
           <button
             type="button"
             onClick={onClearRefinements}
-            className="px-2.5 py-1 text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors shrink-0"
+            className="px-2.5 py-1 text-[15px] text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors shrink-0"
           >
             Reset
           </button>

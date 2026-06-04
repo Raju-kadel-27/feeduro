@@ -1,5 +1,28 @@
 import type { StatusKey } from "./constants";
 
+export type WidgetSettingsBoard = {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  embedToken: string;
+};
+
+export type WidgetSettingsConfig = {
+  id: string;
+  token: string;
+  enabled: boolean;
+  boardId: string | null;
+  position: "left" | "right";
+  theme: "light" | "dark" | "auto";
+  allowedOrigins: string | null;
+};
+
+export type WidgetSettingsLoaderData = {
+  orgSlug: string;
+  config: WidgetSettingsConfig;
+  boards: WidgetSettingsBoard[];
+};
+
 export type WidgetMode = "popup" | "inline";
 
 export interface WidgetPost {

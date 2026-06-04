@@ -30,20 +30,24 @@ export function ChangePasswordForm() {
   async function onSubmit(values: ChangePasswordValues) {
     setServerError("");
     setSuccess(false);
-    await authClient.changePassword({
-      currentPassword: values.currentPassword,
-      newPassword: values.newPassword,
-      revokeOtherSessions: true,
-      fetchOptions: {
-        onSuccess() {
-          setSuccess(true);
-          reset();
+    try {
+      await authClient.changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+        revokeOtherSessions: true,
+        fetchOptions: {
+          onSuccess() {
+            setSuccess(true);
+            reset();
+          },
+          onError(ctx) {
+            setServerError(ctx.error.message ?? "Failed to update password.");
+          },
         },
-        onError(ctx) {
-          setServerError(ctx.error.message ?? "Failed to update password.");
-        },
-      },
-    });
+      });
+    } catch {
+      setServerError("Something went wrong. Please try again.");
+    }
   }
 
   return (

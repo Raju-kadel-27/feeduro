@@ -22,6 +22,10 @@ export const changePasswordSchema = z
     newPassword: strongPassword,
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
+  .refine((d) => d.newPassword !== d.currentPassword, {
+    message: "New password must be different from your current password",
+    path: ["newPassword"],
+  })
   .refine((d) => d.newPassword === d.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],

@@ -5,6 +5,14 @@ import { LogOut, ShieldCheck } from "lucide-react";
 
 import type { Route } from "./+types/password";
 
+export function ErrorBoundary() {
+  return (
+    <div className="p-6 text-sm text-destructive">
+      Failed to load this page. Please refresh and try again.
+    </div>
+  );
+}
+
 export function meta() {
   return [{ title: "Change Password — Feediyo" }];
 }

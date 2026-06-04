@@ -1,4 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
+import { logOrgActivity } from "@features/audit/server/log-org-activity";
 import { isAdmin } from "@features/roles/server/queries";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -34,7 +35,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 const CreateKeySchema = z.object({
   intent: z.literal("create"),
   name: z.string().min(1, "Name is required").max(32, "Name must be 32 characters or fewer"),
-  expiresIn: z.number().int().positive().nullable().optional(),
+  expiresIn: z.number().int().positive().max(157_680_000, "Expiry cannot exceed 5 years").nullable().optional(),
 });
 
 const DeleteKeySchema = z.object({
@@ -76,6 +77,14 @@ export async function action({ request }: Route.ActionArgs) {
         },
         headers: request.headers,
       });
+      await logOrgActivity({
+        orgId: organizationId,
+        actor: { id: session.user.id, email: session.user.email, name: session.user.name },
+        action: "api_key_created",
+        target: { type: "api_key", id: result.id },
+        metadata: { name: body.name },
+        request,
+      });
       return data({ success: true, key: result });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to create API key";
@@ -97,6 +106,13 @@ export async function action({ request }: Route.ActionArgs) {
     await auth.api.deleteApiKey({
       body: { keyId: body.keyId },
       headers: request.headers,
+    });
+    await logOrgActivity({
+      orgId: organizationId,
+      actor: { id: session.user.id, email: session.user.email, name: session.user.name },
+      action: "api_key_deleted",
+      target: { type: "api_key", id: body.keyId },
+      request,
     });
     return data({ success: true });
   } catch (err) {

@@ -1,12 +1,32 @@
 import { requireOrganization } from "@features/auth/server/guards";
+import { logOrgActivity } from "@features/audit/server/log-org-activity";
 import { isAdmin } from "@features/roles/server/queries";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
+import { z } from "zod";
 import { auth } from "@/app/lib/auth/server";
 import { getDb } from "@/db";
 import { member, ssoProvider } from "@/db/schema";
 
 import type { Route } from "./+types/sso";
+
+const DOMAIN_RE = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
+
+const RegisterSSOSchema = z.object({
+  intent: z.literal("register"),
+  issuer: z.string().url("Issuer must be a valid URL"),
+  domain: z.string().regex(DOMAIN_RE, "Invalid domain format"),
+  clientId: z.string().min(1, "Client ID is required"),
+  clientSecret: z.string().min(1, "Client secret is required"),
+  providerId: z.string().min(1, "Provider ID is required"),
+});
+
+const DeleteSSOSchema = z.object({
+  intent: z.literal("delete"),
+  id: z.string().min(1, "ID is required"),
+});
+
+const SSOActionSchema = z.discriminatedUnion("intent", [RegisterSSOSchema, DeleteSSOSchema]);
 
 export async function loader({ request }: Route.LoaderArgs) {
   const { organizationId } = await requireOrganization(request);
@@ -30,7 +50,9 @@ export async function loader({ request }: Route.LoaderArgs) {
         try {
           const cfg = JSON.parse(p.oidcConfig) as { clientId?: string };
           clientId = cfg.clientId ?? null;
-        } catch {}
+        } catch (err) {
+          console.error("[sso] failed to parse oidcConfig for provider", p.id, err);
+        }
       }
       const type = p.oidcConfig ? "oidc" : "saml";
       return {
@@ -52,29 +74,40 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: "Only admins can manage SSO" }, { status: 403 });
   }
 
-  const body = (await request.json()) as { intent: string; [key: string]: unknown };
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return data({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = SSOActionSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Invalid request";
+    return data({ error: message }, { status: 400 });
+  }
+
+  const body = parsed.data;
 
   if (body.intent === "register") {
-    const issuer = (body.issuer as string)?.trim();
-    const domain = (body.domain as string)?.trim();
-    const clientId = (body.clientId as string)?.trim();
-    const clientSecret = (body.clientSecret as string)?.trim();
-    const providerId = (body.providerId as string)?.trim();
-
-    if (!issuer || !domain || !clientId || !clientSecret || !providerId) {
-      return data({ error: "All fields are required" }, { status: 400 });
-    }
-
     try {
       await auth.api.registerSSOProvider({
         body: {
-          providerId,
-          issuer,
-          domain,
+          providerId: body.providerId,
+          issuer: body.issuer,
+          domain: body.domain,
           organizationId,
-          oidcConfig: { clientId, clientSecret },
+          oidcConfig: { clientId: body.clientId, clientSecret: body.clientSecret },
         },
         headers: request.headers,
+      });
+      await logOrgActivity({
+        orgId: organizationId,
+        actor: { id: session.user.id, email: session.user.email, name: session.user.name },
+        action: "sso_configured",
+        target: { type: "sso_provider", id: body.providerId },
+        metadata: { domain: body.domain, issuer: body.issuer },
+        request,
       });
       return data({ success: true });
     } catch (err) {
@@ -83,17 +116,20 @@ export async function action({ request }: Route.ActionArgs) {
     }
   }
 
-  if (body.intent === "delete") {
-    const id = body.id as string;
-    if (!id) return data({ error: "ID is required" }, { status: 400 });
+  const db = getDb();
+  const deleted = await db
+    .delete(ssoProvider)
+    .where(and(eq(ssoProvider.id, body.id), eq(ssoProvider.organizationId, organizationId)))
+    .returning({ id: ssoProvider.id });
 
-    const db = getDb();
-    await db
-      .delete(ssoProvider)
-      .where(and(eq(ssoProvider.id, id), eq(ssoProvider.organizationId, organizationId)));
+  if (!deleted.length) return data({ error: "Provider not found" }, { status: 404 });
 
-    return data({ success: true });
-  }
-
-  return data({ error: "Unknown intent" }, { status: 400 });
+  await logOrgActivity({
+    orgId: organizationId,
+    actor: { id: session.user.id, email: session.user.email, name: session.user.name },
+    action: "sso_deleted",
+    target: { type: "sso_provider", id: body.id },
+    request,
+  });
+  return data({ success: true });
 }

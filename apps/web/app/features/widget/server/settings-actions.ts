@@ -1,5 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { eq } from "drizzle-orm";
+import { logOrgActivity, type AuditActor } from "@features/audit/server/log-org-activity";
 import { getDb } from "@/db";
 import { widgetConfigs } from "@/db/schema";
 import { generateSigningSecret } from "../utils/crypto";
@@ -28,23 +29,25 @@ export async function toggleWidgetEnabled(orgId: string, input: ToggleEnabledInp
   return { ok: true } as const;
 }
 
-export async function regenerateWidgetToken(orgId: string) {
+export async function regenerateWidgetToken(orgId: string, actor: AuditActor, request: Request) {
   const db = getDb();
   const newToken = createId();
   await db
     .update(widgetConfigs)
     .set({ token: newToken })
     .where(eq(widgetConfigs.organizationId, orgId));
+  await logOrgActivity({ orgId, actor, action: "widget_token_regenerated", target: { type: "widget" }, request });
   return { ok: true, newToken } as const;
 }
 
-export async function rotateWidgetSecret(orgId: string) {
+export async function rotateWidgetSecret(orgId: string, actor: AuditActor, request: Request) {
   const db = getDb();
   const newSecret = generateSigningSecret();
   await db
     .update(widgetConfigs)
     .set({ signingSecret: newSecret })
     .where(eq(widgetConfigs.organizationId, orgId));
+  await logOrgActivity({ orgId, actor, action: "widget_secret_rotated", target: { type: "widget" }, request });
   return { ok: true, newSecret } as const;
 }
 

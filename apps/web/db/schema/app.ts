@@ -100,6 +100,18 @@ export const postActivityTypeEnum = pgEnum("post_activity_type", [
   "unmerged",
 ]);
 
+export const auditActionEnum = pgEnum("audit_action", [
+  "api_key_created",
+  "api_key_deleted",
+  "sso_configured",
+  "sso_deleted",
+  "member_invited",
+  "invitation_cancelled",
+  "member_removed",
+  "widget_secret_rotated",
+  "widget_token_regenerated",
+]);
+
 export const importJobStatusEnum = pgEnum("import_job_status", [
   "pending",
   "running",
@@ -535,6 +547,37 @@ export const postActivities = pgTable(
     orgIdIdx: index("pa_org_id_idx").on(t.organizationId),
     orgPostCreatedAtIdx: index("pa_org_post_created_at_idx").on(t.organizationId, t.postId, t.createdAt),
   }),
+);
+
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    // FK survives user deletion via SET NULL; actorEmail preserves identity permanently
+    actorId: varchar("actor_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null",
+    }),
+    actorEmail: varchar("actor_email", { length: 255 }).notNull(),
+    actorName: varchar("actor_name", { length: 255 }),
+    action: auditActionEnum("action").notNull(),
+    // What resource was affected (e.g. "api_key", "sso_provider", "member", "widget")
+    targetType: varchar("target_type", { length: 64 }),
+    targetId: varchar("target_id", { length: 128 }),
+    metadata: text("metadata"),
+    // IPv4 max 15 chars, IPv6 max 45 chars
+    ipAddress: varchar("ip_address", { length: 45 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("al_org_id_idx").on(t.organizationId),
+    index("al_org_created_at_idx").on(t.organizationId, t.createdAt),
+    index("al_actor_id_idx").on(t.actorId),
+  ],
 );
 
 export const changelogTags = pgTable(

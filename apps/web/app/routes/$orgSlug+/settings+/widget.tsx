@@ -25,7 +25,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-  const { org } = await requireOrgBySlug(request, params.orgSlug);
+  const { org, session } = await requireOrgBySlug(request, params.orgSlug);
   const form = await request.formData();
   const parsed = SettingsActionSchema.safeParse(Object.fromEntries(form));
 
@@ -41,9 +41,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     case "toggle-enabled":
       return data(await toggleWidgetEnabled(org.id, input));
     case "regenerate":
-      return data(await regenerateWidgetToken(org.id));
+      return data(await regenerateWidgetToken(org.id, { id: session.user.id, email: session.user.email, name: session.user.name }, request));
     case "rotate-secret":
-      return data(await rotateWidgetSecret(org.id));
+      return data(await rotateWidgetSecret(org.id, { id: session.user.id, email: session.user.email, name: session.user.name }, request));
     case "reveal-secret":
       return data(await revealWidgetSecret(org.id));
     case "save-origins":

@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Palette,
   Puzzle,
+  ScrollText,
   Settings,
   Share2,
   Shield,
@@ -61,6 +62,7 @@ export function makeSettingsSections(base: string): SettingsSection[] {
         { title: "Two-Factor Auth", url: `${base}/settings/two-factor`, icon: ShieldCheck },
         { title: "Passkeys", url: `${base}/settings/passkeys`, icon: Fingerprint },
         { title: "Password", url: `${base}/settings/password`, icon: Lock },
+        { title: "Audit Log", url: `${base}/settings/audit-log`, icon: ScrollText },
       ],
     },
     {

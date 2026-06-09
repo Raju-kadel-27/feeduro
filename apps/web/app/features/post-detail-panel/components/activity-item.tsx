@@ -62,6 +62,24 @@ export function ActivityItem({
       </div>
     );
   }
+  if (type === "unmerged_from") {
+    return (
+      <div className="flex items-center gap-2 py-1.5 text-xs text-muted-foreground flex-wrap">
+        <GitMerge className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+        <span className="font-medium text-foreground/80">{userName ?? "Someone"}</span>
+        <span>unmerged this post from</span>
+        <button
+          type="button"
+          onClick={() => onOpenPost?.(newValue)}
+          className="font-medium text-foreground/80 hover:text-foreground underline underline-offset-2 hover:no-underline max-w-[160px] truncate"
+        >
+          {oldValue ?? "another post"}
+        </button>
+        <span className="text-muted-foreground/40">·</span>
+        <span>{timeAgo(createdAt)}</span>
+      </div>
+    );
+  }
 
   if (type === "owner_assigned") {
     const isUnassign = newValue === "Unassigned";

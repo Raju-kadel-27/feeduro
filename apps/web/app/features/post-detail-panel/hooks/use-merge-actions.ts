@@ -2,6 +2,7 @@ import { type MergeSearchPost, MergeSearchResponseSchema } from "@features/feedb
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MutableRefObject } from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function useMergeActions({
   postId,
@@ -11,10 +12,10 @@ export function useMergeActions({
   onClose,
 }: {
   postId: string;
-  initializedRef: MutableRefObject<boolean>;
-  onDataChange: () => void;
+  initializedRef?: MutableRefObject<boolean>;
+  onDataChange?: () => void;
   onOpenPost?: (id: string) => void;
-  onClose: () => void;
+  onClose?: () => void;
 }) {
   const qc = useQueryClient();
 
@@ -65,9 +66,13 @@ export function useMergeActions({
       setMergeSearch("");
       setMergeTarget(null);
       qc.invalidateQueries({ queryKey: ["feedback"] });
-      onDataChange();
+      toast.success("Post merged successfully");
+      onDataChange?.();
       if (onOpenPost) onOpenPost(vars.targetPostId!);
-      else onClose();
+      else onClose?.();
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Merge failed");
     },
   });
 
@@ -85,8 +90,12 @@ export function useMergeActions({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["post-detail", postId] });
       qc.invalidateQueries({ queryKey: ["feedback"] });
-      onDataChange();
-      initializedRef.current = false;
+      toast.success("Post unmerged");
+      onDataChange?.();
+      if (initializedRef) initializedRef.current = false;
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Unmerge failed");
     },
   });
 

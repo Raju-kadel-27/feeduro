@@ -1,0 +1,93 @@
+import { getDb } from "@/db";
+import { feedbackPosts } from "@/db/schema";
+import { runDuplicateDetection } from "@features/autopilot/server/service";
+import { triggerSmartReply } from "@features/feedback/server/smart-replies.server";
+import { fireAutoCreateIntegrations } from "@features/feedback/server/post-auto-create";
+import { notifyNewPost } from "@features/notifications/server/service";
+import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { getEnv } from "@utils/get-env";
+import { data } from "react-router";
+import type { AppLoadContext } from "react-router";
+import { z } from "zod";
+
+type SessionActor = { user: { id: string; name: string | null; email: string | null } };
+
+const CreatePostSchema = z.object({
+  intent: z.literal("create"),
+  title: z.string().trim().min(1, "Title is required"),
+  description: z.string().trim().optional(),
+  boardId: z.string().min(1, "Board is required"),
+  categoryId: z.string().optional(),
+});
+
+export async function handleCreatePost(
+  organizationId: string,
+  session: SessionActor,
+  role: string,
+  rawBody: unknown,
+  context: AppLoadContext,
+) {
+  if (role === "viewer") return data({ error: "Viewers cannot create feedback" }, { status: 403 });
+
+  const parsed = CreatePostSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return data({ error: parsed.error.issues[0]?.message ?? "Invalid payload" }, { status: 400 });
+  }
+  const { title, description, boardId, categoryId } = parsed.data;
+
+  const db = getDb();
+  const [post] = await db
+    .insert(feedbackPosts)
+    .values({ organizationId, boardId, title, description, categoryId, createdBy: session.user.id })
+    .returning({
+      id: feedbackPosts.id,
+      title: feedbackPosts.title,
+      boardId: feedbackPosts.boardId,
+      status: feedbackPosts.status,
+      createdAt: feedbackPosts.createdAt,
+    });
+
+  dispatchWebhook(context, organizationId, "feedback.created", {
+    id: post.id,
+    title: post.title,
+    description: description ?? null,
+    boardId: post.boardId,
+    status: post.status,
+    createdBy: session.user.id,
+    source: "internal",
+    createdAt: post.createdAt,
+  });
+
+  notifyNewPost({
+    postId: post.id,
+    postTitle: post.title,
+    actorId: session.user.id,
+    organizationId,
+    actorName: session.user.name ?? session.user.email ?? "Someone",
+  }).catch((err) => console.error("[create-post] notify error", err));
+
+  const { GROQ_API_KEY } = getEnv();
+  if (GROQ_API_KEY) {
+    const postData = {
+      id: post.id,
+      title: post.title,
+      description: description ?? null,
+      boardId: post.boardId,
+      organizationId,
+    };
+    triggerSmartReply(db, postData, GROQ_API_KEY).catch((err) =>
+      console.error("[smart-reply]", err),
+    );
+    runDuplicateDetection(postData, GROQ_API_KEY).catch((err) =>
+      console.error("[duplicate-detection]", err),
+    );
+  }
+
+  fireAutoCreateIntegrations(
+    organizationId,
+    { id: post.id, title: post.title, description: description ?? null },
+    session.user.id,
+  );
+
+  return data({ success: true, id: post.id });
+}

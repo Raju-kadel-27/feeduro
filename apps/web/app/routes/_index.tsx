@@ -1,13 +1,25 @@
+import { LandingPage } from "@features/landing/landing-page";
 import { resolveOrgRedirect } from "@features/workspace/server/queries";
-import { requireSession } from "@lib/session";
+import { getSession } from "@lib/session";
 import { redirect } from "react-router";
 
 export async function loader({ request }: { request: Request }) {
-  const session = await requireSession(request);
-  const slug = await resolveOrgRedirect(request, session);
-  throw redirect(slug ? `/${slug}/dashboard` : "/onboarding");
+  const session = await getSession(request);
+  if (session) {
+    const slug = await resolveOrgRedirect(request, session);
+    throw redirect(slug ? `/${slug}/dashboard` : "/onboarding");
+  }
+  return {};
 }
 
-export default function IndexRedirect() {
-  return null;
+export function ErrorBoundary() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-muted-foreground">Something went wrong. Please refresh.</p>
+    </div>
+  );
+}
+
+export default function IndexRoute() {
+  return <LandingPage />;
 }

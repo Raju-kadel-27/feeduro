@@ -33,7 +33,7 @@ export interface FeediyoContextValue {
 
 /** Shape of window.feediyo after the SDK script loads. */
 export interface FeediyoSDK {
-  init(token: string, options?: { position?: Position; theme?: Theme }): void;
+  init(token: string, options?: { position?: Position; theme?: Theme; baseUrl?: string }): void;
   identify(user: IdentifyPayload | null): void;
   embed(token: string, target: string | Element, options?: { theme?: Theme }): void;
   showWidget(): void;

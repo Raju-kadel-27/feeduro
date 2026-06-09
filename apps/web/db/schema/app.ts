@@ -98,6 +98,7 @@ export const postActivityTypeEnum = pgEnum("post_activity_type", [
   "merged",
   "merged_into",
   "unmerged",
+  "unmerged_from",
 ]);
 
 export const auditActionEnum = pgEnum("audit_action", [

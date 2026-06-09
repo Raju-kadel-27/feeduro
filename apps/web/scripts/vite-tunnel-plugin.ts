@@ -36,7 +36,7 @@ export function tunnelPlugin(port = 3000): Plugin {
     configureServer(server) {
       const ngrokDomain =
         process.env.NGROK_DOMAIN ??
-        (process.env.BASE_URL ? new URL(process.env.BASE_URL).hostname : undefined);
+        (process.env.BASE_URL?.startsWith("https://") ? process.env.BASE_URL : undefined);
 
       if (!ngrokDomain) {
         console.warn("\n  ⚠️   NGROK_DOMAIN not set — tunnel disabled.");
@@ -46,12 +46,13 @@ export function tunnelPlugin(port = 3000): Plugin {
       }
 
       const bin = resolveNgrok();
-      const tunnelUrl = `https://${ngrokDomain}`;
+      const tunnelUrl = ngrokDomain;
 
       originalBaseUrl = patchEnvFile(".env", "BASE_URL", tunnelUrl);
       process.env.BASE_URL = tunnelUrl;
 
-      const proc = spawn(bin, ["http", `--domain=${ngrokDomain}`, String(port)], {
+      const authtokenArg = process.env.NGROK_AUTHTOKEN ? [`--authtoken=${process.env.NGROK_AUTHTOKEN}`] : [];
+      const proc = spawn(bin, ["http", `https://localhost:${port}`, `--url=${ngrokDomain}`, ...authtokenArg], {
         stdio: ["ignore", "pipe", "pipe"],
       });
       proc.stdout?.on("data", (d: Buffer) => process.stdout.write(d));

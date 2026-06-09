@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
@@ -9,6 +10,10 @@ export default defineConfig({
   server: {
     port: 3000,
     hmr: false,
+    https: {
+      key: readFileSync("./local_certificates/localhost.key"),
+      cert: readFileSync("./local_certificates/localhost.crt"),
+    },
   },
   plugins: [
     process.env.TUNNEL === "true" && tunnelPlugin(3000),

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "account_id": "eaf872daa611531b2c95caf488b832c9",
+  "name": "feediyo-demo",
+  "main": "./app/entry.worker.ts",
+  "compatibility_date": "2025-04-07",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "observability": { "enabled": true },
+  "assets": { "directory": "./build/client" },
+  "workers_dev": true,
+  // Secrets (never commit values — add via `wrangler secret put <NAME> --env staging`):
+  //   FEEDIYO_WIDGET_TOKEN
+  //   FEEDIYO_API_KEY
+  //   FEEDIYO_WEBHOOK_SECRET
+  "env": {
+    "staging": {
+      "name": "feediyo-demo-staging",
+      "vars": {
+        "FEEDIYO_API_URL": "https://app.feediyo.com"
+      }
+    }
+  }
+}

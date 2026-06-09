@@ -79,6 +79,8 @@ export const auth = betterAuth({
       defaultPrefix: "fdy_",
       requireName: true,
       keyExpiration: { defaultExpiresIn: null },
+      // Disable rate limiting by default — callers control it per-key if needed
+      rateLimit: { enabled: false },
     }),
     sso({
       organizationProvisioning: {

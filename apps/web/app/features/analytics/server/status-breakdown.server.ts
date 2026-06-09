@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 import { StatusBreakdownSchema } from "../schemas/analytics";
 
-export async function getStatusBreakdown(organizationId: string) {
+export async function getStatusBreakdown(organizationId: string, boardId?: string) {
   const db = getDb();
 
   const rows = await db
@@ -16,6 +16,7 @@ export async function getStatusBreakdown(organizationId: string) {
       and(
         eq(feedbackPosts.organizationId, organizationId),
         isNull(feedbackPosts.mergedIntoPostId),
+        boardId ? eq(feedbackPosts.boardId, boardId) : undefined,
       ),
     )
     .groupBy(feedbackPosts.status)

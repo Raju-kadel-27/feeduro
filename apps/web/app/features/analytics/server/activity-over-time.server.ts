@@ -14,6 +14,7 @@ export async function getActivityOverTime(
   organizationId: string,
   range: DateRange,
   since?: Date,
+  boardId?: string,
 ) {
   const db = getDb();
 
@@ -40,6 +41,7 @@ export async function getActivityOverTime(
         eq(feedbackPosts.organizationId, organizationId),
         isNull(feedbackPosts.mergedIntoPostId),
         gte(col, effectiveSince),
+        boardId ? eq(feedbackPosts.boardId, boardId) : undefined,
       ),
     )
     .groupBy(trunc)

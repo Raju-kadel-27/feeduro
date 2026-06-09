@@ -2,8 +2,10 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { TrendingPostsSchema } from "../schemas/analytics";
 
-export async function getTrendingPosts(organizationId: string, limit = 8) {
+export async function getTrendingPosts(organizationId: string, limit = 8, boardId?: string) {
   const db = getDb();
+
+  const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
     SELECT
@@ -28,6 +30,7 @@ export async function getTrendingPosts(organizationId: string, limit = 8) {
       AND fp.merged_into_post_id IS NULL
       AND fp.status NOT IN ('completed', 'closed')
       AND COALESCE(v.votes_this_week, 0) > 0
+      ${boardFilter}
     ORDER BY v.votes_this_week DESC NULLS LAST
     LIMIT ${limit}
   `);

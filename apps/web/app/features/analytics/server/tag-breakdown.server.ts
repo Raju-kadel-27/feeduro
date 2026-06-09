@@ -6,10 +6,12 @@ export async function getTagBreakdown(
   organizationId: string,
   since?: Date,
   limit = 12,
+  boardId?: string,
 ) {
   const db = getDb();
 
   const sinceFilter = since ? sql`AND fp.created_at >= ${since}` : sql``;
+  const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
     SELECT
@@ -23,6 +25,7 @@ export async function getTagBreakdown(
            ON  fp.id = pt.post_id
            AND fp.merged_into_post_id IS NULL
            ${sinceFilter}
+           ${boardFilter}
     WHERE ft.organization_id = ${organizationId}
     GROUP BY ft.id, ft.name, ft.color
     ORDER BY "postCount" DESC, "totalVotes" DESC

@@ -1,6 +1,6 @@
 import { Skeleton } from "@components/ui/skeleton";
 import type { loadAnalyticsOverview } from "../server/overview.server";
-import { ActivityChart } from "./activity-chart";
+import { ActivityCombinedChart } from "./activity-combined-chart";
 import { AnalyticsReports } from "./analytics-reports";
 import { BoardHealthList } from "./board-health-list";
 import { BoardVisitorsChart } from "./board-visitors-chart";
@@ -16,6 +16,7 @@ import { UnrespondedPostsCard } from "./unresponded-posts-card";
 import { AdminActivityTable } from "./admin-activity-table";
 import { HealthKpiRow } from "./health-kpi-row";
 import { BacklogAgingChart } from "./backlog-aging-chart";
+import { StatusChangeFeedList } from "./status-change-feed";
 
 type OverviewData = Awaited<ReturnType<typeof loadAnalyticsOverview>>;
 
@@ -26,20 +27,15 @@ const RANGE_LABEL: Record<string, string | undefined> = {
   all: undefined,
 };
 
-const ACTIVITY_SUB: Record<string, string> = {
-  "7d": "daily — last 7 days",
-  "30d": "daily — last 30 days",
-  "90d": "weekly — last 90 days",
-  all: "monthly — last 12 months",
-};
 
 export function AnalyticsOverview({ data }: { data: OverviewData }) {
   const {
-    stats, boards, topPosts, funnel, statusBreakdown, activityOverTime,
-    completedPosts, tagBreakdown, trendingPosts, range,
+    stats, boards, topPosts, funnel, statusBreakdown, activityOverTime, votesOverTime,
+    completedPosts, tagBreakdown, trendingPosts, range, boardId,
     changelogEngagement, adminActivity, companyEngagement,
     boardVisitors, commentsAnalytics, unrespondedPosts, fetchedAt,
     resolutionTime, responseRate, backlogAging, mergeRate, voteConversion, subscriberMetrics,
+    statusChangeFeed,
   } = data;
 
   const { deltas } = stats;
@@ -121,12 +117,19 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
       </div>
 
       {/* Volume trend — full width */}
-      <div className="rounded-xl border bg-card p-5 space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold">New Posts Over Time</h2>
-          <p className="text-xs text-muted-foreground">{ACTIVITY_SUB[range]}</p>
+      <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="px-5 pt-5">
+          <h2 className="text-sm font-semibold">Activity Over Time</h2>
         </div>
-        <ActivityChart data={activityOverTime} range={range} />
+        <div className="mt-3">
+          <ActivityCombinedChart
+            postsData={activityOverTime}
+            votesData={votesOverTime}
+            totalPosts={stats.totalPosts}
+            totalVotes={stats.totalVotes}
+            range={range}
+          />
+        </div>
       </div>
 
       {/* Top tags — full width */}
@@ -188,6 +191,19 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
           </div>
           <CompletedPostsList posts={completedPosts} rangeLabel={rangeLabel} />
         </div>
+      </div>
+
+      {/* Status change feed */}
+      <div className="rounded-xl border bg-card p-5 space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold">Status Changes</h2>
+          <p className="text-xs text-muted-foreground">
+            {boardId
+              ? (boards.find((b) => b.boardId === boardId)?.boardName ?? "Selected board")
+              : "all boards"} · most recent 25
+          </p>
+        </div>
+        <StatusChangeFeedList feed={statusChangeFeed} />
       </div>
 
       <AnalyticsReports data={{ changelogEngagement, topPosts, companyEngagement, range, subscriberMetrics }} />

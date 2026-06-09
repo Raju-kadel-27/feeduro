@@ -24,6 +24,8 @@ import { getBacklogAging } from "./backlog-aging.server";
 import { getMergeRate } from "./merge-rate.server";
 import { getVoteConversion } from "./vote-conversion.server";
 import { getSubscriberMetrics } from "./subscriber-metrics.server";
+import { getVotesOverTime } from "./votes-over-time.server";
+import { getStatusChangeFeed } from "./status-change-feed.server";
 
 function parseSince(range: string): Date | undefined {
   const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : null;
@@ -33,7 +35,12 @@ function parseSince(range: string): Date | undefined {
   return d;
 }
 
-async function fetchAll(organizationId: string, range: DateRange, since: Date | undefined) {
+async function fetchAll(
+  organizationId: string,
+  range: DateRange,
+  since: Date | undefined,
+  boardId: string | undefined,
+) {
   const nowMs = Date.now();
   const prevSince = since
     ? new Date(since.getTime() - (nowMs - since.getTime()))
@@ -41,19 +48,21 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
 
   const [
     boards, topPosts, funnel, statusBreakdown,
-    activityOverTime, completedPosts, tagBreakdown, trendingPosts,
+    activityOverTime, votesOverTime, completedPosts, tagBreakdown, trendingPosts,
     changelogEngagement, adminActivity, companyEngagement,
     boardVisitors, commentsAnalytics, unrespondedPosts, deltas,
     resolutionTime, responseRate, backlogAging, mergeRate, voteConversion, subscriberMetrics,
+    statusChangeFeed,
   ] = await Promise.all([
     getBoardSummaries(organizationId, since),
-    getTopPostsByVotes(organizationId, undefined, 8, since),
-    getStatusFunnel(organizationId, undefined, since),
-    getStatusBreakdown(organizationId),
-    getActivityOverTime(organizationId, range, since),
-    getCompletedInPeriod(organizationId, since),
-    getTagBreakdown(organizationId, since),
-    getTrendingPosts(organizationId),
+    getTopPostsByVotes(organizationId, boardId, 8, since),
+    getStatusFunnel(organizationId, boardId, since),
+    getStatusBreakdown(organizationId, boardId),
+    getActivityOverTime(organizationId, range, since, boardId),
+    getVotesOverTime(organizationId, range, since, boardId),
+    getCompletedInPeriod(organizationId, since, 10, boardId),
+    getTagBreakdown(organizationId, since, 12, boardId),
+    getTrendingPosts(organizationId, 8, boardId),
     getChangelogEngagement(organizationId),
     getAdminActivity(organizationId, since),
     getCompanyEngagement(organizationId, since),
@@ -67,6 +76,7 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
     getMergeRate(organizationId, since),
     getVoteConversion(organizationId, since),
     getSubscriberMetrics(organizationId, since),
+    getStatusChangeFeed(organizationId, since, boardId),
   ]);
 
   const totalPosts = boards.reduce((s, b) => s + b.totalPosts, 0);
@@ -77,12 +87,14 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
 
   return {
     range,
+    boardId,
     stats: { totalPosts, totalVotes, resolutionRate, avgVotesPerPost, deltas },
     boards,
     topPosts,
     funnel,
     statusBreakdown,
     activityOverTime,
+    votesOverTime,
     completedPosts,
     tagBreakdown,
     trendingPosts,
@@ -98,6 +110,7 @@ async function fetchAll(organizationId: string, range: DateRange, since: Date | 
     mergeRate,
     voteConversion,
     subscriberMetrics,
+    statusChangeFeed,
     fetchedAt: Date.now(),
   };
 }
@@ -119,13 +132,15 @@ export async function loadAnalyticsOverview(
     : "all";
   const since = parseSince(range);
 
+  const boardId = url.searchParams.get("board") ?? undefined;
+
   const cache = context ? getAnalyticsCache(context) : undefined;
-  const cacheKey = `${organizationId}:${range}`;
+  const cacheKey = `${organizationId}:${range}:${boardId ?? "all"}`;
 
   const hit = cache?.get<OverviewData>(cacheKey);
   if (hit) return { user: session.user, ...hit };
 
-  const overviewData = await fetchAll(organizationId, range, since);
+  const overviewData = await fetchAll(organizationId, range, since, boardId);
   cache?.set(cacheKey, overviewData);
   return { user: session.user, ...overviewData };
 }

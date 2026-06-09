@@ -53,6 +53,7 @@ export function WidgetSubmitForm({
       onSuccess({
         id: json.id ?? Date.now().toString(),
         title: title.trim(),
+        description: description.trim() || null,
         status: "pending",
         voteCount: 0,
         commentCount: 0,

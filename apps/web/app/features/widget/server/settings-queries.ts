@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackBoards, widgetConfigs } from "@/db/schema";
 import { generateSigningSecret } from "../utils/crypto";
@@ -6,26 +6,20 @@ import { generateSigningSecret } from "../utils/crypto";
 export async function getWidgetSettings(orgId: string) {
   const db = getDb();
 
-  // Single upsert: creates row if missing, backfills signingSecret if null via COALESCE.
-  // Runs in parallel with the boards query since they are independent.
-  const [[config], boards] = await Promise.all([
-    db
-      .insert(widgetConfigs)
-      .values({ organizationId: orgId, signingSecret: generateSigningSecret() })
-      .onConflictDoUpdate({
-        target: widgetConfigs.organizationId,
-        // Keep existing secret when present; fill it only when null (old rows).
-        set: { signingSecret: sql`COALESCE(signing_secret, excluded.signing_secret)` },
-      })
-      .returning({
-        id: widgetConfigs.id,
-        token: widgetConfigs.token,
-        enabled: widgetConfigs.enabled,
-        boardId: widgetConfigs.boardId,
-        position: widgetConfigs.position,
-        theme: widgetConfigs.theme,
-        allowedOrigins: widgetConfigs.allowedOrigins,
-      }),
+  const [existing, rawBoards] = await Promise.all([
+    db.query.widgetConfigs.findFirst({
+      where: eq(widgetConfigs.organizationId, orgId),
+      columns: {
+        id: true,
+        token: true,
+        enabled: true,
+        boardId: true,
+        position: true,
+        theme: true,
+        allowedOrigins: true,
+        signingSecret: true,
+      },
+    }),
     db.query.feedbackBoards.findMany({
       where: and(
         eq(feedbackBoards.organizationId, orgId),
@@ -35,16 +29,38 @@ export async function getWidgetSettings(orgId: string) {
     }),
   ]);
 
-  if (!config) throw new Response("Widget config unavailable", { status: 500 });
+  const boards = rawBoards.map((b) => ({
+    id: b.id,
+    name: b.name,
+    isDefault: b.isDefault ?? false,
+    embedToken: b.embedToken,
+  }));
 
-  return {
-    config,
-    boards: boards.map((b) => ({
-      id: b.id,
-      name: b.name,
-      isDefault: b.isDefault ?? false,
-      embedToken: b.embedToken,
-    })),
-  };
+  if (!existing) {
+    const [config] = await db
+      .insert(widgetConfigs)
+      .values({ organizationId: orgId, signingSecret: generateSigningSecret() })
+      .returning({
+        id: widgetConfigs.id,
+        token: widgetConfigs.token,
+        enabled: widgetConfigs.enabled,
+        boardId: widgetConfigs.boardId,
+        position: widgetConfigs.position,
+        theme: widgetConfigs.theme,
+        allowedOrigins: widgetConfigs.allowedOrigins,
+      });
+    if (!config) throw new Response("Widget config unavailable", { status: 500 });
+    return { config, boards };
+  }
+
+  if (!existing.signingSecret) {
+    await db
+      .update(widgetConfigs)
+      .set({ signingSecret: generateSigningSecret() })
+      .where(eq(widgetConfigs.organizationId, orgId));
+  }
+
+  const { signingSecret: _secret, ...config } = existing;
+  return { config, boards };
 }
 

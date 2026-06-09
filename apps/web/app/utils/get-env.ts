@@ -31,6 +31,8 @@ const envSchema = z.object({
   HUBSPOT_CLIENT_SECRET: z.string().optional(),
   SALESFORCE_CLIENT_ID: z.string().optional(),
   SALESFORCE_CLIENT_SECRET: z.string().optional(),
+  CLICKUP_CLIENT_ID: z.string().optional(),
+  CLICKUP_CLIENT_SECRET: z.string().optional(),
   EMAIL_SERVER: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   DODO_PAYMENTS_API_KEY: z.string().optional(),

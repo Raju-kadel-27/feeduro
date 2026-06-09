@@ -20,7 +20,7 @@ Boards group feedback posts by topic — e.g. "Feature Requests", "Bug Reports".
 
 <div class="endpoint-url"><span class="badge-method badge-get">GET</span><code>/v1/boards</code></div>
 
-Returns all boards for the organization, each with a live post count.
+Returns all boards for the organization, each with a live post count and embed token.
 
 ### Parameters
 
@@ -55,16 +55,26 @@ _No parameters._
         {
           "id": "board_01abc123",
           "name": "Feature Requests",
+          "slug": "feature-requests",
           "description": "Ideas and suggestions for new features",
+          "visibility": "public",
+          "isDefault": true,
+          "embedToken": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
           "postCount": 42,
-          "createdAt": "2025-01-15T08:00:00.000Z"
+          "createdAt": "2025-01-15T08:00:00.000Z",
+          "updatedAt": "2025-01-15T08:00:00.000Z"
         },
         {
           "id": "board_01def456",
           "name": "Bug Reports",
+          "slug": "bug-reports",
           "description": null,
+          "visibility": "public",
+          "isDefault": false,
+          "embedToken": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5",
           "postCount": 17,
-          "createdAt": "2025-01-15T08:05:00.000Z"
+          "createdAt": "2025-01-15T08:05:00.000Z",
+          "updatedAt": "2025-01-15T08:05:00.000Z"
         }
       ]
     }
@@ -76,9 +86,14 @@ _No parameters._
 |-------|------|----------|-------------|
 | `id` | string | No | Unique board ID |
 | `name` | string | No | Display name shown to users |
+| `slug` | string | No | URL-safe identifier |
 | `description` | string | Yes | Optional board description |
+| `visibility` | string | No | `public` or `private` |
+| `isDefault` | boolean | No | Whether this is the default board |
+| `embedToken` | string | No | Token for inline embeds — use with `FeediyoBoard` or `data-fdy-embed` |
 | `postCount` | integer | No | Count of active (non-merged) posts |
 | `createdAt` | string | No | ISO 8601 timestamp |
+| `updatedAt` | string | No | ISO 8601 timestamp |
 
 ---
 
@@ -120,9 +135,14 @@ _No parameters._
       "data": {
         "id": "board_01abc123",
         "name": "Feature Requests",
+        "slug": "feature-requests",
         "description": "Ideas and suggestions for new features",
+        "visibility": "public",
+        "isDefault": true,
+        "embedToken": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
         "postCount": 42,
-        "createdAt": "2025-01-15T08:00:00.000Z"
+        "createdAt": "2025-01-15T08:00:00.000Z",
+        "updatedAt": "2025-01-15T08:00:00.000Z"
       }
     }
     ```
@@ -135,6 +155,42 @@ _No parameters._
 </Tabs>
 
 ---
+
+## Using embed tokens
+
+Each board has an `embedToken` that lets you embed it inline — no floating button needed. Use it with the React SDK or the plain HTML snippet:
+
+<Tabs>
+  <TabItem label="React">
+    ```tsx
+    import { FeediyoBoard } from '@feediyo/react';
+
+    // Fetch your boards to get their embedTokens
+    const { data: boards } = await fetch('/v1/boards', {
+      headers: { Authorization: 'Bearer YOUR_KEY' },
+    }).then(r => r.json());
+
+    export default function FeedbackPage() {
+      return (
+        <FeediyoBoard
+          token={boards[0].embedToken}
+          style={{ height: 600 }}
+        />
+      );
+    }
+    ```
+  </TabItem>
+  <TabItem label="HTML">
+    ```html
+    <div
+      data-fdy-embed="a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+      data-fdy-theme="auto"
+      style="height:600px;"
+    ></div>
+    <script src="https://feediyo.com/sdk/v1/fdy.js" async></script>
+    ```
+  </TabItem>
+</Tabs>
 
 <div class="see-also">
 

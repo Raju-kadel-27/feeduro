@@ -28,6 +28,7 @@ export type WidgetMode = "popup" | "inline";
 export interface WidgetPost {
   id: string;
   title: string;
+  description: string | null;
   status: StatusKey;
   voteCount: number;
   commentCount: number;

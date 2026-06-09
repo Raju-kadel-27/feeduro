@@ -1,11 +1,35 @@
+import { useState } from "react";
+import type { StatusKey } from "../constants";
 import type { WidgetPost } from "../types";
-import { StatusPill } from "./status-pill";
+import { WidgetCard } from "./widget-card";
+import { WidgetFilterBar, type WidgetSort } from "./widget-filter-bar";
 
 interface WidgetFeedProps {
   posts: WidgetPost[];
+  onSelectPost: (post: WidgetPost) => void;
 }
 
-export function WidgetFeed({ posts }: WidgetFeedProps) {
+export function WidgetFeed({ posts, onSelectPost }: WidgetFeedProps) {
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<WidgetSort>("new");
+  const [active, setActive] = useState<Set<StatusKey>>(new Set());
+
+  function toggleStatus(id: StatusKey) {
+    setActive((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  let filtered = posts.filter((p) => {
+    if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (active.size > 0 && !active.has(p.status)) return false;
+    return true;
+  });
+
+  if (sort === "top") filtered = [...filtered].sort((a, b) => b.voteCount - a.voteCount);
+
   if (posts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-1 text-muted-foreground">
@@ -16,25 +40,28 @@ export function WidgetFeed({ posts }: WidgetFeedProps) {
   }
 
   return (
-    <ul className="divide-y divide-border/50">
-      {posts.map((post) => (
-        <li key={post.id} className="px-4 py-3.5">
-          <div className="flex items-start justify-between gap-3">
-            <p className="text-[13px] font-medium leading-snug line-clamp-2 flex-1">{post.title}</p>
-            <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums mt-px">
-              ▲ {post.voteCount}
-            </span>
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            <StatusPill id={post.status} />
-            {post.commentCount > 0 && (
-              <span className="text-[11px] text-muted-foreground">
-                {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
-              </span>
-            )}
-          </div>
-        </li>
-      ))}
-    </ul>
+    <>
+      <WidgetFilterBar
+        search={search}
+        onSearch={setSearch}
+        sort={sort}
+        onSort={setSort}
+        active={active}
+        onToggle={toggleStatus}
+      />
+      {filtered.length === 0 ? (
+        <div className="flex items-center justify-center py-12 text-[12px] text-muted-foreground">
+          No posts match the current filters.
+        </div>
+      ) : (
+        <ul>
+          {filtered.map((post) => (
+            <li key={post.id}>
+              <WidgetCard post={post} onSelect={() => onSelectPost(post)} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }

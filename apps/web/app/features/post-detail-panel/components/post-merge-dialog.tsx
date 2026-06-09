@@ -1,8 +1,11 @@
 import type { AdminStatus, MergeSearchPost } from "@features/feedback/schemas/admin";
+import { Dialog, DialogContent } from "@components/ui/dialog";
 import { Search } from "lucide-react";
 import { StatusCircleIcon } from "./status-circle-icon";
 
 export function PostMergeDialog({
+  open,
+  onOpenChange,
   postTitle,
   mergeStep,
   mergeSearch,
@@ -14,8 +17,9 @@ export function PostMergeDialog({
   onSelectTarget,
   onBack,
   onConfirm,
-  onCancel,
 }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   postTitle: string;
   mergeStep: "search" | "confirm";
   mergeSearch: string;
@@ -27,12 +31,10 @@ export function PostMergeDialog({
   onSelectTarget: (p: MergeSearchPost) => void;
   onBack: () => void;
   onConfirm: () => void;
-  onCancel: () => void;
 }) {
   return (
-    <>
-      <div className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm" onClick={onCancel} />
-      <div className="fixed left-1/2 top-1/2 z-[70] -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-popover border rounded-xl shadow-xl p-6">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
         {mergeStep === "search" && (
           <div className="space-y-4">
             <div>
@@ -73,15 +75,6 @@ export function PostMergeDialog({
                 </button>
               ))}
             </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="px-4 py-2 text-xs font-medium rounded-lg hover:bg-muted transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
           </div>
         )}
 
@@ -114,7 +107,7 @@ export function PostMergeDialog({
             </div>
           </div>
         )}
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }

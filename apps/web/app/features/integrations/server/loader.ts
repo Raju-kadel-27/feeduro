@@ -30,6 +30,7 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
     zendeskIntegration,
     hubspotIntegration,
     salesforceIntegration,
+    clickupIntegration,
   ] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
@@ -48,6 +49,7 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
     getIntegration(organizationId, "zendesk"),
     getIntegration(organizationId, "hubspot"),
     getIntegration(organizationId, "salesforce"),
+    getIntegration(organizationId, "clickup"),
   ]);
 
   const githubSettings = parseSettings<{
@@ -83,6 +85,13 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
     memberName?: string;
     mentionName?: string;
   }>(shortcutIntegration?.settings);
+
+  const clickupSettings = parseSettings<{
+    workspaceId?: string;
+    workspaceName?: string;
+    defaultListId?: string;
+    defaultListName?: string;
+  }>(clickupIntegration?.settings);
 
   const zendeskSettings = parseSettings<{
     subdomain?: string;
@@ -208,6 +217,14 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
 
       memberName: shortcutSettings?.memberName ?? null,
       mentionName: shortcutSettings?.mentionName ?? null,
+    },
+
+    clickup: {
+      configured: !!(process.env.CLICKUP_CLIENT_ID && process.env.CLICKUP_CLIENT_SECRET),
+
+      connected: !!clickupIntegration?.accessToken,
+
+      workspaceName: clickupSettings?.workspaceName ?? null,
     },
   };
 }

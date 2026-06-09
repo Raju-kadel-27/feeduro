@@ -1,5 +1,7 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { AnalyticsOverview } from "@features/analytics/components/analytics-overview";
+import { BoardFilter } from "@features/analytics/components/board-filter";
+import { DateRangePicker } from "@features/analytics/components/date-range-picker";
 import { loadAnalyticsOverview } from "@features/analytics/server/overview.server";
 
 import type { Route } from "./+types/analytics";
@@ -21,6 +23,10 @@ export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center gap-3">
               <SidebarTrigger className="-ml-1" />
               <h1 className="text-lg font-bold">Analytics</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <BoardFilter boards={data.boards} />
+              <DateRangePicker />
             </div>
           </div>
           <AnalyticsOverview data={data} />

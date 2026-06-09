@@ -1,0 +1,66 @@
+import { ClickupSettingsPage } from "@features/integrations/clickup/components/clickup-settings-page";
+import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getIntegration } from "@features/integrations/server/queries";
+import { and, eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { member } from "@/db/schema";
+import type { Route } from "./+types/clickup";
+
+export function meta() {
+  return [{ title: "ClickUp Integration — Feediyo" }];
+}
+
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
+  const db = getDb();
+
+  const [integration, memberRecord] = await Promise.all([
+    getIntegration(organizationId, "clickup"),
+    db.query.member.findFirst({
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
+    }),
+  ]);
+
+  const settings = integration?.settings
+    ? (JSON.parse(integration.settings) as {
+        workspaceId?: string;
+        workspaceName?: string;
+        defaultSpaceId?: string;
+        defaultListId?: string;
+        defaultListName?: string;
+        autoCreateTasks?: boolean;
+        webhookId?: string;
+        statusMappings?: Array<{ clickupStatus: string; feediyoStatus: string }>;
+      })
+    : null;
+
+  return {
+    integration: integration
+      ? {
+          connected: !!integration.accessToken,
+          workspaceId: settings?.workspaceId ?? null,
+          workspaceName: settings?.workspaceName ?? null,
+          defaultSpaceId: settings?.defaultSpaceId ?? null,
+          defaultListId: settings?.defaultListId ?? null,
+          defaultListName: settings?.defaultListName ?? null,
+          autoCreateTasks: settings?.autoCreateTasks ?? false,
+          statusMappings: settings?.statusMappings ?? [],
+          webhookConfigured: !!settings?.webhookId,
+        }
+      : null,
+    isAdmin: memberRecord?.role === "admin",
+  };
+}
+
+export function ErrorBoundary() {
+  return (
+    <div className="p-6 text-sm text-destructive">
+      Failed to load ClickUp integration settings.
+    </div>
+  );
+}
+
+export default function ClickupIntegrationPage({ loaderData }: Route.ComponentProps) {
+  return <ClickupSettingsPage integration={loaderData.integration} isAdmin={loaderData.isAdmin} />;
+}

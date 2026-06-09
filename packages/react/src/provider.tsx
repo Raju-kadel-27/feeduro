@@ -1,7 +1,6 @@
 import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import type { FeediyoContextValue, IdentifyPayload, Position, Theme } from "./types";
 
-const CDN_URL = "https://feediyo.com/sdk/v1/fdy.js";
 const SCRIPT_ID = "fdy-sdk";
 
 // ─── Internal helpers ────────────────────────────────────────────────────────
@@ -18,11 +17,11 @@ function setupQueue() {
     }) as Window["feediyo"]);
 }
 
-function injectScript() {
+function injectScript(src: string) {
   if (document.getElementById(SCRIPT_ID)) return;
   const s = Object.assign(document.createElement("script"), {
     id: SCRIPT_ID,
-    src: CDN_URL,
+    src,
     async: true,
   });
   document.head.appendChild(s);
@@ -49,6 +48,11 @@ export interface FeediyoProviderProps {
    * Pass `null` on logout. Omit entirely for anonymous-only use.
    */
   user?: IdentifyPayload | null;
+  /**
+   * Base URL of the Feediyo server. Defaults to `https://feediyo.com`.
+   * Override in development to point at your local dev server or ngrok tunnel.
+   */
+  baseUrl?: string;
   children: ReactNode;
 }
 
@@ -57,6 +61,7 @@ export function FeediyoProvider({
   position = "right",
   theme = "auto",
   user,
+  baseUrl = "https://feediyo.com",
   children,
 }: FeediyoProviderProps) {
   // Stable ref — lets createAutoLoginUrl read the latest token without
@@ -92,13 +97,13 @@ export function FeediyoProvider({
   // Init + load SDK on mount; tear down on unmount.
   useEffect(() => {
     setupQueue();
-    window.feediyo.init(token, { position, theme });
-    injectScript();
+    window.feediyo.init(token, { position, theme, baseUrl });
+    injectScript(`${baseUrl}/sdk/v1/fdy.js`);
     return () => {
       window.feediyo?.destroy?.();
       removeScript();
     };
-  }, [token, position, theme]);
+  }, [token, position, theme, baseUrl]);
 
   // Keep identity in sync with the user prop.
   // Deliberately skipped when `user` is omitted (undefined = anonymous mode).

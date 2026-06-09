@@ -120,6 +120,10 @@ export async function registerLinearWebhook(
   return d.webhookCreate.webhook;
 }
 
+export async function updateLinearIssueState(accessToken: string, issueId: string, stateId: string): Promise<void> {
+  await linearGql(accessToken, `mutation UpdateState($id: String!, $stateId: String!) { issueUpdate(id: $id, input: { stateId: $stateId }) { success } }`, { id: issueId, stateId });
+}
+
 export async function deleteLinearWebhook(accessToken: string, webhookId: string): Promise<void> {
   await linearGql(
     accessToken,

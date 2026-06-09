@@ -170,6 +170,13 @@ export async function getJiraIssueByKey(
   };
 }
 
+export async function transitionJiraIssue(accessToken: string, cloudId: string, issueId: string, toStatusId: string): Promise<void> {
+  const d = await jiraFetch<{ transitions: Array<{ id: string; to: { id: string } }> }>(accessToken, `${jiraApiBase(cloudId)}/issue/${issueId}/transitions`);
+  const t = d.transitions.find((tr) => tr.to.id === toStatusId);
+  if (!t) throw new Error(`No available transition to Jira status ${toStatusId}`);
+  await jiraFetch(accessToken, `${jiraApiBase(cloudId)}/issue/${issueId}/transitions`, { method: "POST", body: JSON.stringify({ transition: { id: t.id } }) });
+}
+
 export async function registerJiraWebhook(
   accessToken: string,
   cloudId: string,

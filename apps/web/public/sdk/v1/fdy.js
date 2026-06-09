@@ -130,6 +130,7 @@
     initialized = true;
 
     options = options || {};
+    if (options.baseUrl) BASE_URL = options.baseUrl;
     var position = options.position === "left" ? "left" : "right";
     var theme = options.theme || "auto";
 

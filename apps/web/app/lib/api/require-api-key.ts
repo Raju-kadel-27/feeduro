@@ -1,8 +1,6 @@
 import { apiError } from "@feediyo/errors";
-import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
-import { apikey } from "@/db/schema";
+import { auth } from "@/app/lib/auth/server";
 
 export async function requireApiKey(request: Request): Promise<string> {
   const token = request.headers.get("x-api-key");
@@ -10,17 +8,21 @@ export async function requireApiKey(request: Request): Promise<string> {
     const err = apiError("missing_api_key");
     throw data(err.body, err.init);
   }
-  const db = getDb();
 
-  const key = await db.query.apikey.findFirst({
-    where: and(eq(apikey.key, token), eq(apikey.enabled, true)),
-    columns: { referenceId: true, expiresAt: true },
+  const result = await auth.api.verifyApiKey({
+    body: { key: token },
+    headers: request.headers,
   });
 
-  if (!key || (key.expiresAt && key.expiresAt <= new Date())) {
+  if (!result.valid || !result.key) {
+    const code = result.error?.code;
+    if (code === "RATE_LIMITED") {
+      const err = apiError("rate_limit_exceeded");
+      throw data(err.body, err.init);
+    }
     const err = apiError("invalid_api_key");
     throw data(err.body, err.init);
   }
 
-  return key.referenceId;
+  return result.key.referenceId;
 }

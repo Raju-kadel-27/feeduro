@@ -2,12 +2,13 @@ import { autoCreateAsanaTask } from "@features/integrations/asana/server/auto-cr
 import { autoCreateGithubIssue } from "@features/integrations/github/server/auto-create";
 import { autoCreateJiraIssue } from "@features/integrations/jira/server/auto-create";
 import { autoCreateLinearIssue } from "@features/integrations/linear/server/auto-create";
+import { autoCreateClickupTask } from "@features/integrations/clickup/server/auto-create";
 import { autoCreateMondayItem } from "@features/integrations/monday/server/auto-create";
 import { autoCreateNotionPage } from "@features/integrations/notion/server/auto-create";
 import { autoCreateShortcutStory } from "@features/integrations/shortcut/server/auto-create";
 import { autoCreateTrelloCard } from "@features/integrations/trello/server/auto-create";
 import { dispatchWebhook } from "@features/webhooks/server/dispatch";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
 import {
@@ -71,6 +72,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const conditions = [
     eq(feedbackPosts.organizationId, org.id),
     inArray(feedbackPosts.boardId, boardIds),
+    isNull(feedbackPosts.mergedIntoPostId),
   ];
   if (statusFilter) conditions.push(eq(feedbackPosts.status, statusFilter as never));
   if (boardIdFilter && boardIds.includes(boardIdFilter)) {
@@ -84,9 +86,31 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const postIds = posts.map((p) => p.id);
 
-  const [allVotes, commentCountRows] = await Promise.all([
+  const mergedChildRows =
     postIds.length > 0
-      ? db.query.votes.findMany({ where: inArray(votes.postId, postIds) })
+      ? await db.query.feedbackPosts.findMany({
+          where: and(
+            eq(feedbackPosts.organizationId, org.id),
+            inArray(feedbackPosts.mergedIntoPostId, postIds),
+          ),
+          columns: { id: true, mergedIntoPostId: true },
+        })
+      : [];
+
+  const childMap = new Map<string, string[]>();
+  for (const row of mergedChildRows) {
+    if (!row.mergedIntoPostId) continue;
+    const arr = childMap.get(row.mergedIntoPostId) ?? [];
+    arr.push(row.id);
+    childMap.set(row.mergedIntoPostId, arr);
+  }
+
+  const allRelevantIds =
+    postIds.length > 0 ? [...postIds, ...mergedChildRows.map((r) => r.id)] : [];
+
+  const [allVotes, commentCountRows] = await Promise.all([
+    allRelevantIds.length > 0
+      ? db.query.votes.findMany({ where: inArray(votes.postId, allRelevantIds) })
       : Promise.resolve([]),
     postIds.length > 0
       ? db
@@ -104,11 +128,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return data({
     boards,
-    posts: posts.map((post) => ({
-      ...post,
-      voteCount: allVotes.filter((v) => v.postId === post.id).length,
-      commentCount: commentCountMap[post.id] ?? 0,
-    })),
+    posts: posts.map((post) => {
+      const idsForPost = new Set([post.id, ...(childMap.get(post.id) ?? [])]);
+      return {
+        ...post,
+        voteCount: allVotes.filter((v) => idsForPost.has(v.postId)).length,
+        commentCount: commentCountMap[post.id] ?? 0,
+      };
+    }),
   });
 }
 
@@ -224,6 +251,9 @@ export async function action({ request, context }: Route.ActionArgs) {
   );
   autoCreateMondayItem(org.id, autoCreatePost).catch((err) =>
     console.error("[monday-auto-create]", err),
+  );
+  autoCreateClickupTask(org.id, autoCreatePost).catch((err) =>
+    console.error("[clickup-auto-create]", err),
   );
 
   return data({ success: true, id: post.id });

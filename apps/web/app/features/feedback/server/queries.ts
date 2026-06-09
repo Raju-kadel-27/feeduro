@@ -1,7 +1,7 @@
 import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
 import { getVoterTraitCountsByPost } from "@features/segmentation/server/service";
 import type { VoterTraitCounts } from "@features/segmentation/types";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, postExternalLinks, votes } from "@/db/schema";
 import { getPostTagsBatch } from "./tags.server";
@@ -12,15 +12,40 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
   const db = getDb();
 
   const posts = await db.query.feedbackPosts.findMany({
-    where: eq(feedbackPosts.organizationId, organizationId),
+    where: and(
+      eq(feedbackPosts.organizationId, organizationId),
+      isNull(feedbackPosts.mergedIntoPostId),
+    ),
     orderBy: [desc(feedbackPosts.createdAt)],
   });
 
   const postIds = posts.map((p) => p.id);
 
-  const [allVotes, commentCountRows, voterTraitCounts, githubLinks, postTagRows] = await Promise.all([
+  const mergedChildRows =
     postIds.length > 0
-      ? db.query.votes.findMany({ where: eq(votes.organizationId, organizationId) })
+      ? await db.query.feedbackPosts.findMany({
+          where: and(
+            eq(feedbackPosts.organizationId, organizationId),
+            inArray(feedbackPosts.mergedIntoPostId, postIds),
+          ),
+          columns: { id: true, mergedIntoPostId: true },
+        })
+      : [];
+
+  const childMap = new Map<string, string[]>();
+  for (const row of mergedChildRows) {
+    if (!row.mergedIntoPostId) continue;
+    const arr = childMap.get(row.mergedIntoPostId) ?? [];
+    arr.push(row.id);
+    childMap.set(row.mergedIntoPostId, arr);
+  }
+
+  const allRelevantIds =
+    postIds.length > 0 ? [...postIds, ...mergedChildRows.map((r) => r.id)] : [];
+
+  const [allVotes, commentCountRows, voterTraitCounts, githubLinks, postTagRows] = await Promise.all([
+    allRelevantIds.length > 0
+      ? db.query.votes.findMany({ where: inArray(votes.postId, allRelevantIds) })
       : Promise.resolve([]),
     postIds.length > 0
       ? db
@@ -62,7 +87,8 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
   }
 
   return posts.map((post) => {
-    const postVotes = allVotes.filter((v) => v.postId === post.id);
+    const idsForPost = new Set([post.id, ...(childMap.get(post.id) ?? [])]);
+    const postVotes = allVotes.filter((v) => idsForPost.has(v.postId));
     const githubLink = githubLinkMap[post.id];
     return {
       ...post,

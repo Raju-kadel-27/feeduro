@@ -1,40 +1,61 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { notifyPostMerged } from "@features/notifications/server/service";
-import { and, eq, ilike, isNull } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
+import { z } from "zod";
 import { getDb } from "@/db";
-import { feedbackPosts, member, postActivities } from "@/db/schema";
+import { feedbackPosts, member, postActivities, votes } from "@/db/schema";
 
 import type { Route } from "./+types/merge";
 
 // ─── GET: search for posts eligible to merge into ────────────────────────────
 // Returns active (non-merged) posts in the org matching the search query.
-// excludePostId filters out the current post so it can't be merged into itself.
+// Admin-only: prevents non-admins from enumerating post titles.
+// Vote counts are computed live via LEFT JOIN to avoid reading stale cached column.
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
+  const { session, organizationId } = await requireOrganization(request);
+  const db = getDb();
+
+  const memberRecord = await db.query.member.findFirst({
+    where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+    columns: { role: true },
+  });
+  if (memberRecord?.role !== "admin") {
+    return data({ posts: [] });
+  }
+
   const url = new URL(request.url);
   const search = (url.searchParams.get("search") ?? "").trim();
   const excludePostId = url.searchParams.get("excludePostId") ?? "";
 
-  const db = getDb();
-
-  const rows = await db.query.feedbackPosts.findMany({
-    where: and(
-      eq(feedbackPosts.organizationId, organizationId),
-      isNull(feedbackPosts.mergedIntoPostId),
-      search ? ilike(feedbackPosts.title, `%${search}%`) : undefined,
-    ),
-    columns: { id: true, title: true, status: true, voteCount: true },
-    limit: 9,
-  });
+  const rows = await db
+    .select({
+      id: feedbackPosts.id,
+      title: feedbackPosts.title,
+      status: feedbackPosts.status,
+      voteCount: sql<number>`count(${votes.id})`.mapWith(Number),
+    })
+    .from(feedbackPosts)
+    .leftJoin(votes, eq(votes.postId, feedbackPosts.id))
+    .where(
+      and(
+        eq(feedbackPosts.organizationId, organizationId),
+        isNull(feedbackPosts.mergedIntoPostId),
+        search ? ilike(feedbackPosts.title, `%${search}%`) : undefined,
+      ),
+    )
+    .groupBy(feedbackPosts.id, feedbackPosts.title, feedbackPosts.status)
+    .orderBy(desc(feedbackPosts.createdAt))
+    .limit(9);
 
   const posts = rows.filter((p) => p.id !== excludePostId).slice(0, 8);
-
   return data({ posts });
 }
 
 // ─── POST: merge | unmerge ────────────────────────────────────────────────────
+
+const MergeBodySchema = z.object({ intent: z.string() }).passthrough();
 
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
@@ -47,15 +68,14 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: "Only admins can merge or unmerge posts" }, { status: 403 });
   }
 
-  const body = (await request.json()) as {
-    intent: string;
-    [k: string]: unknown;
-  };
+  const parsed = MergeBodySchema.safeParse(await request.json());
+  if (!parsed.success) return data({ error: "Invalid request body" }, { status: 400 });
+  const body = parsed.data;
 
   // ── merge ──────────────────────────────────────────────────────────────────
-  // Marks sourcePost as merged into targetPost and records activities on both posts.
-  // Votes and comments are NOT moved — they stay on their original post_id and are
-  // aggregated at query time via recursive CTE (see schema notes).
+  // Marks sourcePost as merged into targetPost and records activities on both.
+  // Votes and comments are NOT moved — they stay on their original post_id and
+  // are aggregated at query time.
 
   if (body.intent === "merge") {
     const sourcePostId = body.sourcePostId as string;
@@ -105,7 +125,6 @@ export async function action({ request }: Route.ActionArgs) {
         })
         .where(eq(feedbackPosts.id, sourcePostId));
 
-      // Record activity on the surviving post and on the merged post
       await tx.insert(postActivities).values([
         {
           postId: targetPostId,
@@ -131,7 +150,9 @@ export async function action({ request }: Route.ActionArgs) {
       actorId: session.user.id,
       organizationId,
       actorName: session.user.name ?? session.user.email ?? "Someone",
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error("[merge] notifyPostMerged failed:", err);
+    });
 
     return data({ success: true, targetPostId });
   }
@@ -177,14 +198,26 @@ export async function action({ request }: Route.ActionArgs) {
         .set({ mergedIntoPostId: null, mergedAt: null, mergedByUserId: null })
         .where(eq(feedbackPosts.id, postId));
 
-      await tx.insert(postActivities).values({
-        postId: targetPost.id,
-        organizationId,
-        userId: session.user.id,
-        type: "unmerged",
-        newValue: sourcePost.id,
-        oldValue: sourcePost.title.slice(0, 95),
-      });
+      // Record activity on both posts: surviving post gets "unmerged", source
+      // post gets "unmerged_from" so its own timeline shows what happened.
+      await tx.insert(postActivities).values([
+        {
+          postId: targetPost.id,
+          organizationId,
+          userId: session.user.id,
+          type: "unmerged",
+          newValue: sourcePost.id,
+          oldValue: sourcePost.title.slice(0, 95),
+        },
+        {
+          postId: sourcePost.id,
+          organizationId,
+          userId: session.user.id,
+          type: "unmerged_from",
+          newValue: targetPost.id,
+          oldValue: targetPost.title.slice(0, 95),
+        },
+      ]);
     });
 
     return data({ success: true });

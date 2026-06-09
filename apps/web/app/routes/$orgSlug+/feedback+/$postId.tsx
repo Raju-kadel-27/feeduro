@@ -1,5 +1,8 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgTags, getPostTags } from "@features/feedback/server/tags.server";
+import { PostMergeDialog } from "@features/post-detail-panel/components/post-merge-dialog";
+import { PostMergedBanner } from "@features/post-detail-panel/components/post-merged-banner";
+import { useMergeActions } from "@features/post-detail-panel/hooks/use-merge-actions";
 import type { VoterProfileRow } from "@features/segmentation/server/service";
 import {
   getVoterProfilesByPost,
@@ -8,7 +11,7 @@ import {
 import type { VoterTraitCounts } from "@features/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import {
   ArrowLeft,
   ChevronDown,
@@ -21,14 +24,13 @@ import {
   MessageSquare,
   MoreHorizontal,
   Plus,
-  Search,
   Share2,
   Smile,
   Tag,
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "@/db";
@@ -654,6 +656,17 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     /* no-op: run pnpm db:push to apply migration */
   }
 
+  // Add votes from merged children into the displayed total.
+  let totalVoteCount = voteCountRow[0]?.count ?? 0;
+  if (mergedChildren.length > 0) {
+    const childIds = mergedChildren.map((c) => c.id);
+    const [childVoteRow] = await db
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(votes)
+      .where(inArray(votes.postId, childIds));
+    totalVoteCount += childVoteRow?.count ?? 0;
+  }
+
   // Tags — wrapped in try/catch: tables may not exist until migration is applied
   let postTagList: { id: string; name: string; color: string }[] = [];
   let availableTagList: { id: string; name: string; color: string }[] = [];
@@ -695,7 +708,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       ...post,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
-      voteCount: voteCountRow[0]?.count ?? 0,
+      voteCount: totalVoteCount,
       hasVoted: !!currentVote,
       reactionCounts: reactionCountMap as Record<ReactionType, number>,
       myReactions: [...myReactionSet] as ReactionType[],
@@ -809,18 +822,31 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyBodies, setReplyBodies] = useState<Record<string, string>>({});
 
-  // ── Merge state ────────────────────────────────────────────────────────────
-  const [mergeOpen, setMergeOpen] = useState(false);
-  const [mergeSearch, setMergeSearch] = useState("");
-  const [mergeDebounced, setMergeDebounced] = useState("");
-  const [mergeStep, setMergeStep] = useState<"search" | "confirm">("search");
-  const [mergeTarget, setMergeTarget] = useState<{
-    id: string;
-    title: string;
-    status: string;
-    voteCount: number;
-  } | null>(null);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+
+  // ── Merge ──────────────────────────────────────────────────────────────────
+  const {
+    mergeOpen,
+    setMergeOpen,
+    mergeSearch,
+    setMergeSearch,
+    mergeStep,
+    setMergeStep,
+    mergeTarget,
+    setMergeTarget,
+    mergeResults,
+    searchingPosts,
+    doMerge,
+    merging,
+    doUnmerge,
+    unmerging,
+    openMergeDialog,
+  } = useMergeActions({
+    postId: post.id,
+    onDataChange: revalidate,
+    onOpenPost: (id) => navigate(`/${orgSlug}/feedback/${id}`),
+    onClose: () => navigate(`/${orgSlug}/dashboard`),
+  });
 
   // ── Tags state ─────────────────────────────────────────────────────────────
   const [currentTags, setCurrentTags] = useState<{ id: string; name: string; color: string }[]>(
@@ -905,12 +931,6 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
   const [shortcutMode, setShortcutMode] = useState<"create" | "link" | null>(null);
   const [linkShortcutInput, setLinkShortcutInput] = useState("");
 
-  // ── Merge search debounce ──────────────────────────────────────────────────
-  useEffect(() => {
-    const t = setTimeout(() => setMergeDebounced(mergeSearch), 280);
-    return () => clearTimeout(t);
-  }, [mergeSearch]);
-
   // ── Queries ────────────────────────────────────────────────────────────────
   const { data: commentsData } = useQuery({
     queryKey: ["comments", post.id],
@@ -920,21 +940,6 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
     },
     initialData: { comments: initialComments },
   });
-
-  const { data: mergeSearchData, isFetching: searchingPosts } = useQuery({
-    queryKey: ["merge-search", mergeDebounced, post.id],
-    queryFn: async () => {
-      const params = new URLSearchParams({ excludePostId: post.id });
-      if (mergeDebounced) params.set("search", mergeDebounced);
-      const res = await fetch(`/api/merge?${params}`);
-      return res.json() as Promise<{
-        posts: { id: string; title: string; status: string; voteCount: number }[];
-      }>;
-    },
-    enabled: mergeOpen && mergeStep === "search",
-    staleTime: 0,
-  });
-  const mergeResults = mergeSearchData?.posts ?? [];
 
   const { data: activitiesData } = useQuery({
     queryKey: ["activities", post.id],
@@ -1096,57 +1101,6 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comments", post.id] });
       qc.invalidateQueries({ queryKey: ["feedback"] });
-    },
-  });
-
-  // ── Merge mutations ────────────────────────────────────────────────────────
-
-  const { mutate: doMerge, isPending: merging } = useMutation({
-    mutationFn: async ({
-      sourcePostId,
-      targetPostId,
-    }: {
-      sourcePostId: string;
-      targetPostId: string;
-    }) => {
-      const res = await fetch("/api/merge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent: "merge", sourcePostId, targetPostId }),
-      });
-      const json = (await res.json()) as {
-        success?: boolean;
-        error?: string;
-        targetPostId?: string;
-      };
-      if (!res.ok || json.error) throw new Error(json.error ?? "Merge failed");
-      return json;
-    },
-    onSuccess: (_data, vars) => {
-      setMergeOpen(false);
-      setMergeStep("search");
-      setMergeSearch("");
-      setMergeTarget(null);
-      qc.invalidateQueries({ queryKey: ["feedback"] });
-      // Navigate to the surviving post so the user sees the result
-      navigate(`/${orgSlug}/feedback/${vars.targetPostId}`);
-    },
-  });
-
-  const { mutate: doUnmerge, isPending: unmerging } = useMutation({
-    mutationFn: async (postId: string) => {
-      const res = await fetch("/api/merge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent: "unmerge", postId }),
-      });
-      const json = (await res.json()) as { success?: boolean; error?: string };
-      if (!res.ok || json.error) throw new Error(json.error ?? "Unmerge failed");
-      return json;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["feedback"] });
-      revalidate(); // reload loader data (mergedChildren, mergedIntoPost, canUnmerge)
     },
   });
 
@@ -1498,10 +1452,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                         type="button"
                         onClick={() => {
                           setAdminMenuOpen(false);
-                          setMergeOpen(true);
-                          setMergeStep("search");
-                          setMergeSearch("");
-                          setMergeTarget(null);
+                          openMergeDialog();
                         }}
                         className="flex items-center gap-2.5 w-full px-3 py-2 text-xs hover:bg-muted transition-colors"
                       >
@@ -1531,32 +1482,16 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
           <div className="max-w-2xl mx-auto px-8 py-7">
             {/* ── Merged-into banner ─────────────────────────────────────── */}
             {post.mergedIntoPostId && mergedIntoPost && (
-              <div className="flex items-start gap-3 mb-5 px-4 py-3 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800">
-                <GitMerge className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-violet-800 dark:text-violet-200">
-                    This post was merged into{" "}
-                    <Link
-                      to={`/${orgSlug}/feedback/${mergedIntoPost.id}`}
-                      className="font-semibold underline underline-offset-2 hover:no-underline"
-                    >
-                      {mergedIntoPost.title}
-                    </Link>
-                  </p>
-                  <p className="text-xs text-violet-600 dark:text-violet-400 mt-0.5">
-                    Votes and comments are consolidated on the surviving post.
-                  </p>
-                </div>
-                {isAdmin && canUnmerge && (
-                  <button
-                    type="button"
-                    onClick={() => doUnmerge(post.id)}
-                    disabled={unmerging}
-                    className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-lg border border-violet-300 dark:border-violet-600 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900 disabled:opacity-50 transition-colors"
-                  >
-                    {unmerging ? "Unmerging…" : "Unmerge"}
-                  </button>
-                )}
+              <div className="mb-5">
+                <PostMergedBanner
+                  title={mergedIntoPost.title}
+                  targetId={mergedIntoPost.id}
+                  isAdmin={isAdmin}
+                  canUnmerge={canUnmerge}
+                  unmerging={unmerging}
+                  onOpenPost={(id) => navigate(`/${orgSlug}/feedback/${id}`)}
+                  onUnmerge={() => doUnmerge(post.id)}
+                />
               </div>
             )}
 
@@ -2095,6 +2030,25 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
               </p>
             )}
           </div>
+
+          {/* Merged posts */}
+          {mergedChildren.length > 0 && (
+            <div className="border-t pt-4">
+              <p className="text-xs font-medium mb-2">Merged posts</p>
+              <div className="space-y-0.5">
+                {mergedChildren.map((child) => (
+                  <Link
+                    key={child.id}
+                    to={`/${orgSlug}/feedback/${child.id}`}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <GitMerge className="h-3 w-3 text-violet-400 shrink-0" />
+                    <span className="truncate flex-1">{child.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Voter Insights */}
           <VoterInsights
@@ -2734,102 +2688,26 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
       </div>
 
       {/* ── Merge dialog ─────────────────────────────────────────────── */}
-      {mergeOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
-            onClick={() => setMergeOpen(false)}
-          />
-          <div className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-popover border rounded-xl shadow-xl p-6">
-            {mergeStep === "search" && (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold">Merge into another post</h3>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Votes and comments will be combined on the target post. This can be undone.
-                  </p>
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <input
-                    value={mergeSearch}
-                    onChange={(e) => setMergeSearch(e.target.value)}
-                    placeholder="Search posts…"
-                    autoFocus
-                    className="w-full pl-8 pr-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-1 max-h-60 overflow-y-auto -mx-1 px-1">
-                  {searchingPosts && (
-                    <p className="text-xs text-muted-foreground py-4 text-center">Searching…</p>
-                  )}
-                  {!searchingPosts && mergeResults.length === 0 && (
-                    <p className="text-xs text-muted-foreground py-4 text-center">
-                      No posts found.
-                    </p>
-                  )}
-                  {mergeResults.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        setMergeTarget(p);
-                        setMergeStep("confirm");
-                      }}
-                      className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-muted text-left transition-colors"
-                    >
-                      <StatusCircleIcon status={p.status as Status} size={14} />
-                      <span className="flex-1 text-sm truncate">{p.title}</span>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {p.voteCount} votes
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setMergeOpen(false)}
-                    className="px-4 py-2 text-xs font-medium rounded-lg hover:bg-muted transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-            {mergeStep === "confirm" && mergeTarget && (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold">Confirm merge</h3>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    This will merge{" "}
-                    <span className="font-medium text-foreground">"{post.title}"</span> into{" "}
-                    <span className="font-medium text-foreground">"{mergeTarget.title}"</span>.
-                    Votes and comments will be consolidated. This can be undone.
-                  </p>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setMergeStep("search")}
-                    className="px-4 py-2 text-xs font-medium rounded-lg border hover:bg-muted transition-colors"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => doMerge({ sourcePostId: post.id, targetPostId: mergeTarget.id })}
-                    disabled={merging}
-                    className="px-4 py-2 text-xs font-medium bg-foreground text-background rounded-lg disabled:opacity-50 transition-colors"
-                  >
-                    {merging ? "Merging…" : "Merge post"}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      <PostMergeDialog
+        open={mergeOpen}
+        onOpenChange={setMergeOpen}
+        postTitle={post.title}
+        mergeStep={mergeStep}
+        mergeSearch={mergeSearch}
+        mergeTarget={mergeTarget}
+        mergeResults={mergeResults}
+        searchingPosts={searchingPosts}
+        merging={merging}
+        onSearchChange={setMergeSearch}
+        onSelectTarget={(p) => {
+          setMergeTarget(p);
+          setMergeStep("confirm");
+        }}
+        onBack={() => setMergeStep("search")}
+        onConfirm={() => {
+          if (mergeTarget) doMerge({ sourcePostId: post.id, targetPostId: mergeTarget.id });
+        }}
+      />
 
       {/* ── Bottom action bar (admin + has next status) ────────────────── */}
       {isAdmin && nextStatus && (

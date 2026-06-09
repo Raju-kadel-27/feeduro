@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [{ "path": "./tsconfig.cloudflare.json" }],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./app/*"],
+      "@lib/*": ["./app/lib/*"],
+      "@middleware/*": ["./app/middleware/*"]
+    }
+  }
+}

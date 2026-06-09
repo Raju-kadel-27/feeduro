@@ -210,6 +210,51 @@ export function ShortcutIcon({ size = 20 }: { size?: number }) {
   );
 }
 
+export function ClickUpIcon({ size, className }: { size?: number; className?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden
+    >
+      <path d="M3.47 15.27 6.9 12.5a7.22 7.22 0 0 0 5.1 2.18 7.22 7.22 0 0 0 5.1-2.18l3.43 2.77A11.8 11.8 0 0 1 12 18a11.8 11.8 0 0 1-8.53-2.73Z" />
+      <path
+        opacity=".5"
+        d="M3.47 8.73 6.9 11.5a7.22 7.22 0 0 1 5.1-2.18 7.22 7.22 0 0 1 5.1 2.18l3.43-2.77A11.8 11.8 0 0 0 12 6a11.8 11.8 0 0 0-8.53 2.73Z"
+      />
+    </svg>
+  );
+}
+
+export function GitLabIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51L23 13.45a.84.84 0 0 1-.35.94z"
+        fill="#FC6D26"
+      />
+    </svg>
+  );
+}
+
+export function IntercomIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="6" fill="#286EFA" />
+      <path
+        d="M7 7h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9.5L6 22V8a1 1 0 0 1 1-1z"
+        fill="white"
+      />
+      <circle cx="10" cy="14" r="1.3" fill="#286EFA" />
+      <circle cx="14" cy="14" r="1.3" fill="#286EFA" />
+      <circle cx="18" cy="14" r="1.3" fill="#286EFA" />
+    </svg>
+  );
+}
+
 export function DiscordIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className ?? "h-5 w-5 fill-[#5865F2]"} aria-hidden>

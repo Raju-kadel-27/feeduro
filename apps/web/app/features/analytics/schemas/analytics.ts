@@ -145,6 +145,23 @@ export const UnrespondedPostsSchema = z.array(UnrespondedPostSchema);
 export type UnrespondedPost = z.infer<typeof UnrespondedPostSchema>;
 export type UnrespondedPosts = z.infer<typeof UnrespondedPostsSchema>;
 
+export const VotesOverTimeSchema = z.array(ActivityPointSchema);
+export type VotesOverTime = z.infer<typeof VotesOverTimeSchema>;
+
+export const StatusChangeEventSchema = z.object({
+  postId: z.string(),
+  postTitle: z.string(),
+  boardName: z.string(),
+  fromStatus: z.string().nullable(),
+  toStatus: z.string(),
+  actorName: z.string().nullable(),
+  actorEmail: z.string().nullable(),
+  changedAt: z.string(),
+});
+export const StatusChangeFeedSchema = z.array(StatusChangeEventSchema);
+export type StatusChangeEvent = z.infer<typeof StatusChangeEventSchema>;
+export type StatusChangeFeed = z.infer<typeof StatusChangeFeedSchema>;
+
 export type VoteTrends = z.infer<typeof VoteTrendsSchema>;
 export type VoteTrendPoint = z.infer<typeof VoteTrendPointSchema>;
 export type StatusFunnelStep = z.infer<typeof StatusFunnelStepSchema>;

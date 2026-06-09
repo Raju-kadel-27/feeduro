@@ -6,10 +6,12 @@ export async function getCompletedInPeriod(
   organizationId: string,
   since?: Date,
   limit = 10,
+  boardId?: string,
 ) {
   const db = getDb();
 
   const sinceFilter = since ? sql`AND pa.created_at >= ${since}` : sql``;
+  const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
     SELECT
@@ -23,6 +25,7 @@ export async function getCompletedInPeriod(
       AND pa.type = 'status_changed'
       AND pa.new_value = 'completed'
       ${sinceFilter}
+      ${boardFilter}
     GROUP BY fp.id, fp.title, fp.vote_count
     ORDER BY max(pa.created_at) DESC
     LIMIT ${limit}

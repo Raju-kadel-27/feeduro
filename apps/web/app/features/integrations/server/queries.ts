@@ -15,7 +15,8 @@ export type IntegrationProvider =
   | "zendesk"
   | "hubspot"
   | "salesforce"
-  | "shortcut";
+  | "shortcut"
+  | "clickup";
 
 export function parseSettings<T>(raw: string | null | undefined): T | null {
   if (!raw) return null;

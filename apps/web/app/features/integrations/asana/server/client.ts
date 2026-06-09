@@ -136,6 +136,10 @@ export async function searchAsanaTasks(
   return d.data.map((t) => parseTaskResult(t, workspaceGid));
 }
 
+export async function moveAsanaTaskToSection(accessToken: string, sectionGid: string, taskGid: string): Promise<void> {
+  await asanaFetch(accessToken, `/sections/${sectionGid}/addTask`, { method: "POST", body: JSON.stringify({ data: { task: taskGid } }) });
+}
+
 export async function registerAsanaWebhook(
   accessToken: string,
   workspaceGid: string,

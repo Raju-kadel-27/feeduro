@@ -1,5 +1,6 @@
 import {
   AsanaIcon,
+  ClickUpIcon,
   GitHubIcon,
   JiraIcon,
   LinearIcon,
@@ -12,7 +13,7 @@ import {
 import { ensureIntegrationConfigured } from "../utils";
 
 export function createProjectManagementIntegrations({ loaderData, navigate, orgSlug }: any) {
-  const { linear, github, jira, asana, notion, monday, trello, shortcut } = loaderData;
+  const { linear, github, jira, asana, notion, monday, trello, shortcut, clickup } = loaderData;
 
   return [
     {
@@ -211,6 +212,32 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
 
       onClick: () => {
         navigate(`/${orgSlug}/settings/integrations/shortcut`);
+      },
+    },
+
+    {
+      name: "ClickUp",
+
+      icon: <ClickUpIcon size={40} />,
+
+      connected: clickup.connected,
+
+      description:
+        clickup.connected && clickup.workspaceName
+          ? `Connected to ${clickup.workspaceName}. Create ClickUp tasks directly from roadmap cards.`
+          : "Create ClickUp tasks from feedback and keep your team's work in sync.",
+
+      onClick: () => {
+        if (
+          !ensureIntegrationConfigured(
+            clickup.configured,
+            "ClickUp OAuth app not configured. Set CLICKUP_CLIENT_ID and CLICKUP_CLIENT_SECRET in your environment.",
+          )
+        ) {
+          return;
+        }
+
+        navigate(`/${orgSlug}/settings/integrations/clickup`);
       },
     },
   ];

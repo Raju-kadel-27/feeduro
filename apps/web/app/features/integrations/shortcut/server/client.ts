@@ -45,6 +45,10 @@ export async function createShortcutStory(
   });
 }
 
+export async function updateShortcutStoryState(token: string, storyId: string, workflowStateId: number): Promise<void> {
+  await scFetch(token, `/stories/${storyId}`, { method: "PUT", body: JSON.stringify({ workflow_state_id: workflowStateId }) });
+}
+
 export async function getShortcutStory(token: string, storyId: number): Promise<ShortcutStory> {
   return scFetch<ShortcutStory>(token, `/stories/${storyId}`);
 }

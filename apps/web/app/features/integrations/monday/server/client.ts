@@ -169,6 +169,10 @@ export async function deleteMondayWebhook(accessToken: string, webhookId: string
   await mondayGraphQL(accessToken, `mutation { delete_webhook(id: ${webhookId}) { id } }`);
 }
 
+export async function moveMondayItemToGroup(accessToken: string, boardId: string, itemId: string, groupId: string): Promise<void> {
+  await mondayGraphQL(accessToken, `mutation { move_item_to_group(item_id: ${itemId}, board_id: ${boardId}, group_id: ${JSON.stringify(groupId)}) { id } }`);
+}
+
 export async function getMondayWebhook(
   accessToken: string,
   webhookId: string,

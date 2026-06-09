@@ -149,6 +149,10 @@ export async function getTrelloCardById(
   return parseCardResult(card, card.list?.name ?? null);
 }
 
+export async function moveTrelloCardToList(apiKey: string, token: string, cardId: string, listId: string): Promise<void> {
+  await trelloFetch(apiKey, token, `/cards/${cardId}`, { method: "PUT", body: JSON.stringify({ idList: listId }) });
+}
+
 export async function registerTrelloWebhook(
   apiKey: string,
   token: string,

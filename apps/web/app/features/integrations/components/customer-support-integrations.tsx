@@ -19,6 +19,7 @@ export function CustomerSupportIntegrations({ loaderData }: Props) {
         name="Zendesk"
         icon={<ZendeskIcon size={40} />}
         connected={zendesk.connected}
+        comingSoon
         onClick={() => navigate(`/${orgSlug}/settings/integrations/zendesk`)}
       />
     </IntegrationSection>

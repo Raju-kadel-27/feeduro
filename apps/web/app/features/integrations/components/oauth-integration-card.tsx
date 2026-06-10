@@ -25,7 +25,7 @@ export function OAuthIntegrationCard({ name, description, icon, connected, onCli
             <IntegrationStatusBadge connected={connected} />
           </div>
 
-          <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
         </div>
 
         <IntegrationActionButton connected={connected} onClick={onClick} />

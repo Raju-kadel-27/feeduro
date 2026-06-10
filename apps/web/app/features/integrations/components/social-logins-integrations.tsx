@@ -25,7 +25,7 @@ const SOCIAL_LOGIN_INTEGRATIONS: SocialItem[] = [
     key: "discord",
     name: "Discord",
     icon: <DiscordIcon className="h-7 w-7 fill-[#5865F2]" />,
-    description: "Allow users to sign in to Feediyo using their Discord account via OAuth 2.0.",
+    description: "Allow users to sign in to Feeduro using their Discord account via OAuth 2.0.",
     docsUrl: "https://discord.com/developers/applications",
     setupSteps: [
       "Go to the Discord Developer Portal and create a new application.",
@@ -39,7 +39,7 @@ const SOCIAL_LOGIN_INTEGRATIONS: SocialItem[] = [
     key: "slack",
     name: "Slack",
     icon: <SlackIcon className="h-7 w-7" />,
-    description: "Allow users to sign in to Feediyo using their Slack account via OAuth 2.0.",
+    description: "Allow users to sign in to Feeduro using their Slack account via OAuth 2.0.",
     docsUrl: "https://api.slack.com/apps",
     setupSteps: [
       "Go to Your Apps on Slack API and create a new app from scratch.",

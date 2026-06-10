@@ -19,12 +19,14 @@ export function AutomationIntegrations({ loaderData }: Props) {
         name="Zapier"
         icon={<ZapierIcon size={40} />}
         connected={zapier.connected}
+        comingSoon
         onClick={() => navigate(`/${orgSlug}/settings/integrations/zapier`)}
       />
       <IntegrationTile
         name="n8n"
         icon={<N8nIcon size={40} />}
         connected={n8n.connected}
+        comingSoon
         onClick={() => navigate(`/${orgSlug}/settings/integrations/n8n`)}
       />
     </IntegrationSection>

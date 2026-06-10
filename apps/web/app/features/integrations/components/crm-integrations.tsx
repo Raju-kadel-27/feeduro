@@ -19,12 +19,14 @@ export function CrmIntegrations({ loaderData }: Props) {
         name="Salesforce"
         icon={<SalesforceIcon size={40} />}
         connected={salesforce.connected}
+        comingSoon
         onClick={() => navigate(`/${orgSlug}/settings/integrations/salesforce`)}
       />
       <IntegrationTile
         name="HubSpot"
         icon={<HubSpotIcon size={40} />}
         connected={hubspot.connected}
+        comingSoon
         onClick={() => navigate(`/${orgSlug}/settings/integrations/hubspot`)}
       />
     </IntegrationSection>

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import type { Route } from "./+types/passkeys";
 
 export function meta() {
-  return [{ title: "Passkeys — Feediyo" }];
+  return [{ title: "Passkeys — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

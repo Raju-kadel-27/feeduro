@@ -4,7 +4,7 @@ import type { Status, Check } from "@lib/smoke-checks.server";
 import type { Route } from "./+types/smoke-tests";
 
 export function meta(): Route.MetaDescriptors {
-  return [{ title: "Smoke Tests · Feediyo Demo" }];
+  return [{ title: "Smoke Tests · Feeduro Demo" }];
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

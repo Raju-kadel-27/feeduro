@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 
 export function meta() {
-  return [{ title: "Two-Factor Verification — Feediyo" }];
+  return [{ title: "Two-Factor Verification — Feeduro" }];
 }
 
 type Method = "totp" | "backup";
@@ -66,7 +66,7 @@ export default function TwoFactor() {
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GalleryVerticalEnd className="size-4" />
           </div>
-          Feediyo
+          Feeduro
         </a>
 
         <Card>

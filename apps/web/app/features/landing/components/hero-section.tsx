@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -28,34 +28,39 @@ export function HeroSection() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-6">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 backdrop-blur px-4 py-1.5 text-sm text-muted-foreground mb-8 animate-slide-up-fade">
-            <Zap className="w-3.5 h-3.5 text-primary" />
-            <span>Trusted by product teams worldwide</span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 text-sm font-medium mb-8 animate-slide-up-fade">
+            <TrendingUp className="w-3.5 h-3.5 text-orange-500" />
+            <span className="landing-gradient-text-animated">Revenue-aware feedback board</span>
           </div>
-          <h2
-            className="text-2xl sm:text-4xl font-semibold text-foreground/80 mb-2 animate-slide-up-fade"
+
+          <h1
+            className="text-5xl sm:text-7xl font-black tracking-tight leading-[1.05] mb-6 animate-slide-up-fade"
             style={{ animationDelay: "80ms" }}
           >
-            The feedback platform for growing teams
-          </h2>
-          <h1
-            className="text-6xl sm:text-7xl font-black tracking-tight leading-none mb-6 animate-slide-up-fade"
-            style={{ animationDelay: "100ms" }}
-          >
-            <span className="landing-gradient-text-animated">Feediyo</span>
+            <span className="block text-foreground">Votes lie.</span>
+            <span className="block landing-gradient-text-animated">Revenue doesn't.</span>
           </h1>
+
           <p
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-slide-up-fade"
-            style={{ animationDelay: "200ms" }}
+            className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-10 animate-slide-up-fade"
+            style={{ animationDelay: "180ms" }}
           >
-            Give users a place to share ideas. Show them what you are building.
-            Tell them when it ships. That is the whole loop, and Feediyo handles all of it.
+            See <strong className="text-foreground">who's asking</strong>, what they're worth, and the churn risk hiding behind every request. Build what moves revenue, not what gets the most upvotes.
+          </p>
+
+<p
+            className="text-xs text-muted-foreground animate-slide-up-fade"
+            style={{ animationDelay: "300ms" }}
+          >
+            Trusted by{" "}
+            <span className="text-foreground font-medium">500+ product teams</span>
+            {" "}· Free plan available
           </p>
         </div>
 
         <div
           className="animate-slide-up-fade"
-          style={{ animationDelay: "400ms" }}
+          style={{ animationDelay: "420ms" }}
         >
           <div className="rounded-2xl border border-border shadow-2xl overflow-hidden">
             <div className="flex items-center gap-1.5 px-4 py-3 border-b border-border bg-muted/40">
@@ -63,12 +68,12 @@ export function HeroSection() {
               <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
               <span className="w-3 h-3 rounded-full bg-green-400/70" />
               <div className="ml-3 rounded-md border border-border bg-background/50 px-3 py-1 text-xs text-muted-foreground">
-                app.feediyo.com
+                app.feeduro.com
               </div>
             </div>
             <img
               src="/screenshots/landing.png"
-              alt="Feediyo feedback board"
+              alt="Feeduro feedback intelligence platform"
               className="w-full h-auto block"
             />
           </div>

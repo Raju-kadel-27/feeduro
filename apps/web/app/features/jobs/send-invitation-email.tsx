@@ -31,7 +31,7 @@ export async function sendInvitationEmail({
 
   return sendEmail({
     to: recipientEmail,
-    subject: `${inviterName} invited you to ${workspaceName} on Feediyo`,
+    subject: `${inviterName} invited you to ${workspaceName} on Feeduro`,
     html,
   });
 }

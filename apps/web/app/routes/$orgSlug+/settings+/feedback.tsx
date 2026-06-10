@@ -10,7 +10,7 @@ import { feedbackBoards, feedbackPosts, member, organization } from "@/db/schema
 import type { Route } from "./+types/feedback";
 
 export function meta() {
-  return [{ title: "Feedback Settings — Feediyo" }];
+  return [{ title: "Feedback Settings — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

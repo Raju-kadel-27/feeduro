@@ -113,7 +113,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
 
     const cname = await resolveCname(record.domain);
-    const verified = cname === "cname.feediyo.com";
+    const verified = cname === "cname.feeduro.com";
 
     if (verified) {
       await db

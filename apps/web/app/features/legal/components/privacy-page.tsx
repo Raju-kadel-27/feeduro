@@ -2,7 +2,7 @@ import { GalleryVerticalEnd } from "lucide-react";
 import { Link } from "react-router";
 
 const LAST_UPDATED = "April 30, 2025";
-const CONTACT_EMAIL = "privacy@feediyo.com";
+const CONTACT_EMAIL = "privacy@feeduro.com";
 
 export function PrivacyPage() {
   return (
@@ -13,7 +13,7 @@ export function PrivacyPage() {
             <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Feediyo
+            Feeduro
           </Link>
           <Link
             to="/sign-in"
@@ -34,10 +34,10 @@ export function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">1. Who we are</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Feediyo ("we", "us", or "our") is a feedback management platform that helps product
+              Feeduro ("we", "us", or "our") is a feedback management platform that helps product
               teams collect, organise, and act on user feedback. Our service is available at{" "}
-              <a href="https://feediyo.com" className="text-primary hover:underline">
-                feediyo.com
+              <a href="https://feeduro.com" className="text-primary hover:underline">
+                feeduro.com
               </a>{" "}
               and through embeddable widgets installed on our customers' products.
             </p>
@@ -58,17 +58,17 @@ export function PrivacyPage() {
 
             <h3 className="font-medium">Workspace and product data</h3>
             <p className="text-muted-foreground leading-relaxed">
-              We store everything you create inside Feediyo: workspace names and settings, feedback
+              We store everything you create inside Feeduro: workspace names and settings, feedback
               boards, posts, comments, votes, changelog entries, roadmap items, team member records,
               and API tokens you generate.
             </p>
 
             <h3 className="font-medium">End-user data (submitted via widget or public board)</h3>
             <p className="text-muted-foreground leading-relaxed">
-              If you install the Feediyo widget on your product, your end-users may submit feedback
+              If you install the Feeduro widget on your product, your end-users may submit feedback
               through it. That feedback (post content, email if provided, votes, and comments) is
-              stored in your Feediyo workspace. You are responsible for informing your own users
-              that their submissions are processed by Feediyo. We act as a data processor for this
+              stored in your Feeduro workspace. You are responsible for informing your own users
+              that their submissions are processed by Feeduro. We act as a data processor for this
               category of data.
             </p>
 
@@ -90,7 +90,7 @@ export function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">3. How we use your data</h2>
             <ul className="list-disc list-outside ml-5 space-y-2 text-muted-foreground">
-              <li>To provide, operate, and maintain the Feediyo service</li>
+              <li>To provide, operate, and maintain the Feeduro service</li>
               <li>To authenticate your identity (email/password or Google OAuth)</li>
               <li>To process subscription payments through Dodo Payments</li>
               <li>
@@ -171,7 +171,7 @@ export function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">6. International data transfers</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Feediyo is hosted on Cloudflare's global infrastructure and uses MySQL-compatible
+              Feeduro is hosted on Cloudflare's global infrastructure and uses MySQL-compatible
               database services. Your data may be stored and processed in the United States or other
               countries where our service providers operate.
             </p>
@@ -234,7 +234,7 @@ export function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">10. Children's privacy</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Feediyo is not directed at children under the age of 13. We do not knowingly collect
+              Feeduro is not directed at children under the age of 13. We do not knowingly collect
               personal data from children under 13. If you believe a child under 13 has provided us
               with personal data, please contact us at{" "}
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
@@ -258,7 +258,7 @@ export function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">12. Business transfers</h2>
             <p className="text-muted-foreground leading-relaxed">
-              If Feediyo is involved in a merger, acquisition, or sale of all or a portion of its
+              If Feeduro is involved in a merger, acquisition, or sale of all or a portion of its
               assets, your personal data may be transferred as part of that transaction. We will
               notify you by email or a prominent notice in the app before your data is transferred
               and becomes subject to a different privacy policy.
@@ -268,7 +268,7 @@ export function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">13. Data Processing Agreement</h2>
             <p className="text-muted-foreground leading-relaxed">
-              If you use Feediyo to process personal data on behalf of your own users (e.g. via the
+              If you use Feeduro to process personal data on behalf of your own users (e.g. via the
               widget or public board), you may require a Data Processing Agreement (DPA) to satisfy
               your obligations under GDPR or similar regulations. Please contact us at{" "}
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
@@ -303,7 +303,7 @@ export function PrivacyPage() {
 
       <footer className="border-t mt-16">
         <div className="max-w-3xl mx-auto px-6 py-6 flex items-center justify-between text-sm text-muted-foreground">
-          <span>© {new Date().getFullYear()} Feediyo</span>
+          <span>© {new Date().getFullYear()} Feeduro</span>
           <div className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-foreground transition-colors">
               Privacy

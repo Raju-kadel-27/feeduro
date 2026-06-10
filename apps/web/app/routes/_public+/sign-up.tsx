@@ -8,7 +8,7 @@ import { Link } from "react-router";
 import type { Route } from "./+types/sign-up";
 
 export function meta() {
-  return [{ title: "Sign Up — Feediyo" }];
+  return [{ title: "Sign Up — Feeduro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -72,7 +72,7 @@ export default function SignUp() {
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GalleryVerticalEnd className="size-4" />
           </div>
-          Feediyo
+          Feeduro
         </a>
 
         <SignUpForm

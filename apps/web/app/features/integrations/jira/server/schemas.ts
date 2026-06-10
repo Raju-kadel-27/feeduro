@@ -38,7 +38,7 @@ export const JiraWebhookRegistrationSchema = z.object({
 export const JiraStatusMappingSchema = z.object({
   jiraStatusId: z.string(),
   jiraStatusName: z.string(),
-  feediyoStatus: z.string(),
+  feeduroStatus: z.string(),
 });
 
 export const JiraSettingsSchema = z.object({

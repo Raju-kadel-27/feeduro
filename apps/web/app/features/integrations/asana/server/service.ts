@@ -302,8 +302,8 @@ export async function handleAsanaAction(request: Request) {
       const { workspaceGid, defaultProjectGid } = settings;
       const baseName = input.name ?? post.title;
       const notes = input.notes ?? (post.description
-        ? `${post.description}\n\nCreated from Feediyo feedback #${post.id}`
-        : `Created from Feediyo feedback #${post.id}`);
+        ? `${post.description}\n\nCreated from Feeduro feedback #${post.id}`
+        : `Created from Feeduro feedback #${post.id}`);
       const task = await withTokenRefresh(organizationId, (token) =>
         createAsanaTask(token, workspaceGid, defaultProjectGid, baseName, notes),
       );

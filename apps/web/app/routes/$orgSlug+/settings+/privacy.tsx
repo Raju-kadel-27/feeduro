@@ -16,7 +16,7 @@ import {
 import type { Route } from "./+types/privacy";
 
 export function meta() {
-  return [{ title: "Privacy & Access — Feediyo" }];
+  return [{ title: "Privacy & Access — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

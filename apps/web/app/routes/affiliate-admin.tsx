@@ -25,7 +25,7 @@ function isAdminEmail(email: string): boolean {
 }
 
 export function meta() {
-  return [{ title: "Affiliate Admin — Feediyo" }];
+  return [{ title: "Affiliate Admin — Feeduro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

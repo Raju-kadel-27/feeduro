@@ -14,7 +14,7 @@ export async function sendResetPasswordEmail({
   const html = await render(ResetPasswordEmail({ userName, resetUrl }));
   return sendEmail({
     to: recipientEmail,
-    subject: "Reset your Feediyo password",
+    subject: "Reset your Feeduro password",
     html,
   });
 }

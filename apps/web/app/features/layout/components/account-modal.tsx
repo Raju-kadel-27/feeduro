@@ -204,7 +204,7 @@ function AppearanceTab() {
       <div>
         <h2 className="text-[15px] font-semibold">Appearance</h2>
         <p className="text-[12.5px] text-muted-foreground mt-0.5">
-          Choose how Feediyo looks to you.
+          Choose how Feeduro looks to you.
         </p>
       </div>
 

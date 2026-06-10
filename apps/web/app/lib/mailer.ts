@@ -11,7 +11,7 @@ function getTransport() {
 }
 
 function getFrom() {
-  return process.env.EMAIL_FROM ?? "Feediyo <noreply@feediyo.com>";
+  return process.env.EMAIL_FROM ?? "Feeduro <noreply@feeduro.com>";
 }
 
 interface SendEmailOptions {

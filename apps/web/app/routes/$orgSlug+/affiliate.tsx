@@ -11,7 +11,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/affiliate";
 
 export function meta() {
-  return [{ title: "Affiliate Program — Feediyo" }];
+  return [{ title: "Affiliate Program — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

@@ -16,7 +16,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/segments";
 
 export function meta() {
-  return [{ title: "Segments — Feediyo" }];
+  return [{ title: "Segments — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

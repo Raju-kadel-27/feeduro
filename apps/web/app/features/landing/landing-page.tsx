@@ -4,7 +4,6 @@ import { HeroSection } from "./components/hero-section";
 import { IntegrationsSection } from "./components/integrations-section";
 import { LandingFooter } from "./components/landing-footer";
 import { LandingNav } from "./components/landing-nav";
-import { MissionSection } from "./components/mission-section";
 import { OutcomesSection } from "./components/outcomes-section";
 import { ShowcaseSection } from "./components/showcase-section";
 import { TestimonialSection } from "./components/testimonial-section";
@@ -24,8 +23,7 @@ export function LandingPage() {
       <main>
         <HeroSection />
         <ChurnSection />
-        <MissionSection />
-        <OutcomesSection />
+<OutcomesSection />
         <ShowcaseSection />
         <FeaturesSection />
         <IntegrationsSection />

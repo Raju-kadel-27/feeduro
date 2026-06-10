@@ -116,7 +116,7 @@ export async function generateOgPng(p: OgImageParams): Promise<Uint8Array> {
     h("div", { style: { display: "flex", flex: 1, alignItems: "center" } }, bodyContent),
     !p.hidePoweredBy &&
       h("div", { style: { marginTop: 32 } },
-        h("span", { style: { fontSize: 18, color: "#9CA3AF" } }, "Powered by Feediyo"),
+        h("span", { style: { fontSize: 18, color: "#9CA3AF" } }, "Powered by Feeduro"),
       ),
     h("div", { style: { position: "absolute", bottom: 0, left: 0, right: 0, height: 8, background: hex } }),
   );

@@ -12,7 +12,7 @@ export type { Check, Status } from "./smoke/env.server";
 export async function runChecks(request: Request, context: Readonly<RouterContextProvider>) {
   const env = getEnv(context);
   const apiUrl = getActiveApiUrl(request, env);
-  const api = createApiClient(apiUrl, env.FEEDIYO_API_KEY);
+  const api = createApiClient(apiUrl, env.FEEDURO_API_KEY);
 
   console.log(`[smoke] running checks against ${apiUrl}`);
 
@@ -20,7 +20,7 @@ export async function runChecks(request: Request, context: Readonly<RouterContex
 
   const [restResult, webhookChecks] = await Promise.all([
     runApiRestChecks(api, apiUrl),
-    runWebhookChecks(env.FEEDIYO_WEBHOOK_SECRET, request),
+    runWebhookChecks(env.FEEDURO_WEBHOOK_SECRET, request),
   ]);
 
   const connectivityChecks = await runConnectivityChecks(env, apiUrl, restResult.boards);

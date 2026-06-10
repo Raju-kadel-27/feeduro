@@ -10,7 +10,7 @@ import { getOrgSegments } from "@features/segmentation/server/service";
 import type { Route } from "./+types/views";
 
 export function meta() {
-  return [{ title: "Views — Feediyo" }];
+  return [{ title: "Views — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

@@ -18,8 +18,8 @@ export async function autoCreateShortcutStory(
   if (await isAlreadyLinked(post.id, "shortcut")) return;
 
   const description = post.description
-    ? `${post.description}\n\n---\n*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`
-    : `*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`;
+    ? `${post.description}\n\n---\n*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`
+    : `*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`;
 
   const story = await createShortcutStory(
     integration.accessToken,

@@ -20,7 +20,7 @@ importers:
 
   apps/demo:
     dependencies:
-      '@feediyo/react':
+      '@feeduro/react':
         specifier: workspace:*
         version: link:../../packages/react
       '@react-router/remix-routes-option-adapter':
@@ -84,7 +84,7 @@ importers:
       '@astrojs/starlight':
         specifier: ^0.32.0
         version: 0.32.6(astro@5.18.2(@planetscale/database@1.20.1)(@types/node@24.12.4)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.2)(tsx@4.21.0)(typescript@5.9.3))
-      '@feediyo/errors':
+      '@feeduro/errors':
         specifier: workspace:*
         version: link:../../packages/errors
       astro:
@@ -145,7 +145,7 @@ importers:
       '@faker-js/faker':
         specifier: ^10.4.0
         version: 10.4.0
-      '@feediyo/errors':
+      '@feeduro/errors':
         specifier: workspace:*
         version: link:../../packages/errors
       '@hookform/resolvers':

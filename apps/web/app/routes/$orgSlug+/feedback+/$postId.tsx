@@ -452,7 +452,7 @@ function VoterInsights({
 // ─── Meta ─────────────────────────────────────────────────────────────────────
 
 export function meta({ data }: Route.MetaArgs) {
-  return [{ title: `${data?.post?.title ?? "Feedback"} — Feediyo` }];
+  return [{ title: `${data?.post?.title ?? "Feedback"} — Feeduro` }];
 }
 
 // ─── Loader ───────────────────────────────────────────────────────────────────

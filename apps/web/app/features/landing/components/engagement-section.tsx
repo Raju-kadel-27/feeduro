@@ -39,7 +39,7 @@ export function EngagementSection() {
             Most tools stop at the inbox. We do not.
           </h2>
           <p className="text-muted-foreground text-lg">
-            You collect an idea. Most tools stop there. Feediyo sends acknowledgments, progress
+            You collect an idea. Most tools stop there. Feeduro sends acknowledgments, progress
             updates, and launch notifications without you lifting a finger.
           </p>
         </div>

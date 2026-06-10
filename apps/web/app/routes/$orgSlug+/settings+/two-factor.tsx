@@ -4,7 +4,7 @@ import { requireOrgBySlug } from "@features/auth/server/guards";
 import type { Route } from "./+types/two-factor";
 
 export function meta() {
-  return [{ title: "Two-Factor Authentication — Feediyo" }];
+  return [{ title: "Two-Factor Authentication — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

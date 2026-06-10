@@ -12,7 +12,7 @@ import { member, organization } from "@/db/schema";
 import type { Route } from "./+types/onboarding";
 
 export function meta() {
-  return [{ title: "Create your workspace — Feediyo" }];
+  return [{ title: "Create your workspace — Feeduro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

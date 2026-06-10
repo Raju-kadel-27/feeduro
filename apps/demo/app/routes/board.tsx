@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { data } from "react-router";
-import { FeediyoBoard } from "@feediyo/react";
+import { FeeduroBoard } from "@feeduro/react";
 
 type Theme = "auto" | "light" | "dark";
 const THEMES: Theme[] = ["auto", "light", "dark"];
@@ -18,7 +18,7 @@ const BOARD_TABS = [
 type BoardKey = (typeof BOARD_TABS)[number]["key"];
 
 export function meta(): Route.MetaDescriptors {
-  return [{ title: "Board Embed · Feediyo Demo" }];
+  return [{ title: "Board Embed · Feeduro Demo" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -26,9 +26,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return data({
     baseUrl: getActiveApiUrl(request, env),
     tokens: {
-      feature: env.FEEDIYO_WIDGET_TOKEN_FEATURE,
-      integrations: env.FEEDIYO_WIDGET_TOKEN_INTEGRATIONS,
-      bugs: env.FEEDIYO_WIDGET_TOKEN_BUGS,
+      feature: env.FEEDURO_WIDGET_TOKEN_FEATURE,
+      integrations: env.FEEDURO_WIDGET_TOKEN_INTEGRATIONS,
+      bugs: env.FEEDURO_WIDGET_TOKEN_BUGS,
     } satisfies Record<BoardKey, string>,
   });
 }
@@ -52,7 +52,7 @@ export default function BoardEmbed({ loaderData }: Route.ComponentProps) {
   if (!tabs.length) {
     return (
       <p className="p-8 text-sm text-gray-500">
-        No boards configured. Set FEEDIYO_WIDGET_TOKEN in .dev.vars.
+        No boards configured. Set FEEDURO_WIDGET_TOKEN in .dev.vars.
       </p>
     );
   }
@@ -99,7 +99,7 @@ export default function BoardEmbed({ loaderData }: Route.ComponentProps) {
       {/* All iframes stay mounted — switching tabs only toggles visibility, no reload */}
       {tabs.map((t) => (
         <div key={t.key} hidden={t.key !== active}>
-          <FeediyoBoard
+          <FeeduroBoard
             token={tokens[t.key]}
             baseUrl={baseUrl}
             theme={theme}

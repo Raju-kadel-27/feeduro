@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "feediyo_notification_sound_enabled";
-const PREF_CHANGED = "feediyo:sound-pref-changed";
+const STORAGE_KEY = "feeduro_notification_sound_enabled";
+const PREF_CHANGED = "feeduro:sound-pref-changed";
 
 export function playNotificationSound(): void {
   try {

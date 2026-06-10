@@ -38,14 +38,14 @@ export function SettingsIdentityCodeExamples({
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server</p>
         <CodeBlock
           label="server.js"
-          code={`import crypto from 'node:crypto';\n\nconst signature = crypto\n  .createHmac('sha256', process.env.FEEDIYO_SIGNING_SECRET)\n  .update(currentUser.id)\n  .digest('hex');\n\n// Pass to the client — e.g. res.render('page', { feediyoSig: signature });`}
+          code={`import crypto from 'node:crypto';\n\nconst signature = crypto\n  .createHmac('sha256', process.env.FEEDURO_SIGNING_SECRET)\n  .update(currentUser.id)\n  .digest('hex');\n\n// Pass to the client — e.g. res.render('page', { feeduroSig: signature });`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
           Client
         </p>
         <CodeBlock
           label="page.js"
-          code={`window.feediyo.identify({\n  id:        currentUser.id,\n  email:     currentUser.email,\n  name:      currentUser.name,\n  signature: feediyoSig,\n});`}
+          code={`window.feeduro.identify({\n  id:        currentUser.id,\n  email:     currentUser.email,\n  name:      currentUser.name,\n  signature: feeduroSig,\n});`}
         />
       </TabsContent>
 
@@ -55,21 +55,21 @@ export function SettingsIdentityCodeExamples({
         </p>
         <CodeBlock
           label="app/root.tsx  ·  layout.tsx  (React Router / Remix)"
-          code={`import { createIdentityToken } from '~/lib/identity-token';\n\nexport async function loader({ request }) {\n  const user = await getAuthUser(request);\n\n  const feediyoAuth = user\n    ? await createIdentityToken(\n        user.id,\n        user.email,\n        user.name,\n        process.env.FEEDIYO_SIGNING_SECRET!,\n      )\n    : null;\n\n  return { user, feediyoAuth };\n}`}
+          code={`import { createIdentityToken } from '~/lib/identity-token';\n\nexport async function loader({ request }) {\n  const user = await getAuthUser(request);\n\n  const feeduroAuth = user\n    ? await createIdentityToken(\n        user.id,\n        user.email,\n        user.name,\n        process.env.FEEDURO_SIGNING_SECRET!,\n      )\n    : null;\n\n  return { user, feeduroAuth };\n}`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
           Client — pass to the provider, done
         </p>
         <CodeBlock
           label="app/root.tsx  ·  layout.tsx"
-          code={`import { FeediyoProvider } from '@feediyo/react';\n\nexport default function Root({ loaderData }) {\n  const { user, feediyoAuth } = loaderData;\n\n  return (\n    <FeediyoProvider\n      token="${currentToken}"\n      position="${position}"\n      theme="${theme}"\n      user={user && feediyoAuth\n        ? { id: user.id, email: user.email, name: user.name, ...feediyoAuth }\n        : null}\n    >\n      {/* your app */}\n    </FeediyoProvider>\n  );\n}`}
+          code={`import { FeeduroProvider } from '@feeduro/react';\n\nexport default function Root({ loaderData }) {\n  const { user, feeduroAuth } = loaderData;\n\n  return (\n    <FeeduroProvider\n      token="${currentToken}"\n      position="${position}"\n      theme="${theme}"\n      user={user && feeduroAuth\n        ? { id: user.id, email: user.email, name: user.name, ...feeduroAuth }\n        : null}\n    >\n      {/* your app */}\n    </FeeduroProvider>\n  );\n}`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
           Automatic login — link to your public board
         </p>
         <CodeBlock
-          label="any component inside FeediyoProvider"
-          code={`import { useFeediyo } from '@feediyo/react';\n\nfunction FeedbackLink() {\n  const { createAutoLoginUrl } = useFeediyo();\n\n  return (\n    <a href={createAutoLoginUrl('https://${orgSlug}.feediyo.com')}>\n      View public board →\n    </a>\n  );\n}`}
+          label="any component inside FeeduroProvider"
+          code={`import { useFeeduro } from '@feeduro/react';\n\nfunction FeedbackLink() {\n  const { createAutoLoginUrl } = useFeeduro();\n\n  return (\n    <a href={createAutoLoginUrl('https://${orgSlug}.feeduro.com')}>\n      View public board →\n    </a>\n  );\n}`}
         />
         {boards.length > 1 && (
           <div className="flex items-center gap-2 pl-7">
@@ -90,7 +90,7 @@ export function SettingsIdentityCodeExamples({
         )}
         <CodeBlock
           label="feedback/page.tsx"
-          code={`import { FeediyoBoard } from '@feediyo/react';\n\nexport default function FeedbackPage() {\n  return (\n    <FeediyoBoard\n      token="${selectedBoard?.embedToken ?? currentToken}"\n      theme="${theme}"\n      style={{ height: 600 }}\n    />\n  );\n}`}
+          code={`import { FeeduroBoard } from '@feeduro/react';\n\nexport default function FeedbackPage() {\n  return (\n    <FeeduroBoard\n      token="${selectedBoard?.embedToken ?? currentToken}"\n      theme="${theme}"\n      style={{ height: 600 }}\n    />\n  );\n}`}
         />
       </TabsContent>
 
@@ -98,14 +98,14 @@ export function SettingsIdentityCodeExamples({
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server</p>
         <CodeBlock
           label="handler.go"
-          code={`import (\n    "crypto/hmac"\n    "crypto/sha256"\n    "encoding/hex"\n    "os"\n)\n\nfunc feediyoSignature(userID string) string {\n    mac := hmac.New(sha256.New, []byte(os.Getenv("FEEDIYO_SIGNING_SECRET")))\n    mac.Write([]byte(userID))\n    return hex.EncodeToString(mac.Sum(nil))\n}\n\nsig := feediyoSignature(currentUser.ID)\ntmpl.Execute(w, PageData{User: currentUser, FeediyoSig: sig})`}
+          code={`import (\n    "crypto/hmac"\n    "crypto/sha256"\n    "encoding/hex"\n    "os"\n)\n\nfunc feeduroSignature(userID string) string {\n    mac := hmac.New(sha256.New, []byte(os.Getenv("FEEDURO_SIGNING_SECRET")))\n    mac.Write([]byte(userID))\n    return hex.EncodeToString(mac.Sum(nil))\n}\n\nsig := feeduroSignature(currentUser.ID)\ntmpl.Execute(w, PageData{User: currentUser, FeeduroSig: sig})`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
           Client — Go html/template
         </p>
         <CodeBlock
           label="page.html"
-          code={`<script>\n  window.feediyo.identify({\n    id:        '{{ .User.ID }}',\n    email:     '{{ .User.Email }}',\n    name:      '{{ .User.Name }}',\n    signature: '{{ .FeediyoSig }}',\n  });\n</script>`}
+          code={`<script>\n  window.feeduro.identify({\n    id:        '{{ .User.ID }}',\n    email:     '{{ .User.Email }}',\n    name:      '{{ .User.Name }}',\n    signature: '{{ .FeeduroSig }}',\n  });\n</script>`}
         />
       </TabsContent>
 
@@ -113,14 +113,14 @@ export function SettingsIdentityCodeExamples({
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server</p>
         <CodeBlock
           label="application_controller.rb"
-          code={`require 'openssl'\n\nhelper_method :feediyo_signature\n\ndef feediyo_signature\n  return nil unless current_user\n  OpenSSL::HMAC.hexdigest('SHA256', ENV['FEEDIYO_SIGNING_SECRET'], current_user.id.to_s)\nend`}
+          code={`require 'openssl'\n\nhelper_method :feeduro_signature\n\ndef feeduro_signature\n  return nil unless current_user\n  OpenSSL::HMAC.hexdigest('SHA256', ENV['FEEDURO_SIGNING_SECRET'], current_user.id.to_s)\nend`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
           Client — ERB
         </p>
         <CodeBlock
           label="layout.html.erb"
-          code={`<% if current_user %>\n  <script>\n    window.feediyo.identify({\n      id:        '<%= current_user.id %>',\n      email:     '<%= current_user.email %>',\n      name:      '<%= current_user.name %>',\n      signature: '<%= feediyo_signature %>',\n    });\n  </script>\n<% end %>`}
+          code={`<% if current_user %>\n  <script>\n    window.feeduro.identify({\n      id:        '<%= current_user.id %>',\n      email:     '<%= current_user.email %>',\n      name:      '<%= current_user.name %>',\n      signature: '<%= feeduro_signature %>',\n    });\n  </script>\n<% end %>`}
         />
       </TabsContent>
 
@@ -128,14 +128,14 @@ export function SettingsIdentityCodeExamples({
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server</p>
         <CodeBlock
           label="views.py"
-          code={`import hmac, hashlib, os\n\ndef feediyo_signature(user_id: str) -> str:\n    secret = os.environ["FEEDIYO_SIGNING_SECRET"].encode()\n    return hmac.new(secret, user_id.encode(), hashlib.sha256).hexdigest()\n\ndef my_view(request):\n    sig = feediyo_signature(str(request.user.id))\n    return render(request, "page.html", {"user": request.user, "feediyo_sig": sig})`}
+          code={`import hmac, hashlib, os\n\ndef feeduro_signature(user_id: str) -> str:\n    secret = os.environ["FEEDURO_SIGNING_SECRET"].encode()\n    return hmac.new(secret, user_id.encode(), hashlib.sha256).hexdigest()\n\ndef my_view(request):\n    sig = feeduro_signature(str(request.user.id))\n    return render(request, "page.html", {"user": request.user, "feeduro_sig": sig})`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
           Client — Django / Jinja2
         </p>
         <CodeBlock
           label="layout.html"
-          code={`{% if user.is_authenticated %}\n  <script>\n    window.feediyo.identify({\n      id:        '{{ user.id }}',\n      email:     '{{ user.email }}',\n      name:      '{{ user.get_full_name }}',\n      signature: '{{ feediyo_sig }}',\n    });\n  </script>\n{% endif %}`}
+          code={`{% if user.is_authenticated %}\n  <script>\n    window.feeduro.identify({\n      id:        '{{ user.id }}',\n      email:     '{{ user.email }}',\n      name:      '{{ user.get_full_name }}',\n      signature: '{{ feeduro_sig }}',\n    });\n  </script>\n{% endif %}`}
         />
       </TabsContent>
     </Tabs>

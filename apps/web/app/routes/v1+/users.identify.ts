@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { IdentifyUserSchema } from "@features/segmentation/schemas/identify";
 import { upsertUserProfile } from "@features/segmentation/server/service";
 import { requireApiKey } from "@lib/api/require-api-key";

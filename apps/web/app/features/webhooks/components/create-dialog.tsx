@@ -114,7 +114,7 @@ export function CreateDialog({ open, onOpenChange, onCreated }: CreateDialogProp
                   type="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com/webhooks/feediyo"
+                  placeholder="https://example.com/webhooks/feeduro"
                   required
                   className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring font-mono"
                 />

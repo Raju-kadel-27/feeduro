@@ -15,10 +15,10 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/monday";
 
 export function meta() {
-  return [{ title: "Monday.com Integration — Feediyo" }];
+  return [{ title: "Monday.com Integration — Feeduro" }];
 }
 
-const FEEDIYO_STATUSES = [
+const FEEDURO_STATUSES = [
   { value: "open", label: "Pending" },
   { value: "reviewing", label: "Reviewing" },
   { value: "planned", label: "Planned" },
@@ -88,7 +88,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
   const [selectedGroupId, setSelectedGroupId] = useState(initialGroupId ?? "");
   const [autoCreate, setAutoCreate] = useState(initialAutoCreate);
   const [statusMappings, setStatusMappings] = useState<Record<string, string>>(() =>
-    Object.fromEntries((initialMappings ?? []).map((m) => [m.groupId, m.feediyoStatus])),
+    Object.fromEntries((initialMappings ?? []).map((m) => [m.groupId, m.feeduroStatus])),
   );
   const [disconnecting, setDisconnecting] = useState(false);
 
@@ -132,7 +132,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
         .map((g) => ({
           groupId: g.id,
           groupTitle: g.title,
-          feediyoStatus: statusMappings[g.id],
+          feeduroStatus: statusMappings[g.id],
         }));
 
       const res = await fetch("/api/monday", {
@@ -191,7 +191,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
             </div>
             <div>
               <h2 className="text-sm font-semibold">Monday.com Integration</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Create and link Monday.com items from feedback posts with bi-directional status
                 sync.
               </p>
@@ -224,7 +224,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
                       type="button"
                       onClick={handleDisconnect}
                       disabled={disconnecting}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -238,26 +238,26 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
               {connected ? (
                 <div className="space-y-3">
                   {webhooksActive ? (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
                       Webhooks active — status sync is enabled
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-muted text-muted-foreground">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-muted text-muted-foreground">
                       Webhooks not active (select a board and save to enable sync)
                     </div>
                   )}
 
                   <a
                     href="/api/monday?intent=connect"
-                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                    className="text-sm text-muted-foreground hover:text-foreground underline"
                   >
                     Reconnect
                   </a>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
-                    Authorize Feediyo to access your Monday.com account. You'll be redirected to
+                  <p className="text-sm text-muted-foreground">
+                    Authorize Feeduro to access your Monday.com account. You'll be redirected to
                     Monday.com's login page.
                   </p>
                   <a
@@ -268,7 +268,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
                     <MondayIcon size={14} />
                     Connect Monday.com
                   </a>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Required: Create an OAuth app at{" "}
                     <a
                       href="https://monday.com/developers/apps"
@@ -307,17 +307,17 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
               <div className="p-4 space-y-5">
                 {/* Default board */}
                 <div>
-                  <label className="block text-xs font-medium mb-1.5">Default board</label>
-                  <p className="text-[11px] text-muted-foreground mb-2">
+                  <label className="block text-sm font-medium mb-1.5">Default board</label>
+                  <p className="text-sm text-muted-foreground mb-2">
                     Items created from feedback will go to this board by default.
                   </p>
                   {loadingBoards ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Spinner className="size-3.5" />
                       Loading boards…
                     </div>
                   ) : boardsData?.error ? (
-                    <p className="text-xs text-destructive">{boardsData.error}</p>
+                    <p className="text-sm text-destructive">{boardsData.error}</p>
                   ) : (
                     <div className="relative">
                       <select
@@ -345,12 +345,12 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
                 {/* Default group */}
                 {selectedBoardId && (
                   <div>
-                    <label className="block text-xs font-medium mb-1.5">Default group</label>
-                    <p className="text-[11px] text-muted-foreground mb-2">
+                    <label className="block text-sm font-medium mb-1.5">Default group</label>
+                    <p className="text-sm text-muted-foreground mb-2">
                       New items will be added to this group. Leave empty to use the board default.
                     </p>
                     {loadingGroups ? (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Spinner className="size-3.5" />
                         Loading groups…
                       </div>
@@ -394,8 +394,8 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
                     />
                   </button>
                   <div>
-                    <p className="text-xs font-medium">Auto-create items</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-sm font-medium">Auto-create items</p>
+                    <p className="text-sm text-muted-foreground">
                       Automatically create a Monday.com item when a new feedback post is submitted.
                     </p>
                   </div>
@@ -404,14 +404,14 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
                 {/* Group → status mapping */}
                 {selectedBoardId && mondayGroups.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium mb-0.5">Status mapping</p>
-                    <p className="text-[11px] text-muted-foreground mb-3">
-                      When a Monday.com item moves to a group, automatically update the Feediyo post
+                    <p className="text-sm font-medium mb-0.5">Status mapping</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      When a Monday.com item moves to a group, automatically update the Feeduro post
                       status.
                     </p>
 
                     {loadingGroups ? (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Spinner className="size-3.5" />
                         Loading groups…
                       </div>
@@ -424,9 +424,9 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="h-2 w-2 rounded-full shrink-0 bg-slate-400" />
-                              <span className="text-xs truncate">{g.title}</span>
+                              <span className="text-sm truncate">{g.title}</span>
                             </div>
-                            <span className="text-xs text-muted-foreground shrink-0">→</span>
+                            <span className="text-sm text-muted-foreground shrink-0">→</span>
                             <div className="relative shrink-0">
                               <select
                                 value={statusMappings[g.id] ?? ""}
@@ -438,10 +438,10 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
                                     return next;
                                   })
                                 }
-                                className="appearance-none text-xs border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
+                                className="appearance-none text-sm border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
                               >
                                 <option value="">No mapping</option>
-                                {FEEDIYO_STATUSES.map((fs) => (
+                                {FEEDURO_STATUSES.map((fs) => (
                                   <option key={fs.value} value={fs.value}>
                                     {fs.label}
                                   </option>

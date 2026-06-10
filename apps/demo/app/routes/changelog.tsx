@@ -6,7 +6,7 @@ import { getActiveApiUrl } from "@lib/env-override.server";
 import type { Route } from "./+types/changelog";
 
 export function meta(): Route.MetaDescriptors {
-  return [{ title: "Changelog · Feediyo Demo" }];
+  return [{ title: "Changelog · Feeduro Demo" }];
 }
 
 const EntrySchema = z.object({ id: z.string(), title: z.string(), slug: z.string(), status: z.string(), publishedAt: z.string().nullable() });
@@ -15,14 +15,14 @@ const CreateSchema = z.object({ data: EntrySchema });
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const env = getEnv(context);
-  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDIYO_API_KEY);
+  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDURO_API_KEY);
   const res = await api.get("/v1/changelog", ListSchema);
   return data({ entries: res.data?.data ?? [], fetchError: res.error });
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
   const env = getEnv(context);
-  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDIYO_API_KEY);
+  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDURO_API_KEY);
   const form = await request.formData();
   const title = String(form.get("title") ?? "").trim();
   const status = form.get("status") === "published" ? "published" : "draft";

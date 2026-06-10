@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 export function meta() {
-  return [{ title: "Forgot Password — Feediyo" }];
+  return [{ title: "Forgot Password — Feeduro" }];
 }
 
 export default function ForgotPassword() {
@@ -45,7 +45,7 @@ export default function ForgotPassword() {
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GalleryVerticalEnd className="size-4" />
           </div>
-          Feediyo
+          Feeduro
         </a>
 
         <Card>

@@ -7,7 +7,7 @@ import { Link } from "react-router";
 
 export function meta() {
   return [
-    { title: "Pricing — Feediyo" },
+    { title: "Pricing — Feeduro" },
     { name: "description", content: "Simple, transparent pricing for teams of all sizes." },
   ];
 }
@@ -57,7 +57,7 @@ const PLANS = [
 type BillingInterval = "monthly" | "annual";
 
 export default function PricingPage() {
-  const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>("annual");
 
   return (
     <div className="min-h-screen bg-background text-foreground">

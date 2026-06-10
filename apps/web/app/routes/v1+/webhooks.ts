@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { CreateWebhookSchema } from "@features/webhooks/schemas/endpoint";
 import { createWebhook } from "@features/webhooks/server/api-webhooks";
 import { listWebhooks } from "@features/webhooks/server/queries";

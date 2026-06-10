@@ -1,7 +1,7 @@
 {
-  "name": "@feediyo/react",
+  "name": "@feeduro/react",
   "version": "0.1.0",
-  "description": "React provider and hooks for the Feediyo feedback widget",
+  "description": "React provider and hooks for the Feeduro feedback widget",
   "license": "MIT",
   "type": "module",
   "exports": {

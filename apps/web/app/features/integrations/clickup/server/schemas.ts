@@ -35,7 +35,7 @@ export const ClickupTaskSchema = z.object({
 
 export const ClickupStatusMappingSchema = z.object({
   clickupStatus: z.string(),
-  feediyoStatus: z.string(),
+  feeduroStatus: z.string(),
 });
 
 export const ClickupSettingsSchema = z.object({

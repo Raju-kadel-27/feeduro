@@ -19,7 +19,7 @@ type GithubIssuePayload = {
   };
 };
 
-// POST /api/github/webhook?orgId=<feediyo-org-id>
+// POST /api/github/webhook?orgId=<feeduro-org-id>
 // Called by GitHub when an issue event fires in the connected repository.
 export async function action({ request }: Route.ActionArgs) {
   const event = request.headers.get("X-GitHub-Event");

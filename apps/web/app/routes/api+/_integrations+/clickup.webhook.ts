@@ -8,10 +8,10 @@ import type { Route } from "./+types/clickup.webhook";
 
 const LOG = "[clickup-webhook]";
 
-type FeediyoStatus = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
+type FeeduroStatus = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
 
 // Default mapping by ClickUp status type (used when no explicit mapping is configured).
-const TYPE_DEFAULTS: Partial<Record<string, FeediyoStatus>> = {
+const TYPE_DEFAULTS: Partial<Record<string, FeeduroStatus>> = {
   done: "completed",
   closed: "closed",
 };
@@ -31,13 +31,13 @@ function resolveStatus(
   statusName: string,
   statusType: string,
   mappings: ClickupSettings["statusMappings"],
-): FeediyoStatus | null {
+): FeeduroStatus | null {
   const nameMatch = mappings?.find((m) => m.clickupStatus.toLowerCase() === statusName.toLowerCase());
-  if (nameMatch) return nameMatch.feediyoStatus as FeediyoStatus;
+  if (nameMatch) return nameMatch.feeduroStatus as FeeduroStatus;
   return TYPE_DEFAULTS[statusType] ?? null;
 }
 
-// POST /api/clickup/webhook?orgId=<feediyo-org-id>
+// POST /api/clickup/webhook?orgId=<feeduro-org-id>
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
@@ -97,7 +97,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const newStatus = resolveStatus(after.status, after.type ?? "", settings?.statusMappings);
-  console.log(`${LOG} syncing taskId=${payload.task_id} → postId=${link.postId} feediyoStatus=${newStatus ?? "none"}`);
+  console.log(`${LOG} syncing taskId=${payload.task_id} → postId=${link.postId} feeduroStatus=${newStatus ?? "none"}`);
 
   await db.transaction(async (tx) => {
     await tx

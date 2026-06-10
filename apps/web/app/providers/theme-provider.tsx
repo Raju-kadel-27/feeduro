@@ -14,8 +14,8 @@ const ThemeProviderContext = createContext<ThemeProviderState>({
 
 export function ThemeProvider({
   children,
-  defaultTheme = "system",
-  storageKey = "feediyo-theme",
+  defaultTheme = "light",
+  storageKey = "feeduro-theme",
 }: {
   children: React.ReactNode;
   defaultTheme?: Theme;
@@ -25,7 +25,7 @@ export function ThemeProvider({
 
   useEffect(() => {
     const stored = localStorage.getItem(storageKey) as Theme | null;
-    if (stored) setTheme(stored);
+    // if (stored) setTheme(stored);
   }, [storageKey]);
 
   useEffect(() => {

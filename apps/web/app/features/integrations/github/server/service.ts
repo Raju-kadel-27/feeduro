@@ -257,8 +257,8 @@ export async function handleGithubAction(request: Request) {
 
     try {
       const bodyText = post.description
-        ? `${post.description}\n\n---\n*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`
-        : `*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`;
+        ? `${post.description}\n\n---\n*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`
+        : `*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`;
 
       const issue = await createGithubIssue(
         integration.accessToken,

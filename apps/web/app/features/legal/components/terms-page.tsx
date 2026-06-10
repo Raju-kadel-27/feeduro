@@ -2,7 +2,7 @@ import { GalleryVerticalEnd } from "lucide-react";
 import { Link } from "react-router";
 
 const LAST_UPDATED = "April 30, 2025";
-const CONTACT_EMAIL = "support@feediyo.com";
+const CONTACT_EMAIL = "support@feeduro.com";
 
 export function TermsPage() {
   return (
@@ -13,7 +13,7 @@ export function TermsPage() {
             <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Feediyo
+            Feeduro
           </Link>
           <Link
             to="/sign-in"
@@ -34,7 +34,7 @@ export function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">1. Acceptance</h2>
             <p className="text-muted-foreground leading-relaxed">
-              By creating an account or using the Feediyo service ("Service"), you agree to these
+              By creating an account or using the Feeduro service ("Service"), you agree to these
               Terms of Service ("Terms"). If you are using the Service on behalf of an organisation,
               you represent that you have authority to bind that organisation to these Terms.
             </p>
@@ -44,9 +44,9 @@ export function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold">2. What Feediyo does</h2>
+            <h2 className="text-lg font-semibold">2. What Feeduro does</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Feediyo is a feedback management platform. It lets product teams create feedback
+              Feeduro is a feedback management platform. It lets product teams create feedback
               boards, collect feature requests and bug reports from their users, manage a public
               changelog, and visualise work on a roadmap. Feedback can be collected through:
             </p>
@@ -54,12 +54,12 @@ export function TermsPage() {
               <li>
                 A hosted public board at{" "}
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {"{workspace}"}.feediyo.com
+                  {"{workspace}"}.feeduro.com
                 </code>
               </li>
               <li>A JavaScript widget embedded in your own product</li>
               <li>Your own custom domain (on eligible plans)</li>
-              <li>The Feediyo REST API</li>
+              <li>The Feeduro REST API</li>
             </ul>
           </section>
 
@@ -102,7 +102,7 @@ export function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">5. Subscriptions and payments</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Feediyo offers a free plan and paid subscription plans (Starter and Professional).
+              Feeduro offers a free plan and paid subscription plans (Starter and Professional).
               Paid plans are billed on a monthly or annual basis through DodoPayments.
             </p>
             <p className="text-muted-foreground leading-relaxed">
@@ -141,12 +141,12 @@ export function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">7. Widget and JavaScript SDK</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Feediyo provides a JavaScript snippet and SDK for embedding feedback collection into
-              your product. By installing the widget, you grant Feediyo permission to serve the
+              Feeduro provides a JavaScript snippet and SDK for embedding feedback collection into
+              your product. By installing the widget, you grant Feeduro permission to serve the
               script and store feedback submitted through it. You are responsible for:
             </p>
             <ul className="list-disc list-outside ml-5 space-y-1.5 text-muted-foreground">
-              <li>Disclosing to your users that feedback is processed by Feediyo</li>
+              <li>Disclosing to your users that feedback is processed by Feeduro</li>
               <li>Obtaining any consents required by applicable law</li>
               <li>
                 Keeping your widget token and signing secret confidential — do not expose these in
@@ -167,8 +167,8 @@ export function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">9. Your content</h2>
             <p className="text-muted-foreground leading-relaxed">
-              You retain ownership of all content you upload or create in Feediyo (feedback posts,
-              changelogs, workspace settings, etc.). By using the Service, you grant Feediyo a
+              You retain ownership of all content you upload or create in Feeduro (feedback posts,
+              changelogs, workspace settings, etc.). By using the Service, you grant Feeduro a
               limited, worldwide, royalty-free licence to store, process, and display your content
               solely for the purpose of providing the Service to you.
             </p>
@@ -181,8 +181,8 @@ export function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">10. Intellectual property</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Feediyo and its logo, design, and underlying software are the intellectual property of
-              Feediyo. These Terms do not grant you any rights to use the Feediyo name, logo, or
+              Feeduro and its logo, design, and underlying software are the intellectual property of
+              Feeduro. These Terms do not grant you any rights to use the Feeduro name, logo, or
               trademarks without our prior written permission.
             </p>
           </section>
@@ -214,7 +214,7 @@ export function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">13. Indemnification</h2>
             <p className="text-muted-foreground leading-relaxed">
-              You agree to indemnify, defend, and hold harmless Feediyo and its team members from
+              You agree to indemnify, defend, and hold harmless Feeduro and its team members from
               any claims, damages, losses, liabilities, costs, or expenses (including reasonable
               legal fees) arising from: (a) your use of the Service; (b) content you submit or
               transmit through the Service; (c) your violation of these Terms; or (d) your violation
@@ -226,7 +226,7 @@ export function TermsPage() {
             <h2 className="text-lg font-semibold">14. Disclaimers and limitation of liability</h2>
             <p className="text-muted-foreground leading-relaxed">
               The Service is provided "as is" without warranties of any kind, express or implied. To
-              the maximum extent permitted by law, Feediyo shall not be liable for any indirect,
+              the maximum extent permitted by law, Feeduro shall not be liable for any indirect,
               incidental, special, or consequential damages arising from your use of (or inability
               to use) the Service, even if we have been advised of the possibility of such damages.
             </p>
@@ -268,7 +268,7 @@ export function TermsPage() {
               <Link to="/privacy" className="text-primary hover:underline">
                 Privacy Policy
               </Link>
-              , constitute the entire agreement between you and Feediyo regarding the Service and
+              , constitute the entire agreement between you and Feeduro regarding the Service and
               supersede any prior agreements.
             </p>
             <p className="text-muted-foreground leading-relaxed">
@@ -297,7 +297,7 @@ export function TermsPage() {
 
       <footer className="border-t mt-16">
         <div className="max-w-3xl mx-auto px-6 py-6 flex items-center justify-between text-sm text-muted-foreground">
-          <span>© {new Date().getFullYear()} Feediyo</span>
+          <span>© {new Date().getFullYear()} Feeduro</span>
           <div className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-foreground transition-colors">
               Privacy

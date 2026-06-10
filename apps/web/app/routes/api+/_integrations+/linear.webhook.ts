@@ -8,7 +8,7 @@ import type { Route } from "./+types/linear.webhook";
 
 const LOG = "[linear-webhook]";
 
-type FeediyoStatus = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
+type FeeduroStatus = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
 
 type LinearStateType =
   | "triage"
@@ -33,7 +33,7 @@ type LinearWebhookPayload = {
 };
 
 // Default mapping by Linear state type — used when no statusMappings are configured.
-const STATE_TYPE_TO_FEEDIYO: Partial<Record<LinearStateType, FeediyoStatus>> = {
+const STATE_TYPE_TO_FEEDIYO: Partial<Record<LinearStateType, FeeduroStatus>> = {
   completed: "completed",
   cancelled: "closed",
   started: "in-progress",
@@ -43,16 +43,16 @@ function resolveStatus(
   stateName: string,
   stateType: LinearStateType,
   mappings: LinearSettings["statusMappings"],
-): FeediyoStatus | null {
+): FeeduroStatus | null {
   // User-configured name match takes priority
   const nameMatch = mappings?.find((m) => m.linearStateName === stateName);
-  if (nameMatch?.feediyoStatus) return nameMatch.feediyoStatus as FeediyoStatus;
+  if (nameMatch?.feeduroStatus) return nameMatch.feeduroStatus as FeeduroStatus;
 
   // Fall back to type-based defaults
   return STATE_TYPE_TO_FEEDIYO[stateType] ?? null;
 }
 
-// POST /api/linear/webhook?orgId=<feediyo-org-id>
+// POST /api/linear/webhook?orgId=<feeduro-org-id>
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");

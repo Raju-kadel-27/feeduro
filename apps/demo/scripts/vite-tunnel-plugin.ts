@@ -67,7 +67,7 @@ export function tunnelPlugin(port = 3001): Plugin {
       });
 
       console.log(`\n  🌍  Tunnel   ${tunnelUrl}`);
-      console.log(`  ℹ️   Update FEEDIYO_API_URL in .dev.vars if apps/web is also tunneled\n`);
+      console.log(`  ℹ️   Update FEEDURO_API_URL in .dev.vars if apps/web is also tunneled\n`);
 
       server.httpServer?.once("close", () => {
         proc.kill();

@@ -1,8 +1,8 @@
 {
-  "name": "feediyo-monorepo",
+  "name": "feeduro-monorepo",
   "private": true,
   "scripts": {
-    "dev": "turbo dev --filter=@feediyo/web",
+    "dev": "turbo dev --filter=@feeduro/web",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "lint": "biome check .",

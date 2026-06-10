@@ -12,14 +12,14 @@ const ListBoardsSchema = z.object({ data: z.array(BoardSchema) });
 const ListPostsSchema = z.object({ data: z.array(PostSchema) });
 const CreatePostSchema = z.object({ data: z.object({ id: z.string(), title: z.string(), boardId: z.string() }) });
 
-export function meta(): Route.MetaDescriptors { return [{ title: "API · Feediyo Demo" }]; }
+export function meta(): Route.MetaDescriptors { return [{ title: "API · Feeduro Demo" }]; }
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return <div className="p-8 text-sm text-red-600">{error instanceof Error ? error.message : "Error."}</div>;
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const env = getEnv(context);
-  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDIYO_API_KEY);
+  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDURO_API_KEY);
   const [boards, posts] = await Promise.all([
     api.get("/v1/boards", ListBoardsSchema),
     api.get("/v1/posts?limit=5", ListPostsSchema),
@@ -29,7 +29,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const env = getEnv(context);
-  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDIYO_API_KEY);
+  const api = createApiClient(getActiveApiUrl(request, env), env.FEEDURO_API_KEY);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "create-post");
 

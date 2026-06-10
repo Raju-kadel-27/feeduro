@@ -105,19 +105,19 @@ export function SettingsEmbedSection({
           <StepBadge n={1} label="Install the package" />
           <CodeBlock
             label="terminal"
-            code={`npm install @feediyo/react\n# or: pnpm add @feediyo/react  /  yarn add @feediyo/react`}
+            code={`npm install @feeduro/react\n# or: pnpm add @feeduro/react  /  yarn add @feeduro/react`}
           />
-          <StepBadge n={2} label="Floating widget — wrap your app with FeediyoProvider" />
+          <StepBadge n={2} label="Floating widget — wrap your app with FeeduroProvider" />
           <CodeBlock
             label="App.tsx  ·  layout.tsx  ·  root.tsx"
-            code={`import { FeediyoProvider } from '@feediyo/react';\n\nexport default function App() {\n  return (\n    <FeediyoProvider\n      token="${currentToken}"\n      position="${position}"\n      theme="${theme}"\n    >\n      {/* your app */}\n    </FeediyoProvider>\n  );\n}`}
+            code={`import { FeeduroProvider } from '@feeduro/react';\n\nexport default function App() {\n  return (\n    <FeeduroProvider\n      token="${currentToken}"\n      position="${position}"\n      theme="${theme}"\n    >\n      {/* your app */}\n    </FeeduroProvider>\n  );\n}`}
           />
           <p className="text-xs text-muted-foreground pl-7">
             No <code className="bg-muted px-1 py-0.5 rounded">&lt;script&gt;</code> tag needed —
             the provider loads the SDK automatically. Works with Next.js App Router, Remix, React
             Router, and plain Vite.
           </p>
-          <StepBadge n={3} label="Inline board — drop FeediyoBoard anywhere" />
+          <StepBadge n={3} label="Inline board — drop FeeduroBoard anywhere" />
           <BoardSelect
             boards={boards}
             value={inlineBoardId}
@@ -126,7 +126,7 @@ export function SettingsEmbedSection({
           />
           <CodeBlock
             label="feedback/page.tsx"
-            code={`import { FeediyoBoard } from '@feediyo/react';\n\nexport default function FeedbackPage() {\n  return (\n    <FeediyoBoard\n      token="${selectedBoard?.embedToken ?? currentToken}"\n      theme="${theme}"\n      style={{ height: 600 }}\n    />\n  );\n}`}
+            code={`import { FeeduroBoard } from '@feeduro/react';\n\nexport default function FeedbackPage() {\n  return (\n    <FeeduroBoard\n      token="${selectedBoard?.embedToken ?? currentToken}"\n      theme="${theme}"\n      style={{ height: 600 }}\n    />\n  );\n}`}
           />
         </TabsContent>
       </Tabs>

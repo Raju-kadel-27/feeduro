@@ -1,6 +1,6 @@
 /**
  * Verifies X-Webhook-Signature: sha256=<hex> against the raw request body.
- * Matches the signing scheme used by the Feediyo webhook dispatcher.
+ * Matches the signing scheme used by the Feeduro webhook dispatcher.
  */
 export async function verifyWebhookSignature(
   body: string,

@@ -15,7 +15,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/zapier";
 
 export function meta() {
-  return [{ title: "Zapier Integration — Feediyo" }];
+  return [{ title: "Zapier Integration — Feeduro" }];
 }
 
 const ALL_EVENTS = [
@@ -145,8 +145,8 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
             </div>
             <div>
               <h2 className="text-sm font-semibold">Zapier Integration</h2>
-              <p className="text-xs text-muted-foreground">
-                Send Feediyo events to 7,000+ apps via Zapier.
+              <p className="text-sm text-muted-foreground">
+                Send Feeduro events to 7,000+ apps via Zapier.
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
               <span className="text-sm font-medium">Create a Zap in Zapier</span>
             </div>
             <div className="p-4 space-y-2">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 In Zapier, create a new Zap and choose{" "}
                 <strong className="text-foreground">Webhooks by Zapier</strong> as the trigger.
                 Select <strong className="text-foreground">Catch Hook</strong>, then copy the
@@ -177,7 +177,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
                 href="https://zapier.com/apps/webhook/integrations"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
               >
                 Open Zapier
                 <ExternalLink className="h-3 w-3" />
@@ -211,7 +211,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
                       type="button"
                       onClick={handleDisconnect}
                       disabled={disconnecting}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -223,7 +223,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
 
             <div className="p-4 space-y-4">
               <div>
-                <label htmlFor="zapier-webhook-url" className="block text-xs font-medium mb-1.5">
+                <label htmlFor="zapier-webhook-url" className="block text-sm font-medium mb-1.5">
                   Zapier Catch Hook URL
                 </label>
                 <input
@@ -238,7 +238,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
               </div>
 
               <div>
-                <p className="text-xs font-medium mb-2">Events to send</p>
+                <p className="text-sm font-medium mb-2">Events to send</p>
                 <div className="space-y-1.5">
                   {ALL_EVENTS.map((ev) => {
                     const checked = selectedEvents.includes(ev.id);
@@ -248,7 +248,7 @@ export default function ZapierIntegrationSettings({ loaderData }: Route.Componen
                         type="button"
                         onClick={() => isAdmin && toggleEvent(ev.id)}
                         disabled={!isAdmin}
-                        className="flex w-full items-center gap-2 text-xs text-left hover:text-foreground text-muted-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex w-full items-center gap-2 text-sm text-left hover:text-foreground text-muted-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {checked ? (
                           <CheckSquare className="h-3.5 w-3.5 shrink-0 text-primary" />

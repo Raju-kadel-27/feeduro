@@ -18,7 +18,7 @@ type AsanaEvent = {
   };
 };
 
-// POST /api/asana/webhook?orgId=<feediyo-org-id>
+// POST /api/asana/webhook?orgId=<feeduro-org-id>
 // Handles both the initial handshake (X-Hook-Secret) and ongoing events (X-Hook-Signature).
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
@@ -178,22 +178,22 @@ async function processEvents(
         }
       }
 
-      // Apply status mapping to update Feediyo post status
+      // Apply status mapping to update Feeduro post status
       const mappings = settings?.statusMappings ?? [];
-      let feediyoStatus: string | null = null;
+      let feeduroStatus: string | null = null;
 
       if (newStatus === "Completed") {
         const completedMap = mappings.find((m) => m.sectionGid === "__completed__");
-        if (completedMap?.feediyoStatus) feediyoStatus = completedMap.feediyoStatus;
+        if (completedMap?.feeduroStatus) feeduroStatus = completedMap.feeduroStatus;
       } else if (newSectionGid) {
         const match = mappings.find((m) => m.sectionGid === newSectionGid);
-        if (match?.feediyoStatus) feediyoStatus = match.feediyoStatus;
+        if (match?.feeduroStatus) feeduroStatus = match.feeduroStatus;
       }
 
-      if (feediyoStatus) {
+      if (feeduroStatus) {
         await db
           .update(feedbackPosts)
-          .set({ status: feediyoStatus as typeof feedbackPosts.$inferSelect.status })
+          .set({ status: feeduroStatus as typeof feedbackPosts.$inferSelect.status })
           .where(and(eq(feedbackPosts.id, link.postId), eq(feedbackPosts.organizationId, orgId)));
       }
     }

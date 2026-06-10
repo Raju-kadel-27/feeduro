@@ -23,8 +23,8 @@ export function CtaSection() {
           Your users have opinions about your product.
         </h2>
         <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-          Feediyo gives them a place to share, and gives you a system to act on it.
-          Simple pricing, free to get started. No credit card required.
+          Feeduro gives them a place to share. It gives you the intelligence to act on what
+          matters most. Free to get started. No credit card required.
         </p>
         <Link
           to="/sign-up"

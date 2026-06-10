@@ -12,7 +12,7 @@ export function SettingsBoardTokensSection({ boards }: Props) {
     <section className="rounded-xl border border-border bg-card p-5">
       <SectionHeading
         title="Board embed tokens"
-        description="Each public board has its own token. Use it with FeediyoBoard or the data-fdy-embed attribute to embed a specific board inline."
+        description="Each public board has its own token. Use it with FeeduroBoard or the data-fdy-embed attribute to embed a specific board inline."
       />
       <ul className="divide-y divide-border">
         {boards.map((board) => (

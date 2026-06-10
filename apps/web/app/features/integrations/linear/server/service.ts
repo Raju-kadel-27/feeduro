@@ -308,8 +308,8 @@ export async function handleLinearAction(request: Request) {
     try {
       const baseTitle = input.title ?? post.title;
       const description = input.description ?? (post.description
-        ? `${post.description}\n\n---\n*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`
-        : `*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`);
+        ? `${post.description}\n\n---\n*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`
+        : `*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`);
       const issue = await createLinearIssue(
         integration.accessToken,
         teamId,

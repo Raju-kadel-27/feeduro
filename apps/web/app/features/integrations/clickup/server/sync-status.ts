@@ -9,24 +9,24 @@ const LOG = "[clickup-sync-status]";
 
 /**
  * Reverse the saved status mappings to find the ClickUp status name
- * that corresponds to the given Feediyo status.
+ * that corresponds to the given Feeduro status.
  */
 function resolveClickupStatus(
-  feediyoStatus: string,
+  feeduroStatus: string,
   mappings: ClickupSettings["statusMappings"],
 ): string | null {
-  return mappings?.find((m) => m.feediyoStatus === feediyoStatus)?.clickupStatus ?? null;
+  return mappings?.find((m) => m.feeduroStatus === feeduroStatus)?.clickupStatus ?? null;
 }
 
 /**
- * When a Feediyo post status changes, push the mapped status to the
+ * When a Feeduro post status changes, push the mapped status to the
  * linked ClickUp task (if one exists and a mapping is configured).
  * Fire-and-forget — never throws, only logs on failure.
  */
 export async function syncStatusToClickup(
   organizationId: string,
   postId: string,
-  newFeediyoStatus: string,
+  newFeeduroStatus: string,
 ): Promise<void> {
   const db = getDb();
 
@@ -52,9 +52,9 @@ export async function syncStatusToClickup(
   }
 
   const settings = parseSettings<ClickupSettings>(integration.settings);
-  const clickupStatus = resolveClickupStatus(newFeediyoStatus, settings?.statusMappings);
+  const clickupStatus = resolveClickupStatus(newFeeduroStatus, settings?.statusMappings);
   if (!clickupStatus) {
-    console.log(`${LOG} no mapping for feediyoStatus="${newFeediyoStatus}" postId=${postId}`);
+    console.log(`${LOG} no mapping for feeduroStatus="${newFeeduroStatus}" postId=${postId}`);
     return;
   }
 

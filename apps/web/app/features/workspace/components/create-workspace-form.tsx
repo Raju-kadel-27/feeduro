@@ -57,7 +57,7 @@ export function CreateWorkspaceForm({
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">URL slug</label>
             <div className="flex items-center rounded-md border bg-background px-2.5 focus-within:ring-2 focus-within:ring-primary">
-              <span className="text-xs text-muted-foreground shrink-0">feediyo.com/</span>
+              <span className="text-xs text-muted-foreground shrink-0">feeduro.com/</span>
               <input
                 type="text"
                 value={slug}
@@ -101,7 +101,7 @@ export function CreateWorkspaceForm({
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Workspace URL</label>
         <div className="flex items-center gap-1 rounded-md border bg-background px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-primary">
-          <span className="text-muted-foreground select-none">feediyo.com/</span>
+          <span className="text-muted-foreground select-none">feeduro.com/</span>
           <input
             type="text"
             value={slug}

@@ -23,16 +23,16 @@ export async function runConnectivityChecks(env: Env, apiUrl: string, boards: Bo
   const checks: Check[] = [];
 
   // Widget page reachability — HEAD /widget/:token
-  const widgetCheck = await headCheck(`${apiUrl}/widget/${env.FEEDIYO_WIDGET_TOKEN}`, "Widget page reachable", "conn-widget");
+  const widgetCheck = await headCheck(`${apiUrl}/widget/${env.FEEDURO_WIDGET_TOKEN}`, "Widget page reachable", "conn-widget");
   checks.push(widgetCheck);
 
   // Board embed token cross-reference — local env tokens vs. what the API returned
   const boardByToken = new Map(boards.map(b => [b.embedToken, b]));
 
   for (const [id, label, token] of [
-    ["conn-board-feature",      "Board token: FEATURE",      env.FEEDIYO_WIDGET_TOKEN_FEATURE],
-    ["conn-board-integrations", "Board token: INTEGRATIONS", env.FEEDIYO_WIDGET_TOKEN_INTEGRATIONS],
-    ["conn-board-bugs",         "Board token: BUGS",         env.FEEDIYO_WIDGET_TOKEN_BUGS],
+    ["conn-board-feature",      "Board token: FEATURE",      env.FEEDURO_WIDGET_TOKEN_FEATURE],
+    ["conn-board-integrations", "Board token: INTEGRATIONS", env.FEEDURO_WIDGET_TOKEN_INTEGRATIONS],
+    ["conn-board-bugs",         "Board token: BUGS",         env.FEEDURO_WIDGET_TOKEN_BUGS],
   ] as const) {
     if (!isSet(token)) {
       checks.push({ id, label, status: "skip", detail: "Token not set in .dev.vars" });
@@ -49,11 +49,11 @@ export async function runConnectivityChecks(env: Env, apiUrl: string, boards: Bo
   }
 
   // Board public URL reachability
-  if (isSet(env.FEEDIYO_BOARD_PUBLIC_URL)) {
-    const urlCheck = await headCheck(env.FEEDIYO_BOARD_PUBLIC_URL, "Board public URL", "conn-board-url");
+  if (isSet(env.FEEDURO_BOARD_PUBLIC_URL)) {
+    const urlCheck = await headCheck(env.FEEDURO_BOARD_PUBLIC_URL, "Board public URL", "conn-board-url");
     checks.push(urlCheck);
   } else {
-    checks.push({ id: "conn-board-url", label: "Board public URL", status: "skip", detail: "FEEDIYO_BOARD_PUBLIC_URL not set" });
+    checks.push({ id: "conn-board-url", label: "Board public URL", status: "skip", detail: "FEEDURO_BOARD_PUBLIC_URL not set" });
   }
 
   return checks;

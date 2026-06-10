@@ -31,10 +31,10 @@ export function LandingFooter() {
               <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                 <MessageSquare className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span>Feediyo</span>
+              <span>Feeduro</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-[220px]">
-              The feedback management platform for modern product teams.
+              The feedback intelligence platform for product teams.
             </p>
           </div>
 
@@ -58,7 +58,7 @@ export function LandingFooter() {
         </div>
 
         <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
-          <p>© 2025 Feediyo. All rights reserved.</p>
+          <p>© 2025 Feeduro. All rights reserved.</p>
           <p>Built for product teams who ship.</p>
         </div>
       </div>

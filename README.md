@@ -1,5 +1,5 @@
-# Feediyo
-Feediyo is a public feedback board web app for collecting, voting, and tracking feature requests.
+# Feeduro
+Feeduro is a public feedback board web app for collecting, voting, and tracking feature requests.
 
 ## Project overview
 

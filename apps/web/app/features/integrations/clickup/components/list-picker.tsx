@@ -77,7 +77,7 @@ function Dropdown<T extends Item>({
             ))}
           </div>
           <div className="border-t border-border p-2">
-            <button type="button" onClick={onRefresh} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <button type="button" onClick={onRefresh} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <RefreshCw size={11} /> Refresh
             </button>
           </div>
@@ -120,7 +120,7 @@ export function ListPicker({ workspaceId, selectedListId, initialSpaceId, onSele
   return (
     <div className="space-y-2">
       <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">Space</p>
+        <p className="text-sm text-muted-foreground">Space</p>
         <Dropdown<Item>
           placeholder="Select a space…"
           selected={spaceId}
@@ -133,7 +133,7 @@ export function ListPicker({ workspaceId, selectedListId, initialSpaceId, onSele
       </div>
       {spaceId && (
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">List</p>
+          <p className="text-sm text-muted-foreground">List</p>
           <Dropdown<Item>
             placeholder="Select a list…"
             selected={selectedListId}

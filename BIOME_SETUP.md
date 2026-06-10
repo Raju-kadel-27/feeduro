@@ -1,4 +1,4 @@
-# Biome Setup for Feediyo
+# Biome Setup for Feeduro
 
 ## Overview
 Biome is a production-ready linter and formatter written in Rust, set up to run automatically before every Git commit via Husky. This is significantly faster than traditional ESLint + Prettier setups.

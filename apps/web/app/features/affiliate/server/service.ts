@@ -24,7 +24,7 @@ async function notifyAdminFraudFlag(opts: {
   const reasonList = opts.reasons.map((r) => `<li>${r.replace(/_/g, " ")}</li>`).join("");
   await sendEmail({
     to: adminEmails,
-    subject: `[Feediyo Affiliate] Conversion flagged for review`,
+    subject: `[Feeduro Affiliate] Conversion flagged for review`,
     html: `
       <p>A <strong>${opts.type}</strong> conversion was automatically flagged and blocked from payout.</p>
       <ul>

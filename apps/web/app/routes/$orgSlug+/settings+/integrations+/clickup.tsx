@@ -7,7 +7,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/clickup";
 
 export function meta() {
-  return [{ title: "ClickUp Integration — Feediyo" }];
+  return [{ title: "ClickUp Integration — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -31,7 +31,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         defaultListName?: string;
         autoCreateTasks?: boolean;
         webhookId?: string;
-        statusMappings?: Array<{ clickupStatus: string; feediyoStatus: string }>;
+        statusMappings?: Array<{ clickupStatus: string; feeduroStatus: string }>;
       })
     : null;
 

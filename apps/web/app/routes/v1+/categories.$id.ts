@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { deleteOrgCategory } from "@features/feedback/server/api-categories";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";

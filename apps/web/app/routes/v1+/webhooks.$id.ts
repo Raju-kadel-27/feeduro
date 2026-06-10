@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { UpdateWebhookSchema } from "@features/webhooks/schemas/endpoint";
 import { deleteWebhook, updateWebhook } from "@features/webhooks/server/api-webhooks";
 import { getWebhook } from "@features/webhooks/server/queries";

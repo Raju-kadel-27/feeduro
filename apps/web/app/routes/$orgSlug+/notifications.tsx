@@ -11,7 +11,7 @@ import { useLoaderData, useParams } from "react-router";
 import type { Route } from "./+types/notifications";
 
 export function meta() {
-  return [{ title: "Notifications – Feediyo" }];
+  return [{ title: "Notifications – Feeduro" }];
 }
 
 const FILTER_TABS = [

@@ -200,8 +200,8 @@ export async function action({ request }: Route.ActionArgs) {
 
     try {
       const content = post.description
-        ? `${post.description}\n\nCreated from Feediyo feedback #${post.id}`
-        : `Created from Feediyo feedback #${post.id}`;
+        ? `${post.description}\n\nCreated from Feeduro feedback #${post.id}`
+        : `Created from Feeduro feedback #${post.id}`;
       const page = await createNotionPage(
         integration.accessToken,
         settings.defaultDatabaseId,

@@ -6,7 +6,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/audit-log";
 
 export function meta() {
-  return [{ title: "Audit Log — Feediyo" }];
+  return [{ title: "Audit Log — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

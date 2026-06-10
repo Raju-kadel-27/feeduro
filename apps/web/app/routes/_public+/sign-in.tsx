@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import type { Route } from "./+types/sign-in";
 
 export function meta() {
-  return [{ title: "Sign In — Feediyo" }];
+  return [{ title: "Sign In — Feeduro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -106,7 +106,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GalleryVerticalEnd className="size-4" />
           </div>
-          Feediyo
+          Feeduro
         </a>
 
         <LoginForm

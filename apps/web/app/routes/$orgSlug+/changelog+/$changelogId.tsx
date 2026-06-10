@@ -17,7 +17,7 @@ import type { Route } from "./+types/$changelogId";
 export function meta({ params }: Route.MetaArgs) {
   return [
     {
-      title: params.changelogId === "new" ? "New Changelog – Feediyo" : "Edit Changelog – Feediyo",
+      title: params.changelogId === "new" ? "New Changelog – Feeduro" : "Edit Changelog – Feeduro",
     },
   ];
 }

@@ -20,7 +20,7 @@ import { apikey, member } from "@/db/schema";
 import type { Route } from "./+types/api-tokens";
 
 export function meta() {
-  return [{ title: "API Tokens — Feediyo" }];
+  return [{ title: "API Tokens — Feeduro" }];
 }
 
 interface ApiKeyRow {
@@ -332,7 +332,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
                 <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800">
                   <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Shell</span>
                   <CopyButton
-                    value={`curl -H "x-api-key: fdy_YOUR_TOKEN" https://api.feediyo.com/v1/`}
+                    value={`curl -H "x-api-key: fdy_YOUR_TOKEN" https://api.feeduro.com/v1/`}
                     className="text-zinc-400 hover:text-zinc-200 bg-transparent hover:bg-zinc-800"
                   />
                 </div>
@@ -345,7 +345,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
                     <span className="text-emerald-400">"x-api-key: fdy_••••••••"</span>
                     {" \\\n"}
                     <span className="text-zinc-500 select-none">{"  "}</span>
-                    <span className="text-sky-400">https://api.feediyo.com/v1/...</span>
+                    <span className="text-sky-400">https://api.feeduro.com/v1/...</span>
                   </code>
                 </div>
               </div>

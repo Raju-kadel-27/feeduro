@@ -168,7 +168,7 @@ export const feedbackBoards = pgTable(
     smartRepliesEnabled: boolean("smart_replies_enabled").notNull().default(false),
     smartRepliesInstructions: text("smart_replies_instructions"),
     anonymizeUsers: boolean("anonymize_users").notNull().default(false),
-    // Unique token for per-board inline embeds (data-fdy-embed / FeediyoBoard)
+    // Unique token for per-board inline embeds (data-fdy-embed / FeeduroBoard)
     embedToken: varchar("embed_token", { length: 128 })
       .notNull()
       .default(sql`replace(gen_random_uuid()::text, '-', '')`)
@@ -869,6 +869,7 @@ export const userProfiles = pgTable(
     plan: varchar("plan", { length: 100 }),
     role: varchar("role", { length: 100 }),
     companySize: integer("company_size"),
+    mrr: integer("mrr"),
     industry: varchar("industry", { length: 100 }),
     location: varchar("location", { length: 100 }),
     customAttributes: text("custom_attributes"),
@@ -892,6 +893,7 @@ export const userProfiles = pgTable(
     orgIndustryIdx: index("up_org_industry_idx").on(t.organizationId, t.industry),
     orgLocationIdx: index("up_org_location_idx").on(t.organizationId, t.location),
     orgCompanySizeIdx: index("up_org_company_size_idx").on(t.organizationId, t.companySize),
+    orgMrrIdx: index("up_org_mrr_idx").on(t.organizationId, t.mrr),
   }),
 );
 
@@ -1071,7 +1073,7 @@ export const affiliates = pgTable(
       .notNull()
       .unique()
       .references(() => user.id, { onDelete: "cascade" }),
-    // Short alphanumeric code embedded in referral URLs, e.g. feediyo.com/r/abc123
+    // Short alphanumeric code embedded in referral URLs, e.g. feeduro.com/r/abc123
     code: varchar("code", { length: 20 }).notNull().unique(),
     status: affiliateStatusEnum("status").notNull().default("active"),
     // Commission % applied to the subscription amount (default 20%)

@@ -6,7 +6,7 @@ import type { SegmentFilters } from "../types";
 
 function buildProfileValues(organizationId: string, input: IdentifyUserInput) {
   const { email, externalId, name, traits } = input;
-  const { plan, role, companySize, industry, location, ...rest } = traits ?? {};
+  const { plan, role, companySize, mrr, industry, location, ...rest } = traits ?? {};
   return {
     organizationId,
     email,
@@ -15,6 +15,7 @@ function buildProfileValues(organizationId: string, input: IdentifyUserInput) {
     ...(plan !== undefined && { plan }),
     ...(role !== undefined && { role }),
     ...(companySize !== undefined && { companySize }),
+    ...(mrr !== undefined && { mrr }),
     ...(industry !== undefined && { industry }),
     ...(location !== undefined && { location }),
     customAttributes: JSON.stringify(rest),

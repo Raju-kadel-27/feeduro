@@ -7,6 +7,7 @@ export {
 } from "./mutations";
 export type { VoterProfileRow } from "./queries";
 export {
+  getMrrImpactByPost,
   getOrgSegments,
   getSegmentMemberCounts,
   getVoterProfilesByPost,

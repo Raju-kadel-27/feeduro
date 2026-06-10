@@ -19,6 +19,7 @@ function sortPosts(posts: Post[], sort: Sort): Post[] {
   else if (sort === "oldest")
     arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   else if (sort === "votes") arr.sort((a, b) => b.voteCount - a.voteCount);
+  else if (sort === "revenue") arr.sort((a, b) => (b.mrrImpact ?? 0) - (a.mrrImpact ?? 0));
   else {
     // trending: age-decayed vote score
     const now = Date.now();

@@ -12,6 +12,7 @@ import { FeedbackAvatar } from "./feedback-avatar";
 import { type FeedItem, PostActivityFeed } from "./post-activity-feed";
 import { PostIntegrationSidebar } from "./post-integration-sidebar";
 import { PostMergedBanner } from "./post-merged-banner";
+import { PostVotersPanel } from "./post-voters-panel";
 
 type VoteState = ReturnType<typeof useVoteStatus>;
 type CommentState = ReturnType<typeof useCommentActions>;
@@ -74,6 +75,9 @@ export function PostDetailBody({
               <p className="text-xs text-foreground/60 leading-relaxed whitespace-pre-wrap">{post.description}</p>
             )}
           </div>
+          {isAdmin && (
+            <PostVotersPanel postId={postId} voteCount={vote.voteCount} />
+          )}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">

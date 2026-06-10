@@ -447,8 +447,8 @@ export async function handleJiraAction(request: Request) {
     try {
       const baseSummary = input.summary ?? post.title;
       const baseDescription = input.description ?? (post.description
-        ? `${post.description}\n\nCreated from Feediyo feedback #${post.id}`
-        : `Created from Feediyo feedback #${post.id}`);
+        ? `${post.description}\n\nCreated from Feeduro feedback #${post.id}`
+        : `Created from Feeduro feedback #${post.id}`);
       const { cloudId, cloudUrl } = settings;
       const issue = await withTokenRefresh(organizationId, (token) =>
         createJiraIssue(token, cloudId, cloudUrl, projectKey, baseSummary, baseDescription),

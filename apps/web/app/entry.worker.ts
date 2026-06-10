@@ -8,7 +8,7 @@ import { CloudflareContext } from "./middleware/cloudflare.server";
 const handler = createRequestHandler(build);
 
 const RESERVED_SUBDOMAINS = new Set(["www", "app", "api", "mail", "admin"]);
-const APP_DOMAIN = "feediyo.com";
+const APP_DOMAIN = "feeduro.com";
 
 // KV cache key prefix for custom domain → orgSlug mapping
 const KV_PREFIX = "custom_domain:v1:";
@@ -95,7 +95,7 @@ export default {
     const url = new URL(request.url);
     const hostname = url.hostname;
 
-    // ── 1. Feediyo subdomain: {orgSlug}.feediyo.com → /{orgSlug} ──────────────
+    // ── 1. Feeduro subdomain: {orgSlug}.feeduro.com → /{orgSlug} ──────────────
     if (hostname.endsWith(`.${APP_DOMAIN}`)) {
       const orgSlug = hostname.slice(0, -`.${APP_DOMAIN}`.length);
       if (orgSlug && !RESERVED_SUBDOMAINS.has(orgSlug)) {

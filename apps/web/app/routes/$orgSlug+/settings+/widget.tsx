@@ -15,7 +15,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/widget";
 
 export function meta() {
-  return [{ title: "Widget Settings — Feediyo" }];
+  return [{ title: "Widget Settings — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

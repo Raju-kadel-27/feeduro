@@ -1,8 +1,8 @@
 import { type CSSProperties, useEffect, useRef } from "react";
 import type { IdentifyPayload, Theme } from "./types";
 
-export interface FeediyoBoardProps {
-  /** Widget token for this board from your Feediyo settings. */
+export interface FeeduroBoardProps {
+  /** Widget token for this board from your Feeduro settings. */
   token: string;
   theme?: Theme;
   /**
@@ -11,7 +11,7 @@ export interface FeediyoBoardProps {
    */
   user?: Pick<IdentifyPayload, "id" | "email" | "name" | "signature"> | null;
   /**
-   * Base URL of the Feediyo server. Defaults to `https://feediyo.com`.
+   * Base URL of the Feeduro server. Defaults to `https://feeduro.com`.
    * Override in development to point at your local dev server or ngrok tunnel.
    */
   baseUrl?: string;
@@ -19,7 +19,7 @@ export interface FeediyoBoardProps {
   style?: CSSProperties;
 }
 
-export function FeediyoBoard({ token, theme = "auto", user, baseUrl = "https://feediyo.com", className, style }: FeediyoBoardProps) {
+export function FeeduroBoard({ token, theme = "auto", user, baseUrl = "https://feeduro.com", className, style }: FeeduroBoardProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   // Lock the src to the initial theme — theme changes go via postMessage, not src reload.
   const initialThemeRef = useRef(theme);

@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { ListUsersSchema, listUsers } from "@features/segmentation/server/api-users";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";

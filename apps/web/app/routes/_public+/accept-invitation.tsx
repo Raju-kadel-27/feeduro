@@ -8,7 +8,7 @@ import { invitation, organization, user } from "@/db/schema";
 import type { Route } from "./+types/accept-invitation";
 
 export function meta() {
-  return [{ title: "Accept Invitation — Feediyo" }];
+  return [{ title: "Accept Invitation — Feeduro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

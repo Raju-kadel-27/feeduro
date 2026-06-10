@@ -1,7 +1,7 @@
 export type MondayStatusMapping = {
   groupId: string;
   groupTitle: string;
-  feediyoStatus: string;
+  feeduroStatus: string;
 };
 
 export type MondaySettings = {

@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import {
   CreateCategorySchema,
   createOrgCategory,

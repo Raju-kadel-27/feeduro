@@ -31,7 +31,7 @@ export const AsanaTaskResultSchema = z.object({
 export const AsanaStatusMappingSchema = z.object({
   sectionGid: z.string(),
   sectionName: z.string(),
-  feediyoStatus: z.string(),
+  feeduroStatus: z.string(),
 });
 
 export const AsanaSettingsSchema = z.object({

@@ -16,7 +16,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/zendesk";
 
 export function meta() {
-  return [{ title: "Zendesk Integration — Feediyo" }];
+  return [{ title: "Zendesk Integration — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -112,7 +112,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
             </div>
             <div>
               <h2 className="text-sm font-semibold">Zendesk Integration</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Create Zendesk tickets from feedback posts and keep support in sync.
               </p>
             </div>
@@ -149,7 +149,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
                       type="button"
                       onClick={handleDisconnect}
                       disabled={disconnecting}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -163,14 +163,14 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
               {connected ? (
                 <a
                   href={`/api/zendesk?intent=connect&subdomain=${subdomain}`}
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                  className="text-sm text-muted-foreground hover:text-foreground underline"
                 >
                   Reconnect
                 </a>
               ) : (
                 <div className="space-y-3">
                   {!configured && (
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       Set{" "}
                       <code className="text-[10px] bg-muted px-1 py-0.5 rounded">
                         ZENDESK_CLIENT_ID
@@ -193,7 +193,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
                     </p>
                   )}
                   <div className="space-y-2">
-                    <label htmlFor="zendesk-subdomain" className="block text-xs font-medium">
+                    <label htmlFor="zendesk-subdomain" className="block text-sm font-medium">
                       Your Zendesk subdomain
                     </label>
                     <div className="flex items-center gap-2">
@@ -213,7 +213,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
                         disabled={!isAdmin || !configured}
                         className="flex-1 px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                       />
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">
                         .zendesk.com
                       </span>
                     </div>
@@ -273,8 +273,8 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
                     />
                   </button>
                   <div>
-                    <p className="text-xs font-medium">Auto-create tickets</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-sm font-medium">Auto-create tickets</p>
+                    <p className="text-sm text-muted-foreground">
                       Automatically open a Zendesk ticket when a new feedback post is submitted.
                     </p>
                   </div>

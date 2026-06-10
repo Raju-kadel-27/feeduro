@@ -10,7 +10,7 @@ const LOG = "[linear-sync-status]";
 export async function syncStatusToLinear(
   organizationId: string,
   postId: string,
-  newFeediyoStatus: string,
+  newFeeduroStatus: string,
 ): Promise<void> {
   const db = getDb();
   const [link, integration] = await Promise.all([
@@ -29,8 +29,8 @@ export async function syncStatusToLinear(
   if (!integration?.accessToken) { console.log(`${LOG} not connected orgId=${organizationId}`); return; }
 
   const settings = parseSettings<LinearSettings>(integration.settings);
-  const mapping = settings?.statusMappings?.find((m) => m.feediyoStatus === newFeediyoStatus);
-  if (!mapping) { console.log(`${LOG} no mapping for feediyoStatus="${newFeediyoStatus}" postId=${postId}`); return; }
+  const mapping = settings?.statusMappings?.find((m) => m.feeduroStatus === newFeeduroStatus);
+  if (!mapping) { console.log(`${LOG} no mapping for feeduroStatus="${newFeeduroStatus}" postId=${postId}`); return; }
 
   try {
     await updateLinearIssueState(integration.accessToken, link.externalId, mapping.linearStateId);

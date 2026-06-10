@@ -32,7 +32,7 @@ export function InvitationEmail({
       <Html>
         <Head />
         <Preview>
-          {inviterName} invited you to join {workspaceName} on Feediyo
+          {inviterName} invited you to join {workspaceName} on Feeduro
         </Preview>
         <Body className="bg-zinc-100 m-0 py-10 font-sans">
           <Container className="max-w-[560px] mx-auto bg-white rounded-xl p-10 border border-zinc-200">

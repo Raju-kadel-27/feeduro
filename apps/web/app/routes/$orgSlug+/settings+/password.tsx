@@ -14,7 +14,7 @@ export function ErrorBoundary() {
 }
 
 export function meta() {
-  return [{ title: "Change Password — Feediyo" }];
+  return [{ title: "Change Password — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -34,7 +34,7 @@ export default function PasswordSettings() {
           <div>
             <h1 className="text-xl font-semibold">Change Password</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Update the password for your Feediyo account.
+              Update the password for your Feeduro account.
             </p>
           </div>
 

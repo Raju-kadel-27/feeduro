@@ -1,5 +1,5 @@
 {
-  "name": "@feediyo/web",
+  "name": "@feeduro/web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -52,7 +52,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@dodopayments/better-auth": "^1.6.2",
     "@faker-js/faker": "^10.4.0",
-    "@feediyo/errors": "workspace:*",
+    "@feeduro/errors": "workspace:*",
     "@hookform/resolvers": "^3.10.0",
     "@legendapp/state": "3.0.0-beta.30",
     "@neondatabase/serverless": "^0.10.4",

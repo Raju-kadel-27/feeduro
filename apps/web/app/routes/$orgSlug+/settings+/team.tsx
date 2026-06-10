@@ -12,7 +12,7 @@ import { invitation } from "@/db/schema";
 import type { Route } from "./+types/team";
 
 export function meta() {
-  return [{ title: "Team Settings — Feediyo" }];
+  return [{ title: "Team Settings — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

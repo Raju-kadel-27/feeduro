@@ -18,7 +18,7 @@ interface IntegrationState {
   defaultListId: string | null;
   defaultListName: string | null;
   autoCreateTasks: boolean;
-  statusMappings: Array<{ clickupStatus: string; feediyoStatus: string }>;
+  statusMappings: Array<{ clickupStatus: string; feeduroStatus: string }>;
   webhookConfigured: boolean;
 }
 
@@ -65,8 +65,8 @@ export function ClickupSettingsPage({ integration, isAdmin }: Props) {
       <IntegrationPageHeader title="ClickUp Integration" />
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <div>
-          <h2 className="text-[13px] font-semibold text-foreground">ClickUp</h2>
-          <p className="text-[13px] text-muted-foreground mt-0.5">
+          <h2 className="text-sm font-semibold text-foreground">ClickUp</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Create ClickUp tasks from feedback. Task status changes sync back automatically.
           </p>
         </div>
@@ -76,14 +76,14 @@ export function ClickupSettingsPage({ integration, isAdmin }: Props) {
         <section className={cn("space-y-3", !connected && "opacity-40 pointer-events-none")}>
           <div className="flex items-center gap-2">
             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">2</span>
-            <h3 className="text-[13px] font-semibold text-foreground">Configure</h3>
+            <h3 className="text-sm font-semibold text-foreground">Configure</h3>
           </div>
           <div className="rounded-lg border border-border bg-card p-4 space-y-4">
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-foreground">Default list</p>
-              <p className="text-[11px] text-muted-foreground">Tasks will be created in this list unless overridden per-card.</p>
+              <p className="text-sm font-medium text-foreground">Default list</p>
+              <p className="text-sm text-muted-foreground">Tasks will be created in this list unless overridden per-card.</p>
               {selectedListName && (
-                <div className="flex items-center gap-1.5 text-xs text-foreground">
+                <div className="flex items-center gap-1.5 text-sm text-foreground">
                   <Check size={11} className="text-green-600 shrink-0" />
                   <span className="font-medium">{selectedListName}</span>
                 </div>
@@ -112,8 +112,8 @@ export function ClickupSettingsPage({ integration, isAdmin }: Props) {
 
             <div className="flex items-center justify-between gap-4 pt-1 border-t border-border">
               <div>
-                <p className="text-xs font-medium text-foreground">Auto-create tasks</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Automatically create a ClickUp task when new feedback is submitted.</p>
+                <p className="text-sm font-medium text-foreground">Auto-create tasks</p>
+                <p className="text-sm text-muted-foreground mt-0.5">Automatically create a ClickUp task when new feedback is submitted.</p>
               </div>
               <button type="button" role="switch" aria-checked={autoCreate} disabled={!isAdmin}
                 onClick={() => { setAutoCreate((v) => !v); setDirty(true); }}
@@ -129,7 +129,7 @@ export function ClickupSettingsPage({ integration, isAdmin }: Props) {
             {isAdmin && dirty && (
               <div className="pt-1">
                 <button type="button" disabled={saving} onClick={() => save()}
-                  className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                  className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors">
                   {saving ? <Spinner className="size-3" /> : <Check size={12} />} Save settings
                 </button>
               </div>
@@ -138,9 +138,9 @@ export function ClickupSettingsPage({ integration, isAdmin }: Props) {
         </section>
 
         {connected && integration?.webhookConfigured && (
-          <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-            Webhook active — ClickUp task status changes sync back to Feediyo automatically.
+            Webhook active — ClickUp task status changes sync back to Feeduro automatically.
           </p>
         )}
       </main>

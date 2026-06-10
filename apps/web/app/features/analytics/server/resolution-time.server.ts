@@ -4,9 +4,14 @@ import { ResolutionTimeSchema } from "../schemas/health-metrics";
 
 // Avg + median days from post creation to first "completed" status change.
 // Uses pa_org_post_created_at_idx for the CTE scan.
-export async function getResolutionTime(organizationId: string, since?: Date) {
+export async function getResolutionTime(
+  organizationId: string,
+  since?: Date,
+  boardId?: string,
+) {
   const db = getDb();
   const sinceFilter = since ? sql`AND pa.created_at >= ${since}` : sql``;
+  const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
     WITH first_completions AS (
@@ -34,6 +39,7 @@ export async function getResolutionTime(organizationId: string, since?: Date) {
     JOIN feedback_posts fp ON fp.id = fc.post_id
     WHERE fp.organization_id     = ${organizationId}
       AND fp.merged_into_post_id IS NULL
+      ${boardFilter}
   `);
 
   const row = result.rows[0] ?? { avgDays: null, medianDays: null, resolvedCount: 0 };

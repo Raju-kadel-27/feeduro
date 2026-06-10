@@ -5,7 +5,7 @@ import { getWebhooksLoaderData } from "@features/webhooks/server/queries";
 import type { Route } from "./+types/webhooks";
 
 export function meta() {
-  return [{ title: "Webhooks — Feediyo" }];
+  return [{ title: "Webhooks — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

@@ -11,7 +11,7 @@ const LOG = "[trello-sync-status]";
 export async function syncStatusToTrello(
   organizationId: string,
   postId: string,
-  newFeediyoStatus: string,
+  newFeeduroStatus: string,
 ): Promise<void> {
   const db = getDb();
   const [link, integration] = await Promise.all([
@@ -33,8 +33,8 @@ export async function syncStatusToTrello(
   if (!env.TRELLO_API_KEY) { console.log(`${LOG} TRELLO_API_KEY not configured`); return; }
 
   const settings = parseSettings<TrelloSettings>(integration.settings);
-  const mapping = settings?.statusMappings?.find((m) => m.feediyoStatus === newFeediyoStatus);
-  if (!mapping) { console.log(`${LOG} no mapping for feediyoStatus="${newFeediyoStatus}" postId=${postId}`); return; }
+  const mapping = settings?.statusMappings?.find((m) => m.feeduroStatus === newFeeduroStatus);
+  if (!mapping) { console.log(`${LOG} no mapping for feeduroStatus="${newFeeduroStatus}" postId=${postId}`); return; }
 
   try {
     await moveTrelloCardToList(env.TRELLO_API_KEY, integration.accessToken, link.externalId, mapping.listId);

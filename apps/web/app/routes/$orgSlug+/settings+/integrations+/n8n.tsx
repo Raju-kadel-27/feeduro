@@ -15,7 +15,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/n8n";
 
 export function meta() {
-  return [{ title: "n8n Integration — Feediyo" }];
+  return [{ title: "n8n Integration — Feeduro" }];
 }
 
 const ALL_EVENTS = [
@@ -148,8 +148,8 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
             </div>
             <div>
               <h2 className="text-sm font-semibold">n8n Integration</h2>
-              <p className="text-xs text-muted-foreground">
-                Send Feediyo events to your n8n workflows via webhook.
+              <p className="text-sm text-muted-foreground">
+                Send Feeduro events to your n8n workflows via webhook.
               </p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
               <span className="text-sm font-medium">Create a workflow in n8n</span>
             </div>
             <div className="p-4 space-y-2">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 In n8n, create a new workflow and add a{" "}
                 <strong className="text-foreground">Webhook</strong> trigger node. Set the HTTP
                 method to <strong className="text-foreground">POST</strong>, then copy the{" "}
@@ -180,7 +180,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
                 href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
               >
                 n8n Webhook docs
                 <ExternalLink className="h-3 w-3" />
@@ -214,7 +214,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
                       type="button"
                       onClick={handleDisconnect}
                       disabled={disconnecting}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -226,7 +226,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
 
             <div className="p-4 space-y-4">
               <div>
-                <label htmlFor="n8n-webhook-url" className="block text-xs font-medium mb-1.5">
+                <label htmlFor="n8n-webhook-url" className="block text-sm font-medium mb-1.5">
                   n8n Webhook URL
                 </label>
                 <input
@@ -241,7 +241,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
               </div>
 
               <div>
-                <p className="text-xs font-medium mb-2">Events to send</p>
+                <p className="text-sm font-medium mb-2">Events to send</p>
                 <div className="space-y-1.5">
                   {ALL_EVENTS.map((ev) => {
                     const checked = selectedEvents.includes(ev.id);
@@ -251,7 +251,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
                         type="button"
                         onClick={() => isAdmin && toggleEvent(ev.id)}
                         disabled={!isAdmin}
-                        className="flex w-full items-center gap-2 text-xs text-left hover:text-foreground text-muted-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex w-full items-center gap-2 text-sm text-left hover:text-foreground text-muted-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {checked ? (
                           <CheckSquare className="h-3.5 w-3.5 shrink-0 text-primary" />

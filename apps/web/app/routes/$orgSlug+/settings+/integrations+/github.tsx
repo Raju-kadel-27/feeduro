@@ -25,7 +25,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/github";
 
 export function meta() {
-  return [{ title: "GitHub Integration — Feediyo" }];
+  return [{ title: "GitHub Integration — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -165,7 +165,7 @@ function RepoSelector({ onSelect }: { onSelect: (owner: string, name: string) =>
             <button
               type="button"
               onClick={() => refetch()}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <RefreshCw size={11} />
               Refresh list
@@ -230,8 +230,8 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>
-            <h2 className="text-[13px] font-semibold text-foreground">GitHub Issues</h2>
-            <p className="text-[13px] text-muted-foreground mt-0.5">
+            <h2 className="text-sm font-semibold text-foreground">GitHub Issues</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
               Link your roadmap items to GitHub Issues. Create new issues from feedback or sync
               existing ones.
             </p>
@@ -243,7 +243,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                 1
               </span>
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-sm font-semibold text-foreground">
                 Connect your GitHub account
               </h3>
             </div>
@@ -255,13 +255,13 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">GitHub</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {githubConnected ? "Workspace connected" : "Not connected"}
                   </p>
                 </div>
                 {githubConnected ? (
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
                       <Check size={11} />
                       Connected
                     </span>
@@ -270,7 +270,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                         type="button"
                         onClick={() => disconnect()}
                         disabled={disconnecting}
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                       >
                         <Unplug size={12} />
                         {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -281,7 +281,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                   isAdmin && (
                     <a
                       href="/api/github?intent=connect"
-                      className="flex items-center gap-1.5 rounded-md border border-border bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-secondary/80 transition-colors"
+                      className="flex items-center gap-1.5 rounded-md border border-border bg-secondary px-3 py-1.5 text-sm font-medium hover:bg-secondary/80 transition-colors"
                     >
                       <GitBranch size={12} />
                       Connect GitHub
@@ -300,7 +300,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                 2
               </span>
-              <h3 className="text-[13px] font-semibold text-foreground">Select a repository</h3>
+              <h3 className="text-sm font-semibold text-foreground">Select a repository</h3>
             </div>
 
             <div className="rounded-lg border border-border bg-card p-4 space-y-4">
@@ -360,8 +360,8 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
 
               <div className="flex items-center justify-between gap-4 pt-1 border-t border-border">
                 <div>
-                  <p className="text-xs font-medium text-foreground">Auto-create issues</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                  <p className="text-sm font-medium text-foreground">Auto-create issues</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     Automatically create a GitHub issue when new feedback is submitted.
                   </p>
                 </div>
@@ -397,7 +397,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                     type="button"
                     disabled={!selectedRepo || saving}
                     onClick={() => saveRepo()}
-                    className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
                     {saving ? <Spinner className="size-3" /> : <Check size={12} />}
                     {integration ? "Update repository" : "Save integration"}
@@ -406,7 +406,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                     <button
                       type="button"
                       onClick={() => setSelectedRepo(null)}
-                      className="rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted/50 transition-colors"
+                      className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       Cancel
                     </button>
@@ -418,9 +418,9 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
 
           {integration && (
             <section className="rounded-lg border border-border bg-muted/10 px-4 py-3 space-y-2">
-              <p className="text-xs font-medium text-foreground">Using the integration</p>
+              <p className="text-sm font-medium text-foreground">Using the integration</p>
               <ul className="space-y-1.5">
-                <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                <li className="flex items-start gap-2 text-sm text-muted-foreground">
                   <Link2 size={11} className="mt-0.5 shrink-0 text-muted-foreground/60" />
                   Open any roadmap card and click{" "}
                   <strong className="text-foreground">Create Issue</strong> to push it to{" "}
@@ -429,7 +429,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                   </span>
                   .
                 </li>
-                <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                <li className="flex items-start gap-2 text-sm text-muted-foreground">
                   <Link2 size={11} className="mt-0.5 shrink-0 text-muted-foreground/60" />
                   Or paste an existing issue URL on the card to link it.
                 </li>

@@ -8,7 +8,7 @@ import { useLoaderData } from "react-router";
 import type { Route } from "./+types/roadmap";
 
 export function meta() {
-  return [{ title: "Roadmap – Feediyo" }];
+  return [{ title: "Roadmap – Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

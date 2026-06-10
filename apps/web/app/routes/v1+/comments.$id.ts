@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { deleteComment } from "@features/feedback/server/api-comments-mutations";
 import { getComment } from "@features/feedback/server/api-comments";
 import { requireApiKey } from "@lib/api/require-api-key";

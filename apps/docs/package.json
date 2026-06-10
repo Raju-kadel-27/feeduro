@@ -1,5 +1,5 @@
 {
-  "name": "@feediyo/docs",
+  "name": "@feeduro/docs",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "astro check"
   },
   "dependencies": {
-    "@feediyo/errors": "workspace:*",
+    "@feeduro/errors": "workspace:*",
     "@astrojs/starlight": "^0.32.0",
     "astro": "^5.0.0",
     "sharp": "^0.33.0"

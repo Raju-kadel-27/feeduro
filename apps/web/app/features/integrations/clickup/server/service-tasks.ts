@@ -14,7 +14,7 @@ import type { ClickupAction, ClickupSettings } from "./schemas";
 const LOG = "[clickup-tasks]";
 
 function buildDescription(text: string | null | undefined, postId: string): string {
-  const suffix = `*Created from [Feediyo](https://feediyo.com) feedback #${postId}*`;
+  const suffix = `*Created from [Feeduro](https://feeduro.com) feedback #${postId}*`;
   return text ? `${text}\n\n---\n${suffix}` : suffix;
 }
 

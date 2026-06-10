@@ -2,11 +2,11 @@ import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  site: "https://docs.feediyo.com",
+  site: "https://docs.feeduro.com",
   integrations: [
     starlight({
-      title: "Feediyo API",
-      description: "Public REST API reference for Feediyo — manage feedback boards, changelog, users, and roadmaps programmatically.",
+      title: "Feeduro API",
+      description: "Public REST API reference for Feeduro — manage feedback boards, changelog, users, and roadmaps programmatically.",
       favicon: "/favicon.svg",
       head: [
         /* ── Fonts: Inter (body) + JetBrains Mono (code) ── */
@@ -31,13 +31,13 @@ export default defineConfig({
         },
         {
           tag: "meta",
-          attrs: { property: "og:site_name", content: "Feediyo API Docs" },
+          attrs: { property: "og:site_name", content: "Feeduro API Docs" },
         },
         {
           tag: "meta",
           attrs: {
             property: "og:image",
-            content: "https://docs.feediyo.com/og-image.png",
+            content: "https://docs.feeduro.com/og-image.png",
           },
         },
         {
@@ -48,7 +48,7 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             name: "twitter:image",
-            content: "https://docs.feediyo.com/og-image.png",
+            content: "https://docs.feeduro.com/og-image.png",
           },
         },
       ],

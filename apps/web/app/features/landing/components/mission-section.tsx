@@ -6,13 +6,12 @@ export function MissionSection() {
           Why we built this
         </p>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-          Feedback tools were built for big companies. We didn't think that was right.
+          Every feedback board shows vote counts. None tell you what those votes are worth.
         </h2>
         <p className="text-muted-foreground leading-relaxed">
-          Small to medium businesses have real customers with real feedback. We built Feediyo
-          because we genuinely believe every business deserves a proper way to listen to them,
-          not just the ones with big software budgets. Honest pricing, the features you actually
-          need, nothing more.
+          The top-voted request might come from a $50/month free user. The fourth-place request
+          might be the only thing standing between you and your largest account churning next quarter.
+          We built Feeduro because vote counts alone are noise — and product teams deserve the signal.
         </p>
       </div>
     </section>

@@ -14,7 +14,7 @@ function isPlatformAdmin(userId: string): boolean {
 }
 
 export function meta() {
-  return [{ title: "Admin — Users — Feediyo" }];
+  return [{ title: "Admin — Users — Feeduro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

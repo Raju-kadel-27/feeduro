@@ -8,7 +8,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/sso";
 
 export function meta() {
-  return [{ title: "Login & SSO — Feediyo" }];
+  return [{ title: "Login & SSO — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

@@ -9,7 +9,7 @@ import { clearEvents, listEvents, pushEvent, type StoredEvent } from "@lib/webho
 import type { Route } from "./+types/webhooks";
 
 export function meta(): Route.MetaDescriptors {
-  return [{ title: "Webhooks · Feediyo Demo" }];
+  return [{ title: "Webhooks · Feeduro Demo" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -21,9 +21,9 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   if (request.method === "DELETE") { clearEvents(); return data({ ok: true }); }
 
-  // E2E trigger: create a real post so Feediyo fires a feedback.created webhook
+  // E2E trigger: create a real post so Feeduro fires a feedback.created webhook
   if (request.method === "PUT") {
-    const api = createApiClient(getActiveApiUrl(request, env), env.FEEDIYO_API_KEY);
+    const api = createApiClient(getActiveApiUrl(request, env), env.FEEDURO_API_KEY);
     const boards = await api.get("/v1/boards", z.object({ data: z.array(z.object({ id: z.string() })) }));
     const boardId = boards.data?.data[0]?.id;
     if (!boardId) return data({ triggered: false, error: "No boards found" });
@@ -31,15 +31,15 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data({ triggered: !post.error, postId: post.data?.data.id ?? null, error: post.error });
   }
 
-  // Incoming webhook from Feediyo
+  // Incoming webhook from Feeduro
   if (request.method !== "POST") return data({ error: "Method not allowed" }, { status: 405 });
   const body = await request.text();
   const signatureHeader = request.headers.get("x-webhook-signature") ?? "";
   const eventHeader = request.headers.get("x-webhook-event") ?? "unknown";
   let payload: Record<string, unknown> = {};
   try { payload = JSON.parse(body) as Record<string, unknown>; } catch { return data({ error: "Invalid JSON" }, { status: 400 }); }
-  const valid = signatureHeader && env.FEEDIYO_WEBHOOK_SECRET
-    ? await verifyWebhookSignature(body, env.FEEDIYO_WEBHOOK_SECRET, signatureHeader) : false;
+  const valid = signatureHeader && env.FEEDURO_WEBHOOK_SECRET
+    ? await verifyWebhookSignature(body, env.FEEDURO_WEBHOOK_SECRET, signatureHeader) : false;
   pushEvent({ receivedAt: new Date().toISOString(), event: eventHeader, signatureHeader, valid, payload });
   return data({ ok: true });
 }
@@ -103,14 +103,14 @@ export default function WebhooksPage({ loaderData }: Route.ComponentProps) {
             <code className="flex-1 truncate rounded-lg border border-indigo-200 bg-white px-3 py-2 font-mono text-sm text-gray-800">{loaderData.receiverUrl}</code>
             <CopyButton text={loaderData.receiverUrl} />
           </div>
-          <p className="mt-2 text-xs text-indigo-600">Paste into Settings → Webhooks. Copy the signing secret into <code className="font-mono">FEEDIYO_WEBHOOK_SECRET</code>.</p>
+          <p className="mt-2 text-xs text-indigo-600">Paste into Settings → Webhooks. Copy the signing secret into <code className="font-mono">FEEDURO_WEBHOOK_SECRET</code>.</p>
         </div>
 
         {/* E2E trigger */}
         <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4">
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-800">End-to-end test</p>
-            <p className="text-xs text-gray-500">Creates a real post → Feediyo fires <code className="font-mono">feedback.created</code> → should appear below.</p>
+            <p className="text-xs text-gray-500">Creates a real post → Feeduro fires <code className="font-mono">feedback.created</code> → should appear below.</p>
           </div>
           <trigger.Form method="PUT" action="/webhooks">
             <button type="submit" disabled={trigger.state !== "idle"} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
@@ -128,7 +128,7 @@ export default function WebhooksPage({ loaderData }: Route.ComponentProps) {
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="mb-3 size-8 text-gray-300"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
             <p className="text-sm font-medium text-gray-500">Waiting for events</p>
-            <p className="mt-1 text-xs text-gray-400">Use Trigger Event or create something in Feediyo.</p>
+            <p className="mt-1 text-xs text-gray-400">Use Trigger Event or create something in Feeduro.</p>
           </div>
         ) : (
           <div className="space-y-2">{events.map(ev => <EventCard key={ev.id} ev={ev} />)}</div>

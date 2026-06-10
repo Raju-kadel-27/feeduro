@@ -7,7 +7,7 @@ import { Crown, UserMinus } from "lucide-react";
 import type { Route } from "./+types/members";
 
 export function meta() {
-  return [{ title: "Members — Feediyo" }];
+  return [{ title: "Members — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

@@ -55,8 +55,8 @@ import { widgetConfigs } from "@/db/schema";
 import type { Route } from "./+types/share";
 
 export function meta({ data: d }: Route.MetaArgs) {
-  if (!d) return [{ title: "Share — Feediyo" }];
-  return [{ title: `Share ${d.org.name} — Feediyo` }];
+  if (!d) return [{ title: "Share — Feeduro" }];
+  return [{ title: `Share ${d.org.name} — Feeduro` }];
 }
 
 // ─── Loader ───────────────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const env = getEnv();
 
   const isDev = env.ENVIRONMENT === "development";
-  const publicBoardUrl = isDev ? `${env.BASE_URL}/${org.slug}` : `https://${org.slug}.feediyo.com`;
+  const publicBoardUrl = isDev ? `${env.BASE_URL}/${org.slug}` : `https://${org.slug}.feeduro.com`;
 
   const widget = await db.query.widgetConfigs.findFirst({
     where: eq(widgetConfigs.organizationId, org.id),
@@ -341,11 +341,11 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
   ];
 
   // ── Widget snippets ────────────────────────────────────────────────────────
-  const loaderSnippet = `<script>window.$fdyq=window.$fdyq||[];window.feediyo=window.feediyo||new Proxy({},{get:(_,p)=>(...a)=>window.$fdyq.push([p,...a])});document.head.appendChild(Object.assign(document.createElement('script'),{src:'https://feediyo.com/sdk/v1/fdy.js',async:!0}));</script>`;
+  const loaderSnippet = `<script>window.$fdyq=window.$fdyq||[];window.feeduro=window.feeduro||new Proxy({},{get:(_,p)=>(...a)=>window.$fdyq.push([p,...a])});document.head.appendChild(Object.assign(document.createElement('script'),{src:'https://feeduro.com/sdk/v1/fdy.js',async:!0}));</script>`;
   const initSnippet = widget
-    ? `<script>\n  window.feediyo.init('${widget.token}', {\n    position: '${widget.position}',\n    theme: '${widget.theme}'\n  });\n</script>`
+    ? `<script>\n  window.feeduro.init('${widget.token}', {\n    position: '${widget.position}',\n    theme: '${widget.theme}'\n  });\n</script>`
     : null;
-  const identifySnippet = `<script>\n  window.feediyo.identify({\n    id: "USER_UNIQUE_ID",\n    email: "user@example.com",\n    name: "Jane Doe"\n  });\n</script>`;
+  const identifySnippet = `<script>\n  window.feeduro.identify({\n    id: "USER_UNIQUE_ID",\n    email: "user@example.com",\n    name: "Jane Doe"\n  });\n</script>`;
   const allWidgetSnippets = widget
     ? `${loaderSnippet}\n\n${initSnippet}\n\n${identifySnippet}`
     : null;
@@ -512,7 +512,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
                       1
                     </span>
                     <span className="text-sm font-medium">SDK Loader</span>
-                    <span className="text-xs text-muted-foreground">Load the Feediyo SDK</span>
+                    <span className="text-xs text-muted-foreground">Load the Feeduro SDK</span>
                   </div>
                   <SnippetBlock
                     label="Paste in &lt;head&gt; or before &lt;/body&gt;"

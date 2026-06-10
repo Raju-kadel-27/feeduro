@@ -37,7 +37,7 @@ export const ShortcutWebhookSchema = z.object({
 export const ShortcutStatusMappingSchema = z.object({
   workflowStateId: z.number(),
   workflowStateName: z.string(),
-  feediyoStatus: z.string(),
+  feeduroStatus: z.string(),
 });
 
 export const ShortcutSettingsSchema = z.object({

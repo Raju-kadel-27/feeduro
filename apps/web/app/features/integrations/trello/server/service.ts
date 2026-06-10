@@ -273,8 +273,8 @@ export async function handleTrelloAction(request: Request) {
 
     try {
       const desc = post.description
-        ? `${post.description}\n\nCreated from Feediyo feedback #${post.id}`
-        : `Created from Feediyo feedback #${post.id}`;
+        ? `${post.description}\n\nCreated from Feeduro feedback #${post.id}`
+        : `Created from Feeduro feedback #${post.id}`;
 
       const card = await createTrelloCard(
         env.TRELLO_API_KEY,

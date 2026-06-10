@@ -84,7 +84,7 @@ export function SettingsIdentitySection({
           </div>
           <p className="text-xs text-muted-foreground">
             Never put this in client-side code. Set it as{" "}
-            <code className="bg-muted px-1 py-0.5 rounded">FEEDIYO_SIGNING_SECRET</code> on your
+            <code className="bg-muted px-1 py-0.5 rounded">FEEDURO_SIGNING_SECRET</code> on your
             server.
           </p>
         </div>

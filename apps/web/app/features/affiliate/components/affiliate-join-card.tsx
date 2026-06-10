@@ -8,7 +8,7 @@ export function AffiliateJoinCard() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Affiliate Program</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Refer teams to Feediyo. Earn recurring commissions, no cap.
+          Refer teams to Feeduro. Earn recurring commissions, no cap.
         </p>
       </div>
       <div className="rounded-xl border-2 border-dashed p-10 text-center space-y-6">

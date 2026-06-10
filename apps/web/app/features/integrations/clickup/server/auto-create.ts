@@ -35,7 +35,7 @@ export async function autoCreateClickupTask(
   console.log(`${LOG} creating task postId=${post.id} listId=${settings.defaultListId}`);
 
   try {
-    const suffix = `*Created from [Feediyo](https://feediyo.com) feedback #${post.id}*`;
+    const suffix = `*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`;
     const description = post.description ? `${post.description}\n\n---\n${suffix}` : suffix;
 
     const task = await createClickupTask(

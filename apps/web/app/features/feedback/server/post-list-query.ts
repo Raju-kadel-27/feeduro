@@ -1,7 +1,7 @@
 import { getDb } from "@/db";
 import { comments, feedbackPosts, user, votes } from "@/db/schema";
 import { getPostTagsBatch } from "@features/feedback/server/tags.server";
-import { getVoterTraitCountsByPost } from "@features/segmentation/server/service";
+import { getMrrImpactByPost, getVoterTraitCountsByPost } from "@features/segmentation/server/service";
 import type { VoterTraitCounts } from "@features/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
@@ -62,31 +62,35 @@ export async function handleGetPostList(
   const allRelevantIds =
     postIds.length > 0 ? [...postIds, ...mergedChildRows.map((r) => r.id)] : [];
 
-  const [allVotes, commentCountRows, voterTraitCounts, postTagRows, authors] = await Promise.all([
-    allRelevantIds.length > 0
-      ? db.query.votes.findMany({ where: inArray(votes.postId, allRelevantIds) })
-      : Promise.resolve([]),
-    postIds.length > 0
-      ? db
-          .select({ postId: comments.postId, count: sql<number>`count(*)`.mapWith(Number) })
-          .from(comments)
-          .where(inArray(comments.postId, postIds))
-          .groupBy(comments.postId)
-      : Promise.resolve([]),
-    postIds.length > 0
-      ? getVoterTraitCountsByPost(organizationId, postIds)
-      : Promise.resolve({} as Record<string, VoterTraitCounts>),
-    postIds.length > 0 ? getPostTagsBatch(postIds) : Promise.resolve([]),
-    authorIds.length > 0
-      ? db
-          .select({ id: user.id, name: user.name, image: user.image })
-          .from(user)
-          .where(inArray(user.id, authorIds))
-      : Promise.resolve([]),
-  ]);
+  const [allVotes, commentCountRows, voterTraitCounts, mrrImpactByPost, postTagRows, authors] =
+    await Promise.all([
+      allRelevantIds.length > 0
+        ? db.query.votes.findMany({ where: inArray(votes.postId, allRelevantIds) })
+        : Promise.resolve([]),
+      postIds.length > 0
+        ? db
+            .select({ postId: comments.postId, count: sql<number>`count(*)`.mapWith(Number) })
+            .from(comments)
+            .where(inArray(comments.postId, postIds))
+            .groupBy(comments.postId)
+        : Promise.resolve([]),
+      postIds.length > 0
+        ? getVoterTraitCountsByPost(organizationId, postIds)
+        : Promise.resolve({} as Record<string, VoterTraitCounts>),
+      allRelevantIds.length > 0
+        ? getMrrImpactByPost(organizationId, allRelevantIds)
+        : Promise.resolve({} as Record<string, number>),
+      postIds.length > 0 ? getPostTagsBatch(postIds) : Promise.resolve([]),
+      authorIds.length > 0
+        ? db
+            .select({ id: user.id, name: user.name, image: user.image })
+            .from(user)
+            .where(inArray(user.id, authorIds))
+        : Promise.resolve([]),
+    ]);
 
   const commentCountMap = Object.fromEntries(commentCountRows.map((r) => [r.postId, r.count]));
-  const authorMap = Object.fromEntries(authors.map((u) => [u.id, { name: u.name, image: u.image }]));
+  const authorMap = Object.fromEntries(authors.map((a) => [a.id, { name: a.name, image: a.image }]));
   const tagsByPost: Record<string, string[]> = {};
   for (const row of postTagRows) {
     if (!tagsByPost[row.postId]) tagsByPost[row.postId] = [];
@@ -96,12 +100,14 @@ export async function handleGetPostList(
   const enriched = posts.map((post) => {
     const idsForPost = new Set([post.id, ...(childMap.get(post.id) ?? [])]);
     const postVotes = allVotes.filter((v) => idsForPost.has(v.postId));
+    const mrrImpact = [...idsForPost].reduce((sum, id) => sum + (mrrImpactByPost[id] ?? 0), 0);
     return {
       ...post,
       voteCount: postVotes.length,
       hasVoted: postVotes.some((v) => v.userId === userId),
       commentCount: commentCountMap[post.id] ?? 0,
       voterTraitCounts: voterTraitCounts[post.id] ?? EMPTY_TRAITS,
+      mrrImpact,
       tagIds: tagsByPost[post.id] ?? [],
       authorName: authorMap[post.createdBy ?? ""]?.name ?? null,
       authorImage: authorMap[post.createdBy ?? ""]?.image ?? null,

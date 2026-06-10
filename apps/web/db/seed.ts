@@ -29,7 +29,7 @@ import {
 import { account, member, organization, user } from "./schema/better-auth";
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/feediyo";
+  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/feeduro";
 
 const pool = new Pool({ connectionString: DATABASE_URL, ssl: false });
 const db = drizzle(pool, { schema });
@@ -605,7 +605,7 @@ async function seed() {
     {
       title: "Salesforce integration",
       description:
-        "Connect Feediyo to Salesforce to surface relevant customer feedback on opportunity and account pages inside Salesforce.",
+        "Connect Feeduro to Salesforce to surface relevant customer feedback on opportunity and account pages inside Salesforce.",
       boardSlug: "integrations",
       status: "open",
       createdBy: allUserIds[4],
@@ -747,7 +747,7 @@ async function seed() {
     {
       postIdx: 21,
       userId: allUserIds[0],
-      body: "We're reselling Feediyo under our own brand. Custom domain support alone would be a major unlock for our customers.",
+      body: "We're reselling Feeduro under our own brand. Custom domain support alone would be a major unlock for our customers.",
     },
     {
       postIdx: 21,
@@ -882,7 +882,7 @@ async function seed() {
     {
       postIdx: 38,
       userId: allUserIds[0],
-      body: "Could also go the other direction — pushing CRM data into Feediyo to enrich user profiles with deal size and lifecycle stage.",
+      body: "Could also go the other direction — pushing CRM data into Feeduro to enrich user profiles with deal size and lifecycle stage.",
     },
     {
       postIdx: 39,
@@ -1030,12 +1030,12 @@ async function seed() {
     {
       postIdx: 16,
       userId: allUserIds[1],
-      body: "Will it sync existing Linear issues back as feedback posts, or only push new ones created from Feediyo?",
+      body: "Will it sync existing Linear issues back as feedback posts, or only push new ones created from Feeduro?",
     },
     {
       postIdx: 16,
       userId: allUserIds[0],
-      body: "Initial release is push-only (Feediyo → Linear). Pull sync is complex and would ship in a follow-up.",
+      body: "Initial release is push-only (Feeduro → Linear). Pull sync is complex and would ship in a follow-up.",
       isInternal: true,
     },
     {
@@ -1058,7 +1058,7 @@ async function seed() {
     {
       postIdx: 35,
       userId: allUserIds[0],
-      body: "Custom field mapping is planned for the Jira config step — you'll be able to map Feediyo attributes to any Jira field.",
+      body: "Custom field mapping is planned for the Jira config step — you'll be able to map Feeduro attributes to any Jira field.",
       isInternal: false,
     },
     {
@@ -1080,7 +1080,7 @@ async function seed() {
     {
       postIdx: 35,
       userId: allUserIds[4],
-      body: "Yes — via Jira webhooks. When an issue transitions, it fires back to Feediyo and we update the post status accordingly.",
+      body: "Yes — via Jira webhooks. When an issue transitions, it fires back to Feeduro and we update the post status accordingly.",
     },
   ];
 
@@ -1199,7 +1199,7 @@ async function seed() {
       status: "published",
       publishedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
       body: JSON.stringify([
-        bn("h1", "heading", "Feediyo is officially live", { level: 2 }),
+        bn("h1", "heading", "Feeduro is officially live", { level: 2 }),
         bn(
           "p1",
           "paragraph",

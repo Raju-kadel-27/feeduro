@@ -21,7 +21,7 @@ import { subscription } from "@/db/schema";
 import type { Route } from "./+types/billing";
 
 export function meta() {
-  return [{ title: "Billing — Feediyo" }];
+  return [{ title: "Billing — Feeduro" }];
 }
 
 // ─── Plan definitions ─────────────────────────────────────────────────────────

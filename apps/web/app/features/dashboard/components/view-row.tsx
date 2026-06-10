@@ -16,6 +16,7 @@ const SORT_LABELS: Record<string, string> = {
   oldest: "Oldest",
   votes: "Most votes",
   trending: "Trending",
+  revenue: "Revenue impact",
 };
 
 function summarize(

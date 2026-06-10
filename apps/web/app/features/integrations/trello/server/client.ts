@@ -62,7 +62,7 @@ async function trelloFetch<T>(
 export function trelloAuthUrl(apiKey: string, returnUrl: string): string {
   const params = new URLSearchParams({
     expiration: "never",
-    name: "Feediyo",
+    name: "Feeduro",
     scope: "read,write",
     response_type: "token",
     key: apiKey,
@@ -164,7 +164,7 @@ export async function registerTrelloWebhook(
     body: JSON.stringify({
       idModel: boardId,
       callbackURL: callbackUrl,
-      description: "Feediyo status sync",
+      description: "Feeduro status sync",
     }),
   });
   return webhook.id;

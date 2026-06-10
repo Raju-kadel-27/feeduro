@@ -103,7 +103,7 @@ export async function action({ request }: Route.ActionArgs) {
       data: {
         id: "test_post_id",
         title: "Test feedback post",
-        description: "This is a test event from Feediyo",
+        description: "This is a test event from Feeduro",
         status: "open",
         boardId: "test_board_id",
       },

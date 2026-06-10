@@ -7,7 +7,7 @@ import { loadAnalyticsOverview } from "@features/analytics/server/overview.serve
 import type { Route } from "./+types/analytics";
 
 export function meta() {
-  return [{ title: "Analytics – Feediyo" }];
+  return [{ title: "Analytics – Feeduro" }];
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

@@ -1,7 +1,7 @@
 export type TrelloStatusMapping = {
   listId: string;
   listName: string;
-  feediyoStatus: string;
+  feeduroStatus: string;
 };
 
 export type TrelloSettings = {

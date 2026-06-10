@@ -15,10 +15,10 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/jira";
 
 export function meta() {
-  return [{ title: "Jira Integration — Feediyo" }];
+  return [{ title: "Jira Integration — Feeduro" }];
 }
 
-const FEEDIYO_STATUSES = [
+const FEEDURO_STATUSES = [
   { value: "open", label: "Pending" },
   { value: "reviewing", label: "Reviewing" },
   { value: "planned", label: "Planned" },
@@ -80,7 +80,7 @@ function WebhookBadge({ expiresAt }: { expiresAt: string | null }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium",
+        "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium",
         expired
           ? "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
           : warning
@@ -118,7 +118,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
   const [selectedProjectKey, setSelectedProjectKey] = useState(initialProjectKey ?? "");
   const [autoCreate, setAutoCreate] = useState(initialAutoCreate);
   const [statusMappings, setStatusMappings] = useState<Record<string, string>>(() =>
-    Object.fromEntries((initialMappings ?? []).map((m) => [m.jiraStatusId, m.feediyoStatus])),
+    Object.fromEntries((initialMappings ?? []).map((m) => [m.jiraStatusId, m.feeduroStatus])),
   );
   const [disconnecting, setDisconnecting] = useState(false);
   const [selectingCloud, setSelectingCloud] = useState(false);
@@ -169,7 +169,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
         .map((s) => ({
           jiraStatusId: s.id,
           jiraStatusName: s.name,
-          feediyoStatus: statusMappings[s.id],
+          feeduroStatus: statusMappings[s.id],
         }));
 
       const res = await fetch("/api/jira", {
@@ -243,7 +243,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
             </div>
             <div>
               <h2 className="text-sm font-semibold">Jira Integration</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Create and link Jira issues from feedback posts with bi-directional status sync.
               </p>
             </div>
@@ -275,7 +275,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                       type="button"
                       onClick={handleDisconnect}
                       disabled={disconnecting}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -291,7 +291,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                   {/* Webhook expiry badge */}
                   {webhookConfigured && <WebhookBadge expiresAt={webhookExpiresAt} />}
                   {!webhookConfigured && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-muted text-muted-foreground">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-muted text-muted-foreground">
                       <AlertTriangle className="h-3 w-3" />
                       Webhooks not active (localhost or registration failed) — status sync is
                       disabled
@@ -301,7 +301,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                   {/* Cloud selector (shown when multiple instances) */}
                   {cloudResources.length > 1 && (
                     <div>
-                      <label className="block text-xs text-muted-foreground mb-1.5">
+                      <label className="block text-sm text-muted-foreground mb-1.5">
                         Jira Cloud instance
                       </label>
                       <div className="relative">
@@ -324,15 +324,15 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
 
                   <a
                     href="/api/jira?intent=connect"
-                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                    className="text-sm text-muted-foreground hover:text-foreground underline"
                   >
                     Reconnect
                   </a>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
-                    Authorize Feediyo to access your Jira Cloud workspace. You'll be redirected to
+                  <p className="text-sm text-muted-foreground">
+                    Authorize Feeduro to access your Jira Cloud workspace. You'll be redirected to
                     Atlassian's login page.
                   </p>
                   <a
@@ -342,7 +342,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                     <JiraIcon size={14} />
                     Connect Jira
                   </a>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Required: Create an OAuth 2.0 (3LO) app at{" "}
                     <a
                       href="https://developer.atlassian.com/console/myapps/"
@@ -379,17 +379,17 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
               <div className="p-4 space-y-5">
                 {/* Default project */}
                 <div>
-                  <label className="block text-xs font-medium mb-1.5">Default project</label>
-                  <p className="text-[11px] text-muted-foreground mb-2">
+                  <label className="block text-sm font-medium mb-1.5">Default project</label>
+                  <p className="text-sm text-muted-foreground mb-2">
                     Issues created from feedback will go here by default.
                   </p>
                   {loadingProjects ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Spinner className="size-3.5" />
                       Loading projects…
                     </div>
                   ) : projectsData?.error ? (
-                    <p className="text-xs text-destructive">{projectsData.error}</p>
+                    <p className="text-sm text-destructive">{projectsData.error}</p>
                   ) : (
                     <div className="relative">
                       <select
@@ -429,8 +429,8 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                     />
                   </button>
                   <div>
-                    <p className="text-xs font-medium">Auto-create issues</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-sm font-medium">Auto-create issues</p>
+                    <p className="text-sm text-muted-foreground">
                       Automatically create a Jira issue when a new feedback post is submitted.
                     </p>
                   </div>
@@ -439,19 +439,19 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                 {/* Status mapping */}
                 {selectedProjectKey && (
                   <div>
-                    <p className="text-xs font-medium mb-0.5">Status mapping</p>
-                    <p className="text-[11px] text-muted-foreground mb-3">
-                      When a Jira issue status changes, automatically update the Feediyo post
+                    <p className="text-sm font-medium mb-0.5">Status mapping</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      When a Jira issue status changes, automatically update the Feeduro post
                       status.
                     </p>
 
                     {loadingStatuses ? (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Spinner className="size-3.5" />
                         Loading statuses…
                       </div>
                     ) : jiraStatuses.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         No statuses found for this project.
                       </p>
                     ) : (
@@ -472,9 +472,9 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                                       : "bg-slate-400",
                                 )}
                               />
-                              <span className="text-xs truncate">{s.name}</span>
+                              <span className="text-sm truncate">{s.name}</span>
                             </div>
-                            <span className="text-xs text-muted-foreground shrink-0">→</span>
+                            <span className="text-sm text-muted-foreground shrink-0">→</span>
                             <div className="relative shrink-0">
                               <select
                                 value={statusMappings[s.id] ?? ""}
@@ -486,10 +486,10 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                                     return next;
                                   })
                                 }
-                                className="appearance-none text-xs border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
+                                className="appearance-none text-sm border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
                               >
                                 <option value="">No mapping</option>
-                                {FEEDIYO_STATUSES.map((fs) => (
+                                {FEEDURO_STATUSES.map((fs) => (
                                   <option key={fs.value} value={fs.value}>
                                     {fs.label}
                                   </option>

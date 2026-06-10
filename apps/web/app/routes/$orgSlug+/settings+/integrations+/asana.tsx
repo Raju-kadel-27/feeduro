@@ -15,10 +15,10 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/asana";
 
 export function meta() {
-  return [{ title: "Asana Integration — Feediyo" }];
+  return [{ title: "Asana Integration — Feeduro" }];
 }
 
-const FEEDIYO_STATUSES = [
+const FEEDURO_STATUSES = [
   { value: "open", label: "Pending" },
   { value: "reviewing", label: "Reviewing" },
   { value: "planned", label: "Planned" },
@@ -84,7 +84,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
   const [selectedProjectName, setSelectedProjectName] = useState(initialProjectName ?? "");
   const [autoCreate, setAutoCreate] = useState(initialAutoCreate);
   const [statusMappings, setStatusMappings] = useState<Record<string, string>>(() =>
-    Object.fromEntries((initialMappings ?? []).map((m) => [m.sectionGid, m.feediyoStatus])),
+    Object.fromEntries((initialMappings ?? []).map((m) => [m.sectionGid, m.feeduroStatus])),
   );
   const [disconnecting, setDisconnecting] = useState(false);
 
@@ -128,7 +128,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
         .map((s) => ({
           sectionGid: s.gid,
           sectionName: s.name,
-          feediyoStatus: statusMappings[s.gid],
+          feeduroStatus: statusMappings[s.gid],
         }));
 
       // Also include the "__completed__" mapping if set
@@ -136,7 +136,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
         mappings.push({
           sectionGid: "__completed__",
           sectionName: "Completed",
-          feediyoStatus: statusMappings["__completed__"],
+          feeduroStatus: statusMappings["__completed__"],
         });
       }
 
@@ -193,7 +193,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
             </div>
             <div>
               <h2 className="text-sm font-semibold">Asana Integration</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Create and link Asana tasks from feedback posts with bi-directional status sync.
               </p>
             </div>
@@ -225,7 +225,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                       type="button"
                       onClick={handleDisconnect}
                       disabled={disconnecting}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -239,11 +239,11 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
               {connected ? (
                 <div className="space-y-3">
                   {webhookActive ? (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
                       Webhook active — status sync is enabled
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-muted text-muted-foreground">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-muted text-muted-foreground">
                       Webhooks not active (localhost or registration failed) — status sync is
                       disabled
                     </div>
@@ -251,15 +251,15 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
 
                   <a
                     href="/api/asana?intent=connect"
-                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                    className="text-sm text-muted-foreground hover:text-foreground underline"
                   >
                     Reconnect
                   </a>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
-                    Authorize Feediyo to access your Asana workspace. You'll be redirected to
+                  <p className="text-sm text-muted-foreground">
+                    Authorize Feeduro to access your Asana workspace. You'll be redirected to
                     Asana's login page.
                   </p>
                   <a
@@ -270,7 +270,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                     <AsanaIcon size={14} />
                     Connect Asana
                   </a>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Required: Create an OAuth app at{" "}
                     <a
                       href="https://app.asana.com/0/my-apps"
@@ -309,17 +309,17 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
               <div className="p-4 space-y-5">
                 {/* Default project */}
                 <div>
-                  <label className="block text-xs font-medium mb-1.5">Default project</label>
-                  <p className="text-[11px] text-muted-foreground mb-2">
+                  <label className="block text-sm font-medium mb-1.5">Default project</label>
+                  <p className="text-sm text-muted-foreground mb-2">
                     Tasks created from feedback will go here by default.
                   </p>
                   {loadingProjects ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Spinner className="size-3.5" />
                       Loading projects…
                     </div>
                   ) : projectsData?.error ? (
-                    <p className="text-xs text-destructive">{projectsData.error}</p>
+                    <p className="text-sm text-destructive">{projectsData.error}</p>
                   ) : (
                     <div className="relative">
                       <select
@@ -363,8 +363,8 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                     />
                   </button>
                   <div>
-                    <p className="text-xs font-medium">Auto-create tasks</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-sm font-medium">Auto-create tasks</p>
+                    <p className="text-sm text-muted-foreground">
                       Automatically create an Asana task when a new feedback post is submitted.
                     </p>
                   </div>
@@ -373,19 +373,19 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                 {/* Section → status mapping */}
                 {selectedProjectGid && (
                   <div>
-                    <p className="text-xs font-medium mb-0.5">Status mapping</p>
-                    <p className="text-[11px] text-muted-foreground mb-3">
-                      When an Asana task moves to a section, automatically update the Feediyo post
+                    <p className="text-sm font-medium mb-0.5">Status mapping</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      When an Asana task moves to a section, automatically update the Feeduro post
                       status. Sections are the columns in your Asana project board.
                     </p>
 
                     {loadingSections ? (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Spinner className="size-3.5" />
                         Loading sections…
                       </div>
                     ) : asanaSections.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         No sections found for this project.
                       </p>
                     ) : (
@@ -394,9 +394,9 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                         <div className="flex items-center justify-between px-3 py-2.5 gap-3">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="h-2 w-2 rounded-full shrink-0 bg-green-500" />
-                            <span className="text-xs truncate">Completed (task marked done)</span>
+                            <span className="text-sm truncate">Completed (task marked done)</span>
                           </div>
-                          <span className="text-xs text-muted-foreground shrink-0">→</span>
+                          <span className="text-sm text-muted-foreground shrink-0">→</span>
                           <div className="relative shrink-0">
                             <select
                               value={statusMappings["__completed__"] ?? ""}
@@ -408,10 +408,10 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                                   return next;
                                 })
                               }
-                              className="appearance-none text-xs border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
+                              className="appearance-none text-sm border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
                             >
                               <option value="">No mapping</option>
-                              {FEEDIYO_STATUSES.map((fs) => (
+                              {FEEDURO_STATUSES.map((fs) => (
                                 <option key={fs.value} value={fs.value}>
                                   {fs.label}
                                 </option>
@@ -428,9 +428,9 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="h-2 w-2 rounded-full shrink-0 bg-slate-400" />
-                              <span className="text-xs truncate">{s.name}</span>
+                              <span className="text-sm truncate">{s.name}</span>
                             </div>
-                            <span className="text-xs text-muted-foreground shrink-0">→</span>
+                            <span className="text-sm text-muted-foreground shrink-0">→</span>
                             <div className="relative shrink-0">
                               <select
                                 value={statusMappings[s.gid] ?? ""}
@@ -442,10 +442,10 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                                     return next;
                                   })
                                 }
-                                className="appearance-none text-xs border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
+                                className="appearance-none text-sm border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-6"
                               >
                                 <option value="">No mapping</option>
-                                {FEEDIYO_STATUSES.map((fs) => (
+                                {FEEDURO_STATUSES.map((fs) => (
                                   <option key={fs.value} value={fs.value}>
                                     {fs.label}
                                   </option>

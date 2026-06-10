@@ -21,13 +21,13 @@ export function WidgetPage({ loaderData }: { loaderData: WidgetLoaderData }) {
     if (theme === "dark") {
       root.classList.remove("light");
       root.classList.add("dark");
-      localStorage.setItem("feediyo-theme", "dark");
+      localStorage.setItem("feeduro-theme", "dark");
     } else if (theme === "light") {
       root.classList.remove("dark");
       root.classList.add("light");
-      localStorage.setItem("feediyo-theme", "light");
+      localStorage.setItem("feeduro-theme", "light");
     } else {
-      localStorage.removeItem("feediyo-theme");
+      localStorage.removeItem("feeduro-theme");
     }
   }, [theme]);
 

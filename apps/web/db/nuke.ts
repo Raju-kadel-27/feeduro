@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/feediyo";
+  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/feeduro";
 
 const pool = new Pool({ connectionString: DATABASE_URL });
 

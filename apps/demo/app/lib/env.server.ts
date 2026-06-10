@@ -4,19 +4,19 @@ import { getBindings } from "../middleware/cloudflare.server";
 
 const EnvSchema = z.object({
   // Required
-  FEEDIYO_WIDGET_TOKEN: z.string().min(1, "Widget token required"),
+  FEEDURO_WIDGET_TOKEN: z.string().min(1, "Widget token required"),
   // Optional — extra tabs on /board
-  FEEDIYO_WIDGET_TOKEN_FEATURE: z.string().default(""),
-  FEEDIYO_WIDGET_TOKEN_INTEGRATIONS: z.string().default(""),
-  FEEDIYO_WIDGET_TOKEN_BUGS: z.string().default(""),
-  FEEDIYO_API_KEY: z.string().min(1, "API key required"),
-  FEEDIYO_API_URL: z.string().url().default("http://localhost:3000"),
+  FEEDURO_WIDGET_TOKEN_FEATURE: z.string().default(""),
+  FEEDURO_WIDGET_TOKEN_INTEGRATIONS: z.string().default(""),
+  FEEDURO_WIDGET_TOKEN_BUGS: z.string().default(""),
+  FEEDURO_API_KEY: z.string().min(1, "API key required"),
+  FEEDURO_API_URL: z.string().url().default("http://localhost:3000"),
   // Optional — features degrade gracefully when absent
-  FEEDIYO_WEBHOOK_SECRET: z.string().default(""),
-  FEEDIYO_WIDGET_SIGNING_SECRET: z.string().default(""),
-  FEEDIYO_BOARD_PUBLIC_URL: z.string().default(""),
-  FEEDIYO_STAGING_API_URL: z.string().default(""),
-  FEEDIYO_PROD_API_URL: z.string().default(""),
+  FEEDURO_WEBHOOK_SECRET: z.string().default(""),
+  FEEDURO_WIDGET_SIGNING_SECRET: z.string().default(""),
+  FEEDURO_BOARD_PUBLIC_URL: z.string().default(""),
+  FEEDURO_STAGING_API_URL: z.string().default(""),
+  FEEDURO_PROD_API_URL: z.string().default(""),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

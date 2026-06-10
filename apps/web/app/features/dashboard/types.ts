@@ -1,7 +1,7 @@
 import type { VoterTraitCounts } from "@features/segmentation/types";
 
 export type Status = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
-export type Sort = "trending" | "newest" | "oldest" | "votes";
+export type Sort = "trending" | "newest" | "oldest" | "votes" | "revenue";
 export type Group = "status" | "board" | "none";
 export type ViewMode = "list" | "board";
 
@@ -32,6 +32,8 @@ export interface Post {
   hasVoted: boolean;
   commentCount: number;
   hasCustomerComment?: boolean;
+  /** Total MRR ($/mo) of all voters who voted for this post */
+  mrrImpact?: number;
   /** Counts per trait dimension for profiled voters (e.g. { plan: { paying: 3 }, role: { founder: 1 } }) */
   voterTraitCounts?: VoterTraitCounts;
 }

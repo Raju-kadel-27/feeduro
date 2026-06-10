@@ -1,24 +1,24 @@
 import { useEffect } from "react";
 import { data } from "react-router";
-import { useFeediyo } from "@feediyo/react";
+import { useFeeduro } from "@feeduro/react";
 import { createIdentityToken } from "@lib/identity.server";
 import { getEnv } from "@lib/env.server";
 import type { Route } from "./+types/_index";
 
 export function meta(): Route.MetaDescriptors {
-  return [{ title: "Widget · Feediyo Demo" }];
+  return [{ title: "Widget · Feeduro Demo" }];
 }
 
 export async function loader({ context }: Route.LoaderArgs) {
   const env = getEnv(context);
   const userId = "demo-user-1";
-  const hasSigningSecret = env.FEEDIYO_WIDGET_SIGNING_SECRET.length > 0;
+  const hasSigningSecret = env.FEEDURO_WIDGET_SIGNING_SECRET.length > 0;
 
   const identity = hasSigningSecret
-    ? await createIdentityToken(userId, "demo@example.com", "Demo User", env.FEEDIYO_WIDGET_SIGNING_SECRET)
+    ? await createIdentityToken(userId, "demo@example.com", "Demo User", env.FEEDURO_WIDGET_SIGNING_SECRET)
     : null;
 
-  return data({ userId, identity, boardPublicUrl: env.FEEDIYO_BOARD_PUBLIC_URL, hasSigningSecret });
+  return data({ userId, identity, boardPublicUrl: env.FEEDURO_BOARD_PUBLIC_URL, hasSigningSecret });
 }
 
 function Section({ label, description, children }: { label: string; description: string; children: React.ReactNode }) {
@@ -42,7 +42,7 @@ function Btn({ onClick, variant = "primary", children }: { onClick: () => void; 
 
 export default function WidgetDemo({ loaderData }: Route.ComponentProps) {
   const { userId, identity, boardPublicUrl, hasSigningSecret } = loaderData;
-  const { showWidget, hideWidget, setTheme, identify } = useFeediyo();
+  const { showWidget, hideWidget, setTheme, identify } = useFeeduro();
 
   useEffect(() => {
     if (identity) {
@@ -60,7 +60,7 @@ export default function WidgetDemo({ loaderData }: Route.ComponentProps) {
             {hasSigningSecret ? "Identity verified" : "Anonymous mode"}
           </span>
         </div>
-        <p className="mt-1 text-sm text-gray-500">Widget button injected at bottom-right. Identity is {hasSigningSecret ? "HMAC-signed server-side" : "unsigned — set FEEDIYO_WIDGET_SIGNING_SECRET to enable verification"}.</p>
+        <p className="mt-1 text-sm text-gray-500">Widget button injected at bottom-right. Identity is {hasSigningSecret ? "HMAC-signed server-side" : "unsigned — set FEEDURO_WIDGET_SIGNING_SECRET to enable verification"}.</p>
       </div>
 
       <div className="space-y-4 p-8">
@@ -71,7 +71,7 @@ export default function WidgetDemo({ loaderData }: Route.ComponentProps) {
           </div>
         </Section>
 
-        <Section label="Identity" description={hasSigningSecret ? "User is auto-identified with a server-signed HMAC token." : "No signing secret — identity is unverified. Set FEEDIYO_WIDGET_SIGNING_SECRET to enable."}>
+        <Section label="Identity" description={hasSigningSecret ? "User is auto-identified with a server-signed HMAC token." : "No signing secret — identity is unverified. Set FEEDURO_WIDGET_SIGNING_SECRET to enable."}>
           {identity ? (
             <div className="space-y-3">
               <div className="rounded-lg bg-gray-900 p-3 font-mono text-xs text-emerald-300">

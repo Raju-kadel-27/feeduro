@@ -26,7 +26,7 @@ export function SidebarNav({ activeEnv, hasStaging, hasProd }: Props) {
           </svg>
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-gray-900">Feediyo Demo</p>
+          <p className="truncate text-sm font-semibold text-gray-900">Feeduro Demo</p>
           <p className="text-xs text-gray-400">Integration tester</p>
         </div>
       </div>
@@ -63,7 +63,7 @@ export function SidebarNav({ activeEnv, hasStaging, hasProd }: Props) {
               return (
                 <button key={env} type="submit" name="env" value={env} disabled={disabled}
                   className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${activeEnv === env ? "bg-white text-indigo-700 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
-                  title={disabled ? `Set ${env === "staging" ? "FEEDIYO_STAGING_API_URL" : "FEEDIYO_PROD_API_URL"} to enable` : undefined}
+                  title={disabled ? `Set ${env === "staging" ? "FEEDURO_STAGING_API_URL" : "FEEDURO_PROD_API_URL"} to enable` : undefined}
                 >
                   {ENV_LABELS[env]}
                 </button>

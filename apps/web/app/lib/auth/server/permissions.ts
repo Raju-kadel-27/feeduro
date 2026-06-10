@@ -6,7 +6,7 @@ export const ac = createAccessControl({
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
   ac: ["create", "read", "update", "delete"],
-  // Feediyo app resources
+  // Feeduro app resources
   feedback: ["create", "read", "update", "delete", "respond", "change-status"],
   board: ["create", "read", "update", "delete"],
   changelog: ["create", "read", "update", "delete", "publish"],

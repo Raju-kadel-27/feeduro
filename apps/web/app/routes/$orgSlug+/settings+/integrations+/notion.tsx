@@ -15,7 +15,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/notion";
 
 export function meta() {
-  return [{ title: "Notion Integration — Feediyo" }];
+  return [{ title: "Notion Integration — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -138,7 +138,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
             </div>
             <div>
               <h2 className="text-sm font-semibold">Notion Integration</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Create and link Notion pages from feedback posts.
               </p>
             </div>
@@ -170,7 +170,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
                       type="button"
                       onClick={handleDisconnect}
                       disabled={disconnecting}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -184,14 +184,14 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
               {connected ? (
                 <a
                   href="/api/notion?intent=connect"
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                  className="text-sm text-muted-foreground hover:text-foreground underline"
                 >
                   Reconnect
                 </a>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
-                    Authorize Feediyo to access your Notion workspace. You'll be redirected to
+                  <p className="text-sm text-muted-foreground">
+                    Authorize Feeduro to access your Notion workspace. You'll be redirected to
                     Notion's authorization page.
                   </p>
                   <a
@@ -201,7 +201,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
                     <NotionIcon size={14} />
                     Connect Notion
                   </a>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Required: Create an integration at{" "}
                     <a
                       href="https://www.notion.so/my-integrations"
@@ -240,17 +240,17 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
               <div className="p-4 space-y-5">
                 {/* Default database */}
                 <div>
-                  <label className="block text-xs font-medium mb-1.5">Default database</label>
-                  <p className="text-[11px] text-muted-foreground mb-2">
+                  <label className="block text-sm font-medium mb-1.5">Default database</label>
+                  <p className="text-sm text-muted-foreground mb-2">
                     Pages created from feedback will go into this database.
                   </p>
                   {loadingDbs ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Spinner className="size-3.5" />
                       Loading databases…
                     </div>
                   ) : dbData?.error ? (
-                    <p className="text-xs text-destructive">{dbData.error}</p>
+                    <p className="text-sm text-destructive">{dbData.error}</p>
                   ) : (
                     <div className="relative">
                       <select
@@ -272,8 +272,8 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
                       <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     </div>
                   )}
-                  <p className="text-[11px] text-muted-foreground mt-1.5">
-                    Only databases shared with your Feediyo integration appear here.
+                  <p className="text-sm text-muted-foreground mt-1.5">
+                    Only databases shared with your Feeduro integration appear here.
                   </p>
                 </div>
 
@@ -297,8 +297,8 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
                     />
                   </button>
                   <div>
-                    <p className="text-xs font-medium">Auto-create pages</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-sm font-medium">Auto-create pages</p>
+                    <p className="text-sm text-muted-foreground">
                       Automatically create a Notion page when a new feedback post is submitted.
                     </p>
                   </div>

@@ -11,7 +11,7 @@ import { customDomains, member } from "@/db/schema";
 import type { Route } from "./+types/domain";
 
 export function meta() {
-  return [{ title: "Domain Settings — Feediyo" }];
+  return [{ title: "Domain Settings — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -209,7 +209,7 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
                         <span className="text-xs font-medium">CNAME record</span>
                         <button
                           type="button"
-                          onClick={() => copy("cname.feediyo.com", "cname")}
+                          onClick={() => copy("cname.feeduro.com", "cname")}
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Copy className="h-3 w-3" />
@@ -220,7 +220,7 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
                         <span className="text-muted-foreground font-sans">Name</span>
                         <span className="break-all">{domain.domain}</span>
                         <span className="text-muted-foreground font-sans">Value</span>
-                        <span className="break-all">cname.feediyo.com</span>
+                        <span className="break-all">cname.feeduro.com</span>
                       </div>
                     </div>
 

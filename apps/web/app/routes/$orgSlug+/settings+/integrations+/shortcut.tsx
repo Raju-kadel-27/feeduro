@@ -27,7 +27,7 @@ import { member } from "@/db/schema";
 import type { Route } from "./+types/shortcut";
 
 export function meta() {
-  return [{ title: "Shortcut Integration — Feediyo" }];
+  return [{ title: "Shortcut Integration — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -53,7 +53,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         statusMappings?: Array<{
           workflowStateId: number;
           workflowStateName: string;
-          feediyoStatus: string;
+          feeduroStatus: string;
         }>;
         webhookId?: string;
       })
@@ -89,7 +89,7 @@ interface ShortcutWorkflow {
   states: ShortcutWorkflowState[];
 }
 
-const FEEDIYO_STATUSES = [
+const FEEDURO_STATUSES = [
   { value: "open", label: "Open" },
   { value: "reviewing", label: "Under Review" },
   { value: "planned", label: "Planned" },
@@ -157,7 +157,7 @@ function WorkflowSelector({
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 transition-colors text-left"
               >
                 <span className="truncate">{wf.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground shrink-0">
+                <span className="ml-auto text-sm text-muted-foreground shrink-0">
                   {wf.states.length} states
                 </span>
                 {wf.id === selected && <Check size={12} className="text-primary shrink-0" />}
@@ -189,7 +189,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
   const [settingsDirty, setSettingsDirty] = useState(false);
   const [statusMappings, setStatusMappings] = useState<Record<number, string>>(
     Object.fromEntries(
-      (integration?.statusMappings ?? []).map((m) => [m.workflowStateId, m.feediyoStatus]),
+      (integration?.statusMappings ?? []).map((m) => [m.workflowStateId, m.feeduroStatus]),
     ),
   );
 
@@ -232,7 +232,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
           .map((s) => ({
             workflowStateId: s.id,
             workflowStateName: s.name,
-            feediyoStatus: statusMappings[s.id],
+            feeduroStatus: statusMappings[s.id],
           })),
       }),
     onSuccess: () => {
@@ -258,8 +258,8 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>
-            <h2 className="text-[13px] font-semibold text-foreground">Shortcut</h2>
-            <p className="text-[13px] text-muted-foreground mt-0.5">
+            <h2 className="text-sm font-semibold text-foreground">Shortcut</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
               Create Shortcut stories from feedback and keep your product backlog in sync.
             </p>
           </div>
@@ -270,7 +270,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                 1
               </span>
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-sm font-semibold text-foreground">
                 Connect your Shortcut workspace
               </h3>
             </div>
@@ -282,7 +282,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">Shortcut</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {shortcutConnected
                       ? integration.memberName
                         ? `Connected as ${integration.memberName}${integration.mentionName ? ` (@${integration.mentionName})` : ""}`
@@ -292,7 +292,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                 </div>
                 {shortcutConnected && (
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
                       <Check size={11} />
                       Connected
                     </span>
@@ -301,7 +301,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                         type="button"
                         onClick={() => disconnect()}
                         disabled={disconnecting}
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                       >
                         <Unplug size={12} />
                         {disconnecting ? "Disconnecting…" : "Disconnect"}
@@ -313,7 +313,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
 
               {!shortcutConnected && isAdmin && (
                 <div className="space-y-2">
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Generate an API token from{" "}
                     <strong className="text-foreground">Shortcut → Settings → API Tokens</strong>,
                     then paste it below.
@@ -325,7 +325,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                         value={apiToken}
                         onChange={(e) => setApiToken(e.target.value)}
                         placeholder="Paste your API token…"
-                        className="w-full px-3 py-2 text-xs border rounded-md bg-background pr-8 focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-3 py-2 text-sm border rounded-md bg-background pr-8 focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                       <button
                         type="button"
@@ -339,7 +339,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                       type="button"
                       disabled={!apiToken.trim() || connecting}
                       onClick={() => connect()}
-                      className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-2 text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shrink-0"
+                      className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shrink-0"
                     >
                       {connecting ? <Spinner className="size-3" /> : <Check size={12} />}
                       Connect
@@ -349,7 +349,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
               )}
 
               {shortcutConnected && isAdmin && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   To reconnect with a different token, disconnect first then enter a new token.
                 </p>
               )}
@@ -364,17 +364,17 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                 2
               </span>
-              <h3 className="text-[13px] font-semibold text-foreground">Configure</h3>
+              <h3 className="text-sm font-semibold text-foreground">Configure</h3>
             </div>
 
             <div className="rounded-lg border border-border bg-card p-4 space-y-4">
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-foreground">Default workflow</p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-sm font-medium text-foreground">Default workflow</p>
+                <p className="text-sm text-muted-foreground">
                   Stories will be created in this workflow unless overridden per-card.
                 </p>
                 {isAdmin && loadingWorkflows && (
-                  <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
                     <Spinner className="size-3" />
                     Loading workflows…
                   </div>
@@ -398,8 +398,8 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
 
               <div className="flex items-center justify-between gap-4 pt-1 border-t border-border">
                 <div>
-                  <p className="text-xs font-medium text-foreground">Auto-create stories</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                  <p className="text-sm font-medium text-foreground">Auto-create stories</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     Automatically create a Shortcut story when new feedback is submitted.
                   </p>
                 </div>
@@ -432,9 +432,9 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
               {selectedWorkflow && (
                 <div className="pt-1 border-t border-border space-y-2">
                   <div>
-                    <p className="text-xs font-medium text-foreground">Status mapping</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      When a Shortcut story moves to one of these states, the linked Feediyo post
+                    <p className="text-sm font-medium text-foreground">Status mapping</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      When a Shortcut story moves to one of these states, the linked Feeduro post
                       status updates automatically.
                     </p>
                   </div>
@@ -451,7 +451,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                                 : "bg-muted-foreground",
                           )}
                         />
-                        <span className="text-xs text-foreground w-32 truncate">{state.name}</span>
+                        <span className="text-sm text-foreground w-32 truncate">{state.name}</span>
                         <ArrowRight size={11} className="text-muted-foreground shrink-0" />
                         <select
                           value={statusMappings[state.id] ?? ""}
@@ -460,10 +460,10 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                             setStatusMappings((prev) => ({ ...prev, [state.id]: e.target.value }));
                             setSettingsDirty(true);
                           }}
-                          className="flex-1 text-xs rounded border border-border bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+                          className="flex-1 text-sm rounded border border-border bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                         >
                           <option value="">— no mapping —</option>
-                          {FEEDIYO_STATUSES.map((s) => (
+                          {FEEDURO_STATUSES.map((s) => (
                             <option key={s.value} value={s.value}>
                               {s.label}
                             </option>
@@ -481,7 +481,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                     type="button"
                     disabled={saving}
                     onClick={() => saveSettings()}
-                    className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
                     {saving ? <Spinner className="size-3" /> : <Check size={12} />}
                     Save settings
@@ -494,14 +494,14 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
           {/* How to use */}
           {shortcutConnected && (
             <section className="rounded-lg border border-border bg-muted/10 px-4 py-3 space-y-2">
-              <p className="text-xs font-medium text-foreground">Using the integration</p>
+              <p className="text-sm font-medium text-foreground">Using the integration</p>
               <ul className="space-y-1.5">
-                <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                <li className="flex items-start gap-2 text-sm text-muted-foreground">
                   <Link2 size={11} className="mt-0.5 shrink-0 text-muted-foreground/60" />
                   Open any feedback card and click{" "}
                   <strong className="text-foreground">Create Story</strong> to push it to Shortcut.
                 </li>
-                <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                <li className="flex items-start gap-2 text-sm text-muted-foreground">
                   <Link2 size={11} className="mt-0.5 shrink-0 text-muted-foreground/60" />
                   Stories are created in{" "}
                   <strong className="text-foreground">
@@ -509,7 +509,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
                   </strong>{" "}
                   with the feedback description as the story description.
                 </li>
-                <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                <li className="flex items-start gap-2 text-sm text-muted-foreground">
                   <ExternalLink size={11} className="mt-0.5 shrink-0 text-muted-foreground/60" />A
                   link back to the Shortcut story (e.g.{" "}
                   <strong className="text-foreground">SC-42</strong>) is shown on each card.

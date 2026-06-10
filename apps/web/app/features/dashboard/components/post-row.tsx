@@ -1,5 +1,11 @@
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, TrendingUp } from "lucide-react";
 import type { Board, Post } from "../types";
+
+function formatMrr(amount: number): string {
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;
+  return `$${amount}`;
+}
 import { StatusPill } from "./status-pill";
 import { VotePill } from "./vote-pill";
 
@@ -25,12 +31,14 @@ export function PostRow({
   board,
   queryKey,
   usersMap,
+  isAdmin,
   onOpen,
 }: {
   post: Post;
   board: Board | undefined;
   queryKey: readonly unknown[];
   usersMap?: Record<string, { name: string | null; image: string | null }>;
+  isAdmin?: boolean;
   onOpen: (id: string) => void;
 }) {
   const owner = post.ownerId ? usersMap?.[post.ownerId] : null;
@@ -67,6 +75,12 @@ export function PostRow({
 
       <div className="flex items-center gap-2 shrink-0 text-muted-foreground">
         {owner?.name && <OwnerBadge name={owner.name} />}
+        {isAdmin && (post.mrrImpact ?? 0) > 0 && (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 tabular-nums">
+            <TrendingUp className="h-2.5 w-2.5" />
+            {formatMrr(post.mrrImpact!)}
+          </span>
+        )}
         <div className="flex items-center gap-1">
           <MessageSquare className="h-4 w-4" />
           <span className="text-[11px] tabular-nums">{post.commentCount}</span>

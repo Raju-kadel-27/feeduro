@@ -32,17 +32,17 @@ export function SocialLoginCard({ name, description, icon, enabled, docsUrl, set
             </span>
           </div>
 
-          <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
         </div>
       </div>
 
       {!enabled && setupSteps && (
         <div className="border-t border-border bg-muted/30 px-4 py-3 space-y-2">
-          <p className="text-[11px] font-medium text-foreground">Setup required</p>
+          <p className="text-sm font-medium text-foreground">Setup required</p>
 
           <ol className="space-y-1.5 list-decimal list-inside">
             {setupSteps.map((step, i) => (
-              <li key={i} className="text-[11px] text-muted-foreground leading-relaxed">
+              <li key={i} className="text-sm text-muted-foreground leading-relaxed">
                 {step}
               </li>
             ))}
@@ -53,7 +53,7 @@ export function SocialLoginCard({ name, description, icon, enabled, docsUrl, set
               href={docsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-1 text-[11px] text-primary hover:underline"
+              className="inline-block mt-1 text-sm text-primary hover:underline"
             >
               View documentation →
             </a>

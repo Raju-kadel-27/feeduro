@@ -38,7 +38,7 @@ export const LinearWebhookResultSchema = z.object({
 export const LinearStatusMappingSchema = z.object({
   linearStateId: z.string(),
   linearStateName: z.string(),
-  feediyoStatus: z.string(),
+  feeduroStatus: z.string(),
 });
 
 export const LinearSettingsSchema = z.object({

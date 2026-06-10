@@ -12,9 +12,9 @@ export function getActiveEnv(request: Request): ActiveEnv {
 
 export function getActiveApiUrl(request: Request, env: Env): string {
   const active = getActiveEnv(request);
-  if (active === "staging" && env.FEEDIYO_STAGING_API_URL) return env.FEEDIYO_STAGING_API_URL;
-  if (active === "prod" && env.FEEDIYO_PROD_API_URL) return env.FEEDIYO_PROD_API_URL;
-  return env.FEEDIYO_API_URL;
+  if (active === "staging" && env.FEEDURO_STAGING_API_URL) return env.FEEDURO_STAGING_API_URL;
+  if (active === "prod" && env.FEEDURO_PROD_API_URL) return env.FEEDURO_PROD_API_URL;
+  return env.FEEDURO_API_URL;
 }
 
 export function setEnvCookie(env: ActiveEnv): string {

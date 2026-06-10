@@ -15,7 +15,7 @@ export function meta({ data: loaderData, location }: Route.MetaArgs) {
 
   const boardBase = customDomain
     ? `https://${customDomain}`
-    : `https://${org.slug}.feediyo.com`;
+    : `https://${org.slug}.feeduro.com`;
   const canonical = postId ? `${boardBase}/?postId=${postId}` : `${boardBase}/`;
   const ogImageUrl = postId
     ? `${boardBase}/api/og?orgSlug=${org.slug}&postId=${postId}`

@@ -1,31 +1,31 @@
-import { type RouterContextProvider } from "react-router";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { type RouterContextProvider } from "react-router";
 import type { DateRange } from "../schemas/analytics";
 import { DATE_RANGE_OPTIONS } from "../schemas/analytics";
-import { getAnalyticsCache } from "./analytics-cache.server";
 import { getActivityOverTime } from "./activity-over-time.server";
 import { getAdminActivity } from "./admin-activity.server";
-import { getBoardVisitorsLast7Days } from "./board-visitors.server";
+import { getAnalyticsCache } from "./analytics-cache.server";
+import { getBacklogAging } from "./backlog-aging.server";
 import { getBoardSummaries } from "./board-summary.server";
+import { getBoardVisitorsLast7Days } from "./board-visitors.server";
 import { getChangelogEngagement } from "./changelog-engagement.server";
 import { getCommentsAnalytics } from "./comments-analytics.server";
 import { getCompanyEngagement } from "./company-engagement.server";
 import { getCompletedInPeriod } from "./completed-posts.server";
+import { getMergeRate } from "./merge-rate.server";
 import { getPeriodDeltas } from "./previous-period.server";
-import { getUnrespondedPosts } from "./unresponded-posts.server";
-import { getStatusBreakdown } from "./status-breakdown.server";
-import { getStatusFunnel } from "./status-funnel.server";
-import { getTagBreakdown } from "./tag-breakdown.server";
-import { getTrendingPosts } from "./trending-posts.server";
-import { getTopPostsByVotes } from "./vote-trends.server";
 import { getResolutionTime } from "./resolution-time.server";
 import { getResponseRate } from "./response-rate.server";
-import { getBacklogAging } from "./backlog-aging.server";
-import { getMergeRate } from "./merge-rate.server";
-import { getVoteConversion } from "./vote-conversion.server";
-import { getSubscriberMetrics } from "./subscriber-metrics.server";
-import { getVotesOverTime } from "./votes-over-time.server";
+import { getStatusBreakdown } from "./status-breakdown.server";
 import { getStatusChangeFeed } from "./status-change-feed.server";
+import { getStatusFunnel } from "./status-funnel.server";
+import { getSubscriberMetrics } from "./subscriber-metrics.server";
+import { getTagBreakdown } from "./tag-breakdown.server";
+import { getTrendingPosts } from "./trending-posts.server";
+import { getUnrespondedPosts } from "./unresponded-posts.server";
+import { getVoteConversion } from "./vote-conversion.server";
+import { getTopPostsByVotes } from "./vote-trends.server";
+import { getVotesOverTime } from "./votes-over-time.server";
 
 function parseSince(range: string): Date | undefined {
   const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : null;
@@ -64,16 +64,16 @@ async function fetchAll(
     getTagBreakdown(organizationId, since, 12, boardId),
     getTrendingPosts(organizationId, 8, boardId),
     getChangelogEngagement(organizationId),
-    getAdminActivity(organizationId, since),
-    getCompanyEngagement(organizationId, since),
+    getAdminActivity(organizationId, since, 20, boardId),
+    getCompanyEngagement(organizationId, since, 20, boardId),
     getBoardVisitorsLast7Days(organizationId),
-    getCommentsAnalytics(organizationId, since),
-    getUnrespondedPosts(organizationId),
-    since ? getPeriodDeltas(organizationId, since) : Promise.resolve(null),
-    getResolutionTime(organizationId, since),
-    getResponseRate(organizationId, since),
-    getBacklogAging(organizationId),
-    getMergeRate(organizationId, since),
+    getCommentsAnalytics(organizationId, since, boardId),
+    getUnrespondedPosts(organizationId, boardId),
+    since ? getPeriodDeltas(organizationId, since, boardId) : Promise.resolve(null),
+    getResolutionTime(organizationId, since, boardId),
+    getResponseRate(organizationId, since, boardId),
+    getBacklogAging(organizationId, boardId),
+    getMergeRate(organizationId, since, boardId),
     getVoteConversion(organizationId, since),
     getSubscriberMetrics(organizationId, since),
     getStatusChangeFeed(organizationId, since, boardId),

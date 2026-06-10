@@ -23,7 +23,7 @@ import type { Segment } from "@features/segmentation/types";
 import type { Route } from "./+types/dashboard";
 
 export function meta() {
-  return [{ title: "Requests – Feediyo" }];
+  return [{ title: "Requests – Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

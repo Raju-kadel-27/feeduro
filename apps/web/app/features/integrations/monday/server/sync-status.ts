@@ -10,7 +10,7 @@ const LOG = "[monday-sync-status]";
 export async function syncStatusToMonday(
   organizationId: string,
   postId: string,
-  newFeediyoStatus: string,
+  newFeeduroStatus: string,
 ): Promise<void> {
   const db = getDb();
   const [link, integration] = await Promise.all([
@@ -31,8 +31,8 @@ export async function syncStatusToMonday(
   const settings = parseSettings<MondaySettings>(integration.settings);
   if (!settings?.defaultBoardId) { console.log(`${LOG} no boardId orgId=${organizationId}`); return; }
 
-  const mapping = settings.statusMappings?.find((m) => m.feediyoStatus === newFeediyoStatus);
-  if (!mapping) { console.log(`${LOG} no mapping for feediyoStatus="${newFeediyoStatus}" postId=${postId}`); return; }
+  const mapping = settings.statusMappings?.find((m) => m.feeduroStatus === newFeeduroStatus);
+  if (!mapping) { console.log(`${LOG} no mapping for feeduroStatus="${newFeeduroStatus}" postId=${postId}`); return; }
 
   try {
     await moveMondayItemToGroup(integration.accessToken, settings.defaultBoardId, link.externalId, mapping.groupId);

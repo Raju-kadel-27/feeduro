@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 export function meta() {
-  return [{ title: "Domain Not Configured — Feediyo" }];
+  return [{ title: "Domain Not Configured — Feeduro" }];
 }
 
 export default function DomainNotConfigured() {
@@ -11,7 +11,7 @@ export default function DomainNotConfigured() {
         <div className="rounded-3xl border border-slate-200 bg-white p-10 shadow-lg shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/10">
           <h1 className="text-3xl font-semibold">Domain Not Configured</h1>
           <p className="mt-4 max-w-xl text-sm text-slate-600 dark:text-slate-400">
-            The hostname you used is not currently mapped to a Feediyo workspace. If you expected
+            The hostname you used is not currently mapped to a Feeduro workspace. If you expected
             this domain to work, please check your custom domain setup or ask the workspace owner to
             finish domain configuration.
           </p>

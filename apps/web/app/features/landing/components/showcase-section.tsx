@@ -24,7 +24,7 @@ const SHOWCASES: ShowcaseItem[] = [
     ],
     imageSrc: "/screenshots/analytics.png",
     imageSrc2: "/screenshots/analytics-second.png",
-    imageAlt: "Feediyo analytics dashboard",
+    imageAlt: "Feeduro analytics dashboard",
     accentColor: "rgba(16,185,129,0.12)",
   },
   {
@@ -38,7 +38,7 @@ const SHOWCASES: ShowcaseItem[] = [
       "Find out what your most valuable users need most",
     ],
     imageSrc: "/screenshots/segmentation.png",
-    imageAlt: "Feediyo segmentation page",
+    imageAlt: "Feeduro segmentation page",
     accentColor: "rgba(139,92,246,0.12)",
   },
   {
@@ -52,7 +52,7 @@ const SHOWCASES: ShowcaseItem[] = [
       "Request payouts via PayPal, Wise, or bank transfer",
     ],
     imageSrc: "/screenshots/affiliate.png",
-    imageAlt: "Feediyo affiliate program dashboard",
+    imageAlt: "Feeduro affiliate program dashboard",
     accentColor: "rgba(249,115,22,0.12)",
   },
 ];
@@ -86,7 +86,7 @@ function ShowcaseCard({ tag, title, description, bullets, imageSrc, imageSrc2, i
           <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
           <span className="w-3 h-3 rounded-full bg-green-400/70" />
           <div className="ml-3 rounded-md border border-border bg-background/50 px-3 py-1 text-xs text-muted-foreground">
-            app.feediyo.com
+            app.feeduro.com
           </div>
         </div>
         {imageSrc2 ? (
@@ -113,10 +113,10 @@ export function ShowcaseSection() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            See Feediyo in <span className="landing-gradient-text">action</span>
+            See Feeduro in <span className="landing-gradient-text">action</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            A closer look at the features that make Feediyo different.
+            A closer look at the features that make Feeduro different.
           </p>
         </div>
 

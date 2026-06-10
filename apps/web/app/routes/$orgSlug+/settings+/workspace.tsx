@@ -17,7 +17,7 @@ import { useNavigate } from "react-router";
 import type { Route } from "./+types/workspace";
 
 export function meta() {
-  return [{ title: "Workspace Settings — Feediyo" }];
+  return [{ title: "Workspace Settings — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -141,7 +141,7 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
             <div className="flex gap-2 items-start">
               <div className="flex flex-1 items-center rounded-md border border-input overflow-hidden">
                 <span className="px-3 py-1.5 text-sm text-muted-foreground bg-muted border-r border-input select-none">
-                  app.feediyo.com/
+                  app.feeduro.com/
                 </span>
                 <input
                   type="text"

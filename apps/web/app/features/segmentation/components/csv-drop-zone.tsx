@@ -21,7 +21,7 @@ const SAMPLE_CSV = [
 
 function downloadSample() {
   const url = URL.createObjectURL(new Blob([SAMPLE_CSV], { type: "text/csv" }));
-  const a = Object.assign(document.createElement("a"), { href: url, download: "feediyo-contacts-sample.csv" });
+  const a = Object.assign(document.createElement("a"), { href: url, download: "feeduro-contacts-sample.csv" });
   a.click();
   URL.revokeObjectURL(url);
 }

@@ -29,7 +29,7 @@ type MondayWebhookPayload = {
   event?: MondayEvent;
 };
 
-// POST /api/monday/webhook?orgId=<feediyo-org-id>&secret=<webhook-secret>
+// POST /api/monday/webhook?orgId=<feeduro-org-id>&secret=<webhook-secret>
 // Handles Monday.com challenge verification and incoming events.
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
@@ -139,15 +139,15 @@ async function processEvent(
     // Apply status mapping
     const mappings = settings?.statusMappings ?? [];
     const match = mappings.find((m) => m.groupTitle.toLowerCase() === labelText.toLowerCase());
-    if (match?.feediyoStatus) {
-      console.log(`${LOG} mapping matched label="${labelText}" → feediyoStatus="${match.feediyoStatus}" postId=${link.postId}`);
+    if (match?.feeduroStatus) {
+      console.log(`${LOG} mapping matched label="${labelText}" → feeduroStatus="${match.feeduroStatus}" postId=${link.postId}`);
       await db
         .update(feedbackPosts)
-        .set({ status: match.feediyoStatus as typeof feedbackPosts.$inferSelect.status })
+        .set({ status: match.feeduroStatus as typeof feedbackPosts.$inferSelect.status })
         .where(and(eq(feedbackPosts.id, link.postId), eq(feedbackPosts.organizationId, orgId)));
-      console.log(`${LOG} post status updated postId=${link.postId} status="${match.feediyoStatus}"`);
+      console.log(`${LOG} post status updated postId=${link.postId} status="${match.feeduroStatus}"`);
     } else {
-      console.warn(`${LOG} no mapping for label="${labelText}" — external status updated but feediyo status unchanged (mappings=${mappings.length})`);
+      console.warn(`${LOG} no mapping for label="${labelText}" — external status updated but feeduro status unchanged (mappings=${mappings.length})`);
     }
     return;
   }

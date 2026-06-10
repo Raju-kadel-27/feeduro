@@ -99,7 +99,7 @@ export async function runApiRestChecks(
   }
 
   // POST /v1/users/identify
-  const identified = await api.post("/v1/users/identify", { email: "smoke@feediyo-demo.local", externalId: "smoke-user-1", name: "Smoke Test User" }, IdentifySchema);
+  const identified = await api.post("/v1/users/identify", { email: "smoke@feeduro-demo.local", externalId: "smoke-user-1", name: "Smoke Test User" }, IdentifySchema);
   checks.push({
     id: "api-user-identify",
     label: "POST /v1/users/identify",

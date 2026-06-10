@@ -15,7 +15,7 @@ const SVG = `
   <circle cx="1080" cy="80" r="240" fill="#4f46e5" opacity="0.12"/>
   <circle cx="120" cy="560" r="180" fill="#818cf8" opacity="0.08"/>
 
-  <!-- Feediyo wordmark -->
+  <!-- Feeduro wordmark -->
   <text
     x="80" y="210"
     font-family="ui-sans-serif, system-ui, -apple-system, sans-serif"
@@ -23,7 +23,7 @@ const SVG = `
     font-weight="700"
     letter-spacing="-0.5"
     fill="#818cf8"
-  >Feediyo</text>
+  >Feeduro</text>
 
   <!-- Main headline -->
   <text
@@ -52,7 +52,7 @@ const SVG = `
     font-family="ui-monospace, Menlo, monospace"
     font-size="22"
     fill="#6366f1"
-  >docs.feediyo.com</text>
+  >docs.feeduro.com</text>
 
   <!-- Bottom pill badges -->
   <rect x="80" y="510" width="130" height="36" rx="18" fill="#1e1b4b"/>

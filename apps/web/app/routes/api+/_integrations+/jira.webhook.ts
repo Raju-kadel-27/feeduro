@@ -7,7 +7,7 @@ import type { Route } from "./+types/jira.webhook";
 
 const LOG = "[jira-webhook]";
 
-type FeediyoStatus = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
+type FeeduroStatus = "open" | "reviewing" | "planned" | "in-progress" | "completed" | "closed";
 
 type JiraStatusCategoryKey = "new" | "indeterminate" | "done" | "undefined";
 
@@ -38,7 +38,7 @@ type JiraWebhookPayload = {
 };
 
 // Default mapping by Jira status category — used when no statusMappings are configured.
-const CATEGORY_TO_FEEDIYO: Partial<Record<JiraStatusCategoryKey, FeediyoStatus>> = {
+const CATEGORY_TO_FEEDIYO: Partial<Record<JiraStatusCategoryKey, FeeduroStatus>> = {
   new: "open",
   indeterminate: "in-progress",
   done: "completed",
@@ -48,17 +48,17 @@ function resolveStatus(
   statusName: string,
   categoryKey: JiraStatusCategoryKey | undefined,
   mappings: JiraSettings["statusMappings"],
-): FeediyoStatus | null {
+): FeeduroStatus | null {
   // User-configured name match takes priority
   const nameMatch = mappings?.find((m) => m.jiraStatusName === statusName);
-  if (nameMatch?.feediyoStatus) return nameMatch.feediyoStatus as FeediyoStatus;
+  if (nameMatch?.feeduroStatus) return nameMatch.feeduroStatus as FeeduroStatus;
 
   // Fall back to category-based defaults
   if (categoryKey) return CATEGORY_TO_FEEDIYO[categoryKey] ?? null;
   return null;
 }
 
-// POST /api/jira/webhook?orgId=<feediyo-org-id>&secret=<webhook-secret>
+// POST /api/jira/webhook?orgId=<feeduro-org-id>&secret=<webhook-secret>
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");

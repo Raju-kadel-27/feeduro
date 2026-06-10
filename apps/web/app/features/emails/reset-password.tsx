@@ -22,7 +22,7 @@ export function ResetPasswordEmail({ userName, resetUrl }: ResetPasswordEmailPro
     <Tailwind>
       <Html>
         <Head />
-        <Preview>Reset your Feediyo password</Preview>
+        <Preview>Reset your Feeduro password</Preview>
         <Body className="bg-zinc-100 m-0 py-10 font-sans">
           <Container className="max-w-[560px] mx-auto bg-white rounded-xl p-10 border border-zinc-200">
             <Text className="m-0 mb-2 text-[22px] font-semibold text-zinc-900 leading-tight">
@@ -31,7 +31,7 @@ export function ResetPasswordEmail({ userName, resetUrl }: ResetPasswordEmailPro
 
             <Text className="m-0 mb-7 text-sm text-zinc-500 leading-relaxed">
               Hi <strong className="text-zinc-700">{userName}</strong>, we received a request to
-              reset your Feediyo account password. Click the button below to choose a new one.
+              reset your Feeduro account password. Click the button below to choose a new one.
             </Text>
 
             <Section className="mb-7">

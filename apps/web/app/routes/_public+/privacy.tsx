@@ -2,8 +2,8 @@ import { PrivacyPage } from "@features/legal/components/privacy-page";
 
 export function meta() {
   return [
-    { title: "Privacy Policy — Feediyo" },
-    { name: "description", content: "How Feediyo collects, uses, and protects your data." },
+    { title: "Privacy Policy — Feeduro" },
+    { name: "description", content: "How Feeduro collects, uses, and protects your data." },
   ];
 }
 

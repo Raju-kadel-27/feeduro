@@ -36,6 +36,7 @@ export function FilterStrip({
         <option value="newest">Sort: Newest</option>
         <option value="oldest">Sort: Oldest</option>
         <option value="votes">Sort: Most votes</option>
+        <option value="revenue">Sort: Revenue impact</option>
       </select>
 
       <select

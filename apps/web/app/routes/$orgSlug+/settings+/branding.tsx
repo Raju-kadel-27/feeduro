@@ -9,7 +9,7 @@ import { organization } from "@/db/schema";
 import type { Route } from "./+types/branding";
 
 export function meta() {
-  return [{ title: "Branding — Feediyo" }];
+  return [{ title: "Branding — Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

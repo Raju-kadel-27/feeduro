@@ -12,7 +12,7 @@ type Props = { orgSlug: string };
 export function PublicBoardLink({ orgSlug }: Props) {
   const url = import.meta.env.DEV
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/${orgSlug}`
-    : `https://${orgSlug}.feediyo.com`;
+    : `https://${orgSlug}.feeduro.com`;
   return (
     <SidebarGroup className="py-0">
       <SidebarGroupContent>

@@ -13,7 +13,11 @@ function pct(current: number, prev: number | null): number | null {
   return Math.round(((current - prev) / prev) * 100);
 }
 
-export async function getCommentsAnalytics(organizationId: string, since?: Date) {
+export async function getCommentsAnalytics(
+  organizationId: string,
+  since?: Date,
+  boardId?: string,
+) {
   const db = getDb();
 
   const nowMs = Date.now();
@@ -24,6 +28,10 @@ export async function getCommentsAnalytics(organizationId: string, since?: Date)
     since && prevSince
       ? sql`AND c.created_at >= ${prevSince} AND c.created_at < ${since}`
       : null;
+  const boardFilter = boardId
+    ? sql`AND c.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
+    : sql``;
+  const boardPostFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const [countsResult, postsResult] = await Promise.all([
     // total comments this period + previous period for delta
@@ -33,6 +41,7 @@ export async function getCommentsAnalytics(organizationId: string, since?: Date)
         ${prevFilter ? sql`COUNT(CASE WHEN TRUE ${prevFilter} THEN 1 END)::int` : sql`NULL`} AS "prevComments"
       FROM comments c
       WHERE c.organization_id = ${organizationId}
+        ${boardFilter}
     `),
     // top posts by comment count in the period
     db.execute(sql`
@@ -48,6 +57,7 @@ export async function getCommentsAnalytics(organizationId: string, since?: Date)
         ${sinceFilter}
       WHERE fp.organization_id     = ${organizationId}
         AND fp.merged_into_post_id IS NULL
+        ${boardPostFilter}
       GROUP BY fp.id, fp.title, fp.status
       ORDER BY COUNT(c.id) DESC
       LIMIT 8

@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { deletePost, updatePost } from "@features/feedback/server/api-posts-mutations";
 import { UpdatePostSchema, getPost } from "@features/feedback/server/api-posts";
 import { requireApiKey } from "@lib/api/require-api-key";

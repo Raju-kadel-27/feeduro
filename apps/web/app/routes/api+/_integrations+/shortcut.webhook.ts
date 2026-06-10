@@ -25,7 +25,7 @@ type ShortcutWebhookPayload = {
   }>;
 };
 
-// POST /api/shortcut/webhook?orgId=<feediyo-org-id>
+// POST /api/shortcut/webhook?orgId=<feeduro-org-id>
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
@@ -98,10 +98,10 @@ export async function action({ request }: Route.ActionArgs) {
     if (newStateName) {
       const mappings = settings?.statusMappings ?? [];
       const match = mappings.find((m) => m.workflowStateName === newStateName);
-      if (match?.feediyoStatus) {
+      if (match?.feeduroStatus) {
         await db
           .update(feedbackPosts)
-          .set({ status: match.feediyoStatus as typeof feedbackPosts.$inferSelect.status })
+          .set({ status: match.feeduroStatus as typeof feedbackPosts.$inferSelect.status })
           .where(and(eq(feedbackPosts.id, link.postId), eq(feedbackPosts.organizationId, orgId)));
       }
     }

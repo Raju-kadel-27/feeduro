@@ -12,7 +12,7 @@ export async function runWebhookChecks(secret: string, request: Request): Promis
   const checks: Check[] = [];
 
   if (!secret) {
-    const skip = { status: "skip" as const, detail: "Skipped — FEEDIYO_WEBHOOK_SECRET not set" };
+    const skip = { status: "skip" as const, detail: "Skipped — FEEDURO_WEBHOOK_SECRET not set" };
     return [
       { id: "wh-sig-valid",   label: "Valid webhook signature",    ...skip },
       { id: "wh-sig-tamper",  label: "Tampered signature → reject",...skip },
@@ -56,7 +56,7 @@ export async function runWebhookChecks(secret: string, request: Request): Promis
   const t0 = Date.now();
   const e2eRes = await fetch(webhookUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-feediyo-signature": validSig },
+    headers: { "Content-Type": "application/json", "x-feeduro-signature": validSig },
     body: testPayload,
   }).then(r => ({ status: r.status, durationMs: Date.now() - t0 })).catch(e => ({ status: 0, durationMs: Date.now() - t0, err: String(e) }));
 

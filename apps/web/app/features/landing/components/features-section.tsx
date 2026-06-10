@@ -28,7 +28,7 @@ const FEATURES: Feature[] = [
   {
     icon: Newspaper,
     title: "Changelog",
-    description: "Publish what you shipped and Feediyo notifies everyone who voted for it. The loop closes itself.",
+    description: "Publish what you shipped and Feeduro notifies everyone who voted for it. The loop closes itself.",
     iconBg: "rgba(20,184,166,0.12)",
     iconColor: "rgb(20,184,166)",
   },
@@ -50,7 +50,7 @@ const FEATURES: Feature[] = [
   {
     icon: Globe,
     title: "Branding & Custom Domain",
-    description: "Use your own domain and remove all Feediyo branding. Your users see your product, not ours.",
+    description: "Use your own domain and remove all Feeduro branding. Your users see your product, not ours.",
     iconBg: "rgba(99,102,241,0.12)",
     iconColor: "rgb(99,102,241)",
   },
@@ -80,7 +80,7 @@ const FEATURES: Feature[] = [
   {
     icon: KeyRound,
     title: "API Keys",
-    description: "Give your developers programmatic access to everything Feediyo offers. Build on top of your feedback data your way.",
+    description: "Give your developers programmatic access to everything Feeduro offers. Build on top of your feedback data your way.",
     iconBg: "rgba(234,179,8,0.12)",
     iconColor: "rgb(234,179,8)",
   },

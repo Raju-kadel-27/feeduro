@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb } from "@/db";
 import { segments, user, userProfiles, votes } from "@/db/schema";
@@ -11,6 +11,8 @@ export interface VoterProfileRow {
   role: string | null;
   industry: string | null;
   location: string | null;
+  mrr: number | null;
+  votedAt: string;
 }
 
 export async function getOrgSegments(organizationId: string): Promise<Segment[]> {
@@ -141,7 +143,7 @@ export async function getVoterProfilesByPost(
   const db = getDb();
   const { nativeProfile, importedProfile } = voterProfileAliases();
 
-  return db
+  const rows = await db
     .select({
       name: sql<string | null>`coalesce(${nativeProfile.name}, ${importedProfile.name})`,
       // At least one profile is guaranteed by the WHERE filter, so email is always non-null
@@ -150,6 +152,8 @@ export async function getVoterProfilesByPost(
       role: sql<string | null>`coalesce(${nativeProfile.role}, ${importedProfile.role})`,
       industry: sql<string | null>`coalesce(${nativeProfile.industry}, ${importedProfile.industry})`,
       location: sql<string | null>`coalesce(${nativeProfile.location}, ${importedProfile.location})`,
+      mrr: sql<number | null>`coalesce(${nativeProfile.mrr}, ${importedProfile.mrr})`,
+      votedAt: votes.createdAt,
     })
     .from(votes)
     .leftJoin(user, eq(votes.userId, user.id))
@@ -171,5 +175,45 @@ export async function getVoterProfilesByPost(
         sql`(${nativeProfile.id} IS NOT NULL OR ${importedProfile.id} IS NOT NULL)`,
       ),
     )
+    .orderBy(desc(votes.createdAt))
     .limit(limit);
+
+  return rows.map((r) => ({ ...r, votedAt: r.votedAt.toISOString() }));
+}
+
+// Returns the total MRR ($/mo) attributed to each post by summing voter MRRs.
+// Includes votes from merged child posts when callers pass allRelevantIds.
+export async function getMrrImpactByPost(
+  organizationId: string,
+  postIds: string[],
+): Promise<Record<string, number>> {
+  if (postIds.length === 0) return {};
+  const db = getDb();
+  const { nativeProfile, importedProfile } = voterProfileAliases();
+
+  const rows = await db
+    .select({
+      postId: votes.postId,
+      mrr: sql<number>`coalesce(${nativeProfile.mrr}, ${importedProfile.mrr}, 0)`,
+    })
+    .from(votes)
+    .leftJoin(user, eq(votes.userId, user.id))
+    .leftJoin(
+      nativeProfile,
+      and(eq(nativeProfile.organizationId, organizationId), eq(nativeProfile.email, user.email)),
+    )
+    .leftJoin(
+      importedProfile,
+      and(
+        eq(importedProfile.organizationId, organizationId),
+        eq(importedProfile.id, votes.userProfileId),
+      ),
+    )
+    .where(and(eq(votes.organizationId, organizationId), inArray(votes.postId, postIds)));
+
+  const result: Record<string, number> = {};
+  for (const row of rows) {
+    result[row.postId] = (result[row.postId] ?? 0) + row.mrr;
+  }
+  return result;
 }

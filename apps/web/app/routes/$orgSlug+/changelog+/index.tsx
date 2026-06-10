@@ -13,7 +13,7 @@ import { changelogs as changelogsTable } from "@/db/schema";
 import type { Route } from "./+types/index";
 
 export function meta() {
-  return [{ title: "Changelog – Feediyo" }];
+  return [{ title: "Changelog – Feeduro" }];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

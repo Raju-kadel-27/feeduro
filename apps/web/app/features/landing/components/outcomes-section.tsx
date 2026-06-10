@@ -19,7 +19,7 @@ const OUTCOMES: { icon: LucideIcon; title: string; body: string; iconBg: string;
   {
     icon: Megaphone,
     title: "Every release feels personal",
-    body: "Telling a user 'the thing you asked for just shipped' is the most powerful retention message you can send. Feediyo sends it automatically.",
+    body: "Telling a user 'the thing you asked for just shipped' is the most powerful retention message you can send. Feeduro sends it automatically.",
     iconBg: "rgba(249,115,22,0.12)",
     iconColor: "rgb(249,115,22)",
   },
@@ -37,13 +37,9 @@ export function OutcomesSection() {
     <section className="py-24 px-6 border-t border-border">
       <div className="max-w-5xl mx-auto">
         <div className="max-w-2xl mx-auto text-center mb-14">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            Stop collecting feedback. Start acting on it.
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            When users feel heard, everything changes.
           </h2>
-          <p className="text-muted-foreground text-lg">
-            Ideas submitted by users should not die in a spreadsheet. With Feediyo, every request
-            has a home, a status, and a path to shipped.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

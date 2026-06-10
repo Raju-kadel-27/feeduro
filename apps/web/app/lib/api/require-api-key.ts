@@ -1,4 +1,4 @@
-import { apiError } from "@feediyo/errors";
+import { apiError } from "@feeduro/errors";
 import { data } from "react-router";
 import { auth } from "@/app/lib/auth/server";
 

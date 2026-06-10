@@ -1,22 +1,22 @@
 openapi: '3.1.0'
 
 info:
-  title: Feediyo API
+  title: Feeduro API
   version: '1'
   description: |
-    Public REST API for Feediyo — manage feedback boards, changelog, roadmap,
+    Public REST API for Feeduro — manage feedback boards, changelog, roadmap,
     users, and webhooks programmatically.
 
-    **Base URL:** `https://app.feediyo.com/v1`
+    **Base URL:** `https://app.feeduro.com/v1`
 
     All endpoints require a Bearer token API key. Create keys at
-    https://app.feediyo.com/settings/api-keys.
+    https://app.feeduro.com/settings/api-keys.
   contact:
-    url: https://feediyo.com
-    email: support@feediyo.com
+    url: https://feeduro.com
+    email: support@feeduro.com
 
 servers:
-  - url: https://app.feediyo.com/v1
+  - url: https://app.feeduro.com/v1
     description: Production
 
 security:
@@ -56,7 +56,7 @@ components:
       scheme: bearer
       description: |
         Pass your API key as `Authorization: Bearer <key>`.
-        Create keys at https://app.feediyo.com/settings/api-keys.
+        Create keys at https://app.feeduro.com/settings/api-keys.
 
   parameters:
     limit:
@@ -461,7 +461,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://example.com/feediyo/events
+          example: https://example.com/feeduro/events
         events:
           type: array
           items:
@@ -842,7 +842,7 @@ paths:
                   example: post_01xyz789
                 userId:
                   type: string
-                  description: Feediyo user profile ID from /v1/users/identify
+                  description: Feeduro user profile ID from /v1/users/identify
                   example: up_01zzz999
       responses:
         '201':
@@ -1555,7 +1555,7 @@ paths:
                   type: string
                   format: uri
                   description: HTTPS only — HTTP is rejected
-                  example: https://example.com/feediyo/events
+                  example: https://example.com/feeduro/events
                 name:
                   type: string
                   maxLength: 100

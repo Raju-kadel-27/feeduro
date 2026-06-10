@@ -4,9 +4,14 @@ import { MergeRateSchema } from "../schemas/health-metrics";
 
 // % of posts that were merged into another post (duplicates removed by admin).
 // High rate = users can't find existing posts before submitting.
-export async function getMergeRate(organizationId: string, since?: Date) {
+export async function getMergeRate(
+  organizationId: string,
+  since?: Date,
+  boardId?: string,
+) {
   const db = getDb();
   const sinceFilter = since ? sql`AND created_at >= ${since}` : sql``;
+  const boardFilter = boardId ? sql`AND board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
     SELECT
@@ -19,6 +24,7 @@ export async function getMergeRate(organizationId: string, since?: Date) {
     FROM feedback_posts
     WHERE organization_id = ${organizationId}
       ${sinceFilter}
+      ${boardFilter}
   `);
 
   const row = result.rows[0] ?? { totalPosts: 0, mergedPosts: 0, mergeRate: null };

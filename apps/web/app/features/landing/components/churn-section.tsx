@@ -5,10 +5,7 @@ export function ChurnSection() {
 
         {/* The fear */}
         <div className="text-center mb-16">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
-            The thing founders think about at 2am
-          </p>
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight mb-6">
+<h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight mb-6">
             Your users are not leaving because{" "}
             your product is bad.
           </h2>
@@ -37,7 +34,7 @@ export function ChurnSection() {
           </div>
           <div className="p-6 rounded-2xl border border-border bg-background text-center">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-              What Feediyo costs
+              What Feeduro costs
             </p>
             <p className="text-4xl font-black text-primary mb-1">$20</p>
             <p className="text-sm text-muted-foreground">a month to make users feel heard</p>
@@ -47,7 +44,7 @@ export function ChurnSection() {
         {/* The punchline */}
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xl sm:text-2xl font-bold leading-snug mb-4">
-            If Feediyo stops 2 or 3 customers from cancelling this month,
+            If Feeduro stops 2 or 3 customers from cancelling this month,
             it has already paid for itself ten times over.
           </p>
           <p className="text-muted-foreground leading-relaxed">

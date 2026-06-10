@@ -20,6 +20,7 @@ function pct(current: number, prev: number): number | null {
 export async function getPeriodDeltas(
   organizationId: string,
   since: Date,
+  boardId?: string,
 ): Promise<StatsDelta> {
   const db = getDb();
 
@@ -28,6 +29,11 @@ export async function getPeriodDeltas(
   const windowMs = nowMs - since.getTime();
   const prevSince = new Date(since.getTime() - windowMs);
 
+  const boardPostFilter = boardId ? sql`AND board_id = ${boardId}` : sql``;
+  const boardVoteFilter = boardId
+    ? sql`AND post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
+    : sql``;
+
   // Six scalar subqueries in one round-trip; all benefit from the
   // (organization_id, created_at) indexes on feedback_posts and votes
   const result = await db.execute(sql`
@@ -35,35 +41,41 @@ export async function getPeriodDeltas(
       (SELECT COUNT(*)::int FROM feedback_posts
        WHERE organization_id = ${organizationId}
          AND merged_into_post_id IS NULL
-         AND created_at >= ${since})                                  AS "currentPosts",
+         AND created_at >= ${since}
+         ${boardPostFilter})                                          AS "currentPosts",
 
       (SELECT COUNT(*)::int FROM votes
        WHERE organization_id = ${organizationId}
-         AND created_at >= ${since})                                  AS "currentVotes",
+         AND created_at >= ${since}
+         ${boardVoteFilter})                                          AS "currentVotes",
 
       (SELECT COUNT(*)::int FROM feedback_posts
        WHERE organization_id = ${organizationId}
          AND merged_into_post_id IS NULL
          AND status = 'completed'
-         AND created_at >= ${since})                                  AS "currentResolved",
+         AND created_at >= ${since}
+         ${boardPostFilter})                                          AS "currentResolved",
 
       (SELECT COUNT(*)::int FROM feedback_posts
        WHERE organization_id = ${organizationId}
          AND merged_into_post_id IS NULL
          AND created_at >= ${prevSince}
-         AND created_at < ${since})                                   AS "prevPosts",
+         AND created_at < ${since}
+         ${boardPostFilter})                                          AS "prevPosts",
 
       (SELECT COUNT(*)::int FROM votes
        WHERE organization_id = ${organizationId}
          AND created_at >= ${prevSince}
-         AND created_at < ${since})                                   AS "prevVotes",
+         AND created_at < ${since}
+         ${boardVoteFilter})                                          AS "prevVotes",
 
       (SELECT COUNT(*)::int FROM feedback_posts
        WHERE organization_id = ${organizationId}
          AND merged_into_post_id IS NULL
          AND status = 'completed'
          AND created_at >= ${prevSince}
-         AND created_at < ${since})                                   AS "prevResolved"
+         AND created_at < ${since}
+         ${boardPostFilter})                                          AS "prevResolved"
   `);
 
   const row = RawSchema.parse(result.rows[0]);

@@ -5,9 +5,14 @@ import { ResponseRateSchema } from "../schemas/health-metrics";
 // % of posts that received at least one public team-member comment,
 // and the average hours to first response.
 // "Team member" = any user who is a member of the org (member table).
-export async function getResponseRate(organizationId: string, since?: Date) {
+export async function getResponseRate(
+  organizationId: string,
+  since?: Date,
+  boardId?: string,
+) {
   const db = getDb();
   const sinceFilter = since ? sql`AND fp.created_at >= ${since}` : sql``;
+  const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
     WITH team_members AS (
@@ -39,6 +44,7 @@ export async function getResponseRate(organizationId: string, since?: Date) {
     WHERE fp.organization_id     = ${organizationId}
       AND fp.merged_into_post_id IS NULL
       ${sinceFilter}
+      ${boardFilter}
   `);
 
   const row = result.rows[0] ?? {

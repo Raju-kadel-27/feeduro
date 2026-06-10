@@ -6,12 +6,20 @@ export async function getCompanyEngagement(
   organizationId: string,
   since?: Date,
   limit = 20,
+  boardId?: string,
 ) {
   const db = getDb();
 
   const sincePostFilter = since ? sql`AND fp.created_at >= ${since}` : sql``;
   const sinceVoteFilter = since ? sql`AND v.created_at  >= ${since}` : sql``;
   const sinceCommentFilter = since ? sql`AND c.created_at >= ${since}` : sql``;
+  const boardPostFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
+  const boardVoteFilter = boardId
+    ? sql`AND v.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
+    : sql``;
+  const boardCommentFilter = boardId
+    ? sql`AND c.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
+    : sql``;
 
   const result = await db.execute(sql`
     WITH external_users AS (
@@ -36,15 +44,18 @@ export async function getCompanyEngagement(
            ON  v.user_id         = eu.id
            AND v.organization_id = ${organizationId}
            ${sinceVoteFilter}
+           ${boardVoteFilter}
     LEFT JOIN feedback_posts fp
            ON  fp.created_by          = eu.id
            AND fp.organization_id     = ${organizationId}
            AND fp.merged_into_post_id IS NULL
            ${sincePostFilter}
+           ${boardPostFilter}
     LEFT JOIN comments c
            ON  c.user_id         = eu.id
            AND c.organization_id = ${organizationId}
            ${sinceCommentFilter}
+           ${boardCommentFilter}
     WHERE (v.id IS NOT NULL OR fp.id IS NOT NULL OR c.id IS NOT NULL)
     GROUP BY eu.domain
     ORDER BY (COUNT(DISTINCT v.id) + COUNT(DISTINCT fp.id) + COUNT(DISTINCT c.id)) DESC

@@ -4,8 +4,10 @@ import { BacklogAgingSchema } from "../schemas/health-metrics";
 
 // Age-bucket distribution of open (non-completed, non-closed) posts.
 // Uses fp_org_status_idx (organization_id, status) for the scan.
-export async function getBacklogAging(organizationId: string) {
+export async function getBacklogAging(organizationId: string, boardId?: string) {
   const db = getDb();
+
+  const boardFilter = boardId ? sql`AND board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
     SELECT
@@ -20,6 +22,7 @@ export async function getBacklogAging(organizationId: string) {
       WHERE organization_id     = ${organizationId}
         AND merged_into_post_id IS NULL
         AND status NOT IN ('completed', 'closed')
+        ${boardFilter}
     ) sub
   `);
 

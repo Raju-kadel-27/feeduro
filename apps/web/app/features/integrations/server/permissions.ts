@@ -1,8 +1,5 @@
-import { isAdmin } from "@features/roles/server/queries";
-import { data } from "react-router";
+import { requirePermission } from "@features/auth/server/guards";
 
 export async function requireAdminRole(organizationId: string, userId: string): Promise<void> {
-  if (!(await isAdmin(organizationId, userId))) {
-    throw data({ error: "Only admins can manage integrations" }, { status: 403 });
-  }
+  await requirePermission(organizationId, userId, { settings: ["update"] });
 }

@@ -1,13 +1,12 @@
-import { requireOrganization } from "@features/auth/server/guards";
-import { isAdmin } from "@features/roles/server/queries";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { notifyChangelogSubscribers } from "@features/changelog/server/subscribers";
-import { dispatchWebhook } from "@features/webhooks/server/dispatch";
 import { extractBlockNoteText } from "@features/feedback/utils";
+import { dispatchWebhook } from "@features/webhooks/server/dispatch";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
-import { changelogs, member } from "@/db/schema";
+import { changelogs } from "@/db/schema";
 
 import type { Route } from "./+types/changelogs";
 
@@ -44,13 +43,11 @@ export async function action({ request, context }: Route.ActionArgs) {
   const { session, org, organizationId } = await requireOrganization(request);
   const db = getDb();
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage changelogs" }, { status: 403 });
-  }
-
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "create") {
+    await requirePermission(organizationId, session.user.id, { changelog: ["create"] });
+
     const title = (body.title as string)?.trim();
     if (!title) return data({ error: "Title is required" }, { status: 400 });
 
@@ -80,6 +77,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   if (body.intent === "update") {
+    await requirePermission(organizationId, session.user.id, { changelog: ["update"] });
+
     const id = body.id as string;
     const title = (body.title as string)?.trim();
     const changelogBody = body.body as string;
@@ -92,6 +91,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   if (body.intent === "publish") {
+    await requirePermission(organizationId, session.user.id, { changelog: ["publish"] });
+
     const id = body.id as string;
     const shouldNotify = body.notifySubscribers === true;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
@@ -130,6 +131,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   if (body.intent === "unpublish") {
+    await requirePermission(organizationId, session.user.id, { changelog: ["update"] });
+
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
     await db.update(changelogs).set({ status: "draft", publishedAt: null })
@@ -138,6 +141,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   if (body.intent === "delete") {
+    await requirePermission(organizationId, session.user.id, { changelog: ["delete"] });
+
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
     await db.delete(changelogs)

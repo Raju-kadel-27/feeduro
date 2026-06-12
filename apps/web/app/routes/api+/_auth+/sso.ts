@@ -1,6 +1,5 @@
-import { requireOrganization } from "@features/auth/server/guards";
 import { logOrgActivity } from "@features/audit/server/log-org-activity";
-import { isAdmin } from "@features/roles/server/queries";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
@@ -70,9 +69,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage SSO" }, { status: 403 });
-  }
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
   let rawBody: unknown;
   try {

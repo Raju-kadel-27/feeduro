@@ -1,6 +1,6 @@
-import { DEFAULT_BRANDING, parseBranding } from "@features/branding/server/parse-branding";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import type { BrandingMeta } from "@features/branding/server/parse-branding";
-import { requireOrganization } from "@features/auth/server/guards";
+import { DEFAULT_BRANDING, parseBranding } from "@features/branding/server/parse-branding";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
@@ -26,7 +26,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const { organizationId } = await requireOrganization(request);
+  const { session, organizationId } = await requireOrganization(request);
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
   const db = getDb();
 
   const body = (await request.json()) as {

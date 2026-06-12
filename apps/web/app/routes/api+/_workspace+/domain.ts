@@ -1,5 +1,4 @@
-import { requireOrganization } from "@features/auth/server/guards";
-import { isAdmin } from "@features/roles/server/queries";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { getBindings } from "@middleware/cloudflare.server";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -47,9 +46,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
   const db = getDb();
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage custom domains" }, { status: 403 });
-  }
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
   const body = (await request.json()) as { intent: string; domain?: string };
 

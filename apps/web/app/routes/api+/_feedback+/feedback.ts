@@ -1,10 +1,10 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { handleCreatePost } from "@features/feedback/server/create-post";
+import { assignPostOwner } from "@features/feedback/server/owner";
 import { handleGetPostDetail } from "@features/feedback/server/post-detail-loader";
 import { handleGetPostList } from "@features/feedback/server/post-list-query";
 import { handleUpdateRank } from "@features/feedback/server/update-rank";
 import { handleUpdateStatus } from "@features/feedback/server/update-status";
-import { assignPostOwner } from "@features/feedback/server/owner";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
@@ -47,9 +47,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     case "update_rank":
       return handleUpdateRank(organizationId, rawBody);
     case "assign_owner": {
-      if (role !== "admin") {
-        return data({ error: "Only admins can assign post owners" }, { status: 403 });
-      }
+      await requirePermission(organizationId, session.user.id, { feedback: ["update"] });
       const parsed = z
         .object({ id: z.string().min(1), ownerId: z.string().nullable().optional() })
         .safeParse(rawBody);

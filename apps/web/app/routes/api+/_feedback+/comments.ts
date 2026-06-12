@@ -1,4 +1,4 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { canDo, requireOrganization } from "@features/auth/server/guards";
 import { notifyCustomerReplyByEmail } from "@features/notifications/server/email";
 import { notifyMentions, notifyNewComment } from "@features/notifications/server/service";
 import { dispatchWebhook } from "@features/webhooks/server/dispatch";
@@ -6,7 +6,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { and, asc, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
-import { comments, feedbackPosts, member, user } from "@/db/schema";
+import { comments, feedbackPosts, user } from "@/db/schema";
 
 import type { Route } from "./+types/comments";
 
@@ -149,12 +149,9 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
     if (!comment) return data({ error: "Comment not found" }, { status: 404 });
 
-    const memberRecord = await db.query.member.findFirst({
-      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
-    });
-    const isAdmin = memberRecord?.role === "admin";
+    const canDelete = await canDo(organizationId, session.user.id, { feedback: ["delete"] });
 
-    if (comment.userId !== session.user.id && !isAdmin) {
+    if (comment.userId !== session.user.id && !canDelete) {
       return data({ error: "Not authorized" }, { status: 403 });
     }
 

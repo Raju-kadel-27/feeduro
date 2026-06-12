@@ -1,5 +1,4 @@
-import { requireOrganization } from "@features/auth/server/guards";
-import { isAdmin } from "@features/roles/server/queries";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import {
   deleteWorkspace,
   updateWorkspaceName,
@@ -32,13 +31,10 @@ const DeleteOrgSchema = z.object({
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage workspace settings" }, { status: 403 });
-  }
-
   const body = (await request.json()) as { intent: string };
 
   if (body.intent === "update_name") {
+    await requirePermission(organizationId, session.user.id, { settings: ["update"] });
     const parsed = UpdateNameSchema.safeParse(body);
     if (!parsed.success) {
       return data({ error: parsed.error.issues[0]?.message }, { status: 400 });
@@ -48,6 +44,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update_slug") {
+    await requirePermission(organizationId, session.user.id, { settings: ["update"] });
     const parsed = UpdateSlugSchema.safeParse(body);
     if (!parsed.success) {
       return data({ error: parsed.error.issues[0]?.message }, { status: 400 });
@@ -57,6 +54,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "delete_org") {
+    await requirePermission(organizationId, session.user.id, { organization: ["delete"] });
     const parsed = DeleteOrgSchema.safeParse(body);
     if (!parsed.success) {
       return data({ error: parsed.error.issues[0]?.message }, { status: 400 });

@@ -1,4 +1,4 @@
-import { requireAdmin, requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import {
   addTagToPost,
   createTag,
@@ -33,7 +33,7 @@ export async function action({ request }: Route.ActionArgs) {
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "create") {
-    await requireAdmin(organizationId, session.user.id);
+    await requirePermission(organizationId, session.user.id, { feedback: ["update"] });
     const name = (body.name as string)?.trim();
     const color = (body.color as string) ?? "#6366f1";
     if (!name) return data({ error: "Name is required" }, { status: 400 });
@@ -46,7 +46,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "delete") {
-    await requireAdmin(organizationId, session.user.id);
+    await requirePermission(organizationId, session.user.id, { feedback: ["update"] });
     const tagId = body.tagId as string;
     if (!tagId) return data({ error: "tagId required" }, { status: 400 });
     await deleteTag(organizationId, tagId);
@@ -54,7 +54,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "add_to_post") {
-    await requireAdmin(organizationId, session.user.id);
+    await requirePermission(organizationId, session.user.id, { feedback: ["update"] });
     const { postId, tagId } = body as { postId: string; tagId: string };
     if (!postId || !tagId) return data({ error: "postId and tagId required" }, { status: 400 });
     await addTagToPost(postId, tagId, session.user.id, organizationId);
@@ -62,7 +62,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "remove_from_post") {
-    await requireAdmin(organizationId, session.user.id);
+    await requirePermission(organizationId, session.user.id, { feedback: ["update"] });
     const { postId, tagId } = body as { postId: string; tagId: string };
     if (!postId || !tagId) return data({ error: "postId and tagId required" }, { status: 400 });
     await removeTagFromPost(postId, tagId);

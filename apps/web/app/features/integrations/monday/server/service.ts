@@ -1,11 +1,10 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import type { MondaySettings } from "@features/integrations/monday/server/schemas";
 import {
   getIntegration,
   getOrgSlugFromId,
   parseSettings,
 } from "@features/integrations/server/queries";
-import { isAdmin } from "@features/roles/server/queries";
 import { createId } from "@paralleldrive/cuid2";
 import { buildAuthUrl, exchangeCode } from "@services/oauth/flow.server";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
@@ -143,9 +142,7 @@ export async function handleMondayLoader(request: Request) {
 export async function handleMondayAction(request: Request) {
   const { session, organizationId } = await requireOrganization(request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage Monday.com integration" }, { status: 403 });
-  }
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 

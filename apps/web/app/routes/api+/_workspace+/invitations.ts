@@ -1,11 +1,8 @@
-import { requireOrganization } from "@features/auth/server/guards";
 import { logOrgActivity } from "@features/audit/server/log-org-activity";
-import { and, eq } from "drizzle-orm";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { data } from "react-router";
 import { z } from "zod";
 import { auth } from "@/app/lib/auth/server";
-import { getDb } from "@/db";
-import { member } from "@/db/schema";
 
 import type { Route } from "./+types/invitations";
 
@@ -27,15 +24,6 @@ const InvitationsActionSchema = z.discriminatedUnion("intent", [
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
 
-  const db = getDb();
-  const memberRecord = await db.query.member.findFirst({
-    where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
-  });
-
-  if (memberRecord?.role !== "admin") {
-    return data({ error: "Only admins can manage invitations" }, { status: 403 });
-  }
-
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -52,6 +40,8 @@ export async function action({ request }: Route.ActionArgs) {
   const body = parsed.data;
 
   if (body.intent === "invite") {
+    await requirePermission(organizationId, session.user.id, { invitation: ["create"] });
+
     const result = await auth.api.createInvitation({
       headers: request.headers,
       body: { email: body.email, role: "member", organizationId },
@@ -68,6 +58,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "cancel") {
+    await requirePermission(organizationId, session.user.id, { invitation: ["cancel"] });
+
     await auth.api.cancelInvitation({
       headers: request.headers,
       body: { invitationId: body.invitationId },
@@ -81,6 +73,9 @@ export async function action({ request }: Route.ActionArgs) {
     });
     return data({ success: true });
   }
+
+  // remove_member
+  await requirePermission(organizationId, session.user.id, { member: ["delete"] });
 
   await auth.api.removeMember({
     headers: request.headers,

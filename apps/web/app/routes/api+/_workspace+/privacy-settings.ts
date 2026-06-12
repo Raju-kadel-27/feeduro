@@ -1,4 +1,4 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
@@ -29,7 +29,8 @@ export function parsePrivacySettings(metadata: string | null): PrivacySettings {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const { organizationId } = await requireOrganization(request);
+  const { session, organizationId } = await requireOrganization(request);
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
   const db = getDb();
 
   const body = (await request.json()) as Partial<PrivacySettings>;

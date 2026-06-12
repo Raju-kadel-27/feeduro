@@ -1,4 +1,4 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import {
   getIntegration,
   getOrgSlugFromId,
@@ -7,7 +7,6 @@ import {
 import { getZendeskCurrentUser } from "@features/integrations/zendesk/server/client";
 import { zendeskOAuth } from "@features/integrations/zendesk/server/oauth";
 import type { ZendeskSettings } from "@features/integrations/zendesk/server/schemas";
-import { isAdmin } from "@features/roles/server/queries";
 import { buildAuthUrl, exchangeCode } from "@services/oauth/flow.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
@@ -134,9 +133,7 @@ const actionSchema = z.discriminatedUnion("intent", [
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage integrations" }, { status: 403 });
-  }
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
   const raw = await request.json();
   const parsed = actionSchema.safeParse(raw);

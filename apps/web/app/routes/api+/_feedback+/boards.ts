@@ -1,11 +1,10 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
-import { isAdmin } from "@features/roles/server/queries";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
-import { feedbackBoards, feedbackPosts, member } from "@/db/schema";
+import { feedbackBoards, feedbackPosts } from "@/db/schema";
 
 import type { Route } from "./+types/boards";
 
@@ -59,16 +58,14 @@ export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
   const db = getDb();
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage boards" }, { status: 403 });
-  }
-
   const body = (await request.json()) as {
     intent: string;
     [key: string]: unknown;
   };
 
   if (body.intent === "create") {
+    await requirePermission(organizationId, session.user.id, { board: ["create"] });
+
     const name = (body.name as string)?.trim();
     if (!name) return data({ error: "Name is required" }, { status: 400 });
 
@@ -116,6 +113,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update") {
+    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
 
@@ -135,6 +134,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update-visibility") {
+    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
     const visibility = body.visibility as "public" | "private";
@@ -149,6 +150,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "delete") {
+    await requirePermission(organizationId, session.user.id, { board: ["delete"] });
+
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
 
@@ -167,7 +170,6 @@ export async function action({ request }: Route.ActionArgs) {
     });
 
     if (defaultBoard) {
-      // Move all posts from deleted board to the default board
       await db
         .update(feedbackPosts)
         .set({ boardId: defaultBoard.id })
@@ -184,6 +186,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update-smart-replies") {
+    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
 
@@ -199,6 +203,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update-anonymize-users") {
+    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
     const anonymizeUsers = body.anonymizeUsers as boolean;

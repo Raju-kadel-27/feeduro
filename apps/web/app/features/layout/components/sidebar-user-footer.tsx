@@ -1,10 +1,9 @@
 import { SidebarFooter } from "@components/ui/sidebar";
 import { AccountModal } from "@features/layout/components/account-modal";
-import { LanguageSwitcher } from "@features/layout/components/language-switcher";
 import { ThemeToggle } from "@features/layout/components/theme-toggle";
 import { NotificationsBell } from "@features/notifications/components/notifications-bell";
 import { authClient } from "@lib/auth/client";
-import { LogOut, Palette, Settings } from "lucide-react";
+import { Globe, LogOut, Palette, Settings } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -12,11 +11,11 @@ export function SidebarUserFooter() {
   const navigate = useNavigate();
   const { data: session } = authClient.useSession();
   const [accountOpen, setAccountOpen] = useState(false);
-  const [accountTab, setAccountTab] = useState<"profile" | "appearance">("profile");
+  const [accountTab, setAccountTab] = useState<"profile" | "appearance" | "language">("profile");
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  function openAccount(tab: "profile" | "appearance") {
+  function openAccount(tab: "profile" | "appearance" | "language") {
     setAccountTab(tab);
     setAccountOpen(true);
     setPopoverOpen(false);
@@ -65,9 +64,14 @@ export function SidebarUserFooter() {
                 <Palette className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 Appearance
               </button>
-              <div className="px-1 py-0.5">
-                <LanguageSwitcher variant="full" className="w-full [&>button]:w-full" />
-              </div>
+              <button
+                type="button"
+                onClick={() => openAccount("language")}
+                className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-sm hover:bg-accent transition-colors text-left"
+              >
+                <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                Language
+              </button>
             </div>
             <div className="border-t border-border p-1">
               <button

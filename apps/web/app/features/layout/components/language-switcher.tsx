@@ -17,8 +17,8 @@ function setLocaleCookie(locale: Locale) {
 
 interface LanguageSwitcherProps {
   className?: string;
-  /** If "icon", only the globe icon is shown (no label). Useful inside compact footers. */
-  variant?: "icon" | "full";
+  /** "icon": globe only. "full": globe+flag+name trigger with dropdown. "inline": renders options directly, no trigger button. */
+  variant?: "icon" | "full" | "inline";
 }
 
 export function LanguageSwitcher({ className, variant = "full" }: LanguageSwitcherProps) {
@@ -56,6 +56,32 @@ export function LanguageSwitcher({ className, variant = "full" }: LanguageSwitch
     setLocaleCookie(locale);
     // Full navigation reload so the root loader re-detects the new cookie
     window.location.reload();
+  }
+
+  if (variant === "inline") {
+    return (
+      <div className={cn("flex flex-col gap-0.5", className)}>
+        {SUPPORTED_LOCALES.map((locale) => (
+          <button
+            key={locale}
+            type="button"
+            onClick={() => handleSelect(locale)}
+            className={cn(
+              "flex w-full items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors",
+              locale === currentLocale
+                ? "text-foreground bg-muted/50"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
+            )}
+          >
+            <span className="text-base leading-none">{LOCALE_FLAGS[locale] ?? "🌐"}</span>
+            <span className="flex-1 text-left">{t(`language.${locale}`)}</span>
+            {locale === currentLocale && (
+              <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+            )}
+          </button>
+        ))}
+      </div>
+    );
   }
 
   return (

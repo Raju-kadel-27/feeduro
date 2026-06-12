@@ -4,6 +4,7 @@ import { cn } from "@lib/utils";
 import { useTheme } from "@providers/theme-provider";
 import {
   Camera,
+  Globe,
   Monitor,
   Moon,
   Palette,
@@ -11,8 +12,9 @@ import {
   User,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { LanguageTab } from "./language-tab";
 
-type Tab = "profile" | "appearance";
+type Tab = "profile" | "appearance" | "language";
 type Theme = "light" | "dark" | "system";
 
 interface AccountUser {
@@ -240,6 +242,7 @@ function AppearanceTab() {
 const NAV_ITEMS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "profile", label: "Profile", icon: User },
   { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "language", label: "Language", icon: Globe },
 ];
 
 export function AccountModal({
@@ -251,7 +254,9 @@ export function AccountModal({
   initialTab?: Tab | "settings";
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>(initialTab === "settings" ? "profile" : initialTab);
+  const [tab, setTab] = useState<Tab>(
+    initialTab === "settings" ? "profile" : (initialTab as Tab),
+  );
 
   return (
     <Dialog
@@ -300,6 +305,7 @@ export function AccountModal({
           <div className="flex-1 overflow-y-auto p-8">
             {tab === "profile" && <ProfileTab user={user} />}
             {tab === "appearance" && <AppearanceTab />}
+            {tab === "language" && <LanguageTab />}
           </div>
         </div>
       </DialogContent>

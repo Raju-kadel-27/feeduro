@@ -12,11 +12,11 @@ export function SidebarUserFooter() {
   const navigate = useNavigate();
   const { data: session } = authClient.useSession();
   const [accountOpen, setAccountOpen] = useState(false);
-  const [accountTab, setAccountTab] = useState<"profile" | "appearance" | "settings">("profile");
+  const [accountTab, setAccountTab] = useState<"profile" | "appearance">("profile");
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  function openAccount(tab: "profile" | "appearance" | "settings") {
+  function openAccount(tab: "profile" | "appearance") {
     setAccountTab(tab);
     setAccountOpen(true);
     setPopoverOpen(false);

@@ -1,24 +1,18 @@
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog";
-import { ChangePasswordForm } from "@features/auth/components/change-password-form";
-import { useNotificationSound } from "@features/notifications/hooks/use-notification-sound";
 import { authClient } from "@lib/auth/client";
 import { cn } from "@lib/utils";
 import { useTheme } from "@providers/theme-provider";
 import {
   Camera,
-  LogOut,
   Monitor,
   Moon,
   Palette,
-  Settings,
   Sun,
   User,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import { useRef, useState } from "react";
 
-type Tab = "profile" | "appearance" | "settings";
+type Tab = "profile" | "appearance";
 type Theme = "light" | "dark" | "system";
 
 interface AccountUser {
@@ -241,94 +235,11 @@ function AppearanceTab() {
   );
 }
 
-// ─── Settings tab ─────────────────────────────────────────────────────────────
-
-function SettingsTab({ onSignOut }: { onSignOut: () => void }) {
-  const [signingOut, setSigningOut] = useState(false);
-  const { soundEnabled, toggleSound } = useNotificationSound();
-
-  async function handleSignOut() {
-    setSigningOut(true);
-    await authClient.signOut();
-    onSignOut();
-  }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-[15px] font-semibold">Security</h2>
-        <p className="text-[12.5px] text-muted-foreground mt-0.5">Update your account password.</p>
-      </div>
-
-      <ChangePasswordForm />
-
-      <div>
-        <h2 className="text-[15px] font-semibold">Account</h2>
-        <p className="text-[12.5px] text-muted-foreground mt-0.5">Manage your account settings.</p>
-      </div>
-
-      <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3.5">
-          <div className="flex items-center gap-3">
-            {soundEnabled ? (
-              <Volume2 className="h-4 w-4 text-muted-foreground shrink-0" />
-            ) : (
-              <VolumeX className="h-4 w-4 text-muted-foreground shrink-0" />
-            )}
-            <div>
-              <p className="text-[13px] font-medium">Notification sound</p>
-              <p className="text-[11.5px] text-muted-foreground mt-0.5">
-                Play a sound when new notifications arrive.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={soundEnabled}
-            onClick={toggleSound}
-            className={cn(
-              "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2",
-              soundEnabled ? "bg-primary" : "bg-muted-foreground/30",
-            )}
-          >
-            <span
-              className={cn(
-                "inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform",
-                soundEnabled ? "translate-x-4" : "translate-x-0.5",
-              )}
-            />
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between px-4 py-3.5">
-          <div>
-            <p className="text-[13px] font-medium">Sign out</p>
-            <p className="text-[11.5px] text-muted-foreground mt-0.5">
-              Sign out of your account on this device.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md border border-border text-[12.5px] text-muted-foreground hover:border-destructive/50 hover:text-destructive transition-colors disabled:opacity-50"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            {signingOut ? "Signing out…" : "Sign out"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Modal shell ──────────────────────────────────────────────────────────────
 
 const NAV_ITEMS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "profile", label: "Profile", icon: User },
   { id: "appearance", label: "Appearance", icon: Palette },
-  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 export function AccountModal({
@@ -337,10 +248,10 @@ export function AccountModal({
   onClose,
 }: {
   user: AccountUser;
-  initialTab?: Tab;
+  initialTab?: Tab | "settings";
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>(initialTab);
+  const [tab, setTab] = useState<Tab>(initialTab === "settings" ? "profile" : initialTab);
 
   return (
     <Dialog
@@ -389,7 +300,6 @@ export function AccountModal({
           <div className="flex-1 overflow-y-auto p-8">
             {tab === "profile" && <ProfileTab user={user} />}
             {tab === "appearance" && <AppearanceTab />}
-            {tab === "settings" && <SettingsTab onSignOut={onClose} />}
           </div>
         </div>
       </DialogContent>

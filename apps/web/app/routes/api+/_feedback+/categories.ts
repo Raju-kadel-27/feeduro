@@ -1,10 +1,9 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import {
   createCategory,
   deleteCategory,
   getOrgCategories,
 } from "@features/feedback/server/categories.server";
-import { isAdmin } from "@features/roles/server/queries";
 import { data } from "react-router";
 
 import type { Route } from "./+types/categories";
@@ -20,8 +19,7 @@ export async function action({ request }: Route.ActionArgs) {
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "create") {
-    if (!(await isAdmin(organizationId, session.user.id)))
-      return data({ error: "Only admins can manage categories" }, { status: 403 });
+    await requirePermission(organizationId, session.user.id, { feedback: ["update"] });
     const name = (body.name as string)?.trim();
     const color = (body.color as string) ?? "#6366f1";
     if (!name) return data({ error: "Name is required" }, { status: 400 });
@@ -34,8 +32,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "delete") {
-    if (!(await isAdmin(organizationId, session.user.id)))
-      return data({ error: "Only admins can manage categories" }, { status: 403 });
+    await requirePermission(organizationId, session.user.id, { feedback: ["update"] });
     const categoryId = body.categoryId as string;
     if (!categoryId) return data({ error: "categoryId required" }, { status: 400 });
     await deleteCategory(organizationId, categoryId);

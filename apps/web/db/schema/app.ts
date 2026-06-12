@@ -676,6 +676,8 @@ export const webhookEndpoints = pgTable(
     // JSON array of event names, e.g. ["feedback.created","changelog.published"] or ["*"] for all
     events: text("events").notNull().default('["*"]'),
     isActive: boolean("is_active").notNull().default(true),
+    lastDeliveryAt: timestamp("last_delivery_at"),
+    lastDeliveryStatus: integer("last_delivery_status"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()

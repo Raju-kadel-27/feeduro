@@ -5,43 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1780159833069,
-      "tag": "0000_lame_brood",
+      "when": 1781115341929,
+      "tag": "0000_slim_maggott",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1780384520085,
-      "tag": "0001_burly_crystal",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1780392056515,
-      "tag": "0002_certain_tyger_tiger",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1780404849698,
-      "tag": "0003_easy_mandroid",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1780600528567,
-      "tag": "0004_tranquil_metal_master",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1781029918473,
-      "tag": "0005_stiff_gorgon",
+      "when": 1749686400000,
+      "tag": "0001_webhook_delivery_status",
       "breakpoints": true
     }
   ]

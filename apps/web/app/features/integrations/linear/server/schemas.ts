@@ -59,6 +59,7 @@ export const LinearActionSchema = z.discriminatedUnion("intent", [
     intent: z.literal("update_settings"),
     defaultTeamId: z.string().optional(),
     autoCreateIssues: z.boolean(),
+    statusMappings: z.array(LinearStatusMappingSchema).optional(),
   }),
   z.object({ intent: z.literal("disconnect") }),
   z.object({ intent: z.literal("list_team_states"), teamId: z.string().min(1) }),

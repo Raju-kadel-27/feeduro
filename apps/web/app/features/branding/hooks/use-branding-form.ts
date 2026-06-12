@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { type BrandingSchema, brandingSchema } from "../schemas/branding.schema";
 import type { BrandingFormValues } from "../types/branding.types";
 
-export function useBrandingForm(defaultValues: BrandingFormValues) {
+export function useBrandingForm(defaultValues: BrandingFormValues, canHidePoweredBy: boolean) {
   const form = useForm<BrandingSchema>({
     resolver: zodResolver(brandingSchema),
     mode: "onChange",
@@ -29,6 +29,6 @@ export function useBrandingForm(defaultValues: BrandingFormValues) {
     ...form,
     onSubmit,
     isSaving: mutation.isPending,
-    proUnlocked: false,
+    proUnlocked: canHidePoweredBy,
   };
 }

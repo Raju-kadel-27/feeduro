@@ -6,12 +6,13 @@ export type PlanLimits = {
   boards: number; // -1 = unlimited
   privateBoards: boolean;
   guestPosting: boolean;
+  hidePoweredBy: boolean;
 };
 
 const PLAN_LIMITS: Record<string, PlanLimits> = {
-  free: { boards: 2, privateBoards: false, guestPosting: false },
-  starter: { boards: 5, privateBoards: true, guestPosting: true },
-  professional: { boards: -1, privateBoards: true, guestPosting: true },
+  free: { boards: 2, privateBoards: false, guestPosting: false, hidePoweredBy: false },
+  starter: { boards: 5, privateBoards: true, guestPosting: true, hidePoweredBy: false },
+  professional: { boards: -1, privateBoards: true, guestPosting: true, hidePoweredBy: true },
 };
 
 export async function getOrgPlanLimits(organizationId: string): Promise<PlanLimits> {

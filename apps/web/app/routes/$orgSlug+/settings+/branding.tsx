@@ -1,5 +1,6 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
 import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
@@ -16,9 +17,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
   const db = getDb();
 
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.id, organizationId),
-  });
+  const [org, planLimits] = await Promise.all([
+    db.query.organization.findFirst({
+      where: eq(organization.id, organizationId),
+      columns: { logo: true, name: true, metadata: true },
+    }),
+    getOrgPlanLimits(organizationId),
+  ]);
 
   let brandingOverrides: Partial<BrandingFormValues> = {};
 
@@ -34,7 +39,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     } catch {}
   }
 
-  return {
+  const defaultValues = {
     logo: org?.logo ?? "",
     name: org?.name ?? "",
     primaryColor: "indigo" as const,
@@ -43,6 +48,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     hidePoweredBy: false,
     ...brandingOverrides,
   } satisfies BrandingFormValues;
+
+  return { defaultValues, canHidePoweredBy: planLimits.hidePoweredBy };
 }
 
 export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
@@ -61,7 +68,7 @@ export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
             </p>
           </div>
 
-          <BrandingForm defaultValues={loaderData} />
+          <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
         </main>
         </>
   );

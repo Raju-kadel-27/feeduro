@@ -37,6 +37,15 @@ export async function listWebhooks(organizationId: string) {
   return { data: rows.map(fmtEndpoint) };
 }
 
+export async function getWebhookSecret(organizationId: string, id: string) {
+  const db = getDb();
+  const ep = await db.query.webhookEndpoints.findFirst({
+    where: and(eq(webhookEndpoints.id, id), eq(webhookEndpoints.organizationId, organizationId)),
+    columns: { secret: true },
+  });
+  return ep?.secret ?? null;
+}
+
 export async function getWebhook(organizationId: string, id: string) {
   const db = getDb();
   const ep = await db.query.webhookEndpoints.findFirst({
@@ -52,7 +61,16 @@ export async function getWebhooksLoaderData(sessionUserId: string, organizationI
   const [endpoints, memberRecord] = await Promise.all([
     db.query.webhookEndpoints.findMany({
       where: eq(webhookEndpoints.organizationId, organizationId),
-      columns: { id: true, name: true, url: true, events: true, isActive: true, createdAt: true },
+      columns: {
+        id: true,
+        name: true,
+        url: true,
+        events: true,
+        isActive: true,
+        createdAt: true,
+        lastDeliveryAt: true,
+        lastDeliveryStatus: true,
+      },
     }),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, sessionUserId)),

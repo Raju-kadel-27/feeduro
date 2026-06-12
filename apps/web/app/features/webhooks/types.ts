@@ -5,4 +5,6 @@ export interface EndpointRow {
   events: string;
   isActive: boolean;
   createdAt: Date;
+  lastDeliveryAt: Date | null;
+  lastDeliveryStatus: number | null;
 }

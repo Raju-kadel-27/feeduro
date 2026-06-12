@@ -1,4 +1,5 @@
 import { cn } from "@lib/utils";
+import { Check } from "lucide-react";
 
 import { COLOR_OPTIONS, type ColorValue } from "../constants/branding-options";
 
@@ -8,32 +9,32 @@ interface BrandingColorSelectProps {
 }
 
 export function BrandingColorSelect({ value, onChange }: BrandingColorSelectProps) {
-  const selected = COLOR_OPTIONS.find((option) => option.value === value);
-
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-        <span
-          className="size-2.5 rounded-full"
+    <div className="flex flex-wrap gap-2 max-w-[220px]">
+      {COLOR_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          title={option.label}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            "relative size-6 rounded-full transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
+          )}
           style={{
-            background: selected?.hex,
+            backgroundColor: option.hex,
+            ...(value === option.value
+              ? { outline: `2px solid ${option.hex}`, outlineOffset: "3px" }
+              : {}),
           }}
-        />
-      </div>
-
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as ColorValue)}
-        className={cn(
-          "h-8 appearance-none rounded-md border border-border bg-transparent pl-7 pr-8 text-xs font-medium shadow-sm",
-        )}
-      >
-        {COLOR_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        >
+          {value === option.value && (
+            <Check
+              className="absolute inset-0 m-auto size-3 text-white drop-shadow-sm"
+              strokeWidth={3}
+            />
+          )}
+        </button>
+      ))}
     </div>
   );
 }

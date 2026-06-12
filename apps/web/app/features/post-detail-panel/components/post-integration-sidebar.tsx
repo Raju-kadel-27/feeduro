@@ -9,10 +9,13 @@ import { LinkIssuePopover } from "./link-issue-popover";
 
 type Integrations = ReturnType<typeof useIntegrationLinks>;
 
-function SidebarSection({ title, children }: { title: string; children: React.ReactNode }) {
+function SidebarSection({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{title}</h4>
+      <div className="flex items-center gap-1.5">
+        {icon}
+        <span className="text-sm font-medium">{title}</span>
+      </div>
       {children}
     </div>
   );
@@ -23,7 +26,7 @@ function IssueActions({ onLink, onCreate, createLabel = "Create new issue", prov
   provider: "jira" | "linear" | "asana"; linking: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 text-xs">
+    <div className="flex items-center gap-3 text-sm">
       <LinkIssuePopover provider={provider} linking={linking} onLink={onLink} />
       <button type="button" onClick={onCreate} className="text-muted-foreground underline hover:text-foreground transition-colors">
         {createLabel}
@@ -57,9 +60,9 @@ export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin
   if (!isAdmin || !hasAny) return null;
 
   return (
-    <aside className="w-[260px] shrink-0 border-l px-4 pt-4 pb-6 space-y-5 overflow-y-auto">
+    <aside className="w-[400px] shrink-0 border-l px-4 pt-4 pb-6 space-y-5 overflow-y-auto">
       {detailData.linearConnected && (
-        <SidebarSection title="Linear Issues">
+        <SidebarSection icon={<LinearIcon size={14} />} title="Linear">
           {integrations.linearLink ? (
             <LinkedCard icon={<LinearIcon size={12} />} identifier={integrations.linearLink.identifier}
               title={integrations.linearLink.externalTitle} status={integrations.linearLink.externalStatus}
@@ -74,7 +77,7 @@ export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin
       )}
 
       {detailData.jiraConnected && (
-        <SidebarSection title="Jira Issues">
+        <SidebarSection icon={<JiraIcon size={14} />} title="Jira">
           {integrations.jiraLink ? (
             <LinkedCard icon={<JiraIcon size={12} />} identifier={integrations.jiraLink.identifier}
               title={integrations.jiraLink.externalTitle} status={integrations.jiraLink.externalStatus}
@@ -89,7 +92,7 @@ export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin
       )}
 
       {detailData.asanaConnected && (
-        <SidebarSection title="Asana Tasks">
+        <SidebarSection icon={<AsanaIcon size={14} />} title="Asana">
           {integrations.asanaLink ? (
             <LinkedCard icon={<AsanaIcon size={12} />} identifier={integrations.asanaLink.externalTitle ?? integrations.asanaLink.identifier}
               title={null} status={integrations.asanaLink.externalStatus} url={integrations.asanaLink.externalUrl}

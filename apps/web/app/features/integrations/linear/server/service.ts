@@ -218,6 +218,7 @@ export async function handleLinearAction(request: Request) {
         ...settings,
         defaultTeamId: input.defaultTeamId,
         autoCreateIssues: input.autoCreateIssues,
+        statusMappings: input.statusMappings,
         webhookId,
         webhookSecret,
       },

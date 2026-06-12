@@ -1,17 +1,16 @@
-import { cn } from "@lib/utils";
-import { useState } from "react";
+import { Badge } from "@components/ui/badge";
 import type { EndpointRow } from "../types";
-import { ConfirmationBanner } from "./confirmation-banner";
 import { EndpointActions } from "./endpoint-actions";
 import { EndpointEvents } from "./endpoint-events";
 import { EndpointHeader } from "./endpoint-header";
+import { SecretRevealRow } from "./secret-reveal-row";
 
 interface EndpointCardProps {
   ep: EndpointRow;
   isAdmin: boolean;
   onToggle: (id: string, isActive: boolean) => void;
-  onRotate: (id: string) => void;
-  onDelete: (id: string) => void;
+  onRotateClick: (id: string) => void;
+  onDeleteClick: (id: string) => void;
   rotating: boolean;
   deleting: boolean;
 }
@@ -20,52 +19,49 @@ export function EndpointCard({
   ep,
   isAdmin,
   onToggle,
-  onRotate,
-  onDelete,
+  onRotateClick,
+  onDeleteClick,
   rotating,
   deleting,
 }: EndpointCardProps) {
   const events: string[] = JSON.parse(ep.events) as string[];
-  // Per-card confirmation state: "rotate" | "delete" | null
-  const [confirming, setConfirming] = useState<"rotate" | "delete" | null>(null);
 
   return (
-    <div className={cn("p-4 space-y-3", !ep.isActive && "opacity-60")}>
-      {/* Top row: name + url + actions */}
+    <div className="p-4 space-y-3">
+      {/* Top row: name + url + inactive badge + actions */}
       <div className="flex items-start justify-between gap-3">
-        <EndpointHeader name={ep.name} url={ep.url} />
+        <div className="min-w-0 flex items-start gap-2">
+          <EndpointHeader
+            name={ep.name}
+            url={ep.url}
+            lastDeliveryAt={ep.lastDeliveryAt}
+            lastDeliveryStatus={ep.lastDeliveryStatus}
+          />
+          {!ep.isActive && (
+            <Badge variant="outline" className="shrink-0 text-muted-foreground mt-0.5">
+              Inactive
+            </Badge>
+          )}
+        </div>
 
         {isAdmin && (
           <EndpointActions
             id={ep.id}
             isActive={ep.isActive}
             onToggle={onToggle}
-            onRotateClick={() => setConfirming("rotate")}
-            onDeleteClick={() => setConfirming("delete")}
+            onRotateClick={() => onRotateClick(ep.id)}
+            onDeleteClick={() => onDeleteClick(ep.id)}
             rotating={rotating}
             deleting={deleting}
           />
         )}
       </div>
 
-      {/* Event badges + meta */}
+      {/* Event badges + created date */}
       <EndpointEvents events={events} createdAt={ep.createdAt} />
 
-      {/* Inline confirmation banners */}
-      {confirming && (
-        <ConfirmationBanner
-          type={confirming}
-          onConfirm={() => {
-            if (confirming === "rotate") {
-              onRotate(ep.id);
-            } else {
-              onDelete(ep.id);
-            }
-            setConfirming(null);
-          }}
-          onCancel={() => setConfirming(null)}
-        />
-      )}
+      {/* Secret reveal (admin only) */}
+      {isAdmin && <SecretRevealRow endpointId={ep.id} />}
     </div>
   );
 }

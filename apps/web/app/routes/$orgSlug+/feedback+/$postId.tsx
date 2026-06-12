@@ -1862,23 +1862,23 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
         <div className="w-px bg-border shrink-0" />
 
         {/* ── Right sidebar ─────────────────────────────────────────────── */}
-        <div className="w-64 shrink-0 overflow-y-auto p-5 space-y-5">
+        <div className="w-72 shrink-0 overflow-y-auto p-5 space-y-5">
           {/* Author card */}
           <div className="flex items-center gap-3">
             <Avatar name={post.authorName} image={post.authorImage} size={38} />
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">{post.authorName}</p>
-              <p className="text-xs text-muted-foreground">{timeAgo(post.createdAt)}</p>
+              <p className="text-sm text-muted-foreground">{timeAgo(post.createdAt)}</p>
             </div>
           </div>
 
           <div className="space-y-3 border-t pt-4">
             {/* Board */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground w-14 shrink-0">Board</span>
+              <span className="text-sm text-muted-foreground w-14 shrink-0">Board</span>
               <Link
                 to={`/${orgSlug}/dashboard`}
-                className="flex items-center gap-1.5 flex-1 min-w-0 px-2.5 py-1.5 rounded-md bg-muted/50 hover:bg-muted text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 flex-1 min-w-0 px-2.5 py-1.5 rounded-md bg-muted/50 hover:bg-muted text-sm font-medium transition-colors"
               >
                 <span
                   className="h-2 w-2 rounded-full shrink-0"
@@ -1892,7 +1892,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
 
             {/* Status */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground w-14 shrink-0">Status</span>
+              <span className="text-sm text-muted-foreground w-14 shrink-0">Status</span>
               <div className="relative flex-1">
                 {isAdmin ? (
                   <>
@@ -1900,7 +1900,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                       type="button"
                       onClick={() => setStatusOpen((o) => !o)}
                       className={cn(
-                        "flex items-center gap-1.5 w-full px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors",
+                        "flex items-center gap-1.5 w-full px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors",
                         cfg.bgColor,
                         cfg.textColor,
                       )}
@@ -1928,7 +1928,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                               setStatusOpen(false);
                             }}
                             className={cn(
-                              "flex items-center gap-2.5 w-full px-3 py-1.5 text-xs hover:bg-muted transition-colors",
+                              "flex items-center gap-2.5 w-full px-3 py-1.5 text-sm hover:bg-muted transition-colors",
                               s === status && "font-semibold",
                             )}
                           >
@@ -1945,7 +1945,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                 ) : (
                   <div
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium",
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium",
                       cfg.bgColor,
                       cfg.textColor,
                     )}
@@ -1964,7 +1964,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
           {/* Tags */}
           <div className="border-t pt-4 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">Tags</span>
+              <span className="text-sm font-medium">Tags</span>
               {isAdmin && unselectedTags.length > 0 && (
                 <button
                   type="button"
@@ -1988,7 +1988,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                       addTagMutation.mutate(tag.id);
                       setShowTagPicker(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-muted transition-colors text-left"
                   >
                     <span
                       className="h-2 w-2 rounded-full shrink-0"
@@ -2024,7 +2024,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                 <Tag className="h-3 w-3" />
                 No tags
               </p>
@@ -2034,13 +2034,13 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
           {/* Merged posts */}
           {mergedChildren.length > 0 && (
             <div className="border-t pt-4">
-              <p className="text-xs font-medium mb-2">Merged posts</p>
+              <p className="text-sm font-medium mb-2">Merged posts</p>
               <div className="space-y-0.5">
                 {mergedChildren.map((child) => (
                   <Link
                     key={child.id}
                     to={`/${orgSlug}/feedback/${child.id}`}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <GitMerge className="h-3 w-3 text-violet-400 shrink-0" />
                     <span className="truncate flex-1">{child.title}</span>
@@ -2060,7 +2060,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
 
           {/* Linked Issues */}
           <div className="border-t pt-4">
-            <p className="text-xs font-medium mb-3">Linked Issues</p>
+            <p className="text-sm font-medium mb-3">Linked Issues</p>
           </div>
 
           {/* Jira */}
@@ -2068,7 +2068,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <JiraIcon size={14} />
-                <span className="text-xs font-medium">Jira</span>
+                <span className="text-sm font-medium">Jira</span>
               </div>
               {isAdmin && jiraConnected && jiraLink && (
                 <a
@@ -2099,7 +2099,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
               <button
                 type="button"
                 onClick={() => setJiraMode("create")}
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
               >
                 <Plus className="h-3 w-3" />
                 Link to Jira issue
@@ -2194,7 +2194,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                   )}
                 </div>
                 {jiraLink.externalTitle && (
-                  <p className="text-xs text-foreground/80 leading-snug line-clamp-2">
+                  <p className="text-sm text-foreground/80 leading-snug line-clamp-2">
                     {jiraLink.externalTitle}
                   </p>
                 )}
@@ -2223,7 +2223,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <AsanaIcon size={14} />
-                <span className="text-xs font-medium">Asana</span>
+                <span className="text-sm font-medium">Asana</span>
               </div>
               {isAdmin && asanaConnected && asanaLink && (
                 <a
@@ -2254,7 +2254,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
               <button
                 type="button"
                 onClick={() => setAsanaMode("create")}
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
               >
                 <Plus className="h-3 w-3" />
                 Link to Asana task
@@ -2380,7 +2380,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <ShortcutIcon size={14} />
-                <span className="text-xs font-medium">Shortcut</span>
+                <span className="text-sm font-medium">Shortcut</span>
               </div>
               {isAdmin && shortcutConnected && shortcutLink && (
                 <a
@@ -2411,7 +2411,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
               <button
                 type="button"
                 onClick={() => setShortcutMode("create")}
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
               >
                 <Plus className="h-3 w-3" />
                 Link to Shortcut story
@@ -2506,7 +2506,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                   )}
                 </div>
                 {shortcutLink.externalTitle && (
-                  <p className="text-xs text-foreground/80 leading-snug line-clamp-2">
+                  <p className="text-sm text-foreground/80 leading-snug line-clamp-2">
                     {shortcutLink.externalTitle}
                   </p>
                 )}
@@ -2535,7 +2535,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <LinearIcon size={14} />
-                <span className="text-xs font-medium">Linear</span>
+                <span className="text-sm font-medium">Linear</span>
               </div>
               {isAdmin && linearConnected && linearLink && (
                 <a
@@ -2566,7 +2566,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
               <button
                 type="button"
                 onClick={() => setLinearMode("create")}
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
               >
                 <Plus className="h-3 w-3" />
                 Link to Linear issue
@@ -2661,7 +2661,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                   )}
                 </div>
                 {linearLink.externalTitle && (
-                  <p className="text-xs text-foreground/80 leading-snug line-clamp-2">
+                  <p className="text-sm text-foreground/80 leading-snug line-clamp-2">
                     {linearLink.externalTitle}
                   </p>
                 )}

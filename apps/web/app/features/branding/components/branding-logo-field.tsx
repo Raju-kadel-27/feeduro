@@ -1,5 +1,6 @@
-import { X } from "lucide-react";
-import { useRef } from "react";
+import { cn } from "@lib/utils";
+import { Upload, X } from "lucide-react";
+import { useRef, useState } from "react";
 
 import { fileToBase64 } from "../utils/logo-upload";
 
@@ -9,39 +10,62 @@ interface BrandingLogoFieldProps {
   name: string;
 }
 
-export function BrandingLogoField({ value, onChange, name }: BrandingLogoFieldProps) {
+export function BrandingLogoField({ value, onChange, name: _name }: BrandingLogoFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const initials = (name || "??").trim().slice(0, 2).toUpperCase();
+  const [isDragging, setIsDragging] = useState(false);
 
   async function handleFile(file?: File) {
-    if (!file) return;
-
+    if (!file || !file.type.startsWith("image/")) return;
     const base64 = await fileToBase64(file);
-
     onChange(base64);
   }
 
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+    handleFile(e.dataTransfer.files[0]);
+  }
+
+  if (value) {
+    return (
+      <div className="relative group w-[140px]">
+        <div className="h-14 rounded-lg border border-border overflow-hidden bg-muted flex items-center justify-center p-2">
+          <img src={value} alt="logo" className="max-h-full max-w-full object-contain" />
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="absolute -top-1.5 -right-1.5 size-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-colors shadow-sm"
+        >
+          <X className="size-2.5" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-2">
+    <>
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        className="size-8 rounded-md bg-primary overflow-hidden flex items-center justify-center"
-      >
-        {value ? (
-          <img src={value} alt="logo" className="size-full object-cover" />
-        ) : (
-          <span className="text-[11px] font-semibold text-primary-foreground">{initials}</span>
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        className={cn(
+          "w-[140px] h-14 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer",
+          isDragging
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-foreground/30 hover:bg-muted/40",
         )}
+      >
+        <Upload className="size-4 text-muted-foreground" />
+        <span className="text-[11px] text-muted-foreground leading-tight">
+          Drop or <span className="text-foreground">browse</span>
+        </span>
       </button>
-
-      {value && (
-        <button type="button" onClick={() => onChange("")}>
-          <X className="size-3.5" />
-        </button>
-      )}
-
       <input
         ref={fileRef}
         type="file"
@@ -49,6 +73,6 @@ export function BrandingLogoField({ value, onChange, name }: BrandingLogoFieldPr
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
-    </div>
+    </>
   );
 }

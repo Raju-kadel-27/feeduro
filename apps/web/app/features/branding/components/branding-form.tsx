@@ -15,9 +15,9 @@ import { BrandingSimpleSelect } from "./branding-simple-select";
 import { BrandingSwitch } from "./branding-switch";
 import { BrandingThemeCards } from "./branding-theme-cards";
 
-export function BrandingForm({ defaultValues }: BrandingFormProps) {
+export function BrandingForm({ defaultValues, canHidePoweredBy }: BrandingFormProps) {
   const { control, register, watch, formState, onSubmit, isSaving, proUnlocked } =
-    useBrandingForm(defaultValues);
+    useBrandingForm(defaultValues, canHidePoweredBy);
 
   const watchedName = watch("name");
   const watchedLogo = watch("logo");

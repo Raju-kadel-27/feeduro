@@ -4,4 +4,5 @@ export type BrandingFormValues = BrandingSchema;
 
 export interface BrandingFormProps {
   defaultValues: BrandingFormValues;
+  canHidePoweredBy: boolean;
 }

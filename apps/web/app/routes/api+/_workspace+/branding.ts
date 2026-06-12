@@ -1,4 +1,5 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
+import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
 import type { BrandingMeta } from "@features/branding/server/parse-branding";
 import { DEFAULT_BRANDING, parseBranding } from "@features/branding/server/parse-branding";
 import { eq } from "drizzle-orm";
@@ -39,11 +40,19 @@ export async function action({ request }: Route.ActionArgs) {
     hidePoweredBy?: boolean;
   };
 
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.id, organizationId),
-  });
+  const [org, planLimits] = await Promise.all([
+    db.query.organization.findFirst({
+      where: eq(organization.id, organizationId),
+      columns: { metadata: true, logo: true, name: true },
+    }),
+    getOrgPlanLimits(organizationId),
+  ]);
 
   if (!org) return data({ error: "Organization not found" }, { status: 404 });
+
+  if (body.hidePoweredBy && !planLimits.hidePoweredBy) {
+    return data({ error: "Upgrade to Pro to hide Feeduro branding." }, { status: 403 });
+  }
 
   let existingMeta: Record<string, unknown> = {};
   if (org.metadata) {

@@ -1,6 +1,5 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { deliverToN8nWebhook } from "@features/integrations/n8n/server/service";
-import { isAdmin } from "@features/roles/server/queries";
 import type { WebhookEvent } from "@features/webhooks/server/dispatch";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -46,9 +45,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage integrations" }, { status: 403 });
-  }
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
   const raw = await request.json();
   const parsed = bodySchema.safeParse(raw);

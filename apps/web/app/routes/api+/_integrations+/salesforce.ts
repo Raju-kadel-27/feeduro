@@ -1,4 +1,4 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { getSalesforceUserInfo } from "@features/integrations/salesforce/server/client";
 import {
   exchangeSalesforceCode,
@@ -10,7 +10,6 @@ import {
   getOrgSlugFromId,
   parseSettings,
 } from "@features/integrations/server/queries";
-import { isAdmin } from "@features/roles/server/queries";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
@@ -117,9 +116,7 @@ const actionSchema = z.discriminatedUnion("intent", [
 export async function action({ request }: Route.ActionArgs) {
   const { session, organizationId } = await requireOrganization(request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage integrations" }, { status: 403 });
-  }
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
   const raw = await request.json();
   const parsed = actionSchema.safeParse(raw);

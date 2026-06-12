@@ -1,11 +1,10 @@
-import { requireOrganization } from "@features/auth/server/guards";
+import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import {
   getIntegration,
   getOrgSlugFromId,
   parseSettings,
 } from "@features/integrations/server/queries";
 import type { TrelloSettings } from "@features/integrations/trello/server/schemas";
-import { isAdmin } from "@features/roles/server/queries";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
@@ -116,9 +115,7 @@ export async function handleTrelloLoader(request: Request) {
 export async function handleTrelloAction(request: Request) {
   const { session, organizationId } = await requireOrganization(request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
-    return data({ error: "Only admins can manage Trello integration" }, { status: 403 });
-  }
+  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 

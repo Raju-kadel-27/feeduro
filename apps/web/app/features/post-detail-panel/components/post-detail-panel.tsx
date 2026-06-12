@@ -5,7 +5,6 @@ import { useMergeActions } from "../hooks/use-merge-actions";
 import { useOwnerPicker } from "../hooks/use-owner-picker";
 import { usePostData } from "../hooks/use-post-data";
 import { useVoteStatus } from "../hooks/use-vote-status";
-import { PostComposeFooter } from "./post-compose-footer";
 import { PostDetailBody } from "./post-detail-body";
 import { PostDetailHeader } from "./post-detail-header";
 import { PostMergeDialog } from "./post-merge-dialog";
@@ -124,7 +123,6 @@ export function PostDetailPanel({
           onClose={onClose}
           onOpenPost={onOpenPost}
         />
-        <PostComposeFooter post={post} comments={comments} isAdmin={isAdmin} />
       </div>
       {merge.mergeOpen && (
         <PostMergeDialog

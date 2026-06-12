@@ -87,11 +87,7 @@ function VoteButton({ post, boardId }: { post: Post; boardId: string }) {
         return {
           posts: old.posts.map((p) =>
             p.id === post.id
-              ? {
-                  ...p,
-                  hasVoted: !p.hasVoted,
-                  voteCount: p.hasVoted ? p.voteCount - 1 : p.voteCount + 1,
-                }
+              ? { ...p, hasVoted: !p.hasVoted, voteCount: p.hasVoted ? p.voteCount - 1 : p.voteCount + 1 }
               : p,
           ),
         };
@@ -108,45 +104,75 @@ function VoteButton({ post, boardId }: { post: Post; boardId: string }) {
       type="button"
       onClick={() => mutate()}
       disabled={isPending}
+      aria-label={post.hasVoted ? "Remove vote" : "Upvote"}
+      aria-pressed={post.hasVoted}
       className={cn(
-        "group/vote flex flex-col items-center justify-center gap-0.5 w-10 rounded-md border px-1 py-1.5 text-xs font-semibold transition-colors",
+        "inline-flex items-center gap-0.5 text-xs tabular-nums font-semibold rounded px-1.5 py-0.5",
+        "transition-all duration-150 active:scale-95 disabled:pointer-events-none",
         post.hasVoted
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-border hover:border-primary hover:text-primary",
+          ? "bg-primary/10 text-primary hover:bg-primary/20"
+          : "bg-muted/60 text-muted-foreground hover:bg-primary/10 hover:text-primary",
       )}
     >
-      <ChevronUp className="h-3.5 w-3.5 transition-transform duration-150 group-hover/vote:-translate-y-0.5" />
-      <span>{post.voteCount}</span>
+      <ChevronUp className={cn("h-3 w-3 transition-transform duration-150", post.hasVoted && "-translate-y-px")} />
+      {post.voteCount}
     </button>
   );
 }
 
 function PostCard({ post, boardId }: { post: Post; boardId: string }) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
+  const cfg = STATUS_CONFIG[post.status];
+
   return (
-    <div className="flex items-start gap-3 p-4 rounded-lg border bg-card hover:border-primary/40 transition-colors group">
-      {/* Stop vote clicks from navigating */}
-      <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-        <VoteButton post={post} boardId={boardId} />
-      </div>
-      <Link
-        to={`/${orgSlug}/feedback/${post.id}`}
-        className="flex-1 min-w-0 space-y-1 cursor-pointer"
-      >
-        <p className="text-sm font-medium leading-snug group-hover:text-primary transition-colors">
-          {post.title}
-        </p>
-        {post.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">{post.description}</p>
+    <div
+      className={cn(
+        "group relative flex overflow-hidden rounded-lg border bg-card transition-all duration-150",
+        post.hasVoted
+          ? "border-border/80 hover:border-primary/30 hover:shadow-[0_2px_8px_hsl(var(--primary)/0.08)]"
+          : "border-border/50 hover:border-border hover:shadow-sm",
+      )}
+    >
+      {/* Status accent strip */}
+      <div
+        className={cn(
+          "w-[3px] shrink-0 transition-opacity duration-200",
+          cfg.dot,
+          post.hasVoted ? "opacity-100" : "opacity-40 group-hover:opacity-70",
         )}
-        <div className="flex items-center gap-2 pt-0.5">
+      />
+
+      {/* Content */}
+      <div className="flex flex-col gap-0 px-3 pt-2.5 pb-2 flex-1 min-w-0">
+        {/* Content zone */}
+        <Link to={`/${orgSlug}/feedback/${post.id}`} className="flex flex-col gap-1.5 pb-2.5">
+          <p className="text-sm font-semibold leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors">
+            {post.title}
+          </p>
+          {post.description && (
+            <p className="text-[12px] leading-relaxed text-muted-foreground line-clamp-1">
+              {post.description}
+            </p>
+          )}
+        </Link>
+
+        {/* Divider */}
+        <div className="h-px bg-border/50 -mx-3" />
+
+        {/* Metadata zone */}
+        <div className="flex items-center gap-1.5 pt-2">
           <StatusBadge status={post.status} />
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MessageSquare className="h-3 w-3" />
-            {post.commentCount}
-          </span>
+          {post.commentCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-xs tabular-nums text-muted-foreground/70">
+              <MessageSquare className="h-3 w-3" />
+              {post.commentCount}
+            </span>
+          )}
+          <div className="ml-auto" role="none" onClick={(e) => e.stopPropagation()}>
+            <VoteButton post={post} boardId={boardId} />
+          </div>
         </div>
-      </Link>
+      </div>
     </div>
   );
 }
@@ -218,14 +244,17 @@ export function FeedbackBoard({ boardId }: Props) {
       {isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-start gap-3 p-4 rounded-lg border">
-              <Skeleton className="h-14 w-10 rounded-md shrink-0" />
-              <div className="flex-1 space-y-2 pt-0.5">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-                <div className="flex items-center gap-2 pt-0.5">
-                  <Skeleton className="h-5 w-16 rounded-full" />
-                  <Skeleton className="h-4 w-8" />
+            <div key={i} className="flex overflow-hidden rounded-lg border">
+              <Skeleton className="w-[3px] shrink-0 rounded-none" />
+              <div className="flex flex-col gap-0 px-3 pt-2.5 pb-2 flex-1">
+                <div className="flex flex-col gap-1.5 pb-2.5">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+                <div className="h-px bg-border/50 -mx-3 mb-2" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-16 rounded-full" />
+                  <Skeleton className="h-4 w-8 ml-auto rounded" />
                 </div>
               </div>
             </div>

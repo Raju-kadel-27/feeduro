@@ -24,11 +24,10 @@ export function FeedbackCard({
   const [voteCount, setVoteCount] = useState(post.voteCount);
   const [voting, setVoting] = useState(false);
 
+  const status = STATUS[post.status];
+
   async function handleVote() {
-    if (!sessionUser) {
-      onAuthRequired();
-      return;
-    }
+    if (!sessionUser) { onAuthRequired(); return; }
     if (voting) return;
     const wasVoted = voted;
     setVoted(!wasVoted);
@@ -41,8 +40,7 @@ export function FeedbackCard({
         body: JSON.stringify({ postId: post.id, orgSlug }),
       });
       const parsed = VoteResponseSchema.safeParse(await res.json());
-      if (!res.ok || !parsed.success)
-        throw new Error(parsed.success ? parsed.data.error : "Vote failed");
+      if (!res.ok || !parsed.success) throw new Error("Vote failed");
       setVoted(parsed.data.voted ?? !wasVoted);
       setVoteCount(parsed.data.voteCount ?? voteCount);
     } catch {
@@ -55,51 +53,111 @@ export function FeedbackCard({
 
   return (
     <article
+      role="button"
+      tabIndex={0}
       onClick={onSelectPost}
-      className="group flex items-center gap-3 py-2 px-4 -mx-4 border-b border-border last:border-0 cursor-pointer hover:bg-accent/30 transition-colors"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelectPost();
+        }
+      }}
+      className={cn(
+        "group relative flex overflow-hidden rounded-lg border bg-card",
+        "transition-all duration-150 cursor-pointer select-none",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+        voted
+          ? "border-border/80 hover:border-primary/30 hover:shadow-[0_2px_8px_hsl(var(--primary)/0.08)]"
+          : "border-border/50 hover:border-border hover:shadow-sm",
+      )}
     >
-      <div className="min-w-0 flex-1">
-        <h3 className="text-[14px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
-          {post.title}
-        </h3>
-        {post.description && (
-          <p className="mt-0.5 text-[13.5px] leading-relaxed text-muted-foreground line-clamp-1">
-            {post.description}
-          </p>
+      {/* Status accent strip */}
+      <div
+        className={cn(
+          "w-[3px] shrink-0 transition-opacity duration-200",
+          voted ? "opacity-100" : "opacity-40 group-hover:opacity-70",
         )}
-        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
-          <MessageSquare className="h-2.5 w-2.5" />
-          <span className="text-[11px]">{post.commentCount}</span>
-          <span className="mx-0.5 text-border">·</span>
+        style={{ backgroundColor: status.dot }}
+      />
+
+      {/* Card content */}
+      <div className="flex flex-col gap-0 px-3 pt-2.5 pb-2 flex-1 min-w-0">
+
+        {/* ── Content zone ── */}
+        <div className="flex flex-col gap-1.5 pb-2.5">
+          <h3 className="text-sm font-semibold leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors duration-150">
+            {post.title}
+          </h3>
+
+          {post.description && (
+            <p className="text-[12px] leading-relaxed text-muted-foreground line-clamp-1">
+              {post.description}
+            </p>
+          )}
+
+          {post.boardName && (
+            <span className="inline-flex self-start items-center gap-1 px-1.5 py-[3px] rounded text-[10px] font-medium bg-muted/60 text-muted-foreground border border-border/50 leading-none">
+              {post.boardName}
+            </span>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-border/50 -mx-3" />
+
+        {/* ── Metadata zone ── */}
+        <div className="flex items-center gap-1.5 pt-2">
+          {/* Status pill */}
           <span
-            className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium"
-            style={{ background: STATUS[post.status].bg, color: STATUS[post.status].fg }}
+            className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-[3px] rounded leading-none"
+            style={{ background: status.bg, color: status.fg }}
           >
-            <span className="h-1 w-1 rounded-full" style={{ background: STATUS[post.status].dot }} />
-            {STATUS[post.status].label}
+            <span
+              className="h-1.5 w-1.5 rounded-full shrink-0"
+              style={{ background: status.dot }}
+            />
+            {status.label}
           </span>
+
+          {/* Comment count */}
+          {post.commentCount > 0 && (
+            <span
+              aria-label={`${post.commentCount} comments`}
+              className="inline-flex items-center gap-0.5 text-xs tabular-nums text-muted-foreground/70"
+            >
+              <MessageSquare className="h-3 w-3" />
+              {post.commentCount}
+            </span>
+          )}
+
+          {/* Vote button — primary action */}
+          <button
+            type="button"
+            disabled={voting}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleVote();
+            }}
+            aria-label={voted ? "Remove vote" : "Upvote this post"}
+            aria-pressed={voted}
+            className={cn(
+              "ml-auto inline-flex items-center gap-0.5 text-xs tabular-nums font-semibold rounded px-1.5 py-0.5",
+              "transition-all duration-150 active:scale-95 disabled:pointer-events-none",
+              voted
+                ? "bg-primary/10 text-primary hover:bg-primary/20"
+                : "bg-muted/60 text-muted-foreground hover:bg-primary/10 hover:text-primary",
+            )}
+          >
+            <ChevronUp
+              className={cn(
+                "h-3 w-3 transition-transform duration-150",
+                voted && "-translate-y-px",
+              )}
+            />
+            {voteCount}
+          </button>
         </div>
       </div>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleVote();
-        }}
-        disabled={voting}
-        aria-label={voted ? "Remove vote" : "Upvote"}
-        className={cn(
-          "group/vote flex flex-col items-center justify-center rounded-none border w-7 py-1 shrink-0 transition-all disabled:opacity-60",
-          voted
-            ? "border-foreground/50 bg-muted text-foreground"
-            : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-        )}
-      >
-        <ChevronUp className="h-3.5 w-3.5 transition-transform duration-150 group-hover/vote:-translate-y-0.5" strokeWidth={2} />
-        <span className="text-[11px] font-bold leading-none mt-0.5">{voteCount}</span>
-      </button>
     </article>
   );
 }

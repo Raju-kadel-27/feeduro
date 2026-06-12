@@ -10,7 +10,6 @@ import {
   Monitor,
   Moon,
   Palette,
-  Settings,
   Sun,
   User,
 } from "lucide-react";
@@ -18,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SessionUser } from "../schemas/public";
 import { avatarColor, getInitials } from "../utils";
 
-type AccountTab = "profile" | "appearance" | "settings";
+type AccountTab = "profile" | "appearance";
 type ThemeValue = "light" | "dark" | "system";
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; icon: React.ElementType }[] = [
@@ -106,17 +105,6 @@ export function UserMenu({ user, onSubmitPost }: { user: SessionUser; onSubmitPo
             >
               <User className="h-3.5 w-3.5 text-muted-foreground" />
               Profile
-            </button>
-
-            <button
-              onClick={() => {
-                setOpen(false);
-                setAccountModal("settings");
-              }}
-              className="w-full flex items-center gap-2.5 px-3 h-9 text-[13px] text-foreground/85 hover:bg-muted/60 hover:text-foreground transition-colors"
-            >
-              <Settings className="h-3.5 w-3.5 text-muted-foreground" />
-              Settings
             </button>
 
             <div className="my-1 border-t border-border" />

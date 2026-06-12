@@ -21,12 +21,16 @@ export interface WebhookPayload {
   timestamp: string;
 }
 
-async function deliverToEndpoint(url: string, secret: string, payload: WebhookPayload) {
+async function deliverToEndpoint(
+  url: string,
+  secret: string,
+  payload: WebhookPayload,
+): Promise<number | null> {
   const body = JSON.stringify(payload);
   const signature = await hmacHex(body, secret);
 
   try {
-    await fetch(url, {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -36,8 +40,9 @@ async function deliverToEndpoint(url: string, secret: string, payload: WebhookPa
       body,
       signal: AbortSignal.timeout(10_000),
     });
+    return res.status;
   } catch {
-    // Fire-and-forget — delivery failures are intentionally swallowed.
+    return null;
   }
 }
 
@@ -80,7 +85,8 @@ async function deliverWebhookBackground(
     timestamp: new Date().toISOString(),
   };
 
-  const deliveries: Promise<void>[] = [];
+  const endpointDeliveries: Array<{ id: string; promise: Promise<number | null> }> = [];
+  const sideDeliveries: Promise<void>[] = [];
 
   for (const ep of endpoints) {
     let events: string[];
@@ -91,7 +97,7 @@ async function deliverWebhookBackground(
       continue;
     }
     if (events.includes("*") || events.includes(event)) {
-      deliveries.push(deliverToEndpoint(ep.url, ep.secret, payload));
+      endpointDeliveries.push({ id: ep.id, promise: deliverToEndpoint(ep.url, ep.secret, payload) });
     }
   }
 
@@ -101,7 +107,7 @@ async function deliverWebhookBackground(
       : null;
     const zapierEvents = settings?.events ?? ["*"];
     if (zapierEvents.includes("*") || zapierEvents.includes(event)) {
-      deliveries.push(deliverToZapierCatchHook(zapierIntegration.accessToken, payload));
+      sideDeliveries.push(deliverToZapierCatchHook(zapierIntegration.accessToken, payload));
     }
   }
 
@@ -111,13 +117,29 @@ async function deliverWebhookBackground(
       : null;
     const n8nEvents = settings?.events ?? ["*"];
     if (n8nEvents.includes("*") || n8nEvents.includes(event)) {
-      deliveries.push(deliverToN8nWebhook(n8nIntegration.accessToken, payload));
+      sideDeliveries.push(deliverToN8nWebhook(n8nIntegration.accessToken, payload));
     }
   }
 
-  if (deliveries.length === 0) return;
+  if (endpointDeliveries.length === 0 && sideDeliveries.length === 0) return;
 
-  await Promise.allSettled(deliveries);
+  const [epResults] = await Promise.all([
+    Promise.allSettled(endpointDeliveries.map((d) => d.promise)),
+    Promise.allSettled(sideDeliveries),
+  ]);
+
+  if (endpointDeliveries.length > 0) {
+    const now = new Date();
+    await Promise.all(
+      epResults.map((result, i) => {
+        const statusCode = result.status === "fulfilled" ? result.value : null;
+        return db
+          .update(webhookEndpoints)
+          .set({ lastDeliveryAt: now, lastDeliveryStatus: statusCode })
+          .where(eq(webhookEndpoints.id, endpointDeliveries[i].id));
+      }),
+    );
+  }
 }
 
 export function dispatchWebhook(

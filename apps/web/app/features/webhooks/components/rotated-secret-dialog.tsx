@@ -14,8 +14,16 @@ export function RotatedSecretDialog({ secret, onClose }: { secret: string; onClo
             <AlertCircle size={16} className="shrink-0" />
             <p className="text-sm font-medium">Copy this now — it won't be shown again.</p>
           </div>
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/10 px-4 py-3">
-            <code className="text-sm font-mono text-foreground flex-1 break-all">{secret}</code>
+          <div
+            aria-live="polite"
+            className="flex items-center gap-3 rounded-lg border border-border bg-muted/10 px-4 py-3"
+          >
+            <code
+              className="text-sm font-mono text-foreground flex-1 break-all"
+              aria-label="New signing secret"
+            >
+              {secret}
+            </code>
             <CopyButton value={secret} />
           </div>
           <button

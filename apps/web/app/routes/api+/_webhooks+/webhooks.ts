@@ -8,14 +8,14 @@ import {
   rotateWebhookSecret,
   updateWebhook,
 } from "@features/webhooks/server/api-webhooks";
-import { listWebhooks } from "@features/webhooks/server/queries";
+import { getWebhookSecret, listWebhooks } from "@features/webhooks/server/queries";
 import { data } from "react-router";
 import { z } from "zod";
 
 import type { Route } from "./+types/webhooks";
 
 const IntentSchema = z.object({
-  intent: z.enum(["create", "update", "rotate_secret", "delete"]),
+  intent: z.enum(["create", "update", "rotate_secret", "delete", "reveal_secret"]),
 });
 const IdSchema = z.object({ id: z.string().min(1) });
 
@@ -75,6 +75,12 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === "rotate_secret") {
     const secret = await rotateWebhookSecret(organizationId, id);
+    if (!secret) return data({ error: "Webhook endpoint not found" }, { status: 404 });
+    return data({ success: true, secret });
+  }
+
+  if (intent === "reveal_secret") {
+    const secret = await getWebhookSecret(organizationId, id);
     if (!secret) return data({ error: "Webhook endpoint not found" }, { status: 404 });
     return data({ success: true, secret });
   }

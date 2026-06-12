@@ -22,15 +22,25 @@ export function EndpointActions({
 }: EndpointActionsProps) {
   return (
     <div className="flex items-center gap-1 shrink-0">
+      {/* Status dot */}
+      <span
+        className={cn(
+          "w-2 h-2 rounded-full shrink-0",
+          isActive ? "bg-emerald-500" : "bg-muted-foreground/30",
+        )}
+        aria-hidden
+      />
+
       {/* Active toggle */}
       <button
         type="button"
         role="switch"
         aria-checked={isActive}
+        aria-label={isActive ? "Disable webhook" : "Enable webhook"}
         onClick={() => onToggle(id, !isActive)}
         title={isActive ? "Disable" : "Enable"}
         className={cn(
-          "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none",
+          "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           isActive ? "bg-primary" : "bg-muted",
         )}
       >

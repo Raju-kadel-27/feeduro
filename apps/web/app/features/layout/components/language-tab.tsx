@@ -26,14 +26,14 @@ export function LanguageTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-[15px] font-semibold">Language</h2>
-        <p className="text-[12.5px] text-muted-foreground mt-0.5">
+        <h2 className="text-[17px] font-semibold">Language</h2>
+        <p className="text-[14px] text-muted-foreground mt-0.5">
           Choose the language you'd like to use in Feediyo.
         </p>
       </div>
 
       <div>
-        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-3">
+        <p className="text-[12px] uppercase tracking-wider text-muted-foreground font-medium mb-3">
           Display Language
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -62,11 +62,11 @@ export function LanguageTab() {
                   {meta.flag}
                 </span>
                 <div className="space-y-0.5">
-                  <p className="text-[13.5px] font-semibold leading-tight">{meta.native}</p>
-                  <p className="text-[11px] text-muted-foreground">{meta.region}</p>
+                  <p className="text-[14.5px] font-semibold leading-tight">{meta.native}</p>
+                  <p className="text-[12px] text-muted-foreground">{meta.region}</p>
                 </div>
                 {active && (
-                  <span className="text-[10px] text-primary font-medium">Active</span>
+                  <span className="text-[11px] text-primary font-medium">Active</span>
                 )}
               </button>
             );

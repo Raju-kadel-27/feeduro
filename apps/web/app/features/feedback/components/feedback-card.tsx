@@ -56,7 +56,7 @@ export function FeedbackCard({
   return (
     <article
       onClick={onSelectPost}
-      className="group flex items-center gap-3 py-2 px-4 -mx-4 border-b border-border last:border-0 cursor-pointer hover:bg-accent/30 transition-colors"
+      className="group flex items-center gap-3 py-2 px-4 -mx-4 border-b border-border/30 last:border-0 cursor-pointer hover:bg-accent/30 transition-colors"
     >
       <div className="min-w-0 flex-1">
         <h3 className="text-[14px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">

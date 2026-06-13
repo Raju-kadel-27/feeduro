@@ -606,6 +606,29 @@ export const changelogTags = pgTable(
   }),
 );
 
+export const changelogLikes = pgTable(
+  "changelog_likes",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    changelogId: varchar("changelog_id", { length: 128 })
+      .notNull()
+      .references(() => changelogs.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    uniqueIdx: uniqueIndex("changelog_likes_unique_idx").on(t.changelogId, t.userId),
+    changelogIdIdx: index("changelog_likes_changelog_id_idx").on(t.changelogId),
+  }),
+);
+
 export const changelogSubscribers = pgTable(
   "changelog_subscribers",
   {

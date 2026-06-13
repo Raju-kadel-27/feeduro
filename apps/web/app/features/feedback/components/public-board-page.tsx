@@ -119,7 +119,7 @@ export function PublicBoardPage({ loaderData }: Props) {
         onSignUp={() => setAuthModal("sign-up")}
       />
 
-      <main className={`mx-auto px-6 pb-16 ${currentTab === "roadmap" ? "max-w-[1200px] pt-1" : "max-w-[1060px] pt-6"}`}>
+      <main className={`mx-auto px-6 pb-16 ${currentTab === "roadmap" ? "max-w-[1200px] pt-1" : currentTab === "updates" ? "max-w-[1200px] pt-6" : "max-w-[1060px] pt-6"}`}>
         {currentTab === "feedback" && (
           <div className="flex gap-16">
             <PublicSidebar

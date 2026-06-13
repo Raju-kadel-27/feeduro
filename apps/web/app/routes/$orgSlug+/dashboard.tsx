@@ -175,6 +175,18 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // Ctrl+M / ⌘M opens new feedback dialog
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "m") {
+        e.preventDefault();
+        setShowCreate(true);
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const viewState = useViewState(views, allPosts, "", segments);
 
   const {

@@ -29,6 +29,12 @@ function toDate(val: Date | string): Date {
   return val instanceof Date ? val : new Date(val);
 }
 
+function formatAbsolute(val: Date | string): string {
+  return toDate(val).toLocaleString(undefined, {
+    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+}
+
 function formatRelative(val: Date | string): string {
   const date = toDate(val);
   const diff = Date.now() - date.getTime();
@@ -39,7 +45,11 @@ function formatRelative(val: Date | string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
-  return date.toLocaleDateString();
+  return toDate(val).toLocaleDateString();
+}
+
+function getInitial(name: string | null | undefined, email: string): string {
+  return (name ?? email).slice(0, 1).toUpperCase();
 }
 
 export const auditLogColumns: ColumnDef<AuditLogRow>[] = [
@@ -47,23 +57,27 @@ export const auditLogColumns: ColumnDef<AuditLogRow>[] = [
     accessorKey: "createdAt",
     header: "When",
     cell: ({ row }) => (
-      <span
-        className="text-sm text-muted-foreground whitespace-nowrap"
-        title={toDate(row.original.createdAt).toLocaleString()}
-      >
-        {formatRelative(row.original.createdAt)}
-      </span>
+      <div title={formatRelative(row.original.createdAt)} className="whitespace-nowrap">
+        <p className="text-sm text-foreground/80">{formatAbsolute(row.original.createdAt)}</p>
+      </div>
     ),
   },
   {
     accessorKey: "actorEmail",
     header: "Actor",
     cell: ({ row }) => (
-      <div>
-        <p className="text-sm font-medium leading-none">{row.original.actorEmail}</p>
-        {row.original.actorName && (
-          <p className="text-xs text-muted-foreground mt-0.5">{row.original.actorName}</p>
-        )}
+      <div className="flex items-center gap-2.5">
+        <div className="h-7 w-7 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
+          <span className="text-xs font-semibold text-muted-foreground">
+            {getInitial(row.original.actorName, row.original.actorEmail)}
+          </span>
+        </div>
+        <div>
+          <p className="text-sm font-medium">{row.original.actorEmail}</p>
+          {row.original.actorName && (
+            <p className="text-xs text-muted-foreground mt-0.5">{row.original.actorName}</p>
+          )}
+        </div>
       </div>
     ),
   },
@@ -76,7 +90,7 @@ export const auditLogColumns: ColumnDef<AuditLogRow>[] = [
         "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
       const label = ACTION_LABELS[row.original.action] ?? row.original.action;
       return (
-        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
+        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${cls}`}>
           {label}
         </span>
       );
@@ -92,7 +106,7 @@ export const auditLogColumns: ColumnDef<AuditLogRow>[] = [
         <div className="text-sm">
           <span className="capitalize">{targetType.replace(/_/g, " ")}</span>
           {targetId && (
-            <span className="ml-1 text-xs text-muted-foreground font-mono">
+            <span className="ml-1.5 text-xs text-muted-foreground font-mono">
               {targetId.slice(0, 8)}…
             </span>
           )}

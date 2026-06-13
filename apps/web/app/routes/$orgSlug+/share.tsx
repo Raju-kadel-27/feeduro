@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
 import {
+  AlertCircle,
   Check,
   ChevronDown,
   Code2,
@@ -8,13 +8,12 @@ import {
   LifeBuoy,
   Link2,
   Mail,
-  Megaphone,
   MessageSquare,
   Send,
   Users,
 } from "lucide-react";
 import { useState } from "react";
-import { data, Link } from "react-router";
+import { data } from "react-router";
 
 // Brand icons not available in lucide-react — minimal inline SVGs
 function XIcon({ className }: { className?: string }) {
@@ -50,8 +49,6 @@ import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { cn } from "@lib/utils";
 import { getEnv } from "@utils/get-env";
-import { getDb } from "@/db";
-import { widgetConfigs } from "@/db/schema";
 import type { Route } from "./+types/share";
 
 export function meta({ data: d }: Route.MetaArgs) {
@@ -63,28 +60,15 @@ export function meta({ data: d }: Route.MetaArgs) {
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const { session, org } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
   const env = getEnv();
 
   const isDev = env.ENVIRONMENT === "development";
   const publicBoardUrl = isDev ? `${env.BASE_URL}/${org.slug}` : `https://${org.slug}.feeduro.com`;
 
-  const widget = await db.query.widgetConfigs.findFirst({
-    where: eq(widgetConfigs.organizationId, org.id),
-  });
-
   return data({
     org: { name: org.name ?? "", slug: org.slug ?? "" },
     userName: session.user.name ?? "",
     publicBoardUrl,
-    widget: widget
-      ? {
-          token: widget.token,
-          position: widget.position,
-          theme: widget.theme,
-          enabled: widget.enabled,
-        }
-      : null,
     links: {
       feedback: publicBoardUrl,
       roadmap: `${publicBoardUrl}/roadmap`,
@@ -99,10 +83,12 @@ function CopyBtn({
   text,
   label = "Copy",
   className,
+  variant = "ghost",
 }: {
   text: string;
   label?: string;
   className?: string;
+  variant?: "ghost" | "primary";
 }) {
   const [copied, setCopied] = useState(false);
   function handleCopy() {
@@ -116,12 +102,14 @@ function CopyBtn({
       type="button"
       onClick={handleCopy}
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-sm border border-border",
-        "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0",
+        "inline-flex items-center gap-1.5 rounded-md text-sm border transition-colors shrink-0",
+        variant === "ghost"
+          ? "px-2.5 h-7 border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+          : "px-3 h-8 border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
         className,
       )}
     >
-      {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
       {copied ? "Copied!" : label}
     </button>
   );
@@ -147,6 +135,7 @@ function SocialBtn({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      aria-label={`Share on ${label}`}
       className="flex items-center gap-3 rounded-lg border border-border p-3.5 hover:bg-muted/50 transition-colors group"
     >
       <span
@@ -178,11 +167,14 @@ function MessageCard({
   message: string;
 }) {
   const [open, setOpen] = useState(false);
+  const panelId = `msg-${title.toLowerCase().replace(/\s+/g, "-")}`;
   return (
     <div className="rounded-lg border border-border overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls={panelId}
         className="flex w-full items-center gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
       >
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
@@ -200,7 +192,7 @@ function MessageCard({
         />
       </button>
       {open && (
-        <div className="border-t border-border bg-muted/20">
+        <div id={panelId} className="border-t border-border bg-muted/20">
           <pre className="px-4 py-3 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap font-sans">
             {message}
           </pre>
@@ -213,39 +205,11 @@ function MessageCard({
   );
 }
 
-// ─── Snippet block ────────────────────────────────────────────────────────────
-
-function SnippetBlock({
-  label,
-  code,
-  optional,
-}: {
-  label: string;
-  code: string;
-  optional?: boolean;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-            {label}
-          </span>
-          {optional && <span className="ml-2 text-xs text-muted-foreground/60">(optional)</span>}
-        </div>
-        <CopyBtn text={code} />
-      </div>
-      <pre className="rounded-lg bg-muted/60 border border-border/60 p-3.5 text-xs leading-relaxed overflow-x-auto text-foreground/75 whitespace-pre-wrap break-all font-mono">
-        {code}
-      </pre>
-    </div>
-  );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SharePage({ loaderData }: Route.ComponentProps) {
-  const { org, userName, publicBoardUrl, widget, links } = loaderData;
+  const { org, userName, publicBoardUrl, links } = loaderData;
+  const [socialOpen, setSocialOpen] = useState(false);
 
   // ── Social share URLs ──────────────────────────────────────────────────────
   // Twitter: text + url as separate params so Twitter counts the URL as 23 chars
@@ -340,255 +304,164 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
     },
   ];
 
-  // ── Widget snippets ────────────────────────────────────────────────────────
-  const loaderSnippet = `<script>window.$fdyq=window.$fdyq||[];window.feeduro=window.feeduro||new Proxy({},{get:(_,p)=>(...a)=>window.$fdyq.push([p,...a])});document.head.appendChild(Object.assign(document.createElement('script'),{src:'https://feeduro.com/sdk/v1/fdy.js',async:!0}));</script>`;
-  const initSnippet = widget
-    ? `<script>\n  window.feeduro.init('${widget.token}', {\n    position: '${widget.position}',\n    theme: '${widget.theme}'\n  });\n</script>`
-    : null;
-  const identifySnippet = `<script>\n  window.feeduro.identify({\n    id: "USER_UNIQUE_ID",\n    email: "user@example.com",\n    name: "Jane Doe"\n  });\n</script>`;
-  const allWidgetSnippets = widget
-    ? `${loaderSnippet}\n\n${initSnippet}\n\n${identifySnippet}`
-    : null;
-
   return (
-        <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Share</span>
-        </header>
+    <>
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarTrigger className="-ml-1" />
+        <span className="text-sm font-medium">Share</span>
+      </header>
 
-        <main className="p-6 max-w-3xl mx-auto w-full space-y-8 pb-16">
-          {/* Page header */}
-          <div>
-            <h1 className="text-xl font-semibold">Collect Feedback</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Get {org.name} in front of your users.
-            </p>
+      <main className="p-6 max-w-3xl mx-auto w-full space-y-8 pb-16">
+        {/* Page header */}
+        <div>
+          <h1 className="text-xl font-semibold">Collect Feedback</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Get {org.name} in front of your users.
+          </p>
+        </div>
+
+        {/* ── Board is live ─────────────────────────────────────────────── */}
+        <section className="rounded-xl border border-border p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <h2 className="text-sm font-semibold">Your {org.name} board is live</h2>
+          </div>
+          <p className="text-sm text-muted-foreground -mt-2">
+            Share it with your users, drop it in your docs, or link it from your website.
+          </p>
+
+          {/* URL row */}
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+            <Link2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="flex-1 text-sm text-foreground/80 truncate font-mono min-w-0">
+              {publicBoardUrl}
+            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <CopyBtn text={publicBoardUrl} label="Copy link" variant="primary" />
+              <a
+                href={publicBoardUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Visit
+              </a>
+            </div>
           </div>
 
-          {/* ── Board is live ─────────────────────────────────────────────── */}
-          <section className="rounded-xl border border-border p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <h2 className="text-sm font-semibold">Your {org.name} board is live</h2>
-            </div>
-            <p className="text-sm text-muted-foreground -mt-2">
-              Share it with your users, drop it in your docs, or link it from your website.
-            </p>
-
-            {/* URL row */}
-            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
-              <Link2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className="flex-1 text-sm text-foreground/80 truncate font-mono">
-                {publicBoardUrl}
-              </span>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <CopyBtn text={publicBoardUrl} label="Copy link" />
-                <a
-                  href={publicBoardUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Visit
-                </a>
-              </div>
-            </div>
-
-            {/* Social share */}
-            <div>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3">
-                Share on social
-              </p>
-              <div className="grid grid-cols-2 gap-2">
+          {/* Social share — collapsed by default */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setSocialOpen((v) => !v)}
+              aria-expanded={socialOpen}
+              className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3 hover:text-foreground transition-colors"
+            >
+              Share on social
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 transition-transform duration-150",
+                  socialOpen && "rotate-180",
+                )}
+              />
+            </button>
+            {socialOpen && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {socials.map((s) => (
                   <SocialBtn key={s.label} {...s} />
                 ))}
               </div>
-            </div>
-          </section>
-
-          {/* ── Email signature ───────────────────────────────────────────── */}
-          <section className="rounded-xl border border-border p-5 space-y-4">
-            <div>
-              <h2 className="text-sm font-semibold">Email signature</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Add this to your sign-off. Every email you send becomes an invite.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1.5">
-              <p className="text-sm font-medium text-foreground">
-                {userName || "[Your name]"} from {org.name}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Got feedback about {org.name}?{" "}
-                <span className="text-primary underline-offset-2 underline">
-                  Share your thoughts here →
-                </span>
-              </p>
-            </div>
-
-            <div className="flex justify-end">
-              <CopyBtn text={emailSig} label="Copy snippet" />
-            </div>
-          </section>
-
-          {/* ── Add to your app ───────────────────────────────────────────── */}
-          <section className="rounded-xl border border-border p-5 space-y-4">
-            <div>
-              <h2 className="text-sm font-semibold">Add to your app or website</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Drop these links into your help menu, footer, or docs. Set once, collect forever.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-border divide-y divide-border overflow-hidden">
-              {[
-                { label: "Feedback", url: links.feedback },
-                { label: "Roadmap", url: links.roadmap },
-                { label: "Changelog", url: links.changelog },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-muted/20"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{item.label}</p>
-                    <p className="text-xs text-muted-foreground truncate font-mono">{item.url}</p>
-                  </div>
-                  <CopyBtn text={item.url} />
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                © {org.name} · Feedback · Roadmap · Changelog
-              </p>
-              <CopyBtn text={allLinks} label="Copy all links" />
-            </div>
-          </section>
-
-          {/* ── Ready-to-paste messages ───────────────────────────────────── */}
-          <section className="space-y-3">
-            <div>
-              <h2 className="text-sm font-semibold">Ready-to-paste messages</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Pick a channel, copy the message, paste it. Each one is written for {org.name}.
-              </p>
-            </div>
-            <div className="space-y-2">
-              {messages.map((m) => (
-                <MessageCard key={m.title} {...m} />
-              ))}
-            </div>
-          </section>
-
-          {/* ── Widget embed ──────────────────────────────────────────────── */}
-          <section className="rounded-xl border border-border p-5 space-y-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-sm font-semibold">Widget embed</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  One snippet to collect feedback right inside your app.
-                </p>
-              </div>
-              <Link
-                to={`/${org.slug}/settings/widget`}
-                className="shrink-0 text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
-              >
-                Widget settings →
-              </Link>
-            </div>
-
-            {widget?.enabled ? (
-              <>
-                {/* Step 1 */}
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
-                      1
-                    </span>
-                    <span className="text-sm font-medium">SDK Loader</span>
-                    <span className="text-xs text-muted-foreground">Load the Feeduro SDK</span>
-                  </div>
-                  <SnippetBlock
-                    label="Paste in &lt;head&gt; or before &lt;/body&gt;"
-                    code={loaderSnippet}
-                  />
-                </div>
-
-                {/* Step 2 */}
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
-                      2
-                    </span>
-                    <span className="text-sm font-medium">Initialize</span>
-                    <span className="text-xs text-muted-foreground">Configure the widget</span>
-                  </div>
-                  <SnippetBlock label="Init script" code={initSnippet!} />
-                </div>
-
-                {/* Optional identify */}
-                <div className="rounded-lg border border-dashed border-border/70 p-4 space-y-3 bg-muted/20">
-                  <div>
-                    <p className="text-sm font-medium">Optional — Link feedback to your users</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      The widget works without this. Add it later to see who submitted what.
-                    </p>
-                  </div>
-                  <SnippetBlock label="Identify" code={identifySnippet} optional />
-                </div>
-
-                {/* Footer actions */}
-                <div className="flex items-center justify-between gap-3 pt-1">
-                  <p className="text-xs text-muted-foreground">
-                    Paste all three snippets before{" "}
-                    <code className="text-xs bg-muted px-1 py-0.5 rounded">&lt;/body&gt;</code>
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <CopyBtn text={allWidgetSnippets!} label="Copy all" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const msg = messages.find((m) => m.title === "Send to your developer");
-                        if (msg)
-                          navigator.clipboard.writeText(
-                            `${msg.message}\n\nWidget snippet:\n${allWidgetSnippets}`,
-                          );
-                      }}
-                      className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    >
-                      <Send className="h-3 w-3" />
-                      Send to developer
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6 text-center space-y-3">
-                <div className="flex justify-center">
-                  <Megaphone className="h-8 w-8 text-muted-foreground/50" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Widget not configured yet</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Set up the embed widget to collect feedback directly inside your app.
-                  </p>
-                </div>
-                <Link
-                  to={`/${org.slug}/settings/widget`}
-                  className="inline-flex items-center gap-1.5 px-4 h-8 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                >
-                  Set up widget →
-                </Link>
-              </div>
             )}
-          </section>
-        </main>
-        </>
+          </div>
+        </section>
+
+        {/* ── Email signature ───────────────────────────────────────────── */}
+        <section className="rounded-xl border border-border p-5 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold">Email signature</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Add this to your sign-off. Every email you send becomes an invite.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1.5">
+            <p className="text-sm font-medium text-foreground">
+              {userName || "[Your name]"} from {org.name}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Got feedback about {org.name}?{" "}
+              <span className="text-primary underline-offset-2 underline">
+                Share your thoughts here →
+              </span>
+            </p>
+          </div>
+
+          <div className="flex justify-end">
+            <CopyBtn text={emailSig} label="Copy snippet" />
+          </div>
+        </section>
+
+        {/* ── Add to your app ───────────────────────────────────────────── */}
+        <section className="rounded-xl border border-border p-5 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold">Add to your app or website</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Drop these links into your help menu, footer, or docs. Set once, collect forever.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border divide-y divide-border overflow-hidden">
+            {[
+              { label: "Feedback", url: links.feedback },
+              { label: "Roadmap", url: links.roadmap },
+              { label: "Changelog", url: links.changelog },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-muted/20"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="text-xs text-muted-foreground truncate font-mono">{item.url}</p>
+                </div>
+                <CopyBtn text={item.url} />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              © {org.name} · Feedback · Roadmap · Changelog
+            </p>
+            <CopyBtn text={allLinks} label="Copy all links" />
+          </div>
+        </section>
+
+        {/* ── Ready-to-paste messages ───────────────────────────────────── */}
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold">Ready-to-paste messages</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Pick a channel, copy the message, paste it. Each one is written for {org.name}.
+            </p>
+          </div>
+
+          {!userName && (
+            <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-2.5 text-sm text-amber-800 dark:text-amber-300">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              Messages contain <strong className="mx-0.5">[Your name]</strong> — add your name in
+              account settings before copying.
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {messages.map((m) => (
+              <MessageCard key={m.title} {...m} />
+            ))}
+          </div>
+        </section>
+      </main>
+    </>
   );
 }

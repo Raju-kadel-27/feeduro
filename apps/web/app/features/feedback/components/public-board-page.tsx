@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { COLOR_OPTIONS } from "@features/branding/constants/branding-options";
+import type { BrandingMeta } from "@features/branding/server/parse-branding";
 import { UpdatesView } from "@features/changelog/components/updates-view";
 import { DetailPanel } from "@features/feedback/components/detail-panel";
 import { FeedbackCard } from "@features/feedback/components/feedback-card";
@@ -14,12 +15,12 @@ import type {
   PublicPost,
   SessionUser,
 } from "@features/feedback/schemas/public";
-import { CreateBoardFab } from "@features/layout/components/create-board-fab";
 import { PublicRoadmapView } from "@features/roadmap/components/public-roadmap-view";
+import { useEffect, useMemo } from "react";
 
 type Props = {
   loaderData: {
-    org: { id: string; name: string; slug: string };
+    org: { id: string; name: string; slug: string; logo: string | null };
     boards: PublicBoard[];
     posts: PublicPost[];
     changelogEntries: PublicChangelog[];
@@ -29,6 +30,8 @@ type Props = {
     publicUser: { id: string; email: string; name?: string } | null;
     widgetToken: string | null;
     emailSubscriptionsEnabled?: boolean;
+    isSubscribed?: boolean;
+    branding: BrandingMeta;
   };
 };
 
@@ -42,7 +45,23 @@ export function PublicBoardPage({ loaderData }: Props) {
     sessionUser,
     publicUser,
     widgetToken,
+    branding,
   } = loaderData;
+
+  const primaryHex = useMemo(
+    () => COLOR_OPTIONS.find((c) => c.value === branding.primaryColor)?.hex ?? "#6366f1",
+    [branding.primaryColor],
+  );
+
+  useEffect(() => {
+    if (branding.theme === "dynamic") return;
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(branding.theme);
+    return () => {
+      root.classList.remove(branding.theme);
+    };
+  }, [branding.theme]);
 
   // Fire-and-forget: record the board visit for analytics without blocking render
   useEffect(() => {
@@ -76,12 +95,23 @@ export function PublicBoardPage({ loaderData }: Props) {
     toggleStatus,
     handleSubmitted,
     openFeedbackOrAuth,
-  } = usePublicBoard({ posts, sessionUser });
+  } = usePublicBoard({ posts, boards, sessionUser });
 
   return (
-    <div className="min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div
+      className="min-h-screen"
+      style={
+        {
+          fontFamily: "'Inter', sans-serif",
+          "--primary": primaryHex,
+          "--primary-foreground": "#ffffff",
+          "--ring": primaryHex,
+        } as React.CSSProperties
+      }
+    >
       <TopNav
         orgName={org.name}
+        orgLogo={org.logo ?? null}
         sessionUser={sessionUser ?? null}
         currentTab={currentTab}
         onSubmitPost={() => setAuthModal("sign-in")}
@@ -95,7 +125,6 @@ export function PublicBoardPage({ loaderData }: Props) {
             <PublicSidebar
               boards={boards}
               postCounts={postCounts}
-              totalCount={posts.length}
               selectedBoardId={selectedBoardId}
               onSelectBoard={setSelectedBoardId}
             />
@@ -103,6 +132,7 @@ export function PublicBoardPage({ loaderData }: Props) {
               <InlineFeedbackForm
                 orgSlug={org.slug}
                 boards={boards}
+                selectedBoardId={selectedBoardId}
                 publicUser={publicUser ?? null}
                 widgetToken={widgetToken ?? null}
                 sessionUser={sessionUser ?? null}
@@ -155,11 +185,25 @@ export function PublicBoardPage({ loaderData }: Props) {
             entries={changelogEntries ?? []}
             orgSlug={org.slug}
             subscriptionsEnabled={loaderData.emailSubscriptionsEnabled ?? false}
+            isSubscribed={loaderData.isSubscribed ?? false}
+            userEmail={sessionUser?.email ?? publicUser?.email ?? null}
+            onAuthRequired={() => setAuthModal("sign-in")}
           />
         )}
       </main>
 
-      <CreateBoardFab />
+      {(currentTab === "roadmap" || currentTab === "updates") && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-20 flex justify-center">
+          <a
+            href="https://feeduro.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-border bg-card/90 backdrop-blur-sm px-5 h-9 text-[12.5px] font-medium text-foreground/70 shadow-md hover:text-foreground hover:bg-card transition-colors"
+          >
+            Powered by Feeduro
+          </a>
+        </div>
+      )}
 
       {authModal && (
         <PublicAuthModal

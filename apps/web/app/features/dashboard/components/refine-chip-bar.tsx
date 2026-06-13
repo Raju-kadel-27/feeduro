@@ -1,3 +1,4 @@
+import { KbdShortcut } from "@components/common/kbd-shortcut";
 import type { Category, Tag } from "@features/dashboard/types";
 import type { Segment } from "@features/segmentation/types";
 import { cn } from "@lib/utils";
@@ -146,12 +147,12 @@ export function RefineChipBar({
               aria-label="Search feedback"
             >
               <Search className="h-4 w-4" />
-              <kbd className="hidden sm:inline text-[11px] font-mono bg-muted px-1 py-0.5 rounded">⌘K</kbd>
+              <KbdShortcut keys={["⌘", "K"]} />
             </button>
             <button
               type="button"
               onClick={onNewRequest}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
             >
               <span className="text-base leading-none">+</span>
               New feedback
@@ -160,7 +161,7 @@ export function RefineChipBar({
         }
       />
 
-      <div className="flex items-center gap-2 px-[18px] py-2 flex-wrap">
+      <div className="flex items-center gap-2 px-[18px] py-2.5 flex-wrap">
         <ViewsChip
           views={views}
           activeViewId={activeViewId}

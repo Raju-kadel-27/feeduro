@@ -1,7 +1,8 @@
+import { KbdShortcut } from "@components/common/kbd-shortcut";
 import { Dialog, DialogContent } from "@components/ui/dialog";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, ChevronDown, LayoutDashboard, MessageSquarePlus, SendHorizonal, Tag, X } from "lucide-react";
+import { AlertCircle, ChevronDown, LayoutDashboard, MessageSquarePlus, Tag, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const TITLE_MAX = 120;
@@ -123,9 +124,7 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
               New feedback
             </h2>
           <div className="flex items-center gap-2.5">
-            <kbd className="hidden sm:flex items-center gap-1 rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-[12px] font-medium text-muted-foreground">
-              <span>⌘</span><span>↵</span>
-            </kbd>
+            <KbdShortcut keys={["⌘", "M"]} />
             <button
               type="button"
               onClick={onClose}
@@ -289,7 +288,6 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
                   "hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed",
                 )}
               >
-                <SendHorizonal className="h-4 w-4 shrink-0" />
                 {isPending ? "Posting…" : "Post feedback"}
               </button>
             </div>

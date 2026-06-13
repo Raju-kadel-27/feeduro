@@ -49,6 +49,18 @@ export const auth = betterAuth({
     },
   },
 
+  databaseHooks: {
+    user: {
+      update: {
+        before: async (user) => {
+          if (typeof user.image === "string" && user.image.startsWith("data:")) {
+            return { data: { ...user, image: null } };
+          }
+        },
+      },
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,

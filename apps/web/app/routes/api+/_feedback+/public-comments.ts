@@ -1,10 +1,11 @@
 import { notifyMentions, notifyNewComment } from "@features/notifications/server/service";
+import { generateUserAlias } from "@features/feedback/utils";
 import { getSession } from "@lib/session";
 import { createId } from "@paralleldrive/cuid2";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";
-import { comments, feedbackBoards, feedbackPosts, organization, user } from "@/db/schema";
+import { comments, feedbackBoards, feedbackPosts, member, organization, user } from "@/db/schema";
 
 import type { Route } from "./+types/public-comments";
 
@@ -30,7 +31,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const board = await db.query.feedbackBoards.findFirst({
     where: and(eq(feedbackBoards.id, post.boardId), eq(feedbackBoards.visibility, "public")),
-    columns: { id: true },
+    columns: { id: true, anonymizeUsers: true },
   });
   if (!board) return data({ error: "Not found" }, { status: 404 });
 
@@ -49,6 +50,22 @@ export async function loader({ request }: Route.LoaderArgs) {
     .where(and(eq(comments.postId, postId), eq(comments.isInternal, false)))
     .orderBy(asc(comments.createdAt));
 
+  // Determine which comment authors are org members (shown by real name even on anonymous boards)
+  const uniqueUserIds = [...new Set(rows.map((r) => r.userId).filter((id): id is string => id != null))];
+  const orgMembers = uniqueUserIds.length > 0
+    ? await db
+        .select({ userId: member.userId })
+        .from(member)
+        .where(and(eq(member.organizationId, org.id), inArray(member.userId, uniqueUserIds)))
+    : [];
+  const memberIds = new Set(orgMembers.map((m) => m.userId));
+
+  function resolveAuthorName(userId: string | null, rawName: string | null): string {
+    if (!userId) return "Anonymous";
+    if (board.anonymizeUsers && !memberIds.has(userId)) return generateUserAlias(userId);
+    return rawName ?? "Anonymous";
+  }
+
   const repliesMap = new Map<string, typeof rows>();
   for (const row of rows) {
     if (row.parentId) {
@@ -62,9 +79,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     .filter((r) => !r.parentId)
     .map((c) => ({
       ...c,
+      authorName: resolveAuthorName(c.userId, c.authorName),
+      authorImage: board.anonymizeUsers && !memberIds.has(c.userId ?? "") ? null : c.authorImage,
+      isTeamMember: memberIds.has(c.userId ?? ""),
       createdAt: c.createdAt?.toISOString() ?? "",
       replies: (repliesMap.get(c.id) ?? []).map((r) => ({
         ...r,
+        authorName: resolveAuthorName(r.userId, r.authorName),
+        authorImage: board.anonymizeUsers && !memberIds.has(r.userId ?? "") ? null : r.authorImage,
+        isTeamMember: memberIds.has(r.userId ?? ""),
         createdAt: r.createdAt?.toISOString() ?? "",
       })),
     }));

@@ -1,7 +1,12 @@
+import { Badge } from "@components/ui/badge";
 import { FeedbackAvatar } from "@features/post-detail-panel/components/feedback-avatar";
 import { useEffect, useState } from "react";
 import { timeAgo } from "../utils";
 import type { PublicComment } from "../schemas/public";
+
+function TeamBadge() {
+  return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 leading-none">Team</Badge>;
+}
 
 function CommentRow({ comment }: { comment: PublicComment }) {
   const displayName = comment.authorName ?? "Anonymous";
@@ -12,6 +17,7 @@ function CommentRow({ comment }: { comment: PublicComment }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
             <span className="text-xs font-semibold">{displayName}</span>
+            {comment.isTeamMember && <TeamBadge />}
             <span className="text-[11px] text-muted-foreground">{timeAgo(comment.createdAt)}</span>
           </div>
           <p className="text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
@@ -31,6 +37,7 @@ function CommentRow({ comment }: { comment: PublicComment }) {
                       <span className="text-xs font-semibold">
                         {reply.authorName ?? "Anonymous"}
                       </span>
+                      {reply.isTeamMember && <TeamBadge />}
                       <span className="text-[11px] text-muted-foreground">
                         {timeAgo(reply.createdAt)}
                       </span>

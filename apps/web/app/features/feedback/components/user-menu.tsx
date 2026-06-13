@@ -1,43 +1,21 @@
 import { AccountModal } from "@features/layout/components/account-modal";
 import { authClient } from "@lib/auth/client";
-import { cn } from "@lib/utils";
-import { useTheme } from "@providers/theme-provider";
-import {
-  ChevronRight,
-  Globe,
-  LogOut,
-  Megaphone,
-  Monitor,
-  Moon,
-  Palette,
-  Sun,
-  User,
-} from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { SessionUser } from "../schemas/public";
-import { avatarColor, getInitials } from "../utils";
+import { getInitials } from "../utils";
 
-type AccountTab = "profile" | "appearance";
-type ThemeValue = "light" | "dark" | "system";
-
-const THEME_OPTIONS: { value: ThemeValue; label: string; icon: React.ElementType }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
-];
+type AccountTab = "profile" | "appearance" | "language";
 
 export function UserMenu({ user, onSubmitPost }: { user: SessionUser; onSubmitPost: () => void }) {
   const [open, setOpen] = useState(false);
-  const [themeOpen, setThemeOpen] = useState(false);
   const [accountModal, setAccountModal] = useState<AccountTab | null>(null);
   const ref = useRef<HTMLDivElement>(null);
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
-        setThemeOpen(false);
       }
     }
     document.addEventListener("mousedown", handleOutside);
@@ -59,10 +37,7 @@ export function UserMenu({ user, onSubmitPost }: { user: SessionUser; onSubmitPo
     <>
       <div ref={ref} className="relative">
         <button
-          onClick={() => {
-            setOpen((v) => !v);
-            setThemeOpen(false);
-          }}
+          onClick={() => setOpen((v) => !v)}
           className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-transparent hover:ring-border transition-all"
           aria-label="User menu"
         >
@@ -71,7 +46,7 @@ export function UserMenu({ user, onSubmitPost }: { user: SessionUser; onSubmitPo
           ) : (
             <div
               className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-              style={{ background: avatarColor(displayName) }}
+              style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
             >
               {getInitials(displayName)}
             </div>
@@ -79,84 +54,49 @@ export function UserMenu({ user, onSubmitPost }: { user: SessionUser; onSubmitPo
         </button>
 
         {open && (
-          <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-popover shadow-xl z-50 py-1.5 overflow-hidden">
-            <div className="px-3 py-2.5 border-b border-border mb-1">
-              <p className="text-[13px] font-semibold truncate">{displayName}</p>
-              <p className="text-[11.5px] text-muted-foreground truncate">{user.email}</p>
-            </div>
-
-            <button
-              onClick={() => {
-                setOpen(false);
-                onSubmitPost();
-              }}
-              className="w-full flex items-center gap-2.5 px-3 h-9 text-[13px] text-foreground/85 hover:bg-muted/60 hover:text-foreground transition-colors"
-            >
-              <Megaphone className="h-3.5 w-3.5 text-muted-foreground" />
-              Submit a Post
-            </button>
-
-            <button
-              onClick={() => {
-                setOpen(false);
-                setAccountModal("profile");
-              }}
-              className="w-full flex items-center gap-2.5 px-3 h-9 text-[13px] text-foreground/85 hover:bg-muted/60 hover:text-foreground transition-colors"
-            >
-              <User className="h-3.5 w-3.5 text-muted-foreground" />
-              Profile
-            </button>
-
-            <div className="my-1 border-t border-border" />
-
-            <div className="relative">
-              <button
-                onClick={() => setThemeOpen((v) => !v)}
-                className="w-full flex items-center gap-2.5 px-3 h-9 text-[13px] text-foreground/85 hover:bg-muted/60 hover:text-foreground transition-colors"
-              >
-                <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="flex-1 text-left">Theme</span>
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
-              {themeOpen && (
-                <div className="absolute right-full top-0 mr-1 w-36 rounded-lg border border-border bg-popover shadow-lg py-1 z-50">
-                  {THEME_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => {
-                        setTheme(opt.value);
-                        setThemeOpen(false);
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-2.5 px-3 h-8 text-[12.5px] transition-colors",
-                        theme === opt.value
-                          ? "text-foreground font-medium bg-muted"
-                          : "text-foreground/80 hover:bg-muted/60 hover:text-foreground",
-                      )}
-                    >
-                      <opt.icon className="h-3.5 w-3.5 text-muted-foreground" />
-                      {opt.label}
-                    </button>
-                  ))}
+          <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-popover shadow-xl z-50 overflow-hidden">
+            <div className="flex items-center gap-3 px-3 py-3 border-b border-border">
+              {user.image ? (
+                <img
+                  src={user.image}
+                  alt={displayName}
+                  className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border"
+                />
+              ) : (
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+                  style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+                >
+                  {getInitials(displayName)}
                 </div>
               )}
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate leading-tight">{displayName}</p>
+                <p className="text-xs text-muted-foreground truncate leading-tight mt-0.5">{user.email}</p>
+              </div>
             </div>
 
-            <button className="w-full flex items-center gap-2.5 px-3 h-9 text-[13px] text-foreground/85 hover:bg-muted/60 hover:text-foreground transition-colors">
-              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="flex-1 text-left">Language</span>
-              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
+            <div className="p-1">
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setAccountModal("profile"); }}
+                className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-sm hover:bg-accent transition-colors text-left"
+              >
+                <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                Settings
+              </button>
+            </div>
 
-            <div className="my-1 border-t border-border" />
-
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 px-3 h-9 text-[13px] text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Logout
-            </button>
+            <div className="border-t border-border p-1">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
+              >
+                <LogOut className="h-3.5 w-3.5 shrink-0" />
+                Sign out
+              </button>
+            </div>
           </div>
         )}
       </div>

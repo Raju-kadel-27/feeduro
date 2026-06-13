@@ -7,13 +7,11 @@ import type { PublicBoard } from "../schemas/public";
 export function PublicSidebar({
   boards,
   postCounts,
-  totalCount,
-  selectedBoardId = "all",
+  selectedBoardId,
   onSelectBoard,
 }: {
   boards: PublicBoard[];
   postCounts: Record<string, number>;
-  totalCount: number;
   selectedBoardId?: string;
   onSelectBoard: (id: string) => void;
 }) {
@@ -30,24 +28,6 @@ return (
             Boards
           </div>
           <ul className="mt-2 flex flex-col">
-            <li>
-              <button
-                onClick={() => onSelectBoard("all")}
-                className={cn(
-                  "w-full flex items-center gap-2.5 rounded-md px-2.5 h-8 transition-colors",
-                  selectedBoardId === "all"
-                    ? "bg-muted text-foreground"
-                    : "text-foreground/85 hover:bg-muted/60",
-                )}
-              >
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ background: "hsl(var(--foreground))" }}
-                />
-                <span className="flex-1 text-left truncate" style={{ fontSize: "14px" }}>All Feedback</span>
-                <span className="text-muted-foreground" style={{ fontSize: "13px" }}>{totalCount}</span>
-              </button>
-            </li>
             {boards.map((board, i) => (
               <li key={board.id}>
                 <button
@@ -85,6 +65,17 @@ return (
             </button>
           </li>
         </ul>
+      </div>
+
+      <div className="mt-8 px-2.5">
+        <a
+          href="https://feeduro.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+        >
+          Powered by Feeduro
+        </a>
       </div>
     </aside>
   );

@@ -20,7 +20,7 @@ export function AppSidebar() {
         <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarSeparator />
-      <div key={isSettingsRoute ? "settings" : "workspace"} className="animate-in fade-in slide-in-from-left-1 duration-150 flex flex-col flex-1 overflow-hidden">
+      <div key={isSettingsRoute ? "settings" : "workspace"} className="flex flex-col flex-1 overflow-hidden">
         {isSettingsRoute ? (
           <SettingsSidebar base={base} />
         ) : (

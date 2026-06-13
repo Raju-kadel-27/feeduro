@@ -2,12 +2,19 @@ import { requireOrganization, requirePermission } from "@features/auth/server/gu
 import { getBindings } from "@middleware/cloudflare.server";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
+import { z } from "zod";
 import { getDb } from "@/db";
 import { customDomains } from "@/db/schema";
 
 import type { Route } from "./+types/domain";
 
 const KV_PREFIX = "custom_domain:v1:";
+
+const bodySchema = z.discriminatedUnion("intent", [
+  z.object({ intent: z.literal("add_domain"), domain: z.string().min(1) }),
+  z.object({ intent: z.literal("remove_domain") }),
+  z.object({ intent: z.literal("verify_domain"), auto: z.boolean().optional() }),
+]);
 
 async function purgeKvCache(context: Route.ActionArgs["context"], domain: string) {
   try {
@@ -48,25 +55,31 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   await requirePermission(organizationId, session.user.id, { settings: ["update"] });
 
-  const body = (await request.json()) as { intent: string; domain?: string };
+  const parsed = bodySchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return data({ error: "Invalid request" }, { status: 400 });
+  }
+  const body = parsed.data;
 
   if (body.intent === "add_domain") {
     const rawDomain = body.domain
-      ?.trim()
+      .trim()
       .toLowerCase()
       .replace(/^https?:\/\//, "")
       .replace(/\/$/, "");
 
-    if (!rawDomain || !DOMAIN_RE.test(rawDomain)) {
+    if (!DOMAIN_RE.test(rawDomain)) {
       return data({ error: "Enter a valid domain (e.g. feedback.company.com)" }, { status: 400 });
     }
 
     const [existing, taken] = await Promise.all([
       db.query.customDomains.findFirst({
         where: eq(customDomains.organizationId, organizationId),
+        columns: { id: true },
       }),
       db.query.customDomains.findFirst({
         where: eq(customDomains.domain, rawDomain),
+        columns: { id: true },
       }),
     ]);
 
@@ -78,15 +91,10 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
 
     await purgeKvCache(context, rawDomain);
-    await db.insert(customDomains).values({
-      organizationId,
-      domain: rawDomain,
-      status: "pending",
-    });
-
-    const created = await db.query.customDomains.findFirst({
-      where: eq(customDomains.organizationId, organizationId),
-    });
+    const [created] = await db
+      .insert(customDomains)
+      .values({ organizationId, domain: rawDomain, status: "pending" })
+      .returning();
     return data({ domain: created });
   }
 
@@ -95,18 +103,22 @@ export async function action({ request, context }: Route.ActionArgs) {
       where: eq(customDomains.organizationId, organizationId),
       columns: { domain: true },
     });
+    if (!existing) return data({ error: "No domain configured" }, { status: 404 });
     await db.delete(customDomains).where(eq(customDomains.organizationId, organizationId));
-    if (existing) await purgeKvCache(context, existing.domain);
+    await purgeKvCache(context, existing.domain);
     return data({ success: true });
   }
 
   if (body.intent === "verify_domain") {
     const record = await db.query.customDomains.findFirst({
       where: eq(customDomains.organizationId, organizationId),
-      columns: { domain: true, organizationId: true },
+      columns: { domain: true, status: true },
     });
     if (!record) {
       return data({ error: "No domain configured" }, { status: 404 });
+    }
+    if (record.status === "active") {
+      return data({ verified: true });
     }
 
     const cname = await resolveCname(record.domain);
@@ -121,10 +133,13 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ verified: true });
     }
 
-    await db
-      .update(customDomains)
-      .set({ status: "failed" })
-      .where(eq(customDomains.organizationId, organizationId));
+    // Auto-poll silently leaves status as pending — only an explicit user verify writes "failed"
+    if (!body.auto) {
+      await db
+        .update(customDomains)
+        .set({ status: "failed" })
+        .where(eq(customDomains.organizationId, organizationId));
+    }
     return data({
       verified: false,
       error: "CNAME record not found — DNS changes can take up to 48 hours to propagate",

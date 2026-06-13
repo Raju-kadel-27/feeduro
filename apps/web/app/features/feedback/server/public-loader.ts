@@ -1,11 +1,14 @@
+import { parseBranding } from "@features/branding/server/parse-branding";
 import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
 import { verifyIdentityToken } from "@lib/identity-token";
 import { getSession } from "@lib/session";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { data } from "react-router";
 import { getDb } from "@/db";
 import {
+  changelogLikes,
+  changelogSubscribers,
   changelogs as changelogsTable,
   comments,
   feedbackBoards,
@@ -25,10 +28,11 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, orgSlug),
-    columns: { id: true, name: true, slug: true, metadata: true },
+    columns: { id: true, name: true, slug: true, logo: true, metadata: true },
   });
   if (!org) throw new Response("Not found", { status: 404 });
   const { emailSubscriptionsEnabled } = parseChangelogSettings(org.metadata ?? null);
+  const branding = parseBranding(org.metadata ?? null);
 
   const customDomain = request.headers.get("x-custom-domain") ?? null;
 
@@ -76,9 +80,21 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
     anonymizeUsers: b.anonymizeUsers,
   }));
 
+  const visitorEmail = sessionUser?.email ?? publicUser?.email ?? null;
+  const isSubscribed = visitorEmail && emailSubscriptionsEnabled
+    ? !!(await db.query.changelogSubscribers.findFirst({
+        where: and(
+          eq(changelogSubscribers.organizationId, org.id),
+          eq(changelogSubscribers.email, visitorEmail),
+          isNull(changelogSubscribers.unsubscribedAt),
+        ),
+        columns: { id: true },
+      }))
+    : false;
+
   if (boardIds.length === 0) {
     return data({
-      org: { id: org.id, name: org.name ?? "", slug: org.slug ?? "" },
+      org: { id: org.id, name: org.name ?? "", slug: org.slug ?? "", logo: org.logo ?? null },
       boards: publicBoards,
       posts: [] as PublicPost[],
       changelogEntries: [] as PublicChangelog[],
@@ -89,6 +105,8 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
       publicUser,
       widgetToken,
       emailSubscriptionsEnabled,
+      isSubscribed,
+      branding,
     });
   }
 
@@ -187,28 +205,42 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
   const rawChangelogs = await db.query.changelogs.findMany({
     where: and(eq(changelogsTable.organizationId, org.id), eq(changelogsTable.status, "published")),
     orderBy: [desc(changelogsTable.publishedAt)],
-    columns: { id: true, title: true, slug: true, body: true, publishedAt: true, createdBy: true },
+    columns: { id: true, title: true, slug: true, body: true, publishedAt: true },
   });
 
-  const changelogUserIds = [
-    ...new Set(rawChangelogs.map((c) => c.createdBy).filter((id): id is string => id != null)),
-  ];
-  const changelogUsers =
-    changelogUserIds.length > 0
-      ? await db.query.user.findMany({
-          where: inArray(userTable.id, changelogUserIds),
-          columns: { id: true, name: true },
-        })
-      : [];
-  const changelogUserMap = Object.fromEntries(changelogUsers.map((u) => [u.id, u.name]));
+  const changelogIds = rawChangelogs.map((c) => c.id);
+
+  const [likeCounts, userLikes] = await Promise.all([
+    changelogIds.length > 0
+      ? db
+          .select({ changelogId: changelogLikes.changelogId, likeCount: count() })
+          .from(changelogLikes)
+          .where(inArray(changelogLikes.changelogId, changelogIds))
+          .groupBy(changelogLikes.changelogId)
+      : Promise.resolve([]),
+    changelogIds.length > 0 && sessionUser
+      ? db
+          .select({ changelogId: changelogLikes.changelogId })
+          .from(changelogLikes)
+          .where(and(
+            inArray(changelogLikes.changelogId, changelogIds),
+            eq(changelogLikes.userId, sessionUser.id),
+          ))
+      : Promise.resolve([]),
+  ]);
+
+  const likeCountMap = Object.fromEntries(likeCounts.map((r) => [r.changelogId, r.likeCount]));
+  const likedSet = new Set(userLikes.map((r) => r.changelogId));
 
   const changelogEntries: PublicChangelog[] = rawChangelogs.map((c) => ({
     id: c.id,
     title: c.title,
-    slug: c.slug,
+    slug: c.slug ?? c.id,
     publishedAt: c.publishedAt?.toISOString() ?? c.id,
     body: c.body,
-    authorName: changelogUserMap[c.createdBy] ?? "Team",
+    authorName: "Team",
+    voteCount: likeCountMap[c.id] ?? 0,
+    voted: likedSet.has(c.id),
   }));
 
   const upNextPosts = posts
@@ -222,7 +254,7 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
     : [];
 
   return data({
-    org: { id: org.id, name: org.name ?? "", slug: org.slug ?? "" },
+    org: { id: org.id, name: org.name ?? "", slug: org.slug ?? "", logo: org.logo ?? null },
     boards: publicBoards,
     posts,
     changelogEntries,
@@ -233,5 +265,7 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
     publicUser,
     widgetToken,
     emailSubscriptionsEnabled,
+    isSubscribed,
+    branding,
   });
 }

@@ -58,7 +58,7 @@ export function ViewsNav({ base, sp, isDashboard }: Props) {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-[10px] font-semibold">
+      <SidebarGroupLabel className="text-xs font-semibold">
         Status
       </SidebarGroupLabel>
       <SidebarGroupContent>

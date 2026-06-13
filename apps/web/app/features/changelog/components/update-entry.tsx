@@ -21,11 +21,13 @@ function formatRelative(iso: string): string {
 interface Props {
   entry: PublicChangelog;
   isLast: boolean;
+  orgSlug: string;
+  userEmail: string | null;
+  onAuthRequired: () => void;
 }
 
-export function UpdateEntry({ entry, isLast }: Props) {
-  const { title, publishedAt, body, authorName, version, tags, voteCount, voted, commentCount } =
-    entry;
+export function UpdateEntry({ entry, isLast, orgSlug, userEmail, onAuthRequired }: Props) {
+  const { id, title, publishedAt, body, version, tags, voteCount, voted, slug } = entry;
 
   return (
     <div style={{ display: 'flex', position: 'relative', marginBottom: isLast ? 0 : 32 }}>
@@ -81,14 +83,17 @@ export function UpdateEntry({ entry, isLast }: Props) {
       </div>
 
       <ChangelogEntryCard
+        id={id}
         title={title}
         body={body}
-        authorName={authorName}
         version={version}
         tags={tags}
+        slug={slug}
         voteCount={voteCount}
         voted={voted}
-        commentCount={commentCount}
+        orgSlug={orgSlug}
+        userEmail={userEmail}
+        onAuthRequired={onAuthRequired}
       />
     </div>
   );

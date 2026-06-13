@@ -12,7 +12,6 @@ import {
 import { Input } from "@components/ui/input";
 import { Spinner } from "@components/ui/spinner";
 import { authClient } from "@lib/auth/client";
-import { cn } from "@lib/utils";
 import { useState } from "react";
 import type { AuthTab } from "../schemas/public";
 
@@ -104,35 +103,7 @@ export function PublicAuthModal({
           {tab === "sign-in" ? "Sign in to your account" : "Create an account"}
         </DialogTitle>
 
-        <CardHeader className="text-center pb-2 pt-6">
-          <div className="flex items-center justify-center mb-4">
-            <div className="flex rounded-lg border border-border bg-muted/40 p-0.5">
-              <button
-                type="button"
-                onClick={() => switchTab("sign-in")}
-                className={cn(
-                  "px-4 h-7 rounded-md text-[12.5px] font-medium transition-colors",
-                  tab === "sign-in"
-                    ? "bg-background text-foreground shadow-sm border border-border/60"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                onClick={() => switchTab("sign-up")}
-                className={cn(
-                  "px-4 h-7 rounded-md text-[12.5px] font-medium transition-colors",
-                  tab === "sign-up"
-                    ? "bg-background text-foreground shadow-sm border border-border/60"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                Sign up
-              </button>
-            </div>
-          </div>
+        <CardHeader className="text-center pb-2 pt-8">
           <CardTitle className="text-xl">
             {tab === "sign-in" ? "Welcome back" : "Create an account"}
           </CardTitle>
@@ -143,7 +114,7 @@ export function PublicAuthModal({
           </CardDescription>
         </CardHeader>
 
-        <div className="px-6 pb-6 pt-2">
+        <div className="px-6 pb-6 pt-4">
           <form onSubmit={tab === "sign-in" ? handleSignIn : handleSignUp}>
             <FieldGroup>
               <Field>
@@ -154,7 +125,7 @@ export function PublicAuthModal({
               </Field>
 
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-background">
-                Or continue with email
+                Or continue with
               </FieldSeparator>
 
               {tab === "sign-up" && (

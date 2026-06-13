@@ -1,5 +1,6 @@
 import type {
   AuthTab,
+  PublicBoard,
   PublicPost,
   PublicTab,
   SessionUser,
@@ -10,17 +11,18 @@ import { useSearchParams } from "react-router";
 
 type Options = {
   posts: PublicPost[];
+  boards: PublicBoard[];
   sessionUser: SessionUser | null;
 };
 
-export function usePublicBoard({ posts, sessionUser }: Options) {
+export function usePublicBoard({ posts, boards, sessionUser }: Options) {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get("tab");
   const currentTab: PublicTab = rawTab === "roadmap" || rawTab === "updates" ? rawTab : "feedback";
 
   const [activeStatuses, setActiveStatuses] = useState<Set<StatusKey>>(new Set());
   const [sort, setSort] = useState<"trending" | "top" | "new">("trending");
-  const [selectedBoardId, setSelectedBoardId] = useState("all");
+  const [selectedBoardId, setSelectedBoardId] = useState(boards[0]?.id ?? "");
   const [showModal, setShowModal] = useState(false);
   const [localPosts, setLocalPosts] = useState<PublicPost[]>([]);
   const [authModal, setAuthModal] = useState<AuthTab | null>(null);
@@ -43,7 +45,7 @@ export function usePublicBoard({ posts, sessionUser }: Options) {
 
   let filtered = allPosts;
   if (activeStatuses.size > 0) filtered = filtered.filter((p) => activeStatuses.has(p.status));
-  if (selectedBoardId !== "all") filtered = filtered.filter((p) => p.boardId === selectedBoardId);
+  if (selectedBoardId) filtered = filtered.filter((p) => p.boardId === selectedBoardId);
   if (sort === "top") filtered = [...filtered].sort((a, b) => b.voteCount - a.voteCount);
   else if (sort === "trending") filtered = [...filtered].sort((a, b) => (b.voteCount + b.commentCount * 2) - (a.voteCount + a.commentCount * 2));
 

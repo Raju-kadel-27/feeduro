@@ -81,6 +81,7 @@ export const PublicCommentReplySchema = z.object({
   createdAt: z.string(),
   authorName: z.string().nullable(),
   authorImage: z.string().nullable(),
+  isTeamMember: z.boolean().default(false),
 });
 
 export const PublicCommentSchema = PublicCommentReplySchema.extend({

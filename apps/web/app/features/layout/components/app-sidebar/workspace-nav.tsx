@@ -30,7 +30,7 @@ export function WorkspaceNav({ base, orgSlug: _orgSlug }: Props) {
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-base">
-                <Link to={item.url}>
+                <Link to={item.url} prefetch="intent">
                   <item.icon />
                   <span>{item.title}</span>
                 </Link>

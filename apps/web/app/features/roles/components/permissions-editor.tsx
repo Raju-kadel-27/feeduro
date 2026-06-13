@@ -14,10 +14,10 @@ export function PermissionsEditor({ value, onChange }: PermissionsEditorProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-3">
       {RESOURCE_DEFINITIONS.map((res) => (
-        <div key={res.key}>
-          <p className="text-sm font-medium mb-2">{res.label}</p>
+        <fieldset key={res.key} className="border-0 p-0 m-0 min-w-0">
+          <legend className="text-sm font-medium mb-2">{res.label}</legend>
           <div className="flex flex-wrap gap-2">
             {res.permissions.map((perm) => {
               const checked = (value[res.key] ?? []).includes(perm.value);
@@ -41,7 +41,7 @@ export function PermissionsEditor({ value, onChange }: PermissionsEditorProps) {
               );
             })}
           </div>
-        </div>
+        </fieldset>
       ))}
     </div>
   );

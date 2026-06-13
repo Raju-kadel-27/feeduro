@@ -34,7 +34,7 @@ return (
               <button
                 onClick={() => onSelectBoard("all")}
                 className={cn(
-                  "w-full flex items-center gap-2.5 rounded-md px-2.5 h-7 transition-colors",
+                  "w-full flex items-center gap-2.5 rounded-md px-2.5 h-8 transition-colors",
                   selectedBoardId === "all"
                     ? "bg-muted text-foreground"
                     : "text-foreground/85 hover:bg-muted/60",
@@ -54,7 +54,7 @@ return (
                   type="button"
                   onClick={() => onSelectBoard(board.id)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 rounded-md px-2.5 pr-4 h-8 transition-colors",
+                    "w-full flex items-center gap-2.5 rounded-md px-2.5 h-8 transition-colors",
                     selectedBoardId === board.id
                       ? "bg-muted text-foreground"
                       : "text-foreground/85 hover:bg-muted/60",

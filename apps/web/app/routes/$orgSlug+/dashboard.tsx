@@ -6,24 +6,30 @@ import { ListView } from "@features/dashboard/components/list-view";
 import { RefineChipBar } from "@features/dashboard/components/refine-chip-bar";
 import { useViewState } from "@features/dashboard/hooks/use-view-state";
 import { getOrgViewsWithCounts } from "@features/dashboard/server/views.server";
+import type { Board, Category, Post, Tag, View } from "@features/dashboard/types";
 import { CreateFeedbackDialog } from "@features/feedback/components/create-feedback-dialog";
-import { getBoards, getEnrichedPosts } from "@features/feedback/server/queries";
 import { getOrgCategories } from "@features/feedback/server/categories.server";
+import { getBoards, getEnrichedPosts } from "@features/feedback/server/queries";
 import { getOrgTags } from "@features/feedback/server/tags.server";
 import { PostDetailPanel } from "@features/post-detail-panel/components/post-detail-panel";
 import { getOrgSegments } from "@features/segmentation/server/service";
+import type { Segment } from "@features/segmentation/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useParams } from "react-router";
 import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
-import type { Board, Category, Post, Tag, View } from "@features/dashboard/types";
-import type { Segment } from "@features/segmentation/types";
 import type { Route } from "./+types/dashboard";
 
 export function meta() {
   return [{ title: "Requests – Feeduro" }];
+}
+
+export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate }: Route.ShouldRevalidateArgs) {
+  // Filtering is 100% client-side — skip loader re-runs when only search params change
+  if (currentUrl.pathname === nextUrl.pathname) return false;
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

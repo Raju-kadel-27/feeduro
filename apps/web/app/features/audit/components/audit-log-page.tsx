@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router";
-import { AuditLogTable } from "./audit-log-table";
 import type { AuditLogRow } from "../server/queries";
+import { AuditLogTable } from "./audit-log-table";
 
 type Props = {
   rows: AuditLogRow[];
@@ -20,7 +20,7 @@ export function AuditLogPage({ rows, total, page, pageCount }: Props) {
   }
 
   return (
-    <main className="p-6 max-w-[1040px] mx-auto w-full">
+    <main className="px-8 py-6 w-full">
       <div className="mb-6">
         <h1 className="text-xl font-semibold">Audit Log</h1>
         <p className="text-sm text-muted-foreground mt-0.5">

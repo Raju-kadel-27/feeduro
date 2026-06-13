@@ -25,7 +25,7 @@ export function SettingsSidebar({ base }: Props) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="text-base">
-                <Link to={`${base}/dashboard`}>
+                <Link to={`${base}/dashboard`} prefetch="intent">
                   <ArrowLeft />
                   <span>Back to dashboard</span>
                 </Link>
@@ -44,7 +44,7 @@ export function SettingsSidebar({ base }: Props) {
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-base">
-                      <Link to={item.url}>
+                      <Link to={item.url} prefetch="intent">
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>

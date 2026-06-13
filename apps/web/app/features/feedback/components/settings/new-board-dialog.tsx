@@ -154,8 +154,8 @@ export function NewBoardDialog({ open, onOpenChange }: Props) {
                     <t.Icon className={cn("h-5 w-5", t.iconColor)} />
                   </div>
                   <div>
-                    <p className="text-[15px] font-semibold text-foreground leading-tight">{t.label}</p>
-                    <p className="text-[13px] text-muted-foreground mt-1.5 leading-snug">{t.tagline}</p>
+                    <p className="text-[17px] font-semibold text-foreground leading-tight">{t.label}</p>
+                    <p className="text-[15px] text-muted-foreground mt-1.5 leading-snug">{t.tagline}</p>
                   </div>
                 </button>
               ))}
@@ -166,7 +166,7 @@ export function NewBoardDialog({ open, onOpenChange }: Props) {
               <button
                 type="button"
                 onClick={selectBlank}
-                className="w-full py-2.5 rounded-xl text-[14px] text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                className="w-full py-2.5 rounded-xl text-[16px] text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
               >
                 Start blank →
               </button>
@@ -203,7 +203,7 @@ export function NewBoardDialog({ open, onOpenChange }: Props) {
               className="px-7 pt-6 pb-5 space-y-5"
             >
               <div className="space-y-2">
-                <Label htmlFor="board-name" className="text-[14px]">Board name</Label>
+                <Label htmlFor="board-name" className="text-[16px]">Board name</Label>
                 <Input
                   id="board-name"
                   value={name}
@@ -217,7 +217,7 @@ export function NewBoardDialog({ open, onOpenChange }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="board-desc" className="text-[14px]">
+                <Label htmlFor="board-desc" className="text-[16px]">
                   Description{" "}
                   <span className="font-normal text-muted-foreground">(optional)</span>
                 </Label>
@@ -232,7 +232,7 @@ export function NewBoardDialog({ open, onOpenChange }: Props) {
               </div>
 
               <div className="space-y-2.5">
-                <Label className="text-[14px]">Visibility</Label>
+                <Label className="text-[16px]">Visibility</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {VISIBILITY_OPTIONS.map(({ value, Icon, label, desc }) => (
                     <button
@@ -248,11 +248,11 @@ export function NewBoardDialog({ open, onOpenChange }: Props) {
                     >
                       <div className="flex items-center gap-2.5">
                         <Icon className={cn("h-4 w-4", visibility === value ? "text-primary" : "text-muted-foreground")} />
-                        <span className={cn("text-[14px] font-semibold", visibility === value ? "text-primary" : "text-foreground")}>
+                        <span className={cn("text-[16px] font-semibold", visibility === value ? "text-primary" : "text-foreground")}>
                           {label}
                         </span>
                       </div>
-                      <span className="text-[12.5px] leading-snug text-muted-foreground">{desc}</span>
+                      <span className="text-[14.5px] leading-snug text-muted-foreground">{desc}</span>
                     </button>
                   ))}
                 </div>

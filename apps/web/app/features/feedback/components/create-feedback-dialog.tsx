@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from "@components/ui/dialog";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, ChevronDown, LayoutDashboard, Tag, X } from "lucide-react";
+import { AlertCircle, ChevronDown, LayoutDashboard, MessageSquarePlus, SendHorizonal, Tag, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const TITLE_MAX = 120;
@@ -114,11 +114,14 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-[620px] p-0 rounded-2xl gap-0 [&>button]:hidden shadow-2xl">
+      <DialogContent className="max-w-[780px] p-0 rounded-3xl gap-0 [&>button]:hidden shadow-2xl">
 
         {/* ── Header ─────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-border/60 rounded-t-2xl overflow-hidden">
-          <h2 className="text-[15px] font-semibold text-foreground">New feedback</h2>
+          <h2 className="flex items-center gap-2.5 text-[18px] font-semibold text-foreground">
+              <MessageSquarePlus className="h-5 w-5 text-muted-foreground shrink-0" />
+              New feedback
+            </h2>
           <div className="flex items-center gap-2.5">
             <kbd className="hidden sm:flex items-center gap-1 rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-[12px] font-medium text-muted-foreground">
               <span>⌘</span><span>↵</span>
@@ -159,8 +162,6 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
               )}
             </div>
 
-            <div className="h-px bg-border/40 mb-4" />
-
             {/* Description */}
             <textarea
               ref={textareaRef}
@@ -168,34 +169,37 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
               onChange={handleDescriptionChange}
               placeholder="Add details, steps to reproduce, or anything that gives context…"
               rows={4}
-              className="w-full resize-none overflow-hidden bg-transparent text-[15px] text-foreground/80 placeholder:text-muted-foreground/35 focus:outline-none leading-relaxed mb-5"
+              className="w-full resize-none overflow-hidden bg-transparent text-[15px] text-foreground/80 placeholder:text-muted-foreground/35 focus:outline-none leading-relaxed"
               style={{ minHeight: "100px" }}
             />
 
-            {/* ── Metadata row ─────────────────────────────────── */}
-            <div className="flex flex-wrap items-center gap-2.5 pb-5 border-b border-border/50">
+          </div>
 
-              {/* Board selector — always visible */}
+          {/* ── Footer ─────────────────────────────────────────── */}
+          <div className="flex items-center gap-2 px-7 py-5">
+
+            {/* Left: board + category pickers */}
+            <div className="flex items-center gap-2">
+
+              {/* Board selector */}
               <div ref={boardRef} className="relative">
                 <button
                   type="button"
                   onClick={() => hasMultipleBoards && setShowBoardMenu((v) => !v)}
                   className={cn(
-                    "flex items-center gap-2 h-9 pl-3 pr-3.5 rounded-full border text-[13px] font-medium transition-all",
+                    "flex items-center gap-2 h-9 w-[185px] pl-3 pr-2.5 rounded-full border text-[13px] font-medium transition-all overflow-hidden",
                     "border-border bg-muted/30 text-foreground",
-                    hasMultipleBoards && "hover:bg-muted hover:border-border/80 cursor-pointer",
-                    !hasMultipleBoards && "cursor-default",
+                    hasMultipleBoards ? "hover:bg-muted hover:border-border/80 cursor-pointer" : "cursor-default",
                   )}
                 >
                   <LayoutDashboard className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span>{selectedBoard?.name ?? boards[0]?.name ?? "Board"}</span>
+                  <span className="truncate flex-1 min-w-0">{selectedBoard?.name ?? "Board"}</span>
                   {hasMultipleBoards && (
-                    <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground opacity-60 transition-transform", showBoardMenu && "rotate-180")} />
+                    <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground opacity-60 shrink-0 transition-transform", showBoardMenu && "rotate-180")} />
                   )}
                 </button>
-
                 {showBoardMenu && (
-                  <div className="absolute top-full left-0 mt-2 min-w-[200px] max-h-[240px] overflow-y-auto rounded-xl border border-border bg-popover shadow-lg z-50 py-1.5">
+                  <div className="absolute bottom-full left-0 mb-2 min-w-[200px] max-h-[240px] overflow-y-auto rounded-xl border border-border bg-popover shadow-lg z-50 py-1.5">
                     {boards.map((b) => (
                       <button
                         key={b.id}
@@ -214,14 +218,14 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
                 )}
               </div>
 
-              {/* Category selector — visible when categories exist */}
+              {/* Category selector */}
               {categories.length > 0 && (
                 <div ref={categoryRef} className="relative">
                   <button
                     type="button"
                     onClick={() => setShowCategoryMenu((v) => !v)}
                     className={cn(
-                      "flex items-center gap-2 h-9 pl-3 pr-3.5 rounded-full border text-[13px] font-medium transition-all",
+                      "flex items-center gap-2 h-9 w-[185px] pl-3 pr-2.5 rounded-full border text-[13px] font-medium transition-all overflow-hidden",
                       selectedCategoryId
                         ? "border-primary/40 bg-primary/10 text-primary"
                         : "border-border bg-muted/30 text-foreground hover:bg-muted hover:border-border/80",
@@ -230,14 +234,13 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
                     {selectedCategory ? (
                       <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedCategory.color }} />
                     ) : (
-                      <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     )}
-                    <span>{selectedCategory?.name ?? "No category"}</span>
-                    <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground opacity-60 transition-transform", showCategoryMenu && "rotate-180")} />
+                    <span className="truncate flex-1 min-w-0">{selectedCategory?.name ?? "Category"}</span>
+                    <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground opacity-60 shrink-0 transition-transform", showCategoryMenu && "rotate-180")} />
                   </button>
-
                   {showCategoryMenu && (
-                    <div className="absolute top-full left-0 mt-2 min-w-[190px] max-h-[240px] overflow-y-auto rounded-xl border border-border bg-popover shadow-lg z-50 py-1.5">
+                    <div className="absolute bottom-full left-0 mb-2 min-w-[190px] max-h-[240px] overflow-y-auto rounded-xl border border-border bg-popover shadow-lg z-50 py-1.5">
                       <button
                         type="button"
                         onClick={() => { setSelectedCategoryId(""); setShowCategoryMenu(false); }}
@@ -269,25 +272,16 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
               )}
 
             </div>
-          </div>
 
-          {/* ── Footer ─────────────────────────────────────────── */}
-          <div className="flex items-center gap-3 px-7 py-5">
-            {error && (
-              <div className="flex items-center gap-1.5 text-[13px] text-destructive min-w-0 mr-auto">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span className="truncate">{(error as Error).message}</span>
-              </div>
-            )}
+            {/* Right: error + action buttons */}
             <div className="ml-auto flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={onClose}
-                className="h-10 px-5 rounded-xl border border-border text-[14px] font-medium text-foreground/70 hover:text-foreground hover:bg-muted transition-colors"
-              >
-                Cancel
-              </button>
-              <button
+              {error && (
+                <div className="flex items-center gap-1.5 text-[13px] text-destructive min-w-0">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span className="truncate max-w-[185px]">{(error as Error).message}</span>
+                </div>
+              )}
+<button
                 type="submit"
                 disabled={isPending || !title.trim()}
                 className={cn(
@@ -295,9 +289,11 @@ export function CreateFeedbackDialog({ boardId: defaultBoardId, onClose, onSucce
                   "hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed",
                 )}
               >
+                <SendHorizonal className="h-4 w-4 shrink-0" />
                 {isPending ? "Posting…" : "Post feedback"}
               </button>
             </div>
+
           </div>
         </form>
 

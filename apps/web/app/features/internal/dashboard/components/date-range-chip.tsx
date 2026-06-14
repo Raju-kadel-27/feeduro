@@ -1,7 +1,7 @@
 import { DateRangePicker } from "@components/ui/date-range-picker/date-range-picker";
 import { cn } from "@lib/utils";
 import { format, parse } from "date-fns";
-import { CalendarIcon, ChevronDown, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { useRef, useState } from "react";
 
 interface DateRangeChipProps {
@@ -58,7 +58,6 @@ export function DateRangeChip({
       )}
     >
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1">
-        <CalendarIcon className="h-3 w-3" />
         {isActive ? (
           <>
             <span className="text-muted-foreground font-normal">Date:</span>

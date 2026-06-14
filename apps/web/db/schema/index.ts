@@ -17,3 +17,10 @@ export {
   user,
   verification,
 } from "./better-auth";
+export {
+  jwks,
+  oauthAccessToken,
+  oauthClient,
+  oauthConsent,
+  oauthRefreshToken,
+} from "./oauth-provider";

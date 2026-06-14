@@ -1,4 +1,5 @@
 import { apiKey } from "@better-auth/api-key";
+import { oauthProvider } from "@better-auth/oauth-provider";
 import { passkey } from "@better-auth/passkey";
 import { sso } from "@better-auth/sso";
 import { sendResetPasswordEmail } from "@features/internal/jobs/send-reset-password-email";
@@ -6,7 +7,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, lastLoginMethod, twoFactor } from "better-auth/plugins";
+import { admin, jwt, lastLoginMethod, twoFactor } from "better-auth/plugins";
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
 import { buildDodoPlugin } from "./dodo-plugin";
@@ -22,6 +23,9 @@ export const auth = betterAuth({
     "http://localhost:8788",
     "http://192.168.1.68:3000",
   ],
+
+  // Disable the /token endpoint to prevent conflict with OAuth provider's /oauth2/token
+  disabledPaths: ["/token"],
 
   database: drizzleAdapter(getDb(), {
     provider: "pg",
@@ -39,6 +43,11 @@ export const auth = betterAuth({
       twoFactor: schema.twoFactor,
       passkey: schema.passkey,
       subscription: schema.subscription,
+      jwks: schema.jwks,
+      oauthClient: schema.oauthClient,
+      oauthRefreshToken: schema.oauthRefreshToken,
+      oauthAccessToken: schema.oauthAccessToken,
+      oauthConsent: schema.oauthConsent,
     },
   }),
 
@@ -98,6 +107,32 @@ export const auth = betterAuth({
       organizationProvisioning: {
         disabled: false,
         defaultRole: "member",
+      },
+    }),
+    // jwt() must come before oauthProvider() — oauth provider depends on it for token signing
+    jwt(),
+    oauthProvider({
+      loginPage: "/sign-in",
+      consentPage: "/consent",
+      scopes: ["openid", "profile", "email", "offline_access"],
+      // Allow dynamic client registration (users can create OAuth apps via API)
+      allowDynamicClientRegistration: true,
+      allowPublicClientPrelogin: true,
+      // Tie OAuth clients to the active organization
+      clientReference: ({ session }) => {
+        return (session?.activeOrganizationId as string | undefined) ?? undefined;
+      },
+      // Only org admins and owners can manage OAuth clients
+      clientPrivileges: async ({ headers, session }) => {
+        if (!session?.activeOrganizationId) return false;
+        const memberData = await auth.api.getActiveMember({ headers });
+        const role = memberData?.data?.role;
+        return role === "owner" || role === "admin";
+      },
+      // Custom claims added to access tokens (e.g. org ID for API authorization)
+      customAccessTokenClaims: ({ referenceId }) => {
+        if (!referenceId) return {};
+        return { "https://feediyo.com/org": referenceId };
       },
     }),
     orgPlugin,

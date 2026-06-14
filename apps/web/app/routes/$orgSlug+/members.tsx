@@ -1,4 +1,10 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -128,14 +134,20 @@ export default function Members({ loaderData }: Route.ComponentProps) {
                       {isAdmin && (
                         <td className="px-4 py-3 text-right">
                           {!isCurrentUser && (
-                            <button
-                              type="button"
-                              onClick={() => removeMember(m.id)}
-                              title="Remove member"
-                              className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
-                            >
-                              <UserMinus className="h-4 w-4" />
-                            </button>
+                            <TooltipProvider delayDuration={300}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeMember(m.id)}
+                                    className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
+                                  >
+                                    <UserMinus className="h-4 w-4" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Remove member</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           )}
                         </td>
                       )}

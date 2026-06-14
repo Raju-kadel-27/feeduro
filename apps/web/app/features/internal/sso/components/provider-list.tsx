@@ -1,4 +1,10 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@components/ui/tooltip";
 import { callSSOApi } from "@features/internal/sso/api";
 import type { SSOProvider } from "@features/internal/sso/server/queries";
 import { cn } from "@lib/utils";
@@ -61,16 +67,22 @@ export function ProviderList({ providers, isAdmin }: ProviderListProps) {
             </div>
             {isAdmin && (
               <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    disabled={deleting}
-                    title="Remove provider"
-                    className="p-2 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground disabled:opacity-50"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </PopoverTrigger>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <PopoverTrigger asChild>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          disabled={deleting}
+                          className="p-2 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground disabled:opacity-50"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </TooltipTrigger>
+                    </PopoverTrigger>
+                    <TooltipContent>Remove provider</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <PopoverContent side="left" className="w-64 p-4 space-y-3">
                   <p className="text-sm font-medium">Remove this provider?</p>
                   <p className="text-xs text-muted-foreground">

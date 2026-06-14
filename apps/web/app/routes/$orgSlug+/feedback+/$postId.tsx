@@ -1,3 +1,4 @@
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgTags, getPostTags } from "@features/feedback/server/tags.server";
 import { PostMergeDialog } from "@features/internal/post-detail-panel/components/post-merge-dialog";
@@ -1569,13 +1570,19 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     />
                     <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/20">
                       <div className="flex items-center gap-0.5">
-                        <button
-                          type="button"
-                          title="Add emoji"
-                          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        >
-                          <Smile className="h-4 w-4" />
-                        </button>
+                        <TooltipProvider delayDuration={300}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              >
+                                <Smile className="h-4 w-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Add emoji</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         {isAdmin && (
                           <button
                             type="button"
@@ -1966,14 +1973,20 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Tags</span>
               {isAdmin && unselectedTags.length > 0 && (
-                <button
-                  type="button"
-                  title="Add tag"
-                  onClick={() => setShowTagPicker((p) => !p)}
-                  className="p-1 rounded hover:bg-muted text-muted-foreground transition-colors"
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setShowTagPicker((p) => !p)}
+                        className="p-1 rounded hover:bg-muted text-muted-foreground transition-colors"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Add tag</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 
@@ -2071,15 +2084,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                 <span className="text-sm font-medium">Jira</span>
               </div>
               {isAdmin && jiraConnected && jiraLink && (
-                <a
-                  href={jiraLink.externalUrl ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  title="Open in Jira"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <a
+                        href={jiraLink.externalUrl ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </TooltipTrigger>
+                    <TooltipContent>Open in Jira</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 
@@ -2182,15 +2201,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     {jiraLink.identifier}
                   </span>
                   {isAdmin && (
-                    <button
-                      type="button"
-                      onClick={() => unlinkJiraIssue()}
-                      disabled={unlinkingJiraIssue}
-                      title="Unlink issue"
-                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => unlinkJiraIssue()}
+                            disabled={unlinkingJiraIssue}
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Unlink issue</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
                 {jiraLink.externalTitle && (
@@ -2226,15 +2251,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                 <span className="text-sm font-medium">Asana</span>
               </div>
               {isAdmin && asanaConnected && asanaLink && (
-                <a
-                  href={asanaLink.externalUrl ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  title="Open in Asana"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <a
+                        href={asanaLink.externalUrl ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </TooltipTrigger>
+                    <TooltipContent>Open in Asana</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 
@@ -2344,15 +2375,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                       : asanaLink.identifier}
                   </span>
                   {isAdmin && (
-                    <button
-                      type="button"
-                      onClick={() => unlinkAsanaTask()}
-                      disabled={unlinkingAsanaTask}
-                      title="Unlink task"
-                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 shrink-0"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => unlinkAsanaTask()}
+                            disabled={unlinkingAsanaTask}
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 shrink-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Unlink task</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
                 {asanaLink.externalStatus && (
@@ -2383,15 +2420,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                 <span className="text-sm font-medium">Shortcut</span>
               </div>
               {isAdmin && shortcutConnected && shortcutLink && (
-                <a
-                  href={shortcutLink.externalUrl ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  title="Open in Shortcut"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <a
+                        href={shortcutLink.externalUrl ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </TooltipTrigger>
+                    <TooltipContent>Open in Shortcut</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 
@@ -2494,15 +2537,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     {shortcutLink.identifier}
                   </span>
                   {isAdmin && (
-                    <button
-                      type="button"
-                      onClick={() => unlinkShortcutStory()}
-                      disabled={unlinkingShortcutStory}
-                      title="Unlink story"
-                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => unlinkShortcutStory()}
+                            disabled={unlinkingShortcutStory}
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Unlink story</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
                 {shortcutLink.externalTitle && (
@@ -2538,15 +2587,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                 <span className="text-sm font-medium">Linear</span>
               </div>
               {isAdmin && linearConnected && linearLink && (
-                <a
-                  href={linearLink.externalUrl ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  title="Open in Linear"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <a
+                        href={linearLink.externalUrl ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </TooltipTrigger>
+                    <TooltipContent>Open in Linear</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 
@@ -2649,15 +2704,21 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     {linearLink.identifier}
                   </span>
                   {isAdmin && (
-                    <button
-                      type="button"
-                      onClick={() => unlinkLinearIssue()}
-                      disabled={unlinkingLinearIssue}
-                      title="Unlink issue"
-                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => unlinkLinearIssue()}
+                            disabled={unlinkingLinearIssue}
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Unlink issue</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
                 {linearLink.externalTitle && (

@@ -1,5 +1,11 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -222,15 +228,21 @@ function ChangelogList({
                         }
                       })()}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteEntry(entry.id)}
-                    disabled={deleting}
-                    title="Delete entry"
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-all text-muted-foreground disabled:opacity-30"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => deleteEntry(entry.id)}
+                          disabled={deleting}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-all text-muted-foreground disabled:opacity-30"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete entry</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               ))}
             </div>

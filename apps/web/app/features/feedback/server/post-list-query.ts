@@ -1,10 +1,10 @@
-import { getDb } from "@/db";
-import { comments, feedbackPosts, user, votes } from "@/db/schema";
 import { getPostTagsBatch } from "@features/feedback/server/tags.server";
 import { getMrrImpactByPost, getVoterTraitCountsByPost } from "@features/internal/segmentation/server/service";
 import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
+import { getDb } from "@/db";
+import { comments, feedbackPosts, user, votes } from "@/db/schema";
 
 const EMPTY_TRAITS: VoterTraitCounts = { plan: {}, role: {}, industry: {}, location: {} };
 

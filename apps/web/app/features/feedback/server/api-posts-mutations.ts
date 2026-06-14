@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
-import { CreatePostSchema, UpdatePostSchema, getPost } from "./api-posts";
+import { CreatePostSchema, getPost, UpdatePostSchema } from "./api-posts";
 
 export async function createPost(organizationId: string, input: z.infer<typeof CreatePostSchema>) {
   const db = getDb();

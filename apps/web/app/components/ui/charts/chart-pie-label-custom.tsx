@@ -1,7 +1,5 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
-import { Pie, PieChart } from "recharts"
 
 import {
   Card,
@@ -12,11 +10,13 @@ import {
   CardTitle,
 } from "@components/ui/card"
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@components/ui/chart"
+import { TrendingUp } from "lucide-react"
+import { Pie, PieChart } from "recharts"
 
 export const description = "A pie chart with a custom label"
 

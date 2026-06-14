@@ -1,10 +1,10 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { Switch } from "@components/ui/switch";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
-import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { SubscriptionsSection } from "@features/changelog/components/settings/subscriptions-section";
 import { TagsSection } from "@features/changelog/components/settings/tags-section";
+import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
+import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -54,18 +54,9 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Changelog</span>
-        </header>
+        <PageTitle title="Changelog" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <div>
-            <h1 className="text-xl font-semibold">Changelog</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Manage changelog visibility, subscriptions, and tags.
-            </p>
-          </div>
 
           <div className="rounded-lg border p-5">
             <div className="flex items-start justify-between gap-6">

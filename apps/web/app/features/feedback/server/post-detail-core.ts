@@ -1,6 +1,6 @@
+import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts, member, reactions, user, votes } from "@/db/schema";
-import { and, eq, sql } from "drizzle-orm";
 
 export async function getPostCoreData(organizationId: string, postId: string, userId: string) {
   const db = getDb();

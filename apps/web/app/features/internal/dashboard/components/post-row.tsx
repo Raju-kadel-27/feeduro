@@ -6,6 +6,7 @@ function formatMrr(amount: number): string {
   if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;
   return `$${amount}`;
 }
+
 import { StatusPill } from "./status-pill";
 import { VotePill } from "./vote-pill";
 

@@ -8,9 +8,9 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@components/ui/sidebar";
-import { makeSettingsSections } from "./settings-sections";
 import { ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "react-router";
+import { makeSettingsSections } from "./settings-sections";
 
 type Props = { base: string };
 

@@ -10,7 +10,7 @@ import { Input } from "@components/ui/input";
 import type { Board, Category, Sort, Tag, View, ViewFilters } from "@features/internal/dashboard/types";
 import type { Segment } from "@features/internal/segmentation/types";
 import { useEffect, useState } from "react";
-import { EMPTY_FILTER_STATE, ViewFilterFields, type FilterState } from "./view-filter-fields";
+import { EMPTY_FILTER_STATE, type FilterState, ViewFilterFields } from "./view-filter-fields";
 
 interface Props {
   open: boolean;

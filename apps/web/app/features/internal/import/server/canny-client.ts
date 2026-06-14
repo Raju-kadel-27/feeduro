@@ -1,13 +1,13 @@
 import { z } from "zod";
 import {
-  CannyBoardListSchema,
-  CannyCommentListSchema,
-  CannyPostListSchema,
-  CannyVoteListSchema,
   type CannyBoard,
+  CannyBoardListSchema,
   type CannyComment,
+  CannyCommentListSchema,
   type CannyPost,
+  CannyPostListSchema,
   type CannyVote,
+  CannyVoteListSchema,
 } from "../schemas/canny";
 
 const BASE = "https://canny.io/api/v1";

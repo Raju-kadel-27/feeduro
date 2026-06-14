@@ -1,5 +1,5 @@
-import { BarChart2, Code2, Fingerprint, Globe, KeyRound, LayoutList, Map, Newspaper, Puzzle, ScrollText, Smile, Webhook } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { BarChart2, Code2, Fingerprint, Globe, KeyRound, LayoutList, Map, Newspaper, Puzzle, ScrollText, Smile, Webhook } from "lucide-react";
 
 type Feature = {
   icon: LucideIcon;

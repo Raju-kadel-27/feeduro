@@ -1,5 +1,5 @@
-import { MessageSquare } from "lucide-react";
 import { cn } from "@lib/utils";
+import { MessageSquare } from "lucide-react";
 import type { CommentsAnalytics } from "../schemas/analytics";
 
 const STATUS_BADGE: Record<string, string> = {

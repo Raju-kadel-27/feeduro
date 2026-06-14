@@ -1,4 +1,3 @@
-import { Eye } from "lucide-react";
 import type { View } from "../types";
 import { ChipOptionRow } from "./chip-option-row";
 import { ChipPopover } from "./chip-popover";
@@ -29,7 +28,7 @@ export function ViewsChip({
       isActive={isActive}
       activeLabel={isActive ? (activeView?.name ?? "View") : undefined}
       onClear={onClearView}
-      icon={<Eye className="h-3.5 w-3.5 shrink-0" />}
+
     >
       {(close) => (
         <ChipPopover>

@@ -1,5 +1,5 @@
-import type React from "react";
 import { cn } from "@lib/utils";
+import type React from "react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 interface Props {

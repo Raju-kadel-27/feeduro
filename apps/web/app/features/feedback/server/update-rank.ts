@@ -1,8 +1,8 @@
-import { getDb } from "@/db";
-import { feedbackPosts } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
+import { getDb } from "@/db";
+import { feedbackPosts } from "@/db/schema";
 
 const UpdateRankSchema = z.object({
   intent: z.literal("update_rank"),

@@ -1,4 +1,4 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { requireAdmin, requireOrgBySlug } from "@features/auth/server/guards";
 import { AuditLogPage } from "@features/internal/audit/components/audit-log-page";
 import { listAuditLogs } from "@features/internal/audit/server/queries";
@@ -32,10 +32,7 @@ export function ErrorBoundary() {
 export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium">Audit Log</span>
-      </header>
+      <PageTitle title="Audit Log" />
       <AuditLogPage
         rows={loaderData.rows}
         total={loaderData.total}

@@ -1,7 +1,7 @@
 import { Spinner } from "@components/ui/spinner";
-import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import type { AsanaSettings } from "@features/internal/integrations/asana/server/schemas";
+import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

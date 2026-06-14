@@ -1,6 +1,5 @@
 "use client"
 
-import { Bar, BarChart, XAxis } from "recharts"
 
 import {
   Card,
@@ -10,11 +9,12 @@ import {
   CardTitle,
 } from "@components/ui/card"
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@components/ui/chart"
+import { Bar, BarChart, XAxis } from "recharts"
 
 export const description = "A stacked bar chart with a legend"
 export const iframeHeight = "600px"

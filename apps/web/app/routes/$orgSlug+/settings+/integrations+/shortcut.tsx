@@ -1,7 +1,7 @@
 import { ShortcutIcon } from "@components/icons";
-import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { getIntegration } from "@features/internal/integrations/server/queries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";

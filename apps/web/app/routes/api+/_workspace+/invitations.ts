@@ -1,5 +1,5 @@
-import { logOrgActivity } from "@features/internal/audit/server/log-org-activity";
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
+import { logOrgActivity } from "@features/internal/audit/server/log-org-activity";
 import { data } from "react-router";
 import { z } from "zod";
 import { auth } from "@/app/lib/auth/server";

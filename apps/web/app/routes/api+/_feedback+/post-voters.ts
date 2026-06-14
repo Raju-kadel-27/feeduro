@@ -1,6 +1,6 @@
-import { data } from "react-router";
 import { requireOrganization } from "@features/auth/server/guards";
 import { getVoterProfilesByPost } from "@features/internal/segmentation/server/service";
+import { data } from "react-router";
 import type { Route } from "./+types/post-voters";
 
 export async function loader({ request }: Route.LoaderArgs) {

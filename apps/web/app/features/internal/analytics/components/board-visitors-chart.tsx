@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@components/ui/chart";
+import { useState } from "react";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import type { BoardVisitorPoint } from "../schemas/analytics";
 
 const chartConfig = {

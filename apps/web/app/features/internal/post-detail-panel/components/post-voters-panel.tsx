@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { useFetcher } from "react-router";
-import { ChevronDown } from "lucide-react";
-import { cn } from "@lib/utils";
 import { timeAgo } from "@features/feedback/utils";
+import { cn } from "@lib/utils";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useFetcher } from "react-router";
 
 type Voter = {
   name: string | null;

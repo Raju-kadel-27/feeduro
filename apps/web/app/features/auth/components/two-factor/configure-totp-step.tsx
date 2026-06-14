@@ -1,5 +1,11 @@
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@components/ui/input-otp";
 import { Spinner } from "@components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@components/ui/tooltip";
 import { Copy } from "lucide-react";
 
 type Props = {
@@ -60,14 +66,20 @@ export function ConfigureTotpStep({
           <code className="flex-1 rounded-md border border-border bg-muted px-3 py-2 text-xs font-mono tracking-widest break-all">
             {secret}
           </code>
-          <button
-            type="button"
-            onClick={() => onCopy(secret, "Secret key")}
-            className="p-2 rounded-md border border-border hover:bg-accent transition-colors shrink-0"
-            title="Copy secret key"
-          >
-            <Copy className="size-4" />
-          </button>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => onCopy(secret, "Secret key")}
+                  className="p-2 rounded-md border border-border hover:bg-accent transition-colors shrink-0"
+                >
+                  <Copy className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Copy secret key</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 

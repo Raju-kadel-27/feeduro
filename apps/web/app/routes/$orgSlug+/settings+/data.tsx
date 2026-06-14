@@ -1,5 +1,5 @@
+import { PageTitle } from "@components/common/page-title";
 import { Button } from "@components/ui/button";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { DownloadIcon, FileSpreadsheetIcon, UploadIcon } from "lucide-react";
 import { useParams } from "react-router";
@@ -83,18 +83,9 @@ export default function DataImport(_: Route.ComponentProps) {
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Data & Import</span>
-        </header>
+        <PageTitle title="Data & Import" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-10">
-          <div>
-            <h1 className="text-xl font-semibold">Data & Import</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Import data from existing tools or export your workspace data.
-            </p>
-          </div>
 
           {/* ── Import ── */}
           <section className="space-y-3">

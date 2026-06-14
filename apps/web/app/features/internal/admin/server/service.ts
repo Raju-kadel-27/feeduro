@@ -1,7 +1,7 @@
+import { ADMIN_PAGE_SIZE } from "@features/internal/admin/constants";
 import { count, desc, ilike, or } from "drizzle-orm";
 import { getDb } from "@/db";
 import { user } from "@/db/schema";
-import { ADMIN_PAGE_SIZE } from "@features/internal/admin/constants";
 
 export { ADMIN_PAGE_SIZE };
 

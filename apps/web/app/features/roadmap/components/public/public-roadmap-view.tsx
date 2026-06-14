@@ -1,12 +1,12 @@
-import type { PublicBoard, PublicPost, SessionUser, StatusKey } from "@features/feedback/schemas/public";
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
 import type { AdminStatus } from "@features/feedback/schemas/admin";
+import type { PublicBoard, PublicPost, SessionUser, StatusKey } from "@features/feedback/schemas/public";
 import { StatusCircleIcon } from "@features/roadmap/components/status-circle-icon";
 import { cn } from "@lib/utils";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
-import { PublicRoadmapCard } from "./public-roadmap-card";
 import { STATUS_COLORS } from "../roadmap-tokens";
+import { PublicRoadmapCard } from "./public-roadmap-card";
 
 const COLUMNS: { label: string; subtitle: string; keys: StatusKey[]; icon: AdminStatus }[] = [
   { label: "Planned",     subtitle: "Up next on the roadmap",  keys: ["planned", "pending", "reviewing"], icon: "planned" },

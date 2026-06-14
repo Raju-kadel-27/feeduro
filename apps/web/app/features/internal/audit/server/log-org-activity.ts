@@ -1,6 +1,6 @@
 import { getDb } from "@/db";
-import { auditLogs } from "@/db/schema";
 import type { auditActionEnum } from "@/db/schema";
+import { auditLogs } from "@/db/schema";
 
 export type AuditAction = (typeof auditActionEnum.enumValues)[number];
 

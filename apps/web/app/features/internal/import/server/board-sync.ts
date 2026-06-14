@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackBoards } from "@/db/schema";
-import { slugifyBoardName } from "./canny-adapter";
 import type { CannyBoard } from "../schemas/canny";
+import { slugifyBoardName } from "./canny-adapter";
 
 // Resolves or creates a feedbackBoard for each Canny board.
 // Returns Map<cannyBoardId, ourBoardId>.

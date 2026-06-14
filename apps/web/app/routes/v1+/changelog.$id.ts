@@ -1,5 +1,5 @@
-import { apiError } from "@feeduro/errors";
 import { getChangelog } from "@features/changelog/server/api-changelog";
+import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";
 

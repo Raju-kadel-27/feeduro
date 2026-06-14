@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import type { DetailData, PostDetail } from "@features/feedback/schemas/admin";
+import { useEffect, useState } from "react";
 import type { useIntegrationLinks } from "../hooks/use-integration-links";
-import { AsanaIcon, JiraIcon, LinearIcon, LinkedCard } from "./integration-icons";
 import { CreateAsanaTaskModal } from "./create-asana-task-modal";
 import { CreateJiraIssueModal } from "./create-jira-issue-modal";
 import { CreateLinearIssueModal } from "./create-linear-issue-modal";
+import { AsanaIcon, JiraIcon, LinearIcon, LinkedCard } from "./integration-icons";
 import { LinkIssuePopover } from "./link-issue-popover";
 
 type Integrations = ReturnType<typeof useIntegrationLinks>;

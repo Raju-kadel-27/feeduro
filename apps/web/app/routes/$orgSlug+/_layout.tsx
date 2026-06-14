@@ -1,5 +1,5 @@
-import { AppShell } from "@features/internal/layout/components/app-shell";
 import { PageTransition } from "@components/page-transition";
+import { AppShell } from "@features/internal/layout/components/app-shell";
 import { Outlet, useMatches } from "react-router";
 
 export default function OrgLayout() {

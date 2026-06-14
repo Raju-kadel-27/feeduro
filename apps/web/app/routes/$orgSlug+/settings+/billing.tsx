@@ -1,9 +1,9 @@
+import { PageTitle } from "@components/common/page-title";
 import { Alert, AlertDescription } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
-import { SidebarTrigger } from "@components/ui/sidebar";
-import { getAffiliateCodeFromRequest } from "@features/internal/affiliate/server/cookies";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getAffiliateCodeFromRequest } from "@features/internal/affiliate/server/cookies";
 import {
   cancelDodoSubscription,
   changeDodoPlan,
@@ -282,18 +282,9 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Billing</span>
-        </header>
+        <PageTitle title="Billing & Plans" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full">
-          <div className="mb-8">
-            <h1 className="text-xl font-semibold">Billing & Plans</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Manage your subscription and billing details.
-            </p>
-          </div>
 
           {/* Success banner */}
           {justUpgraded && (

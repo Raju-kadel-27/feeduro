@@ -1,6 +1,6 @@
+import { DiscordIcon, SlackIcon } from "@components/icons";
 import type React from "react";
 import { useState } from "react";
-import { DiscordIcon, SlackIcon } from "@components/icons";
 import {
   Sheet,
   SheetContent,

@@ -1,6 +1,6 @@
+import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { getDb } from "@/db";
 import { userProfiles } from "@/db/schema";
 

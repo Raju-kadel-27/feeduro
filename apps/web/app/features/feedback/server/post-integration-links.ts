@@ -1,6 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { integrations, postExternalLinks } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
 
 const LINK_COLUMNS = {
   identifier: true,

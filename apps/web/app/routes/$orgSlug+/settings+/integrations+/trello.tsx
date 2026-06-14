@@ -1,6 +1,6 @@
 import { Spinner } from "@components/ui/spinner";
-import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import type { TrelloSettings } from "@features/internal/integrations/trello/server/schemas";
 import { cn } from "@lib/utils";

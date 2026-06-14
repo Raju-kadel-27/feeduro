@@ -1,7 +1,7 @@
+import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import type { CommentData } from "@features/feedback/schemas/admin";
 import { timeAgo } from "@features/feedback/utils";
 import { CornerDownRight, Lock, Trash2 } from "lucide-react";
-import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 
 function renderBody(body: string): React.ReactNode {
   const parts = body.split(/(@\w+)/g);

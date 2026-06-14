@@ -1,10 +1,10 @@
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@components/ui/chart";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import type { ActivityOverTime, DateRange } from "../schemas/analytics";
 
 const chartConfig = {

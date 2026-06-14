@@ -1,10 +1,10 @@
+import { type AuditActor, logOrgActivity } from "@features/internal/audit/server/log-org-activity";
 import { createId } from "@paralleldrive/cuid2";
 import { eq } from "drizzle-orm";
-import { logOrgActivity, type AuditActor } from "@features/internal/audit/server/log-org-activity";
 import { getDb } from "@/db";
 import { widgetConfigs } from "@/db/schema";
-import { generateSigningSecret } from "../utils/crypto";
 import type { SaveSettingsInput, ToggleEnabledInput } from "../schemas/settings";
+import { generateSigningSecret } from "../utils/crypto";
 
 export async function saveWidgetSettings(orgId: string, input: SaveSettingsInput) {
   const db = getDb();

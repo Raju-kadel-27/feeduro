@@ -1,9 +1,9 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
+import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import type { OrgMember } from "@features/feedback/schemas/admin";
 import { cn } from "@lib/utils";
 import { Check, UserMinus, Users } from "lucide-react";
 import { useState } from "react";
-import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 
 interface OwnerPickerProps {
   ownerId: string | null;

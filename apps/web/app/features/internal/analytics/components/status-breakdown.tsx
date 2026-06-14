@@ -1,10 +1,10 @@
-import { Pie, PieChart } from "recharts";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@components/ui/chart";
+import { Pie, PieChart } from "recharts";
 import type { StatusBreakdown } from "../schemas/analytics";
 
 const STATUS_ORDER = ["open", "reviewing", "planned", "in-progress", "completed", "closed"];

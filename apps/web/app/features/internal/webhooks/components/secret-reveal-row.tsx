@@ -1,3 +1,9 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@components/ui/tooltip";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { CopyButton } from "./shared";
@@ -55,45 +61,55 @@ export function SecretRevealRow({ endpointId }: { endpointId: string }) {
   const isRevealed = secret !== null;
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border bg-muted/10 px-3 py-2 text-xs">
-      <KeyRound size={12} className="shrink-0 text-muted-foreground" />
-      <span className="text-muted-foreground shrink-0">Signing secret</span>
+    <TooltipProvider delayDuration={300}>
+      <div className="flex items-center gap-2 rounded-md border border-border bg-muted/10 px-3 py-2 text-xs">
+        <KeyRound size={12} className="shrink-0 text-muted-foreground" />
+        <span className="text-muted-foreground shrink-0">Signing secret</span>
 
-      {isRevealed ? (
-        <>
-          <code
-            aria-live="polite"
-            className="font-mono text-foreground flex-1 break-all min-w-0"
-          >
-            {secret}
-          </code>
-          <CopyButton value={secret} />
-          <span className="text-muted-foreground tabular-nums shrink-0">{countdown}s</span>
-          <button
-            type="button"
-            onClick={hide}
-            title="Hide secret"
-            className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
-          >
-            <EyeOff size={14} />
-          </button>
-        </>
-      ) : (
-        <>
-          <span className="flex-1 font-mono text-muted-foreground/40 tracking-widest select-none">
-            ••••••••••••••••
-          </span>
-          <button
-            type="button"
-            onClick={reveal}
-            disabled={loading}
-            title="Reveal signing secret"
-            className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 shrink-0"
-          >
-            <Eye size={14} />
-          </button>
-        </>
-      )}
-    </div>
+        {isRevealed ? (
+          <>
+            <code
+              aria-live="polite"
+              className="font-mono text-foreground flex-1 break-all min-w-0"
+            >
+              {secret}
+            </code>
+            <CopyButton value={secret} />
+            <span className="text-muted-foreground tabular-nums shrink-0">{countdown}s</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={hide}
+                  className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  <EyeOff size={14} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Hide secret</TooltipContent>
+            </Tooltip>
+          </>
+        ) : (
+          <>
+            <span className="flex-1 font-mono text-muted-foreground/40 tracking-widest select-none">
+              ••••••••••••••••
+            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={reveal}
+                  disabled={loading}
+                  className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 shrink-0"
+                >
+                  <Eye size={14} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Reveal signing secret</TooltipContent>
+            </Tooltip>
+          </>
+        )}
+      </div>
+    </TooltipProvider>
   );
 }

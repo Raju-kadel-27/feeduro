@@ -1,4 +1,10 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { InviteMemberDialog } from "@features/internal/workspace/components/invite-member-dialog";
 import { auth } from "@lib/auth/server";
@@ -135,29 +141,20 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Team</span>
-        </header>
+        <PageTitle
+          title="Team"
+          action={isAdmin ? (
+            <button
+              type="button"
+              onClick={() => setShowInvite(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Invite Member
+            </button>
+          ) : undefined}
+        />
         <main className="p-6 max-w-[840px] mx-auto w-full">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-semibold">Team</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Manage your team members and their roles.
-              </p>
-            </div>
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => setShowInvite(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
-              >
-                <Plus className="h-4 w-4" />
-                Invite Member
-              </button>
-            )}
-          </div>
 
           {/* Invite Member Dialog */}
           {showInvite && <InviteMemberDialog onClose={() => setShowInvite(false)} />}
@@ -183,14 +180,20 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
                         </p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => cancelInvite(inv.id)}
-                      title="Cancel invitation"
-                      className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => cancelInvite(inv.id)}
+                            className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Cancel invitation</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 ))}
               </div>
@@ -233,14 +236,20 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
                         {m.role}
                       </span>
                       {isAdmin && !isCurrentUser && (
-                        <button
-                          type="button"
-                          onClick={() => removeMember(m.id)}
-                          title="Remove member"
-                          className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
-                        >
-                          <UserMinus className="h-4 w-4" />
-                        </button>
+                        <TooltipProvider delayDuration={300}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={() => removeMember(m.id)}
+                                className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
+                              >
+                                <UserMinus className="h-4 w-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Remove member</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       )}
                     </div>
                   </div>

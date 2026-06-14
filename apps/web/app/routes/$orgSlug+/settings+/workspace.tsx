@@ -1,3 +1,4 @@
+import { PageTitle } from "@components/common/page-title";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@components/ui/dialog";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { isAdmin } from "@features/internal/roles/server/queries";
 import { useMutation } from "@tanstack/react-query";
@@ -86,18 +86,9 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Workspace</span>
-        </header>
+        <PageTitle title="Workspace" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <div>
-            <h1 className="text-xl font-semibold">Workspace</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Manage your workspace name, slug, and other general settings.
-            </p>
-          </div>
 
           {/* Workspace name */}
           <section className="rounded-lg border p-5 space-y-4">

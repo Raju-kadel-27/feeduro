@@ -1,8 +1,8 @@
-import { inArray, sql } from "drizzle-orm";
-import { data } from "react-router";
 import { getPostCoreData } from "@features/feedback/server/post-detail-core";
 import { getPostIntegrationLinks } from "@features/feedback/server/post-integration-links";
 import { getPostMergeInfo } from "@features/feedback/server/post-merge-info";
+import { inArray, sql } from "drizzle-orm";
+import { data } from "react-router";
 import { getDb } from "@/db";
 import { votes } from "@/db/schema";
 

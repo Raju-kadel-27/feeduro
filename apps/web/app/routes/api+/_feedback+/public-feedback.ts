@@ -1,8 +1,8 @@
 import { autoCreateAsanaTask } from "@features/internal/integrations/asana/server/auto-create";
+import { autoCreateClickupTask } from "@features/internal/integrations/clickup/server/auto-create";
 import { autoCreateGithubIssue } from "@features/internal/integrations/github/server/auto-create";
 import { autoCreateJiraIssue } from "@features/internal/integrations/jira/server/auto-create";
 import { autoCreateLinearIssue } from "@features/internal/integrations/linear/server/auto-create";
-import { autoCreateClickupTask } from "@features/internal/integrations/clickup/server/auto-create";
 import { autoCreateMondayItem } from "@features/internal/integrations/monday/server/auto-create";
 import { autoCreateNotionPage } from "@features/internal/integrations/notion/server/auto-create";
 import { autoCreateShortcutStory } from "@features/internal/integrations/shortcut/server/auto-create";

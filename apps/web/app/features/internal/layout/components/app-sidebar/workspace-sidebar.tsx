@@ -1,4 +1,4 @@
-import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator } from "@components/ui/sidebar";
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator } from "@components/ui/sidebar";
 import { NewBoardDialog } from "@features/feedback/components/settings/new-board-dialog";
 import { Plus } from "lucide-react";
 import { useState } from "react";

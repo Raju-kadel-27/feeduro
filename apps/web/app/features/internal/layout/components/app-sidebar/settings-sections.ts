@@ -1,4 +1,5 @@
 import {
+  AppWindow,
   Code,
   CreditCard,
   Database,
@@ -71,6 +72,7 @@ export function makeSettingsSections(base: string): SettingsSection[] {
         { title: "Integrations", url: `${base}/settings/integrations`, icon: Puzzle },
         { title: "Webhooks", url: `${base}/settings/webhooks`, icon: Webhook },
         { title: "API Tokens", url: `${base}/settings/api-tokens`, icon: Code },
+        { title: "OAuth Apps", url: `${base}/settings/oauth-clients`, icon: AppWindow },
       ],
     },
     {

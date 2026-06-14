@@ -123,16 +123,16 @@ export const auth = betterAuth({
         return (session?.activeOrganizationId as string | undefined) ?? undefined;
       },
       // Only org admins and owners can manage OAuth clients
-      clientPrivileges: async ({ headers, session }) => {
+      clientPrivileges: async ({ headers, session }): Promise<boolean> => {
         if (!session?.activeOrganizationId) return false;
         const memberData = await auth.api.getActiveMember({ headers });
-        const role = memberData?.data?.role;
-        return role === "owner" || role === "admin";
+        const role = memberData?.role;
+        return role === "admin";
       },
       // Custom claims added to access tokens (e.g. org ID for API authorization)
       customAccessTokenClaims: ({ referenceId }) => {
         if (!referenceId) return {};
-        return { "https://feediyo.com/org": referenceId };
+        return { [`${getEnv().BASE_URL}/org`]: referenceId };
       },
     }),
     orgPlugin,

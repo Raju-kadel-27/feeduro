@@ -1,4 +1,10 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { authClient } from "@lib/auth/client";
 import { Fingerprint, Plus, Trash2 } from "lucide-react";
@@ -73,20 +79,9 @@ export default function PasskeysSettings() {
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Passkeys</span>
-        </header>
-
-        <main className="p-6 max-w-[840px] mx-auto w-full">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-semibold">Passkeys</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Passwordless sign-in using biometrics, PINs, or security keys on your registered
-                devices.
-              </p>
-            </div>
+        <PageTitle
+          title="Passkeys"
+          action={
             <button
               type="button"
               onClick={handleAdd}
@@ -96,7 +91,10 @@ export default function PasskeysSettings() {
               <Plus size={16} />
               {adding ? "Registering…" : "Add Passkey"}
             </button>
-          </div>
+          }
+        />
+
+        <main className="p-6 max-w-[840px] mx-auto w-full">
 
           <section className="space-y-6">
             {loading ? (
@@ -130,15 +128,21 @@ export default function PasskeysSettings() {
                       <div className="text-sm text-muted-foreground tabular-nums whitespace-nowrap">
                         {pk.createdAt ? formatDate(pk.createdAt) : "—"}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(pk.id)}
-                        disabled={deletingId === pk.id}
-                        title="Remove passkey"
-                        className="p-2 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground disabled:opacity-50"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(pk.id)}
+                              disabled={deletingId === pk.id}
+                              className="p-2 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground disabled:opacity-50"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Remove passkey</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </li>
                   ))}
                 </ul>

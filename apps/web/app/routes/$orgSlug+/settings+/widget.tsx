@@ -1,5 +1,6 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { WidgetSettingsPage } from "@features/widget/components/internal/widget-settings-page";
 import { SettingsActionSchema } from "@features/widget/schemas/settings";
 import {
   regenerateWidgetToken,
@@ -10,7 +11,6 @@ import {
   toggleWidgetEnabled,
 } from "@features/widget/server/settings-actions";
 import { getWidgetSettings } from "@features/widget/server/settings-queries";
-import { WidgetSettingsPage } from "@features/widget/components/internal/widget-settings-page";
 import { data } from "react-router";
 import type { Route } from "./+types/widget";
 
@@ -64,10 +64,7 @@ export function ErrorBoundary() {
 export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium text-foreground">Widget</span>
-      </header>
+      <PageTitle title="Widget" />
       <WidgetSettingsPage loaderData={loaderData} />
     </>
   );

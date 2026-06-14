@@ -1,4 +1,4 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
 import { ProviderList } from "@features/internal/sso/components/provider-list";
 import { loadSSOSettings } from "@features/internal/sso/server/queries";
@@ -28,21 +28,12 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium">Login &amp; SSO</span>
-      </header>
+      <PageTitle
+        title="Login & SSO"
+        action={isAdmin ? <AddProviderDialog baseUrl={baseUrl} /> : undefined}
+      />
 
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-semibold">Single Sign-On</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Allow workspace members to sign in with your identity provider via OIDC or SAML.
-            </p>
-          </div>
-          {isAdmin && <AddProviderDialog baseUrl={baseUrl} />}
-        </div>
 
         <section>
           <h3 className="text-sm font-semibold text-foreground mb-3">Configured Providers</h3>

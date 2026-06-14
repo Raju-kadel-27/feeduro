@@ -1,3 +1,4 @@
+import { PageTitle } from "@components/common/page-title";
 import {
   Dialog,
   DialogContent,
@@ -5,7 +6,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@components/ui/dialog";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { cn } from "@lib/utils";
 import { useMutation } from "@tanstack/react-query";
@@ -150,30 +150,19 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">API Tokens</span>
-        </header>
-
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-semibold">API Tokens</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Generate tokens to authenticate API requests for this workspace.
-              </p>
-            </div>
-            {isAdmin && (
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
-                  >
-                    <Plus size={16} />
-                    Generate New Key
-                  </button>
-                </DialogTrigger>
+        <PageTitle
+          title="API Tokens"
+          action={isAdmin ? (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Plus size={16} />
+                  Generate New Key
+                </button>
+              </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>New API Key</DialogTitle>
@@ -218,9 +207,10 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
                   </form>
                 </DialogContent>
               </Dialog>
-            )}
-          </div>
+          ) : undefined}
+        />
 
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* One-time key reveal */}
           {newKey && (
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-6 space-y-4">

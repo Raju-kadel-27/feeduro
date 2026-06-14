@@ -1,9 +1,9 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { organization } from "@/db/schema";
@@ -55,18 +55,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Branding</span>
-        </header>
+        <PageTitle title="Branding" />
 
         <main className="p-6 max-w-[1100px] mx-auto w-full">
-          <div className="mb-8">
-            <h1 className="text-xl font-semibold">Branding</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Customize how your public board looks to your users.
-            </p>
-          </div>
 
           <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
         </main>

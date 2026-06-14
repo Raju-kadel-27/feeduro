@@ -1,5 +1,5 @@
+import { PageTitle } from "@components/common/page-title";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
 import { getOrgSegments } from "@features/internal/segmentation/server/service";
@@ -291,39 +291,30 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Segments</span>
-        </header>
+        <PageTitle
+          title="Segments"
+          action={loaderData.isAdmin ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setImportOpen(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold border border-border hover:bg-accent transition-colors cursor-pointer"
+              >
+                <Upload className="h-4 w-4" /> Import CSV
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreating(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+              >
+                <Plus className="h-4 w-4" /> New segment
+              </button>
+            </div>
+          ) : undefined}
+        />
 
         <div className="p-6">
           <div className="max-w-[840px] mx-auto w-full space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-semibold">Segments</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Group end-users by traits to filter feedback by audience.
-                </p>
-              </div>
-              {loaderData.isAdmin && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setImportOpen(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold border border-border hover:bg-accent transition-colors cursor-pointer"
-                  >
-                    <Upload className="h-4 w-4" /> Import CSV
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCreating(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
-                  >
-                    <Plus className="h-4 w-4" /> New segment
-                  </button>
-                </div>
-              )}
-            </div>
             <div className="space-y-4">
               <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
               <p className="font-medium text-foreground mb-1">Identify users via API</p>

@@ -1,4 +1,4 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { FeedbackSettingsPanel } from "@features/feedback/components/settings/feedback-settings-panel";
 import { getOrgCategories } from "@features/feedback/server/categories.server";
@@ -74,10 +74,7 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Feedback</span>
-        </header>
+        <PageTitle title="Feedback" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full">
           <FeedbackSettingsPanel

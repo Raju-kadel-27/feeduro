@@ -1,4 +1,4 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { ChangePasswordForm } from "@features/auth/components/change-password-form";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { LogOut, ShieldCheck } from "lucide-react";
@@ -25,18 +25,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export default function PasswordSettings() {
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Change Password</span>
-        </header>
+        <PageTitle title="Change Password" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
-          <div>
-            <h1 className="text-xl font-semibold">Change Password</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Update the password for your Feeduro account.
-            </p>
-          </div>
 
           <section className="rounded-lg border border-border bg-card overflow-hidden">
             <div className="px-6 py-4 border-b border-border">

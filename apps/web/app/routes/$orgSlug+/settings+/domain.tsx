@@ -1,4 +1,4 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
+import { PageTitle } from "@components/common/page-title";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { useMutation } from "@tanstack/react-query";
@@ -127,18 +127,9 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium">Domain</span>
-      </header>
+      <PageTitle title="Domain" />
 
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-10">
-        <div>
-          <h1 className="text-xl font-semibold">Domain</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Configure your custom domain and DNS settings.
-          </p>
-        </div>
 
         <section>
           <h2 className="text-base font-semibold mb-1">Custom Domain</h2>

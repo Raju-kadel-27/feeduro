@@ -1,5 +1,5 @@
+import { PageTitle } from "@components/common/page-title";
 import { Badge } from "@components/ui/badge";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
@@ -130,18 +130,9 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
 
   return (
         <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <span className="text-sm font-medium">Privacy & Access</span>
-        </header>
+        <PageTitle title="Privacy & Access" />
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight">Privacy & Access</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Control who can submit feedback and what's visible on your public pages.
-            </p>
-          </div>
 
           <SettingCard
             id="allowGuestSubmissions"

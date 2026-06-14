@@ -1,5 +1,5 @@
+import { PageTitle } from "@components/common/page-title";
 import { Button } from "@components/ui/button";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { RoleFormDialog } from "@features/internal/roles/components/role-form-dialog";
 import { RolesTable } from "@features/internal/roles/components/roles-table";
@@ -109,26 +109,17 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium">Roles & Permissions</span>
-      </header>
+      <PageTitle
+        title="Roles & Permissions"
+        action={loaderData.isAdmin ? (
+          <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            New Role
+          </Button>
+        ) : undefined}
+      />
 
       <main className="p-6 max-w-[840px] mx-auto w-full">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-semibold">Roles & Permissions</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Create custom roles with fine-grained permissions for your team members.
-            </p>
-          </div>
-          {loaderData.isAdmin && (
-            <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              New Role
-            </Button>
-          )}
-        </div>
 
         <div className="mb-6 rounded-lg border bg-muted/30 p-4">
           <p className="text-sm font-medium mb-1">Built-in roles</p>

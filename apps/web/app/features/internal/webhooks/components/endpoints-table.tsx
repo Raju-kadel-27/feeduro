@@ -83,7 +83,7 @@ export function EndpointsTable({
               Added
             </th>
             {isAdmin && (
-              <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">
+              <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-left">
                 Actions
               </th>
             )}
@@ -126,7 +126,7 @@ export function EndpointsTable({
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     {events.includes("*") ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
                         All events
                       </span>
                     ) : (
@@ -151,7 +151,7 @@ export function EndpointsTable({
                 {/* Actions */}
                 {isAdmin && (
                   <td className="px-4 py-3">
-                    <div className="flex justify-end">
+                    <div className="flex justify-start">
                       <EndpointActions
                         id={ep.id}
                         isActive={ep.isActive}

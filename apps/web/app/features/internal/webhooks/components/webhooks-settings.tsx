@@ -61,7 +61,7 @@ export default function WebhooksSettings({ loaderData }) {
     <>
       <WebhooksHeader />
 
-      <main className="p-8 max-w-[840px] mx-auto w-full space-y-10">
+      <main className="p-8 max-w-5xl mx-auto w-full space-y-10">
         <WebhooksDescription />
 
         <EndpointsList

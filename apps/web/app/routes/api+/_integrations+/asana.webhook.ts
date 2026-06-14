@@ -1,6 +1,6 @@
-import { getAsanaTaskByGid } from "@features/integrations/asana/server/client";
-import type { AsanaSettings } from "@features/integrations/asana/server/schemas";
-import { getIntegration, parseSettings } from "@features/integrations/server/queries";
+import { getAsanaTaskByGid } from "@features/internal/integrations/asana/server/client";
+import type { AsanaSettings } from "@features/internal/integrations/asana/server/schemas";
+import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";

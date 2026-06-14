@@ -1,12 +1,12 @@
-import { autoCreateAsanaTask } from "@features/integrations/asana/server/auto-create";
-import { autoCreateClickupTask } from "@features/integrations/clickup/server/auto-create";
-import { autoCreateGithubIssue } from "@features/integrations/github/server/auto-create";
-import { autoCreateJiraIssue } from "@features/integrations/jira/server/auto-create";
-import { autoCreateLinearIssue } from "@features/integrations/linear/server/auto-create";
-import { autoCreateMondayItem } from "@features/integrations/monday/server/auto-create";
-import { autoCreateNotionPage } from "@features/integrations/notion/server/auto-create";
-import { autoCreateShortcutStory } from "@features/integrations/shortcut/server/auto-create";
-import { autoCreateTrelloCard } from "@features/integrations/trello/server/auto-create";
+import { autoCreateAsanaTask } from "@features/internal/integrations/asana/server/auto-create";
+import { autoCreateClickupTask } from "@features/internal/integrations/clickup/server/auto-create";
+import { autoCreateGithubIssue } from "@features/internal/integrations/github/server/auto-create";
+import { autoCreateJiraIssue } from "@features/internal/integrations/jira/server/auto-create";
+import { autoCreateLinearIssue } from "@features/internal/integrations/linear/server/auto-create";
+import { autoCreateMondayItem } from "@features/internal/integrations/monday/server/auto-create";
+import { autoCreateNotionPage } from "@features/internal/integrations/notion/server/auto-create";
+import { autoCreateShortcutStory } from "@features/internal/integrations/shortcut/server/auto-create";
+import { autoCreateTrelloCard } from "@features/internal/integrations/trello/server/auto-create";
 
 type PostRef = { id: string; title: string; description: string | null };
 

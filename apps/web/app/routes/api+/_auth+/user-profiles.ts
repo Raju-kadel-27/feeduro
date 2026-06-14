@@ -1,6 +1,6 @@
 import { resolveApiOrganizationId } from "@features/auth/server/guards";
-import { IdentifyUserSchema } from "@features/segmentation/schemas/identify";
-import { upsertUserProfile } from "@features/segmentation/server/service";
+import { IdentifyUserSchema } from "@features/internal/segmentation/schemas/identify";
+import { upsertUserProfile } from "@features/internal/segmentation/server/service";
 import { data } from "react-router";
 
 import type { Route } from "./+types/user-profiles";

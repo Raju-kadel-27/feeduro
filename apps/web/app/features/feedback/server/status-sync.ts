@@ -1,10 +1,10 @@
-import { syncStatusToAsana } from "@features/integrations/asana/server/sync-status";
-import { syncStatusToClickup } from "@features/integrations/clickup/server/sync-status";
-import { syncStatusToJira } from "@features/integrations/jira/server/sync-status";
-import { syncStatusToLinear } from "@features/integrations/linear/server/sync-status";
-import { syncStatusToMonday } from "@features/integrations/monday/server/sync-status";
-import { syncStatusToShortcut } from "@features/integrations/shortcut/server/sync-status";
-import { syncStatusToTrello } from "@features/integrations/trello/server/sync-status";
+import { syncStatusToAsana } from "@features/internal/integrations/asana/server/sync-status";
+import { syncStatusToClickup } from "@features/internal/integrations/clickup/server/sync-status";
+import { syncStatusToJira } from "@features/internal/integrations/jira/server/sync-status";
+import { syncStatusToLinear } from "@features/internal/integrations/linear/server/sync-status";
+import { syncStatusToMonday } from "@features/internal/integrations/monday/server/sync-status";
+import { syncStatusToShortcut } from "@features/internal/integrations/shortcut/server/sync-status";
+import { syncStatusToTrello } from "@features/internal/integrations/trello/server/sync-status";
 
 export function fireStatusSyncIntegrations(
   organizationId: string,

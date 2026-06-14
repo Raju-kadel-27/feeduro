@@ -1,7 +1,7 @@
 import { apiKey } from "@better-auth/api-key";
 import { passkey } from "@better-auth/passkey";
 import { sso } from "@better-auth/sso";
-import { sendResetPasswordEmail } from "@features/jobs/send-reset-password-email";
+import { sendResetPasswordEmail } from "@features/internal/jobs/send-reset-password-email";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { betterAuth } from "better-auth";

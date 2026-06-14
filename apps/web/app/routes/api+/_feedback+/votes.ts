@@ -1,5 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { notifyVoteMilestoneIfReached } from "@features/notifications/server/service";
+import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/server/service";
 import { and, count, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";

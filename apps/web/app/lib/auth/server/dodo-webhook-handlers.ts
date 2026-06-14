@@ -1,4 +1,4 @@
-import { recordSubscriptionConversion } from "@features/affiliate/server/service";
+import { recordSubscriptionConversion } from "@features/internal/affiliate/server/service";
 import { getEnv } from "@utils/get-env";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";

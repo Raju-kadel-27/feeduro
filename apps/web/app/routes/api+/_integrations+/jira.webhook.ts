@@ -1,5 +1,5 @@
-import type { JiraSettings } from "@features/integrations/jira/server/schemas";
-import { parseSettings } from "@features/integrations/server/queries";
+import type { JiraSettings } from "@features/internal/integrations/jira/server/schemas";
+import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";

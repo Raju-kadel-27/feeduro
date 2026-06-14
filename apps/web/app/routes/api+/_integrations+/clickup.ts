@@ -1,7 +1,7 @@
 import {
   handleClickupAction,
   handleClickupLoader,
-} from "@features/integrations/clickup/server/service";
+} from "@features/internal/integrations/clickup/server/service";
 
 import type { Route } from "./+types/clickup";
 

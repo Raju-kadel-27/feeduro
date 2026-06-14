@@ -1,4 +1,4 @@
-import { handleAsanaAction, handleAsanaLoader } from "@features/integrations/asana/server/service";
+import { handleAsanaAction, handleAsanaLoader } from "@features/internal/integrations/asana/server/service";
 
 import type { Route } from "./+types/asana";
 

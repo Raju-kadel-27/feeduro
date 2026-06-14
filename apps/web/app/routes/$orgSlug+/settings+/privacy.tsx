@@ -2,7 +2,7 @@ import { Badge } from "@components/ui/badge";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { Switch } from "@components/ui/switch";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
 import { EyeOff, Lock, ShieldCheck, Users } from "lucide-react";
 import { useState } from "react";

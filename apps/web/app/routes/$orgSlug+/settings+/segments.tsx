@@ -1,9 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { CsvImportDialog } from "@features/segmentation/components/csv-import-dialog";
-import { getOrgSegments } from "@features/segmentation/server/service";
-import type { Segment, SegmentFilters } from "@features/segmentation/types";
+import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
+import { getOrgSegments } from "@features/internal/segmentation/server/service";
+import type { Segment, SegmentFilters } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";

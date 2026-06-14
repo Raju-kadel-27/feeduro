@@ -1,9 +1,9 @@
 import { Button } from "@components/ui/button";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { RoleFormDialog } from "@features/roles/components/role-form-dialog";
-import { RolesTable } from "@features/roles/components/roles-table";
-import type { OrgRole } from "@features/roles/types";
+import { RoleFormDialog } from "@features/internal/roles/components/role-form-dialog";
+import { RolesTable } from "@features/internal/roles/components/roles-table";
+import type { OrgRole } from "@features/internal/roles/types";
 import { authClient } from "@lib/auth/client";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

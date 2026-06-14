@@ -1,5 +1,5 @@
-import type { MondaySettings } from "@features/integrations/monday/server/schemas";
-import { getIntegration, parseSettings } from "@features/integrations/server/queries";
+import type { MondaySettings } from "@features/internal/integrations/monday/server/schemas";
+import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, postExternalLinks } from "@/db/schema";

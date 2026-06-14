@@ -1,6 +1,6 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { InviteMemberDialog } from "@features/workspace/components/invite-member-dialog";
+import { InviteMemberDialog } from "@features/internal/workspace/components/invite-member-dialog";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";

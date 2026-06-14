@@ -1,7 +1,7 @@
 import { Spinner } from "@components/ui/spinner";
-import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
+import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getIntegration } from "@features/integrations/server/queries";
+import { getIntegration } from "@features/internal/integrations/server/queries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";

@@ -1,7 +1,7 @@
 import {
   handleTrelloAction,
   handleTrelloLoader,
-} from "@features/integrations/trello/server/service";
+} from "@features/internal/integrations/trello/server/service";
 
 import type { Route } from "./+types/trello";
 

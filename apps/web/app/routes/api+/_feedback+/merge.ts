@@ -1,5 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { notifyPostMerged } from "@features/notifications/server/service";
+import { notifyPostMerged } from "@features/internal/notifications/server/service";
 import { and, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";

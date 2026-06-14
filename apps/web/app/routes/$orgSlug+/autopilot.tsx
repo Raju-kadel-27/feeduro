@@ -1,6 +1,6 @@
 
 import { Spinner } from "@components/ui/spinner";
-import type { SuggestionWithPosts } from "@features/autopilot/types";
+import type { SuggestionWithPosts } from "@features/internal/autopilot/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bot, Check, ExternalLink, Merge, X } from "lucide-react";
 import { Link, useParams } from "react-router";

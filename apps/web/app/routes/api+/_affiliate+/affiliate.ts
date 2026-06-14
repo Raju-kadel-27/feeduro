@@ -3,7 +3,7 @@ import {
   getAffiliateStats,
   joinAffiliateProgram,
   requestPayout,
-} from "@features/affiliate/server/service";
+} from "@features/internal/affiliate/server/service";
 import { data } from "react-router";
 import { z } from "zod";
 

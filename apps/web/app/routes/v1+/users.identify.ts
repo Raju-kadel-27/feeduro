@@ -1,6 +1,6 @@
 import { apiError } from "@feeduro/errors";
-import { IdentifyUserSchema } from "@features/segmentation/schemas/identify";
-import { upsertUserProfile } from "@features/segmentation/server/service";
+import { IdentifyUserSchema } from "@features/internal/segmentation/schemas/identify";
+import { upsertUserProfile } from "@features/internal/segmentation/server/service";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";
 

@@ -1,10 +1,10 @@
 import { getDb } from "@/db";
 import { feedbackPosts } from "@/db/schema";
-import { runDuplicateDetection } from "@features/autopilot/server/service";
+import { runDuplicateDetection } from "@features/internal/autopilot/server/service";
 import { triggerSmartReply } from "@features/feedback/server/smart-replies.server";
 import { fireAutoCreateIntegrations } from "@features/feedback/server/post-auto-create";
-import { notifyNewPost } from "@features/notifications/server/service";
-import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { notifyNewPost } from "@features/internal/notifications/server/service";
+import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { getEnv } from "@utils/get-env";
 import { data } from "react-router";
 import type { AppLoadContext } from "react-router";

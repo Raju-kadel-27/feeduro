@@ -1,5 +1,5 @@
-import { LandingPage } from "@features/landing/landing-page";
-import { resolveOrgRedirect } from "@features/workspace/server/queries";
+import { LandingPage } from "@features/public/landing/landing-page";
+import { resolveOrgRedirect } from "@features/internal/workspace/server/queries";
 import { getSession } from "@lib/session";
 import { redirect } from "react-router";
 

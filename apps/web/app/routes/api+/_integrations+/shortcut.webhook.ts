@@ -1,6 +1,6 @@
-import { parseSettings } from "@features/integrations/server/queries";
-import { verifyShortcutWebhookSignature } from "@features/integrations/shortcut/server/client";
-import type { ShortcutSettings } from "@features/integrations/shortcut/server/schemas";
+import { parseSettings } from "@features/internal/integrations/server/queries";
+import { verifyShortcutWebhookSignature } from "@features/internal/integrations/shortcut/server/client";
+import type { ShortcutSettings } from "@features/internal/integrations/shortcut/server/schemas";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";

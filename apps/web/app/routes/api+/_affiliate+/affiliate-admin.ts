@@ -11,7 +11,7 @@ import {
   adminMarkPayoutPaid,
   adminRejectConversion,
   adminSetAffiliateStatus,
-} from "@features/affiliate/server/service";
+} from "@features/internal/affiliate/server/service";
 
 import type { Route } from "./+types/affiliate-admin";
 

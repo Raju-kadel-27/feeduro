@@ -1,7 +1,7 @@
 import { apiError } from "@feeduro/errors";
-import { UpdateWebhookSchema } from "@features/webhooks/schemas/endpoint";
-import { deleteWebhook, updateWebhook } from "@features/webhooks/server/api-webhooks";
-import { getWebhook } from "@features/webhooks/server/queries";
+import { UpdateWebhookSchema } from "@features/internal/webhooks/schemas/endpoint";
+import { deleteWebhook, updateWebhook } from "@features/internal/webhooks/server/api-webhooks";
+import { getWebhook } from "@features/internal/webhooks/server/queries";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";
 

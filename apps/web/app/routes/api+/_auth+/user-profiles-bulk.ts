@@ -1,6 +1,6 @@
 import { resolveApiOrganizationId } from "@features/auth/server/guards";
-import { IdentifyUserSchema } from "@features/segmentation/schemas/identify";
-import { bulkUpsertUserProfiles } from "@features/segmentation/server/service";
+import { IdentifyUserSchema } from "@features/internal/segmentation/schemas/identify";
+import { bulkUpsertUserProfiles } from "@features/internal/segmentation/server/service";
 import { data } from "react-router";
 import { z } from "zod";
 

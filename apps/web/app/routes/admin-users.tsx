@@ -1,8 +1,8 @@
 import { requireSession } from "@lib/session";
-import { ADMIN_PAGE_SIZE, listUsers } from "@features/admin/server/service";
+import { ADMIN_PAGE_SIZE, listUsers } from "@features/internal/admin/server/service";
 import { getEnv } from "@utils/get-env";
 import { data, redirect } from "react-router";
-import { UsersTable } from "@features/admin/components/users-table";
+import { UsersTable } from "@features/internal/admin/components/users-table";
 import type { Route } from "./+types/admin-users";
 
 function isPlatformAdmin(userId: string): boolean {

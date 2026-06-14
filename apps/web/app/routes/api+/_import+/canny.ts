@@ -1,6 +1,6 @@
 import { requireAdmin, requireOrganization } from "@features/auth/server/guards";
-import { runCannyImport } from "@features/import/server/import-service";
-import { rollbackImportJob } from "@features/import/server/job-service";
+import { runCannyImport } from "@features/internal/import/server/import-service";
+import { rollbackImportJob } from "@features/internal/import/server/job-service";
 import { z } from "zod";
 import { data } from "react-router";
 import type { Route } from "./+types/canny";

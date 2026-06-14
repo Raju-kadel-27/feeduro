@@ -1,8 +1,8 @@
 import { getDb } from "@/db";
 import { feedbackPosts, postActivities } from "@/db/schema";
 import { fireStatusSyncIntegrations } from "@features/feedback/server/status-sync";
-import { notifyStatusChanged } from "@features/notifications/server/service";
-import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { notifyStatusChanged } from "@features/internal/notifications/server/service";
+import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import type { AppLoadContext } from "react-router";

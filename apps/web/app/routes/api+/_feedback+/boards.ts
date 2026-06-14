@@ -1,5 +1,5 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { data } from "react-router";

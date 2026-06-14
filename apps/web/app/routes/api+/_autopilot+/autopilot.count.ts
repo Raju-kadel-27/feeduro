@@ -1,5 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { getPendingSuggestionsCount } from "@features/autopilot/server/queries";
+import { getPendingSuggestionsCount } from "@features/internal/autopilot/server/queries";
 import { data } from "react-router";
 
 import type { Route } from "./+types/autopilot.count";

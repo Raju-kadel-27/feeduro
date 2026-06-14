@@ -1,7 +1,7 @@
 import {
   handleLinearAction,
   handleLinearLoader,
-} from "@features/integrations/linear/server/service";
+} from "@features/internal/integrations/linear/server/service";
 
 import type { Route } from "./+types/linear";
 

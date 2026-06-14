@@ -1,7 +1,7 @@
 import {
   handleMondayAction,
   handleMondayLoader,
-} from "@features/integrations/monday/server/service";
+} from "@features/internal/integrations/monday/server/service";
 
 import type { Route } from "./+types/monday";
 

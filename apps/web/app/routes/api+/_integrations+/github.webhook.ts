@@ -1,7 +1,7 @@
-import { verifyGithubWebhookSignature } from "@features/integrations/github/server/client";
-import type { GithubSettings } from "@features/integrations/github/server/schemas";
-import { parseSettings } from "@features/integrations/server/queries";
-import { insertNotification } from "@features/notifications/server/mutations";
+import { verifyGithubWebhookSignature } from "@features/internal/integrations/github/server/client";
+import type { GithubSettings } from "@features/internal/integrations/github/server/schemas";
+import { parseSettings } from "@features/internal/integrations/server/queries";
+import { insertNotification } from "@features/internal/notifications/server/mutations";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";

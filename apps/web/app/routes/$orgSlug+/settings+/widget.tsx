@@ -10,7 +10,7 @@ import {
   toggleWidgetEnabled,
 } from "@features/widget/server/settings-actions";
 import { getWidgetSettings } from "@features/widget/server/settings-queries";
-import { WidgetSettingsPage } from "@features/widget/components/widget-settings-page";
+import { WidgetSettingsPage } from "@features/widget/components/internal/widget-settings-page";
 import { data } from "react-router";
 import type { Route } from "./+types/widget";
 

@@ -1,4 +1,4 @@
-import { notifyMentions, notifyNewComment } from "@features/notifications/server/service";
+import { notifyMentions, notifyNewComment } from "@features/internal/notifications/server/service";
 import { generateUserAlias } from "@features/feedback/utils";
 import { getSession } from "@lib/session";
 import { createId } from "@paralleldrive/cuid2";

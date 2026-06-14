@@ -1,6 +1,6 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { deliverToZapierCatchHook } from "@features/integrations/zapier/server/service";
-import type { WebhookEvent } from "@features/webhooks/server/dispatch";
+import { deliverToZapierCatchHook } from "@features/internal/integrations/zapier/server/service";
+import type { WebhookEvent } from "@features/internal/webhooks/server/dispatch";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";

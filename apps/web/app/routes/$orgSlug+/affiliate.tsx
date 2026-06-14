@@ -1,11 +1,11 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
+import { requireOrgBySlug } from "@features/auth/server/guards";
+import { AffiliateDashboard } from "@features/internal/affiliate/components/affiliate-dashboard";
 import {
   getAffiliateStats,
   joinAffiliateProgram,
   requestPayout,
 } from "@features/internal/affiliate/server/service";
-import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AffiliateDashboard } from "@features/internal/affiliate/components/affiliate-dashboard";
 import { getBaseUrl } from "@utils/base-url";
 import { data } from "react-router";
 import type { Route } from "./+types/affiliate";

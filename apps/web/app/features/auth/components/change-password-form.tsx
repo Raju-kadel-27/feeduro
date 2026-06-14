@@ -1,14 +1,13 @@
-import { useState } from "react";
+import { Button } from "@components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { authClient } from "@lib/auth/client";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import type { ChangePasswordValues } from "../schemas/password";
 import { changePasswordSchema } from "../schemas/password";
 import { PasswordField } from "./password-field";
 import { PasswordStrengthMeter } from "./password-strength-meter";
-import { Button } from "@components/ui/button";
-import { CheckCircle2, XCircle } from "lucide-react";
-
-import type { ChangePasswordValues } from "../schemas/password";
 
 export function ChangePasswordForm() {
   const [serverError, setServerError] = useState("");

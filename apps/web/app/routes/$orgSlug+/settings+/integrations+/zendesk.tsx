@@ -1,6 +1,6 @@
 import { Spinner } from "@components/ui/spinner";
-import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import type { ZendeskSettings } from "@features/internal/integrations/zendesk/server/schemas";
 import { cn } from "@lib/utils";

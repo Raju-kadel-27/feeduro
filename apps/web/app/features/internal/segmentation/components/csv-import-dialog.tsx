@@ -1,8 +1,8 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { CsvRowSchema, csvRowToIdentifyInput } from "@features/internal/segmentation/schemas/csv";
 import type { IdentifyUserInput } from "@features/internal/segmentation/schemas/identify";
-import { useState } from "react";
 import Papa from "papaparse";
+import { useState } from "react";
 import { toast } from "sonner";
 import { CsvDropZone } from "./csv-drop-zone";
 

@@ -4,9 +4,9 @@ import { ChevronUp, X } from "lucide-react";
 import { useState } from "react";
 import type { PublicPost, SessionUser } from "../../schemas/public";
 import { VoteResponseSchema } from "../../schemas/public";
+import { StatusPill } from "../status-pill";
 import { PublicCommentsSection } from "./public-comments-section";
 import { PublicComposeFooter } from "./public-compose-footer";
-import { StatusPill } from "../status-pill";
 
 export function DetailPanel({
   post,

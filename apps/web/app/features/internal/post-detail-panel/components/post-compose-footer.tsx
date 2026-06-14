@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import type { PostDetail } from "@features/feedback/schemas/admin";
 import { cn } from "@lib/utils";
 import { Lock, Smile } from "lucide-react";
+import { useState } from "react";
 import type { useCommentActions } from "../hooks/use-comment-actions";
-import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 
 type CommentState = ReturnType<typeof useCommentActions>;
 

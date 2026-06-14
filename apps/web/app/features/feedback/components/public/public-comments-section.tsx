@@ -1,8 +1,8 @@
 import { Badge } from "@components/ui/badge";
 import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import { useEffect, useState } from "react";
-import { timeAgo } from "../../utils";
 import type { PublicComment } from "../../schemas/public";
+import { timeAgo } from "../../utils";
 
 function TeamBadge() {
   return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 leading-none">Team</Badge>;

@@ -1,5 +1,5 @@
-import { Eye, Inbox, Megaphone, Repeat } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Eye, Inbox, Megaphone, Repeat } from "lucide-react";
 
 const OUTCOMES: { icon: LucideIcon; title: string; body: string; iconBg: string; iconColor: string }[] = [
   {

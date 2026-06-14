@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
+import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import type { DetailData, PostDetail } from "@features/feedback/schemas/admin";
 import { timeAgo } from "@features/feedback/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { cn } from "@lib/utils";
 import { Bot, ChevronUp, RefreshCw } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 import type { useCommentActions } from "../hooks/use-comment-actions";
 import type { useIntegrationLinks } from "../hooks/use-integration-links";
 import type { useMergeActions } from "../hooks/use-merge-actions";
 import type { useVoteStatus } from "../hooks/use-vote-status";
-import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import { type FeedItem, PostActivityFeed } from "./post-activity-feed";
 import { PostComposeFooter } from "./post-compose-footer";
 import { PostIntegrationSidebar } from "./post-integration-sidebar";

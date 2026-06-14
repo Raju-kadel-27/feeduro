@@ -1,6 +1,6 @@
+import { and, asc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts } from "@/db/schema";
-import { and, asc, eq } from "drizzle-orm";
 
 export async function getPostMergeInfo(
   organizationId: string,

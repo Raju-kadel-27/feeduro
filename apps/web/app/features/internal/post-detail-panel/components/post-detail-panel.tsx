@@ -1,3 +1,4 @@
+import type { AdminStatus } from "@features/feedback/schemas/admin";
 import { useEffect, useRef } from "react";
 import { useCommentActions } from "../hooks/use-comment-actions";
 import { useIntegrationLinks } from "../hooks/use-integration-links";
@@ -5,11 +6,10 @@ import { useMergeActions } from "../hooks/use-merge-actions";
 import { useOwnerPicker } from "../hooks/use-owner-picker";
 import { usePostData } from "../hooks/use-post-data";
 import { useVoteStatus } from "../hooks/use-vote-status";
+import type { FeedItem } from "./post-activity-feed";
 import { PostDetailBody } from "./post-detail-body";
 import { PostDetailHeader } from "./post-detail-header";
 import { PostMergeDialog } from "./post-merge-dialog";
-import type { AdminStatus } from "@features/feedback/schemas/admin";
-import type { FeedItem } from "./post-activity-feed";
 
 export function PostDetailPanel({
   postId,

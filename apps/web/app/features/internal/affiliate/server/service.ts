@@ -1,3 +1,4 @@
+import { sendEmail } from "@lib/mailer";
 import { and, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
@@ -8,7 +9,6 @@ import {
   member,
   user,
 } from "@/db/schema";
-import { sendEmail } from "@lib/mailer";
 import { checkFraud } from "./fraud";
 import { generateAffiliateCode, getPlanPriceCents, hashVisitor, isSameEmailIdentity } from "./utils";
 

@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   AsanaIcon,
   ClickUpIcon,
@@ -19,6 +18,7 @@ import {
   ZapierIcon,
   ZendeskIcon,
 } from "@components/icons";
+import type { ReactNode } from "react";
 
 type Integration = { name: string; description: string; icon: ReactNode; comingSoon?: boolean };
 

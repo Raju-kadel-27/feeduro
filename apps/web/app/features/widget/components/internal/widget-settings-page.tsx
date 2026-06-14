@@ -1,6 +1,6 @@
-import type { WidgetSettingsLoaderData } from "../../types";
 import { useState } from "react";
 import { useFetcher } from "react-router";
+import type { WidgetSettingsLoaderData } from "../../types";
 import { SettingsBoardTokensSection } from "./settings-board-tokens-section";
 import { SettingsConfigSection } from "./settings-config-section";
 import { SettingsDangerSection } from "./settings-danger-section";

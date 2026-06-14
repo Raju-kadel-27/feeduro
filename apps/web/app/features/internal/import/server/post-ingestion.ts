@@ -1,8 +1,8 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts } from "@/db/schema";
-import { mapCannyStatus } from "./canny-adapter";
 import type { CannyPost } from "../schemas/canny";
+import { mapCannyStatus } from "./canny-adapter";
 
 const BATCH = 100;
 

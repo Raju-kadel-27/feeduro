@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
-import { useSearchParams } from "react-router";
+import { ADMIN_PAGE_SIZE } from "@features/internal/admin/constants";
 import { authClient } from "@lib/auth/client";
 import { Search, UserCheck } from "lucide-react";
-import { ADMIN_PAGE_SIZE } from "@features/internal/admin/constants";
+import { useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 
 type User = {
   id: string;

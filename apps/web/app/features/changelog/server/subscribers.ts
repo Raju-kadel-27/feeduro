@@ -1,8 +1,8 @@
 import { ChangelogNotificationEmail } from "@emails/changelog-notification";
 import { sendEmail } from "@lib/mailer";
 import { waitUntil } from "@middleware/cloudflare.server";
-import { render } from "@react-email/render";
 import { createId } from "@paralleldrive/cuid2";
+import { render } from "@react-email/render";
 import { and, eq, isNull } from "drizzle-orm";
 import type { RouterContextProvider } from "react-router";
 import { getDb } from "@/db";

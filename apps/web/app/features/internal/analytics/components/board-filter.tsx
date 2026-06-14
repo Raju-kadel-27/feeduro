@@ -1,4 +1,3 @@
-import { useNavigate, useSearchParams } from "react-router";
 import {
   Select,
   SelectContent,
@@ -6,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
+import { useNavigate, useSearchParams } from "react-router";
 import type { BoardSummary } from "../schemas/analytics";
 
 interface Props {

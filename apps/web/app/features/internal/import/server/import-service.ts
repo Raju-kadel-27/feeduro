@@ -1,20 +1,20 @@
+import { bulkUpsertUserProfiles } from "@features/internal/segmentation/server/mutations";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { userProfiles } from "@/db/schema";
-import { bulkUpsertUserProfiles } from "@features/internal/segmentation/server/mutations";
+import type { CannyComment, CannyPost, CannyVote } from "../schemas/canny";
+import { syncBoards } from "./board-sync";
+import { collectUniqueUsers, toIdentifyInput } from "./canny-adapter";
 import {
   fetchBoards,
   fetchCommentsByBoard,
   fetchPostsByBoard,
   fetchVotesByBoard,
 } from "./canny-client";
-import { collectUniqueUsers, toIdentifyInput } from "./canny-adapter";
-import type { CannyComment, CannyPost, CannyVote } from "../schemas/canny";
-import { createImportJob, completeImportJob, failImportJob } from "./job-service";
-import { syncBoards } from "./board-sync";
+import { insertComments } from "./comment-ingestion";
+import { completeImportJob, createImportJob, failImportJob } from "./job-service";
 import { insertPosts, reconcileVoteCounts } from "./post-ingestion";
 import { insertVotes } from "./vote-ingestion";
-import { insertComments } from "./comment-ingestion";
 
 export interface CannyImportResult {
   jobId: string;

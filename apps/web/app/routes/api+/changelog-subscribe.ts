@@ -1,5 +1,5 @@
-import { subscribeEmail } from "@features/changelog/server/subscribers";
 import { SubscribeSchema } from "@features/changelog/schemas/subscribers";
+import { subscribeEmail } from "@features/changelog/server/subscribers";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";

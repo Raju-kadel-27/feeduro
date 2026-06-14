@@ -1,7 +1,7 @@
 import { cn } from "@lib/utils";
 import { ChevronDown, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ChipTriggerProps {
   label: string;

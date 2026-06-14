@@ -1,7 +1,7 @@
+import { COLOR_OPTIONS } from "@features/branding/constants/branding-options";
+import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { createElement as h } from "react";
 import satori from "satori";
-import { initWasm, Resvg } from "@resvg/resvg-wasm";
-import { COLOR_OPTIONS } from "@features/branding/constants/branding-options";
 
 export type OgImageParams = {
   orgName: string;

@@ -1,9 +1,9 @@
 import { ADMIN_STATUS_CONFIG } from "@features/feedback/constants";
 import type { ActivityData, AdminStatus } from "@features/feedback/schemas/admin";
 import { timeAgo } from "@features/feedback/utils";
+import { StatusCircleIcon } from "@features/roadmap/components/status-circle-icon";
 import { cn } from "@lib/utils";
 import { GitMerge, UserCheck } from "lucide-react";
-import { StatusCircleIcon } from "@features/roadmap/components/status-circle-icon";
 
 export function ActivityItem({
   activity,

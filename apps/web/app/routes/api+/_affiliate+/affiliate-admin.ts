@@ -1,6 +1,3 @@
-import { requireSession } from "@lib/session";
-import { getEnv } from "@utils/get-env";
-import { data } from "react-router";
 import {
   adminApproveConversion,
   adminClawbackConversion,
@@ -12,6 +9,9 @@ import {
   adminRejectConversion,
   adminSetAffiliateStatus,
 } from "@features/internal/affiliate/server/service";
+import { requireSession } from "@lib/session";
+import { getEnv } from "@utils/get-env";
+import { data } from "react-router";
 
 import type { Route } from "./+types/affiliate-admin";
 

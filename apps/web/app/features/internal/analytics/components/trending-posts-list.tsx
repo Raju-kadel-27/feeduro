@@ -1,5 +1,5 @@
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { cn } from "@lib/utils";
+import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type { TrendingPosts } from "../schemas/analytics";
 
 const STATUS_COLOR: Record<string, string> = {

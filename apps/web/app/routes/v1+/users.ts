@@ -1,5 +1,5 @@
-import { apiError } from "@feeduro/errors";
 import { ListUsersSchema, listUsers } from "@features/internal/segmentation/server/api-users";
+import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";
 

@@ -1,7 +1,7 @@
-import type { AdminStatus, MergeSearchPost } from "@features/feedback/schemas/admin";
 import { Dialog, DialogContent } from "@components/ui/dialog";
-import { Search } from "lucide-react";
+import type { AdminStatus, MergeSearchPost } from "@features/feedback/schemas/admin";
 import { StatusCircleIcon } from "@features/roadmap/components/status-circle-icon";
+import { Search } from "lucide-react";
 
 export function PostMergeDialog({
   open,

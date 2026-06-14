@@ -1,5 +1,5 @@
-import { and, eq } from "drizzle-orm";
 import { getEnv } from "@utils/get-env";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";

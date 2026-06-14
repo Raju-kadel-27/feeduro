@@ -7,11 +7,11 @@ import {
   CommandList,
 } from "@components/ui/command";
 import { Dialog, DialogContent } from "@components/ui/dialog";
+import type { SearchResult } from "@features/feedback/server/search";
 import { cn } from "@lib/utils";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Board } from "../types";
-import type { SearchResult } from "@features/feedback/server/search";
 
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",

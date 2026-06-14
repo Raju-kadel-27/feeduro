@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@better-auth/api-key": "^1.6.9",
+    "@better-auth/oauth-provider": "^1.6.18",
     "@better-auth/passkey": "^1.6.5",
     "@better-auth/sso": "^1.6.9",
     "@blocknote/core": "^0.49.0",

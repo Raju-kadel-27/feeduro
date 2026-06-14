@@ -1,6 +1,6 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { deliverToN8nWebhook } from "@features/integrations/n8n/server/service";
-import type { WebhookEvent } from "@features/webhooks/server/dispatch";
+import { deliverToN8nWebhook } from "@features/internal/integrations/n8n/server/service";
+import type { WebhookEvent } from "@features/internal/webhooks/server/dispatch";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";

@@ -1,6 +1,6 @@
-import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
-import { getVoterTraitCountsByPost } from "@features/segmentation/server/service";
-import type { VoterTraitCounts } from "@features/segmentation/types";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
+import { getVoterTraitCountsByPost } from "@features/internal/segmentation/server/service";
+import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, postExternalLinks, votes } from "@/db/schema";

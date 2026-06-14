@@ -1,14 +1,14 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgTags, getPostTags } from "@features/feedback/server/tags.server";
-import { PostMergeDialog } from "@features/post-detail-panel/components/post-merge-dialog";
-import { PostMergedBanner } from "@features/post-detail-panel/components/post-merged-banner";
-import { useMergeActions } from "@features/post-detail-panel/hooks/use-merge-actions";
-import type { VoterProfileRow } from "@features/segmentation/server/service";
+import { PostMergeDialog } from "@features/internal/post-detail-panel/components/post-merge-dialog";
+import { PostMergedBanner } from "@features/internal/post-detail-panel/components/post-merged-banner";
+import { useMergeActions } from "@features/internal/post-detail-panel/hooks/use-merge-actions";
+import type { VoterProfileRow } from "@features/internal/segmentation/server/service";
 import {
   getVoterProfilesByPost,
   getVoterTraitCountsByPost,
-} from "@features/segmentation/server/service";
-import type { VoterTraitCounts } from "@features/segmentation/types";
+} from "@features/internal/segmentation/server/service";
+import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";

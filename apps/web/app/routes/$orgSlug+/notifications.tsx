@@ -1,9 +1,9 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrganization } from "@features/auth/server/guards";
-import { NotificationItem } from "@features/notifications/components/notification-item";
-import type { Notification } from "@features/notifications/schemas/notification";
-import { markAllNotificationsRead } from "@features/notifications/server/mutations";
-import { getNotificationsForUser } from "@features/notifications/server/queries";
+import { NotificationItem } from "@features/internal/notifications/components/notification-item";
+import type { Notification } from "@features/internal/notifications/schemas/notification";
+import { markAllNotificationsRead } from "@features/internal/notifications/server/mutations";
+import { getNotificationsForUser } from "@features/internal/notifications/server/queries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";

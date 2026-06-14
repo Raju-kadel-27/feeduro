@@ -1,4 +1,4 @@
-import { handleJiraAction, handleJiraLoader } from "@features/integrations/jira/server/service";
+import { handleJiraAction, handleJiraLoader } from "@features/internal/integrations/jira/server/service";
 
 import type { Route } from "./+types/jira";
 

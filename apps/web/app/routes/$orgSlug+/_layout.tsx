@@ -1,4 +1,4 @@
-import { AppShell } from "@features/layout/components/app-shell";
+import { AppShell } from "@features/internal/layout/components/app-shell";
 import { PageTransition } from "@components/page-transition";
 import { Outlet, useMatches } from "react-router";
 

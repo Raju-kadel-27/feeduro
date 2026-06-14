@@ -1,8 +1,8 @@
 import { Spinner } from "@components/ui/spinner";
-import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
+import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import type { SalesforceSettings } from "@features/integrations/salesforce/server/schemas";
-import { getIntegration, parseSettings } from "@features/integrations/server/queries";
+import type { SalesforceSettings } from "@features/internal/integrations/salesforce/server/schemas";
+import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getEnv } from "@utils/get-env";

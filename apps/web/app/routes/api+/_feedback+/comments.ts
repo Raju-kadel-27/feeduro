@@ -1,7 +1,7 @@
 import { canDo, requireOrganization } from "@features/auth/server/guards";
-import { notifyCustomerReplyByEmail } from "@features/notifications/server/email";
-import { notifyMentions, notifyNewComment } from "@features/notifications/server/service";
-import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { notifyCustomerReplyByEmail } from "@features/internal/notifications/server/email";
+import { notifyMentions, notifyNewComment } from "@features/internal/notifications/server/service";
+import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { createId } from "@paralleldrive/cuid2";
 import { and, asc, eq } from "drizzle-orm";
 import { data } from "react-router";

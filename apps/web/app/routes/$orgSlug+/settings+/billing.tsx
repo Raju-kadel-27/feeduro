@@ -2,13 +2,13 @@ import { Alert, AlertDescription } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { SidebarTrigger } from "@components/ui/sidebar";
-import { getAffiliateCodeFromRequest } from "@features/affiliate/server/cookies";
+import { getAffiliateCodeFromRequest } from "@features/internal/affiliate/server/cookies";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import {
   cancelDodoSubscription,
   changeDodoPlan,
   createDodoCheckoutSession,
-} from "@features/billing/server/dodo";
+} from "@features/internal/billing/server/dodo";
 import { authClient } from "@lib/auth/client";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, or } from "drizzle-orm";

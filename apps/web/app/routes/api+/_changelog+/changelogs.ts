@@ -1,7 +1,7 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { notifyChangelogSubscribers } from "@features/changelog/server/subscribers";
 import { extractBlockNoteText } from "@features/feedback/utils";
-import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq } from "drizzle-orm";
 import { data } from "react-router";

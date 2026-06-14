@@ -1,6 +1,6 @@
-import { getIntegration, parseSettings } from "@features/integrations/server/queries";
-import { verifyTrelloWebhook } from "@features/integrations/trello/server/client";
-import type { TrelloSettings } from "@features/integrations/trello/server/schemas";
+import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
+import { verifyTrelloWebhook } from "@features/internal/integrations/trello/server/client";
+import type { TrelloSettings } from "@features/internal/integrations/trello/server/schemas";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";

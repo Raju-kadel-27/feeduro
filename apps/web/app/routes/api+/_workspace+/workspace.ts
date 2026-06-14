@@ -3,7 +3,7 @@ import {
   deleteWorkspace,
   updateWorkspaceName,
   updateWorkspaceSlug,
-} from "@features/workspace/server/mutations.server";
+} from "@features/internal/workspace/server/mutations.server";
 import { data } from "react-router";
 import { z } from "zod";
 

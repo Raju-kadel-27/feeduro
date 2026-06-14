@@ -1,8 +1,8 @@
 import { getDb } from "@/db";
 import { comments, feedbackPosts, user, votes } from "@/db/schema";
 import { getPostTagsBatch } from "@features/feedback/server/tags.server";
-import { getMrrImpactByPost, getVoterTraitCountsByPost } from "@features/segmentation/server/service";
-import type { VoterTraitCounts } from "@features/segmentation/types";
+import { getMrrImpactByPost, getVoterTraitCountsByPost } from "@features/internal/segmentation/server/service";
+import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
 

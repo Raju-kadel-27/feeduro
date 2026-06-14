@@ -1,4 +1,4 @@
-import { WidgetPage } from "@features/widget/components/widget-page";
+import { WidgetPage } from "@features/widget/components/public/widget-page";
 import { getBoardWidgetData } from "@features/widget/server/board-queries";
 import { getWidgetLoaderData } from "@features/widget/server/queries";
 

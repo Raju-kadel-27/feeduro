@@ -1,6 +1,6 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
-import { ColumnSkeleton } from "@features/roadmap/components/column-skeleton";
-import { KanbanBoard } from "@features/roadmap/components/kanban-board";
+import { ColumnSkeleton } from "@features/roadmap/components/internal/column-skeleton";
+import { KanbanBoard } from "@features/roadmap/components/internal/kanban-board";
 import { useRoadmap } from "@features/roadmap/hooks/use-roadmap";
 import { loadRoadmapData } from "@features/roadmap/server/queries";
 import type { Post } from "@features/roadmap/types";

@@ -1,7 +1,7 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
-import { AddProviderDialog } from "@features/sso/components/add-provider-dialog";
-import { ProviderList } from "@features/sso/components/provider-list";
-import { loadSSOSettings } from "@features/sso/server/queries";
+import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
+import { ProviderList } from "@features/internal/sso/components/provider-list";
+import { loadSSOSettings } from "@features/internal/sso/server/queries";
 import { KeyRound } from "lucide-react";
 import { data } from "react-router";
 

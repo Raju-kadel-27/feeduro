@@ -1,19 +1,19 @@
 
 import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { FeedbackSearchModal } from "@features/dashboard/components/feedback-search-modal";
-import { ListView } from "@features/dashboard/components/list-view";
-import { RefineChipBar } from "@features/dashboard/components/refine-chip-bar";
-import { useViewState } from "@features/dashboard/hooks/use-view-state";
-import { getOrgViewsWithCounts } from "@features/dashboard/server/views.server";
-import type { Board, Category, Post, Tag, View } from "@features/dashboard/types";
-import { CreateFeedbackDialog } from "@features/feedback/components/create-feedback-dialog";
+import { FeedbackSearchModal } from "@features/internal/dashboard/components/feedback-search-modal";
+import { ListView } from "@features/internal/dashboard/components/list-view";
+import { RefineChipBar } from "@features/internal/dashboard/components/refine-chip-bar";
+import { useViewState } from "@features/internal/dashboard/hooks/use-view-state";
+import { getOrgViewsWithCounts } from "@features/internal/dashboard/server/views.server";
+import type { Board, Category, Post, Tag, View } from "@features/internal/dashboard/types";
+import { CreateFeedbackDialog } from "@features/feedback/components/internal/create-feedback-dialog";
 import { getOrgCategories } from "@features/feedback/server/categories.server";
 import { getBoards, getEnrichedPosts } from "@features/feedback/server/queries";
 import { getOrgTags } from "@features/feedback/server/tags.server";
-import { PostDetailPanel } from "@features/post-detail-panel/components/post-detail-panel";
-import { getOrgSegments } from "@features/segmentation/server/service";
-import type { Segment } from "@features/segmentation/types";
+import { PostDetailPanel } from "@features/internal/post-detail-panel/components/post-detail-panel";
+import { getOrgSegments } from "@features/internal/segmentation/server/service";
+import type { Segment } from "@features/internal/segmentation/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { useEffect, useRef, useState } from "react";
@@ -64,9 +64,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     usersMap: Object.fromEntries(
       orgMembers.map((m) => [m.userId, { name: m.name, image: m.image }]),
     ),
-    orgAdmins: orgMembers
-      .filter((m) => m.role === "admin" || m.role === "owner")
-      .map((m) => ({ id: m.userId, name: m.name, image: m.image })),
+    orgMembers: orgMembers.map((m) => ({ id: m.userId, name: m.name, image: m.image })),
     posts,
     boards: boardsData.boards,
     views,
@@ -154,12 +152,24 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
     staleTime: 60_000,
   });
 
+  const { data: orgMembersData } = useQuery({
+    queryKey: ["org-members", orgSlug],
+    queryFn: async () => {
+      const res = await fetch("/api/org-members");
+      return res.json() as Promise<{ orgMembers: Array<{ id: string; name: string | null; image: string | null }> }>;
+    },
+    initialData: { orgMembers: loaderData.orgMembers },
+    initialDataUpdatedAt: loaderData.fetchedAt,
+    staleTime: 60_000,
+  });
+
   const allPosts = postsData?.posts ?? [];
   const boards = boardsData?.boards ?? [];
   const views = viewsData?.views ?? [];
   const segments = segmentsData?.segments ?? [];
   const tags = tagsData?.tags ?? [];
   const categories = categoriesData?.categories ?? [];
+  const orgMembers = orgMembersData?.orgMembers ?? [];
   const boardMap = Object.fromEntries(boards.map((b) => [b.id, b]));
   const defaultBoard = boards.find((b) => b.isDefault) ?? boards[0];
 
@@ -237,12 +247,13 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
               tags={tags}
               categories={categories}
               segments={segments}
-              orgAdmins={loaderData.orgAdmins}
+              orgMembers={orgMembers}
               onSwitchView={viewState.switchView}
               onClearView={viewState.clearView}
               onSearchOpen={() => setShowSearch(true)}
               onNewRequest={() => setShowCreate(true)}
               onSetRefinement={viewState.setRefinement}
+              onSetRefinements={viewState.setRefinements}
               onClearRefinements={viewState.clearRefinements}
             />
           </div>

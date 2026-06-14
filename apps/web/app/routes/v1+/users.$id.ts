@@ -1,5 +1,5 @@
 import { apiError } from "@feeduro/errors";
-import { deleteUser, getUser } from "@features/segmentation/server/api-users";
+import { deleteUser, getUser } from "@features/internal/segmentation/server/api-users";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";
 

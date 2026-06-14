@@ -1,6 +1,6 @@
-import { verifyClickupWebhookSignature } from "@features/integrations/clickup/server/client";
-import type { ClickupSettings } from "@features/integrations/clickup/server/schemas";
-import { parseSettings } from "@features/integrations/server/queries";
+import { verifyClickupWebhookSignature } from "@features/internal/integrations/clickup/server/client";
+import type { ClickupSettings } from "@features/internal/integrations/clickup/server/schemas";
+import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";

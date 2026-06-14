@@ -1,4 +1,4 @@
-import { PrivacyPage } from "@features/legal/components/privacy-page";
+import { PrivacyPage } from "@features/public/legal/components/privacy-page";
 
 export function meta() {
   return [

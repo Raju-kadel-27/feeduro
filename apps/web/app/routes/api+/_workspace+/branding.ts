@@ -1,5 +1,5 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { getOrgPlanLimits } from "@features/billing/server/plan-limits";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import type { BrandingMeta } from "@features/branding/server/parse-branding";
 import { DEFAULT_BRANDING, parseBranding } from "@features/branding/server/parse-branding";
 import { eq } from "drizzle-orm";

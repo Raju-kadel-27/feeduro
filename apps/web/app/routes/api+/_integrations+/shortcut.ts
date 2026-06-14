@@ -1,4 +1,4 @@
-import { handleShortcutAction } from "@features/integrations/shortcut/server/service";
+import { handleShortcutAction } from "@features/internal/integrations/shortcut/server/service";
 
 import type { Route } from "./+types/shortcut";
 

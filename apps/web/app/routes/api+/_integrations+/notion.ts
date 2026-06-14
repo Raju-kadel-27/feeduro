@@ -4,14 +4,14 @@ import {
   getNotionDatabases,
   getNotionPage,
   parseNotionPageInput,
-} from "@features/integrations/notion/server/client";
-import { exchangeNotionCode, notionAuthUrl } from "@features/integrations/notion/server/oauth";
-import type { NotionSettings } from "@features/integrations/notion/server/schemas";
+} from "@features/internal/integrations/notion/server/client";
+import { exchangeNotionCode, notionAuthUrl } from "@features/internal/integrations/notion/server/oauth";
+import type { NotionSettings } from "@features/internal/integrations/notion/server/schemas";
 import {
   getIntegration,
   getOrgSlugFromId,
   parseSettings,
-} from "@features/integrations/server/queries";
+} from "@features/internal/integrations/server/queries";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";

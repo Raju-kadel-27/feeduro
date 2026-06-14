@@ -1,6 +1,6 @@
-import { clearCookieHeader, getAffiliateCodeFromRequest } from "@features/affiliate/server/cookies";
-import { recordSignupConversion } from "@features/affiliate/server/service";
-import { CreateWorkspaceForm } from "@features/workspace/components/create-workspace-form";
+import { clearCookieHeader, getAffiliateCodeFromRequest } from "@features/internal/affiliate/server/cookies";
+import { recordSignupConversion } from "@features/internal/affiliate/server/service";
+import { CreateWorkspaceForm } from "@features/internal/workspace/components/create-workspace-form";
 import { requireSession } from "@lib/session";
 import { getEnv } from "@utils/get-env";
 import { eq } from "drizzle-orm";

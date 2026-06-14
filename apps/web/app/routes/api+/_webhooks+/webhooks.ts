@@ -1,14 +1,14 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { isAdmin } from "@features/roles/server/queries";
-import { SUPPORTED_EVENTS } from "@features/webhooks/constants";
-import { CreateWebhookSchema, UpdateWebhookSchema } from "@features/webhooks/schemas/endpoint";
+import { isAdmin } from "@features/internal/roles/server/queries";
+import { SUPPORTED_EVENTS } from "@features/internal/webhooks/constants";
+import { CreateWebhookSchema, UpdateWebhookSchema } from "@features/internal/webhooks/schemas/endpoint";
 import {
   createWebhook,
   deleteWebhook,
   rotateWebhookSecret,
   updateWebhook,
-} from "@features/webhooks/server/api-webhooks";
-import { getWebhookSecret, listWebhooks } from "@features/webhooks/server/queries";
+} from "@features/internal/webhooks/server/api-webhooks";
+import { getWebhookSecret, listWebhooks } from "@features/internal/webhooks/server/queries";
 import { data } from "react-router";
 import { z } from "zod";
 

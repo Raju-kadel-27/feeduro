@@ -1,5 +1,5 @@
-import { isBot } from "@features/affiliate/server/bot-detection";
-import { recordClick } from "@features/affiliate/server/service";
+import { isBot } from "@features/internal/affiliate/server/bot-detection";
+import { recordClick } from "@features/internal/affiliate/server/service";
 import { getEnv } from "@utils/get-env";
 import { redirect } from "react-router";
 

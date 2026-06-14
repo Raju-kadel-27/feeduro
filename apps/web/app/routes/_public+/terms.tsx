@@ -1,4 +1,4 @@
-import { TermsPage } from "@features/legal/components/terms-page";
+import { TermsPage } from "@features/public/legal/components/terms-page";
 
 export function meta() {
   return [

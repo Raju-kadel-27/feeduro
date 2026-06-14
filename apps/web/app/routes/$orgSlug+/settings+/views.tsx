@@ -1,12 +1,12 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { ViewsSettingsPage } from "@features/dashboard/components/views-settings-page";
-import { getOrgViews } from "@features/dashboard/server/views.server";
-import type { Category, Tag } from "@features/dashboard/types";
+import { ViewsSettingsPage } from "@features/internal/dashboard/components/views-settings-page";
+import { getOrgViews } from "@features/internal/dashboard/server/views.server";
+import type { Category, Tag } from "@features/internal/dashboard/types";
 import { getOrgCategories } from "@features/feedback/server/categories.server";
 import { getBoards } from "@features/feedback/server/queries";
 import { getOrgTags } from "@features/feedback/server/tags.server";
-import type { Segment } from "@features/segmentation/types";
-import { getOrgSegments } from "@features/segmentation/server/service";
+import type { Segment } from "@features/internal/segmentation/types";
+import { getOrgSegments } from "@features/internal/segmentation/server/service";
 import type { Route } from "./+types/views";
 
 export function meta() {

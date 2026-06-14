@@ -1,15 +1,15 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { getSalesforceUserInfo } from "@features/integrations/salesforce/server/client";
+import { getSalesforceUserInfo } from "@features/internal/integrations/salesforce/server/client";
 import {
   exchangeSalesforceCode,
   salesforceAuthUrl,
-} from "@features/integrations/salesforce/server/oauth";
-import type { SalesforceSettings } from "@features/integrations/salesforce/server/schemas";
+} from "@features/internal/integrations/salesforce/server/oauth";
+import type { SalesforceSettings } from "@features/internal/integrations/salesforce/server/schemas";
 import {
   getIntegration,
   getOrgSlugFromId,
   parseSettings,
-} from "@features/integrations/server/queries";
+} from "@features/internal/integrations/server/queries";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";

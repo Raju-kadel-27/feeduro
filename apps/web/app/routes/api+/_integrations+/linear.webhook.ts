@@ -1,6 +1,6 @@
-import { verifyLinearWebhookSignature } from "@features/integrations/linear/server/client";
-import type { LinearSettings } from "@features/integrations/linear/server/schemas";
-import { parseSettings } from "@features/integrations/server/queries";
+import { verifyLinearWebhookSignature } from "@features/internal/integrations/linear/server/client";
+import type { LinearSettings } from "@features/internal/integrations/linear/server/schemas";
+import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";

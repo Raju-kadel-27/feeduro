@@ -24,7 +24,7 @@
       "@utils/*": ["./app/utils/*"],
       "@routes/*": ["./app/routes/*"],
       "@emails/*": ["./app/features/emails/*"],
-      "@jobs/*": ["./app/features/jobs/*"],
+      "@jobs/*": ["./app/features/internal/jobs/*"],
       "@db/*": ["./db/*"],
       "@styles/*": ["./styles/*"],
       "@middleware/*": ["./app/middleware/*"],

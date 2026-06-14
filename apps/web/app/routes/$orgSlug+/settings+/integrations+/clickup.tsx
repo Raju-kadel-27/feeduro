@@ -1,6 +1,6 @@
-import { ClickupSettingsPage } from "@features/integrations/clickup/components/clickup-settings-page";
+import { ClickupSettingsPage } from "@features/internal/integrations/clickup/components/clickup-settings-page";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getIntegration } from "@features/integrations/server/queries";
+import { getIntegration } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { member } from "@/db/schema";

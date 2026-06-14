@@ -1,12 +1,12 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { SegmentActionSchema } from "@features/segmentation/schemas/segment";
+import { SegmentActionSchema } from "@features/internal/segmentation/schemas/segment";
 import {
   createSegment,
   deleteSegment,
   getOrgSegments,
   getSegmentMemberCounts,
   updateSegment,
-} from "@features/segmentation/server/service";
+} from "@features/internal/segmentation/server/service";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { getDb } from "@/db";

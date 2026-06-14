@@ -1,5 +1,5 @@
-import { notifyOwnerAssigned } from "@features/notifications/server/service";
-import { and, eq, inArray } from "drizzle-orm";
+import { notifyOwnerAssigned } from "@features/internal/notifications/server/service";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, member, postActivities, user } from "@/db/schema";
 
@@ -26,13 +26,10 @@ export async function assignPostOwner({
 
   if (newOwnerId !== null) {
     const ownerMember = await db.query.member.findFirst({
-      where: and(
-        eq(member.organizationId, organizationId),
-        eq(member.userId, newOwnerId),
-        inArray(member.role, ["admin", "owner"]),
-      ),
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, newOwnerId)),
+      columns: { userId: true },
     });
-    if (!ownerMember) return { error: "Owner must be an admin of this organization" };
+    if (!ownerMember) return { error: "Owner must be a member of this organization" };
   }
 
   const ownerRow = newOwnerId

@@ -1,4 +1,4 @@
-import { logOrgActivity } from "@features/audit/server/log-org-activity";
+import { logOrgActivity } from "@features/internal/audit/server/log-org-activity";
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";

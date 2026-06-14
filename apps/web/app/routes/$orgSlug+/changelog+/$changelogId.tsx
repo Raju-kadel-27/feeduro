@@ -2,7 +2,7 @@ import { SidebarTrigger } from "@components/ui/sidebar";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
-import { PublishConfirmPopover } from "@features/changelog/components/publish-confirm-popover";
+import { PublishConfirmPopover } from "@features/changelog/components/internal/publish-confirm-popover";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { ArrowLeft, Check, Clock, Globe } from "lucide-react";
@@ -82,7 +82,7 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
 
   // Dynamically import the editor only on the client to avoid SSR issues
   useEffect(() => {
-    import("@features/changelog/components/changelog-editor").then((m) => {
+    import("@features/changelog/components/internal/changelog-editor").then((m) => {
       setEditorComponent(() => m.default as EditorComponent);
     });
   }, []);

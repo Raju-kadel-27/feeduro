@@ -1,7 +1,7 @@
 import {
   handleGithubAction,
   handleGithubLoader,
-} from "@features/integrations/github/server/service";
+} from "@features/internal/integrations/github/server/service";
 
 import type { Route } from "./+types/github";
 

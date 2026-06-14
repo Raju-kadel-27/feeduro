@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { eq } from "drizzle-orm";
-import { logOrgActivity, type AuditActor } from "@features/audit/server/log-org-activity";
+import { logOrgActivity, type AuditActor } from "@features/internal/audit/server/log-org-activity";
 import { getDb } from "@/db";
 import { widgetConfigs } from "@/db/schema";
 import { generateSigningSecret } from "../utils/crypto";

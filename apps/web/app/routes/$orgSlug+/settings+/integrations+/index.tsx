@@ -1,3 +1,3 @@
-import { integrationsLoader } from "@features/integrations/server/loader";
+import { integrationsLoader } from "@features/internal/integrations/server/loader";
 export const loader = integrationsLoader;
-export { default } from "@features/integrations/components/integrations-page";
+export { default } from "@features/internal/integrations/components/integrations-page";

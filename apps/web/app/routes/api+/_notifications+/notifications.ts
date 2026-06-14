@@ -2,8 +2,8 @@ import { requireOrganization } from "@features/auth/server/guards";
 import {
   markAllNotificationsRead,
   markNotificationRead,
-} from "@features/notifications/server/mutations";
-import { getNotificationsForUser, getUnreadCount } from "@features/notifications/server/queries";
+} from "@features/internal/notifications/server/mutations";
+import { getNotificationsForUser, getUnreadCount } from "@features/internal/notifications/server/queries";
 import { data } from "react-router";
 import { z } from "zod";
 

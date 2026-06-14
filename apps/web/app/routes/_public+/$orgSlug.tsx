@@ -1,4 +1,4 @@
-import { PublicBoardPage } from "@features/feedback/components/public-board-page";
+import { PublicBoardPage } from "@features/feedback/components/public/public-board-page";
 import { publicPageLoader } from "@features/feedback/server/public-loader";
 
 import type { Route } from "./+types/$orgSlug";

@@ -1,7 +1,7 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { ResolveAutopilotSuggestionSchema } from "@features/autopilot/schemas";
-import { resolveSuggestion } from "@features/autopilot/server/mutations";
-import { getPendingSuggestions } from "@features/autopilot/server/queries";
+import { ResolveAutopilotSuggestionSchema } from "@features/internal/autopilot/schemas";
+import { resolveSuggestion } from "@features/internal/autopilot/server/mutations";
+import { getPendingSuggestions } from "@features/internal/autopilot/server/queries";
 import { data } from "react-router";
 
 import type { Route } from "./+types/autopilot";

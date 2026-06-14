@@ -1,5 +1,5 @@
 import { requireSession } from "@lib/session";
-import { formatCents } from "@features/affiliate/server/utils";
+import { formatCents } from "@features/internal/affiliate/server/utils";
 import { getEnv } from "@utils/get-env";
 import { data, redirect, useFetcher, useLoaderData, useNavigate, useSearchParams } from "react-router";
 import {
@@ -11,7 +11,7 @@ import {
   adminMarkPayoutPaid,
   adminRejectConversion,
   adminSetAffiliateStatus,
-} from "@features/affiliate/server/service";
+} from "@features/internal/affiliate/server/service";
 
 import type { Route } from "./+types/affiliate-admin";
 

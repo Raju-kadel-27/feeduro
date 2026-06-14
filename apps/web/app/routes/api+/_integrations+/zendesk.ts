@@ -3,10 +3,10 @@ import {
   getIntegration,
   getOrgSlugFromId,
   parseSettings,
-} from "@features/integrations/server/queries";
-import { getZendeskCurrentUser } from "@features/integrations/zendesk/server/client";
-import { zendeskOAuth } from "@features/integrations/zendesk/server/oauth";
-import type { ZendeskSettings } from "@features/integrations/zendesk/server/schemas";
+} from "@features/internal/integrations/server/queries";
+import { getZendeskCurrentUser } from "@features/internal/integrations/zendesk/server/client";
+import { zendeskOAuth } from "@features/internal/integrations/zendesk/server/oauth";
+import type { ZendeskSettings } from "@features/internal/integrations/zendesk/server/schemas";
 import { buildAuthUrl, exchangeCode } from "@services/oauth/flow.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";

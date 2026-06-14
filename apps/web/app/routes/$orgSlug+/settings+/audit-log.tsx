@@ -1,7 +1,7 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireAdmin, requireOrgBySlug } from "@features/auth/server/guards";
-import { AuditLogPage } from "@features/audit/components/audit-log-page";
-import { listAuditLogs } from "@features/audit/server/queries";
+import { AuditLogPage } from "@features/internal/audit/components/audit-log-page";
+import { listAuditLogs } from "@features/internal/audit/server/queries";
 import { data } from "react-router";
 import type { Route } from "./+types/audit-log";
 

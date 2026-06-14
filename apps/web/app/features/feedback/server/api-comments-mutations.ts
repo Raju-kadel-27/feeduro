@@ -1,5 +1,5 @@
-import { notifyMentions, notifyNewComment } from "@features/notifications/server/service";
-import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { notifyMentions, notifyNewComment } from "@features/internal/notifications/server/service";
+import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { type RouterContextProvider } from "react-router";

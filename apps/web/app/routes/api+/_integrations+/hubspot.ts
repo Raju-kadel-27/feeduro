@@ -1,12 +1,12 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { getHubSpotPortalInfo } from "@features/integrations/hubspot/server/client";
-import { hubspotOAuth } from "@features/integrations/hubspot/server/oauth";
-import type { HubSpotSettings } from "@features/integrations/hubspot/server/schemas";
+import { getHubSpotPortalInfo } from "@features/internal/integrations/hubspot/server/client";
+import { hubspotOAuth } from "@features/internal/integrations/hubspot/server/oauth";
+import type { HubSpotSettings } from "@features/internal/integrations/hubspot/server/schemas";
 import {
   getIntegration,
   getOrgSlugFromId,
   parseSettings,
-} from "@features/integrations/server/queries";
+} from "@features/internal/integrations/server/queries";
 import { buildAuthUrl, exchangeCode } from "@services/oauth/flow.server";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";

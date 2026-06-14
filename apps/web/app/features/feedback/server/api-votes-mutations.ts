@@ -1,4 +1,4 @@
-import { notifyVoteMilestoneIfReached } from "@features/notifications/server/service";
+import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/server/service";
 import { createId } from "@paralleldrive/cuid2";
 import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";

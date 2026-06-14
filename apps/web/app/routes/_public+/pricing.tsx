@@ -1,6 +1,6 @@
 import { Button } from "@components/ui/button";
-import { LandingFooter } from "@features/landing/components/landing-footer";
-import { LandingNav } from "@features/landing/components/landing-nav";
+import { LandingFooter } from "@features/public/landing/components/landing-footer";
+import { LandingNav } from "@features/public/landing/components/landing-nav";
 import { CheckIcon } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";

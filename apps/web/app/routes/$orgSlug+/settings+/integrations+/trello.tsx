@@ -1,8 +1,8 @@
 import { Spinner } from "@components/ui/spinner";
-import { IntegrationPageHeader } from "@features/integrations/components/integration-page-header";
+import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getIntegration, parseSettings } from "@features/integrations/server/queries";
-import type { TrelloSettings } from "@features/integrations/trello/server/schemas";
+import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
+import type { TrelloSettings } from "@features/internal/integrations/trello/server/schemas";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";

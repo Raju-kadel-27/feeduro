@@ -5,7 +5,7 @@ import {
   createChangelog,
   listChangelogs,
 } from "@features/changelog/server/api-changelog";
-import { dispatchWebhook } from "@features/webhooks/server/dispatch";
+import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { requireApiKey } from "@lib/api/require-api-key";
 import { data } from "react-router";
 

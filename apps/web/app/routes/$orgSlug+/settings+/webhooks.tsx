@@ -1,6 +1,6 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import WebhooksSettings from "@features/webhooks/components/webhooks-settings";
-import { getWebhooksLoaderData } from "@features/webhooks/server/queries";
+import WebhooksSettings from "@features/internal/webhooks/components/webhooks-settings";
+import { getWebhooksLoaderData } from "@features/internal/webhooks/server/queries";
 
 import type { Route } from "./+types/webhooks";
 

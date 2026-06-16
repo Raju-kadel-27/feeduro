@@ -41,20 +41,6 @@ const SHOWCASES: ShowcaseItem[] = [
     imageAlt: "Feeduro segmentation page",
     accentColor: "rgba(139,92,246,0.12)",
   },
-  {
-    tag: "Affiliate Program",
-    title: "Earn while you grow",
-    description:
-      "Share a link. Earn 20% on every subscription your referral generates, for 12 months. Track every click, conversion, and payout in one place.",
-    bullets: [
-      "20% recurring commission for 12 months",
-      "Track clicks, conversions, and pending payouts",
-      "Request payouts via PayPal, Wise, or bank transfer",
-    ],
-    imageSrc: "/screenshots/affiliate.png",
-    imageAlt: "Feeduro affiliate program dashboard",
-    accentColor: "rgba(249,115,22,0.12)",
-  },
 ];
 
 function ShowcaseCard({ tag, title, description, bullets, imageSrc, imageSrc2, imageAlt, accentColor }: ShowcaseItem) {

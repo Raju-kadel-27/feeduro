@@ -9,7 +9,6 @@ const CreateClientSchema = z.object({
   intent: z.literal("create"),
   name: z.string().min(1).max(64),
   redirectUris: z.string().min(1),
-  isPublic: z.enum(["true", "false"]).transform((v) => v === "true"),
 });
 
 const DeleteClientSchema = z.object({
@@ -42,7 +41,7 @@ export async function action({ request }: Route.ActionArgs) {
     if (!parsed.success)
       return data({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
 
-    const { name, redirectUris, isPublic } = parsed.data;
+    const { name, redirectUris } = parsed.data;
     const uris = redirectUris.split(/[\n,]+/).map((u) => u.trim()).filter(Boolean);
     if (uris.length === 0)
       return data({ error: "At least one redirect URI is required" }, { status: 400 });
@@ -53,7 +52,8 @@ export async function action({ request }: Route.ActionArgs) {
         body: {
           client_name: name,
           redirect_uris: uris,
-          token_endpoint_auth_method: isPublic ? "none" : "client_secret_basic",
+          token_endpoint_auth_method: "client_secret_basic",
+          require_pkce: true,
         },
       });
       return data({ created: result ?? null });

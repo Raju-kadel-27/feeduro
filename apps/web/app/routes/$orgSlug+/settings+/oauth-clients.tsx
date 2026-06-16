@@ -127,7 +127,6 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
         intent: "create",
         name: data.name,
         redirectUris: data.redirectUris.join("\n"),
-        isPublic: String(data.isPublic),
       }),
     onSuccess: (result, variables) => {
       const created = result.created as {

@@ -1,8 +1,5 @@
-import { clearCookieHeader, getAffiliateCodeFromRequest } from "@features/internal/affiliate/server/cookies";
-import { recordSignupConversion } from "@features/internal/affiliate/server/service";
 import { CreateWorkspaceForm } from "@features/internal/workspace/components/create-workspace-form";
 import { requireSession } from "@lib/session";
-import { getEnv } from "@utils/get-env";
 import { eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { auth } from "@/app/lib/auth/server";
@@ -45,24 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect(org?.slug ? `/${org.slug}/dashboard` : "/");
   }
 
-  // FIX: Use the robust cookie parser so values containing "=" are read correctly.
-  const affRef = getAffiliateCodeFromRequest(request);
-  const responseHeaders = new Headers();
-
-  if (affRef) {
-    // Record the signup conversion (onConflictDoNothing in service makes this
-    // idempotent — safe to await on repeated onboarding visits).
-    await recordSignupConversion(session.user.id, affRef);
-
-    // FIX: Clear the aff_ref cookie immediately after attribution is recorded.
-    // Without this the cookie persists 30 days and re-fires on every visit,
-    // causing repeated (though idempotent) DB queries and confusing UX if the
-    // user later switches to a different referral link.
-    const isProduction = getEnv().ENVIRONMENT === "production";
-    responseHeaders.set("Set-Cookie", clearCookieHeader("aff_ref", isProduction));
-  }
-
-  return data({ user: session.user }, { headers: responseHeaders });
+  return data({ user: session.user });
 }
 
 export default function Onboarding() {

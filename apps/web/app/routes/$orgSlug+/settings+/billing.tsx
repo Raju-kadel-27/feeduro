@@ -3,7 +3,6 @@ import { Alert, AlertDescription } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getAffiliateCodeFromRequest } from "@features/internal/affiliate/server/cookies";
 import {
   cancelDodoSubscription,
   changeDodoPlan,
@@ -123,15 +122,10 @@ export async function action({ request, params }: Route.ActionArgs) {
     const productId = dodoProductIds[plan]?.[interval];
     if (!productId) return { ok: false, error: "Product not configured" };
 
-    // FIX: Use robust cookie parser — the old split("=")[1] truncated values
-    // that contained "=" (e.g. base64 referral codes).
-    const affRef = getAffiliateCodeFromRequest(request);
-
     const result = await createDodoCheckoutSession({
       productId,
       organizationId,
       returnUrl: `${returnUrl}?upgraded=true`,
-      affiliateCode: affRef,
     });
     if ("error" in result) return { ok: false, error: result.error };
     return redirect(result.url);

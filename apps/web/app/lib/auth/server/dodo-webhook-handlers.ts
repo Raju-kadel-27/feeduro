@@ -1,4 +1,3 @@
-import { recordSubscriptionConversion } from "@features/internal/affiliate/server/service";
 import { getEnv } from "@utils/get-env";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
@@ -44,19 +43,6 @@ export async function onSubscriptionActive(payload: unknown) {
       },
     });
   console.info(`[Dodo] Subscription active: org=${referenceId} plan=${plan}`);
-
-  // Affiliate commission: if the checkout was initiated via a referral link,
-  // the affiliate code was stored in the Dodo metadata at checkout time.
-  const affiliateCode = sub.metadata?.affiliateCode;
-  const planSlug = `${plan}-${billingInterval}`;
-  if (affiliateCode) {
-    void recordSubscriptionConversion({
-      organizationId: referenceId,
-      dodoSubscriptionId: sub.subscription_id,
-      planSlug,
-      affiliateCode,
-    });
-  }
 }
 
 export async function onSubscriptionRenewed(payload: unknown) {

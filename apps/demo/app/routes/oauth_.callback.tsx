@@ -50,14 +50,18 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const env = getEnv(context);
   const baseUrl = getActiveApiUrl(request, env);
 
+  const basicAuth = btoa(`${env.FEEDURO_OAUTH_CLIENT_ID}:${env.FEEDURO_OAUTH_CLIENT_SECRET}`);
+
   const res = await fetch(`${baseUrl}/api/auth/oauth2/token`, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${basicAuth}`,
+    },
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code,
       redirect_uri: env.FEEDURO_OAUTH_REDIRECT_URI,
-      client_id: env.FEEDURO_OAUTH_CLIENT_ID,
       code_verifier: verifier,
     }),
   });

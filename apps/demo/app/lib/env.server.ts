@@ -17,6 +17,9 @@ const EnvSchema = z.object({
   FEEDURO_BOARD_PUBLIC_URL: z.string().default(""),
   FEEDURO_STAGING_API_URL: z.string().default(""),
   FEEDURO_PROD_API_URL: z.string().default(""),
+  // OAuth integration test
+  FEEDURO_OAUTH_CLIENT_ID: z.string().default(""),
+  FEEDURO_OAUTH_REDIRECT_URI: z.string().default("http://localhost:3001/oauth/callback"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

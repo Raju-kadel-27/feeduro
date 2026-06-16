@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import {
   Tooltip,
   TooltipContent,
@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Crown, Mail, Plus, UserMinus, X } from "lucide-react";
 import { useState } from "react";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { invitation } from "@/db/schema";
 
@@ -141,20 +142,23 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-        <PageTitle
-          title="Team"
-          action={isAdmin ? (
-            <button
-              type="button"
-              onClick={() => setShowInvite(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
-            >
-              <Plus className="h-4 w-4" />
-              Invite Member
-            </button>
-          ) : undefined}
-        />
-        <main className="p-6 max-w-[840px] mx-auto w-full">
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader
+            title="Team"
+            action={isAdmin ? (
+              <button
+                type="button"
+                onClick={() => setShowInvite(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                Invite Member
+              </button>
+            ) : undefined}
+          />
 
           {/* Invite Member Dialog */}
           {showInvite && <InviteMemberDialog onClose={() => setShowInvite(false)} />}

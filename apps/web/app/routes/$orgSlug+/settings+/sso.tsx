@@ -1,9 +1,10 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
 import { ProviderList } from "@features/internal/sso/components/provider-list";
 import { loadSSOSettings } from "@features/internal/sso/server/queries";
 import { KeyRound } from "lucide-react";
 import { data } from "react-router";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 import type { Route } from "./+types/sso";
 
@@ -28,12 +29,15 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <PageTitle
-        title="Login & SSO"
-        action={isAdmin ? <AddProviderDialog baseUrl={baseUrl} /> : undefined}
-      />
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
 
-      <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
+      <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+        <PageHeader
+          title="Login & SSO"
+          action={isAdmin ? <AddProviderDialog baseUrl={baseUrl} /> : undefined}
+        />
 
         <section>
           <h3 className="text-sm font-semibold text-foreground mb-3">Configured Providers</h3>

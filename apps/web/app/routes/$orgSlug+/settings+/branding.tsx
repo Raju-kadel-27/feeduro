@@ -1,10 +1,11 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { organization } from "@/db/schema";
 import type { Route } from "./+types/branding";
@@ -54,13 +55,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
   return (
-        <>
-        <PageTitle title="Branding" />
+    <>
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
 
-        <main className="p-6 max-w-[1100px] mx-auto w-full">
+      <main className="p-6 max-w-[1100px] mx-auto w-full space-y-8">
+        <PageHeader title="Branding" />
 
-          <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
-        </main>
-        </>
+        <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
+      </main>
+    </>
   );
 }

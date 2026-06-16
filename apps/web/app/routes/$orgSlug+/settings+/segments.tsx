@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
@@ -11,6 +11,7 @@ import { Check, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { member } from "@/db/schema";
 import type { Route } from "./+types/segments";
@@ -291,30 +292,33 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
 
   return (
         <>
-        <PageTitle
-          title="Segments"
-          action={loaderData.isAdmin ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setImportOpen(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold border border-border hover:bg-accent transition-colors cursor-pointer"
-              >
-                <Upload className="h-4 w-4" /> Import CSV
-              </button>
-              <button
-                type="button"
-                onClick={() => setCreating(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
-              >
-                <Plus className="h-4 w-4" /> New segment
-              </button>
-            </div>
-          ) : undefined}
-        />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
         <div className="p-6">
-          <div className="max-w-[840px] mx-auto w-full space-y-6">
+          <PageHeader
+            title="Segments"
+            action={loaderData.isAdmin ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setImportOpen(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold border border-border hover:bg-accent transition-colors cursor-pointer"
+                >
+                  <Upload className="h-4 w-4" /> Import CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreating(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" /> New segment
+                </button>
+              </div>
+            ) : undefined}
+          />
+          <div className="max-w-[840px] mx-auto w-full space-y-8">
             <div className="space-y-4">
               <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
               <p className="font-medium text-foreground mb-1">Identify users via API</p>

@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 import type { Route } from "./+types/workspace";
 
@@ -86,9 +87,12 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
 
   return (
         <>
-        <PageTitle title="Workspace" />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader title="Workspace" />
 
           {/* Workspace name */}
           <section className="rounded-lg border p-5 space-y-4">

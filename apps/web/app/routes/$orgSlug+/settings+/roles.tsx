@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { RoleFormDialog } from "@features/internal/roles/components/role-form-dialog";
@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { member } from "@/db/schema";
 import type { Route } from "./+types/roles";
@@ -109,17 +110,20 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <PageTitle
-        title="Roles & Permissions"
-        action={loaderData.isAdmin ? (
-          <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            New Role
-          </Button>
-        ) : undefined}
-      />
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
 
-      <main className="p-6 max-w-[840px] mx-auto w-full">
+      <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+        <PageHeader
+          title="Roles & Permissions"
+          action={loaderData.isAdmin ? (
+            <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              New Role
+            </Button>
+          ) : undefined}
+        />
 
         <div className="mb-6 rounded-lg border bg-muted/30 p-4">
           <p className="text-sm font-medium mb-1">Built-in roles</p>

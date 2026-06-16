@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { WidgetSettingsPage } from "@features/widget/components/internal/widget-settings-page";
 import { SettingsActionSchema } from "@features/widget/schemas/settings";
@@ -12,6 +12,7 @@ import {
 } from "@features/widget/server/settings-actions";
 import { getWidgetSettings } from "@features/widget/server/settings-queries";
 import { data } from "react-router";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import type { Route } from "./+types/widget";
 
 export function meta() {
@@ -64,8 +65,13 @@ export function ErrorBoundary() {
 export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
-      <PageTitle title="Widget" />
-      <WidgetSettingsPage loaderData={loaderData} />
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
+      <main className="space-y-8">
+        <PageHeader title="Widget" />
+        <WidgetSettingsPage loaderData={loaderData} />
+      </main>
     </>
   );
 }

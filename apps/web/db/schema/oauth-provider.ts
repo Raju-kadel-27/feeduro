@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { boolean, index, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+
 import { session, user } from "./better-auth";
 
 // JWT signing keys (for the jwt() plugin)

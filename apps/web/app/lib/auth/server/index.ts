@@ -114,6 +114,7 @@ export const auth = betterAuth({
     oauthProvider({
       loginPage: "/sign-in",
       consentPage: "/consent",
+      silenceWarnings: { oauthAuthServerConfig: true },
       scopes: ["openid", "profile", "email", "offline_access"],
       // Allow dynamic client registration (users can create OAuth apps via API)
       allowDynamicClientRegistration: true,
@@ -127,7 +128,7 @@ export const auth = betterAuth({
         if (!session?.activeOrganizationId) return false;
         const memberData = await auth.api.getActiveMember({ headers });
         const role = memberData?.role;
-        return role === "admin";
+        return role === "admin" || role === "owner";
       },
       // Custom claims added to access tokens (e.g. org ID for API authorization)
       customAccessTokenClaims: ({ referenceId }) => {

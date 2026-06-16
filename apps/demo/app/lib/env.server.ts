@@ -19,6 +19,7 @@ const EnvSchema = z.object({
   FEEDURO_PROD_API_URL: z.string().default(""),
   // OAuth integration test
   FEEDURO_OAUTH_CLIENT_ID: z.string().default(""),
+  FEEDURO_OAUTH_CLIENT_SECRET: z.string().default(""),
   FEEDURO_OAUTH_REDIRECT_URI: z.string().default("http://localhost:3001/oauth/callback"),
 });
 

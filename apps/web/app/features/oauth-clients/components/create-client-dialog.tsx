@@ -12,7 +12,6 @@ import { useState } from "react";
 export interface CreateClientData {
   name: string;
   redirectUris: string[];
-  isPublic: boolean;
 }
 
 interface Props {
@@ -26,7 +25,6 @@ export function CreateClientDialog({ open, onOpenChange, creating, onSubmit }: P
   const [name, setName] = useState("");
   const [uris, setUris] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
 
   function addPendingUri(value: string) {
     const uri = value.trim();
@@ -51,7 +49,6 @@ export function CreateClientDialog({ open, onOpenChange, creating, onSubmit }: P
       setName("");
       setUris([]);
       setInputValue("");
-      setIsPublic(false);
     }
     onOpenChange(nextOpen);
   }
@@ -60,7 +57,7 @@ export function CreateClientDialog({ open, onOpenChange, creating, onSubmit }: P
     e.preventDefault();
     const allUris = inputValue.trim() ? [...uris, inputValue.trim()] : uris;
     if (!name.trim() || allUris.length === 0) return;
-    onSubmit({ name, redirectUris: allUris, isPublic });
+    onSubmit({ name, redirectUris: allUris });
   }
 
   const hasUris = uris.length > 0 || inputValue.trim().length > 0;
@@ -139,20 +136,6 @@ export function CreateClientDialog({ open, onOpenChange, creating, onSubmit }: P
                 One URI per entry. Press Enter or comma to confirm.
               </p>
             )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="oauth-is-public"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className="rounded border-border"
-            />
-            <label htmlFor="oauth-is-public" className="text-sm cursor-pointer">
-              Public client{" "}
-              <span className="text-muted-foreground text-xs">(native / SPA — no client secret)</span>
-            </label>
           </div>
 
           <div className="flex justify-end pt-2">

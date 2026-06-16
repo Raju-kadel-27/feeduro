@@ -36,6 +36,13 @@
       "when": 1781436411127,
       "tag": "0004_redundant_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781635380899,
+      "tag": "0005_lucky_owl",
+      "breakpoints": true
     }
   ]
 }

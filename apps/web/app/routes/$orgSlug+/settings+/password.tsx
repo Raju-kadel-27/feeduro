@@ -1,7 +1,8 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { ChangePasswordForm } from "@features/auth/components/change-password-form";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { LogOut, ShieldCheck } from "lucide-react";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 import type { Route } from "./+types/password";
 
@@ -25,9 +26,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export default function PasswordSettings() {
   return (
         <>
-        <PageTitle title="Change Password" />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader title="Change Password" />
 
           <section className="rounded-lg border border-border bg-card overflow-hidden">
             <div className="px-6 py-4 border-b border-border">

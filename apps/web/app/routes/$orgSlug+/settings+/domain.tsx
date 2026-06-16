@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { useMutation } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { AlertCircle, Check, CheckCircle2, Clock, Copy, Globe, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRevalidator } from "react-router";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { customDomains, member } from "@/db/schema";
 
@@ -127,9 +128,12 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <PageTitle title="Domain" />
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
 
-      <main className="p-6 max-w-[840px] mx-auto w-full space-y-10">
+      <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+        <PageHeader title="Domain" />
 
         <section>
           <h2 className="text-base font-semibold mb-1">Custom Domain</h2>

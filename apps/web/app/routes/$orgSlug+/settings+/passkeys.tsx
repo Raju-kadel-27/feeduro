@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import {
   Tooltip,
   TooltipContent,
@@ -10,6 +10,7 @@ import { authClient } from "@lib/auth/client";
 import { Fingerprint, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 import type { Route } from "./+types/passkeys";
 
@@ -79,22 +80,25 @@ export default function PasskeysSettings() {
 
   return (
         <>
-        <PageTitle
-          title="Passkeys"
-          action={
-            <button
-              type="button"
-              onClick={handleAdd}
-              disabled={adding}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
-            >
-              <Plus size={16} />
-              {adding ? "Registering…" : "Add Passkey"}
-            </button>
-          }
-        />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full">
+          <PageHeader
+            title="Passkeys"
+            action={
+              <button
+                type="button"
+                onClick={handleAdd}
+                disabled={adding}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
+              >
+                <Plus size={16} />
+                {adding ? "Registering…" : "Add Passkey"}
+              </button>
+            }
+          />
 
           <section className="space-y-6">
             {loading ? (

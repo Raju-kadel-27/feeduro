@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { Switch } from "@components/ui/switch";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { SubscriptionsSection } from "@features/changelog/components/settings/subscriptions-section";
@@ -8,6 +8,7 @@ import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { changelogTags, organization } from "@/db/schema";
 import type { Route } from "./+types/changelog";
@@ -54,9 +55,12 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
 
   return (
         <>
-        <PageTitle title="Changelog" />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader title="Changelog" />
 
           <div className="rounded-lg border p-5">
             <div className="flex items-start justify-between gap-6">

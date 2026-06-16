@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { Alert, AlertDescription } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -15,6 +15,7 @@ import { and, desc, eq, or } from "drizzle-orm";
 import { CheckIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useFetcher, useRevalidator, useSearchParams } from "react-router";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { subscription } from "@/db/schema";
 
@@ -282,9 +283,12 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
 
   return (
         <>
-        <PageTitle title="Billing & Plans" />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
-        <main className="p-6 max-w-[840px] mx-auto w-full">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader title="Billing & Plans" />
 
           {/* Success banner */}
           {justUpgraded && (

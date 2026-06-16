@@ -9,6 +9,8 @@ declare namespace Cloudflare {
     FEEDURO_BOARD_PUBLIC_URL: string;
     FEEDURO_STAGING_API_URL: string;
     FEEDURO_PROD_API_URL: string;
+    FEEDURO_OAUTH_CLIENT_ID: string;
+    FEEDURO_OAUTH_REDIRECT_URI: string;
   }
 }
 interface Env extends Cloudflare.Env {}

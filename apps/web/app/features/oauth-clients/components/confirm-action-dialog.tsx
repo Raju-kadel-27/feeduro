@@ -35,30 +35,28 @@ export function ConfirmActionDialog({
           <AlertDialogTitle>
             {action?.type === "delete" ? "Delete OAuth App" : "Rotate Client Secret"}
           </AlertDialogTitle>
-          <AlertDialogDescription asChild>
-            <div>
-              {action?.type === "delete" ? (
-                <>
-                  Permanently delete <strong className="text-foreground">{label}</strong>?{" "}
-                  {action.activeTokens > 0 && (
-                    <>
-                      This will immediately revoke{" "}
-                      <strong className="text-foreground">
-                        {action.activeTokens} active token{action.activeTokens !== 1 ? "s" : ""}
-                      </strong>{" "}
-                      for users who authorized this app.{" "}
-                    </>
-                  )}
-                  This cannot be undone.
-                </>
-              ) : (
-                <>
-                  Rotate the secret for <strong className="text-foreground">{label}</strong>? The
-                  current secret will stop working immediately — all integrations using it will
-                  break until updated with the new secret.
-                </>
-              )}
-            </div>
+          <AlertDialogDescription>
+            {action?.type === "delete" ? (
+              <>
+                Permanently delete <strong className="text-foreground">{label}</strong>?{" "}
+                {action.activeTokens > 0 && (
+                  <>
+                    This will immediately revoke{" "}
+                    <strong className="text-foreground">
+                      {action.activeTokens} active token{action.activeTokens !== 1 ? "s" : ""}
+                    </strong>{" "}
+                    for users who authorized this app.{" "}
+                  </>
+                )}
+                This cannot be undone.
+              </>
+            ) : (
+              <>
+                Rotate the secret for <strong className="text-foreground">{label}</strong>? The
+                current secret will stop working immediately — all integrations using it will
+                break until updated with the new secret.
+              </>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

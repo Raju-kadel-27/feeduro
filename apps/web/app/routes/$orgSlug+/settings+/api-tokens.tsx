@@ -1,4 +1,4 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import { AlertCircle, Check, Copy, Key, Plus, Terminal, Trash2 } from "lucide-re
 import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { apikey, member } from "@/db/schema";
 
@@ -150,67 +151,70 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
 
   return (
         <>
-        <PageTitle
-          title="API Tokens"
-          action={isAdmin ? (
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
-                >
-                  <Plus size={16} />
-                  Generate New Key
-                </button>
-              </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>New API Key</DialogTitle>
-                  </DialogHeader>
-                  <form
-                    onSubmit={(e) => { e.preventDefault(); createKey(); }}
-                    className="space-y-4"
-                  >
-                    <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground">Name</label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. CI / Production"
-                        required
-                        maxLength={32}
-                        className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground">Expiration</label>
-                      <select
-                        value={expiresIn ?? ""}
-                        onChange={(e) => setExpiresIn(e.target.value === "" ? null : Number(e.target.value))}
-                        className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        {EXPIRY_OPTIONS.map((opt) => (
-                          <option key={String(opt.value)} value={opt.value ?? ""}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex justify-end pt-2">
-                      <button
-                        type="submit"
-                        disabled={creating || !name.trim()}
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                      >
-                        {creating ? "Generating…" : "Generate Key"}
-                      </button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-          ) : undefined}
-        />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader
+            title="API Tokens"
+            action={isAdmin ? (
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
+                  >
+                    <Plus size={16} />
+                    Generate New Key
+                  </button>
+                </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>New API Key</DialogTitle>
+                    </DialogHeader>
+                    <form
+                      onSubmit={(e) => { e.preventDefault(); createKey(); }}
+                      className="space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Name</label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. CI / Production"
+                          required
+                          maxLength={32}
+                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Expiration</label>
+                        <select
+                          value={expiresIn ?? ""}
+                          onChange={(e) => setExpiresIn(e.target.value === "" ? null : Number(e.target.value))}
+                          className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                          {EXPIRY_OPTIONS.map((opt) => (
+                            <option key={String(opt.value)} value={opt.value ?? ""}>{opt.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="submit"
+                          disabled={creating || !name.trim()}
+                          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                        >
+                          {creating ? "Generating…" : "Generate Key"}
+                        </button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+            ) : undefined}
+          />
           {/* One-time key reveal */}
           {newKey && (
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-6 space-y-4">

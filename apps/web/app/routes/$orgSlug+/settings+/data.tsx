@@ -1,9 +1,10 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { DownloadIcon, FileSpreadsheetIcon, UploadIcon } from "lucide-react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 import type { Route } from "./+types/data";
 
@@ -83,9 +84,12 @@ export default function DataImport(_: Route.ComponentProps) {
 
   return (
         <>
-        <PageTitle title="Data & Import" />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-10">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader title="Data & Import" />
 
           {/* ── Import ── */}
           <section className="space-y-3">

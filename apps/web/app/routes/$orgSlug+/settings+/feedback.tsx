@@ -1,10 +1,11 @@
-import { PageTitle } from "@components/common/page-title";
+import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { FeedbackSettingsPanel } from "@features/feedback/components/settings/feedback-settings-panel";
 import { getOrgCategories } from "@features/feedback/server/categories.server";
 import { parseFeedbackSettings } from "@features/feedback/server/feedback-settings";
 import { getOrgTags } from "@features/feedback/server/tags.server";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts, member, organization } from "@/db/schema";
 import type { Route } from "./+types/feedback";
@@ -74,9 +75,12 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
 
   return (
         <>
-        <PageTitle title="Feedback" />
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
 
-        <main className="p-6 max-w-[840px] mx-auto w-full">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader title="Feedback" />
           <FeedbackSettingsPanel
             boards={boards}
             tags={tags}

@@ -4,19 +4,14 @@ export async function createDodoCheckoutSession({
   productId,
   organizationId,
   returnUrl,
-  affiliateCode,
 }: {
   productId: string;
   organizationId: string;
   returnUrl: string;
-  // Optional: set when the org owner arrived via a referral link so the
-  // subscription.active webhook can attribute the commission correctly.
-  affiliateCode?: string;
 }): Promise<{ url: string } | { error: string }> {
   try {
     const dodo = getDodoClient();
     const metadata: Record<string, string> = { referenceId: organizationId };
-    if (affiliateCode) metadata.affiliateCode = affiliateCode;
     const session = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
       metadata,

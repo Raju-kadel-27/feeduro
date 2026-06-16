@@ -138,13 +138,17 @@ export async function action({ request, context }: Route.ActionArgs) {
       return redirect("/oauth", { headers: { "Set-Cookie": clearCookie("oauth_tokens") } });
     }
 
+    const basicAuth = btoa(`${env.FEEDURO_OAUTH_CLIENT_ID}:${env.FEEDURO_OAUTH_CLIENT_SECRET}`);
+
     const res = await fetch(`${baseUrl}/api/auth/oauth2/token`, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${basicAuth}`,
+      },
       body: new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: tokens.refresh_token,
-        client_id: env.FEEDURO_OAUTH_CLIENT_ID,
       }),
     });
 
@@ -271,13 +275,13 @@ export default function OAuthTest({ loaderData }: Route.ComponentProps) {
               <div className="space-y-1 rounded-lg bg-gray-900 px-4 py-3 font-mono text-xs text-emerald-300">
                 <div className="text-gray-500"># OAuth integration test</div>
                 <div>FEEDURO_OAUTH_CLIENT_ID=your_client_id_here</div>
+                <div>FEEDURO_OAUTH_CLIENT_SECRET=your_client_secret_here</div>
                 <div className="text-gray-500"># Optional — defaults to http://localhost:3001/oauth/callback</div>
                 <div className="text-gray-500"># FEEDURO_OAUTH_REDIRECT_URI=http://localhost:3001/oauth/callback</div>
               </div>
               <p className="text-xs text-gray-500">
-                When creating the client, set the <strong>Redirect URI</strong> to{" "}
-                <code className="rounded bg-gray-100 px-1 font-mono">http://localhost:3001/oauth/callback</code> and
-                enable <strong>PKCE</strong> (public client).
+                Create an OAuth app in Settings, copy both the client ID and secret from the credentials banner, then set the <strong>Redirect URI</strong> to{" "}
+                <code className="rounded bg-gray-100 px-1 font-mono">http://localhost:3001/oauth/callback</code>.
               </p>
             </div>
           </Section>
@@ -290,7 +294,7 @@ export default function OAuthTest({ loaderData }: Route.ComponentProps) {
                 <Field label="Client ID" value={clientId} mono />
                 <Field label="Redirect URI" value={redirectUri} mono />
                 <Field label="Scopes" value={SCOPES} />
-                <Field label="Method" value="PKCE (S256) · Authorization Code" />
+                <Field label="Method" value="PKCE (S256) · Authorization Code · Basic auth" />
               </div>
               <form method="post">
                 <input type="hidden" name="intent" value="connect" />

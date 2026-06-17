@@ -296,7 +296,8 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
           <SidebarTrigger className="-ml-1" />
         </header>
 
-        <div className="p-6">
+        <main className="p-6 space-y-8">
+          <div className="max-w-[840px] mx-auto w-full">
           <PageHeader
             title="Segments"
             action={loaderData.isAdmin ? (
@@ -318,8 +319,8 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
               </div>
             ) : undefined}
           />
-          <div className="max-w-[840px] mx-auto w-full space-y-8">
-            <div className="space-y-4">
+          </div>
+          <div className="space-y-4">
               <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
               <p className="font-medium text-foreground mb-1">Identify users via API</p>
               <p className="text-muted-foreground text-[13px] mb-2">
@@ -394,9 +395,8 @@ Authorization: Bearer <your-api-key>
                 ))}
               </div>
             )}
-            </div>
           </div>
-        </div>
+        </main>
       <CsvImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}

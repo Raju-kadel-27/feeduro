@@ -36,15 +36,17 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
       <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
       </header>
-      <div className="space-y-8">
-        <PageHeader title="Audit Log" />
+      <main className="p-6 space-y-8">
+        <div className="max-w-[840px] mx-auto w-full">
+          <PageHeader title="Audit Log" />
+        </div>
         <AuditLogPage
-        rows={loaderData.rows}
-        total={loaderData.total}
-        page={loaderData.page}
-        pageCount={loaderData.pageCount}
-      />
-      </div>
+          rows={loaderData.rows}
+          total={loaderData.total}
+          page={loaderData.page}
+          pageCount={loaderData.pageCount}
+        />
+      </main>
     </>
   );
 }

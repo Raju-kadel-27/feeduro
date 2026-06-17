@@ -68,10 +68,10 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
       <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
       </header>
-      <main className="space-y-8">
+      <div className="px-6 pt-6 max-w-[840px] mx-auto w-full">
         <PageHeader title="Widget" />
-        <WidgetSettingsPage loaderData={loaderData} />
-      </main>
+      </div>
+      <WidgetSettingsPage loaderData={loaderData} />
     </>
   );
 }

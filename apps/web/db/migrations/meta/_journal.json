@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781115341929,
-      "tag": "0000_slim_maggott",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1749686400000,
-      "tag": "0001_webhook_delivery_status",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1781287492960,
-      "tag": "0002_pale_dreadnoughts",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1781368460782,
-      "tag": "0003_blue_mulholland_black",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1781436411127,
-      "tag": "0004_redundant_supernaut",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1781635380899,
-      "tag": "0005_lucky_owl",
+      "when": 1781728353314,
+      "tag": "0000_grey_moon_knight",
       "breakpoints": true
     }
   ]

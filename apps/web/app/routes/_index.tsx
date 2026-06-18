@@ -6,8 +6,8 @@ import { redirect } from "react-router";
 export async function loader({ request }: { request: Request }) {
   const session = await getSession(request);
   if (session) {
-    const slug = await resolveOrgRedirect(request, session);
-    throw redirect(slug ? `/${slug}/dashboard` : "/onboarding");
+    const { slug, responseHeaders } = await resolveOrgRedirect(request, session);
+    throw redirect(slug ? `/${slug}/dashboard` : "/onboarding", { headers: responseHeaders });
   }
   return {};
 }

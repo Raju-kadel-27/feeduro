@@ -32,19 +32,23 @@ export function ViewsChip({
     >
       {(close) => (
         <ChipPopover>
-          <ul>
-            {views.map((view) => (
-              <li key={view.id}>
-                <ChipOptionRow
-                  label={view.name}
-                  isSelected={activeView?.id === view.id}
-                  count={viewCounts[view.id]}
-                  prefix={<span className="text-base leading-none shrink-0">{view.emoji}</span>}
-                  onClick={() => { onSwitchView(view.id); close(); }}
-                />
-              </li>
-            ))}
-          </ul>
+          {views.length === 0 ? (
+            <p className="px-3 py-2 text-sm text-muted-foreground">No views yet</p>
+          ) : (
+            <ul>
+              {views.map((view) => (
+                <li key={view.id}>
+                  <ChipOptionRow
+                    label={view.name}
+                    isSelected={activeView?.id === view.id}
+                    count={viewCounts[view.id]}
+                    prefix={<span className="text-base leading-none shrink-0">{view.emoji}</span>}
+                    onClick={() => { onSwitchView(view.id); close(); }}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </ChipPopover>
       )}
     </ChipTrigger>

@@ -3,64 +3,6 @@ import { getDb } from "@/db";
 import { feedbackPosts, feedbackViews } from "@/db/schema";
 import { type Post, postMatchesFilters, type Sort, type View, type ViewFilters } from "../types";
 
-const DEFAULT_VIEWS: Omit<View, "id" | "count">[] = [
-  {
-    name: "Triage queue",
-    emoji: "🔥",
-    isSystem: true,
-    sort: "newest",
-    order: 0,
-    filters: { status: ["open"] },
-  },
-  {
-    name: "Needs review",
-    emoji: "👀",
-    isSystem: true,
-    sort: "oldest",
-    order: 1,
-    filters: { status: ["reviewing"] },
-  },
-  {
-    name: "Ready to ship",
-    emoji: "🚀",
-    isSystem: true,
-    sort: "votes",
-    order: 2,
-    filters: { status: ["planned"] },
-  },
-  {
-    name: "Customer waiting",
-    emoji: "⏱️",
-    isSystem: true,
-    sort: "oldest",
-    order: 3,
-    filters: { hasCustomerComment: true, excludeStatus: ["completed", "closed"], minAge: 7 },
-  },
-  {
-    name: "Recently completed",
-    emoji: "✅",
-    isSystem: true,
-    sort: "newest",
-    order: 4,
-    filters: { status: ["completed"], maxAge: 7 },
-  },
-  {
-    name: "Customer commented",
-    emoji: "💬",
-    isSystem: true,
-    sort: "newest",
-    order: 5,
-    filters: { hasCustomerComment: true },
-  },
-  {
-    name: "Has comments",
-    emoji: "🗨️",
-    isSystem: true,
-    sort: "newest",
-    order: 6,
-    filters: { hasComments: true },
-  },
-];
 
 function parseFilters(raw: string): ViewFilters {
   try {
@@ -88,10 +30,6 @@ export async function getOrgViews(organizationId: string): Promise<Omit<View, "c
     where: eq(feedbackViews.organizationId, organizationId),
     orderBy: [asc(feedbackViews.order), asc(feedbackViews.createdAt)],
   });
-
-  if (rows.length === 0) {
-    return seedDefaultViews(organizationId);
-  }
 
   return rows.map(rowToView);
 }
@@ -131,24 +69,6 @@ export async function getOrgViewsWithCounts(organizationId: string): Promise<Vie
   }));
 }
 
-async function seedDefaultViews(organizationId: string): Promise<Omit<View, "count">[]> {
-  const db = getDb();
-  const rows = await db
-    .insert(feedbackViews)
-    .values(
-      DEFAULT_VIEWS.map((v) => ({
-        organizationId,
-        name: v.name,
-        emoji: v.emoji,
-        isSystem: v.isSystem,
-        sort: v.sort,
-        order: v.order,
-        filters: JSON.stringify(v.filters),
-      })),
-    )
-    .returning();
-  return rows.map(rowToView);
-}
 
 export async function createView(
   organizationId: string,

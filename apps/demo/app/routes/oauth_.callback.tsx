@@ -63,6 +63,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       code,
       redirect_uri: env.FEEDURO_OAUTH_REDIRECT_URI,
       code_verifier: verifier,
+      client_id: env.FEEDURO_OAUTH_CLIENT_ID,
+      client_secret: env.FEEDURO_OAUTH_CLIENT_SECRET,
     }),
   });
 

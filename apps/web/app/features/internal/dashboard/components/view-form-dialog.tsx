@@ -10,6 +10,7 @@ import { Input } from "@components/ui/input";
 import type { Board, Category, Sort, Tag, View, ViewFilters } from "@features/internal/dashboard/types";
 import type { Segment } from "@features/internal/segmentation/types";
 import { useEffect, useState } from "react";
+import { EmojiPicker } from "./emoji-picker";
 import { EMPTY_FILTER_STATE, type FilterState, ViewFilterFields } from "./view-filter-fields";
 
 interface Props {
@@ -25,7 +26,15 @@ interface Props {
 }
 
 export function ViewFormDialog({
-  open, onOpenChange, initialView, boards, tags, categories, segments, onSave, isPending,
+  open,
+  onOpenChange,
+  initialView,
+  boards,
+  tags,
+  categories,
+  segments,
+  onSave,
+  isPending,
 }: Props) {
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("📌");
@@ -75,21 +84,20 @@ export function ViewFormDialog({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="flex gap-3 items-end">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Icon
-              </label>
-              <input
-                value={emoji}
-                onChange={(e) => setEmoji(e.target.value)}
-                className="w-14 h-9 text-center text-xl border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-                maxLength={2}
-              />
+              </p>
+              <EmojiPicker value={emoji} onChange={setEmoji} />
             </div>
             <div className="flex-1 flex flex-col gap-1.5">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <label
+                htmlFor="view-name"
+                className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 Name
               </label>
               <Input
+                id="view-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. High priority bugs"

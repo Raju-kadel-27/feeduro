@@ -35,24 +35,22 @@ export function tunnelPlugin(port = 3001): Plugin {
     name: "ngrok-tunnel",
     apply: "serve",
 
-    // Accept any Host header so Vite allows tunnel-proxied requests
     config: () => ({ server: { allowedHosts: true as const } }),
 
     configureServer(server) {
       loadDevVars(server.config.root);
-      const ngrokDomain = process.env.NGROK_DOMAIN;
+      const baseUrl = process.env.BASE_URL;
 
-      if (!ngrokDomain) {
-        console.warn("\n  ⚠️   NGROK_DOMAIN not set — tunnel disabled.");
+      if (!baseUrl?.startsWith("https://")) {
+        console.warn("\n  ⚠️   BASE_URL is not an https:// URL — tunnel disabled.");
         console.warn("  Get a free static domain: ngrok.com/dashboard → Domains → + New Domain");
-        console.warn("  Then add NGROK_DOMAIN=your-word.ngrok-free.app to .dev.vars\n");
+        console.warn("  Set BASE_URL=https://your-word.ngrok-free.app in .dev.vars to enable the tunnel.\n");
         return;
       }
 
       const bin = resolveNgrok();
-      const tunnelUrl = ngrokDomain;
-
-      const proc = spawn(bin, ["http", `https://localhost:${port}`, `--url=${ngrokDomain}`], {
+      const ngrokUrlArg = baseUrl.replace(/^https?:\/\//, "");
+      const proc = spawn(bin, ["http", `https://localhost:${port}`, `--url=${ngrokUrlArg}`], {
         stdio: ["ignore", "pipe", "pipe"],
       });
       proc.stdout?.on("data", (d: Buffer) => process.stdout.write(d));
@@ -66,7 +64,7 @@ export function tunnelPlugin(port = 3001): Plugin {
         }
       });
 
-      console.log(`\n  🌍  Tunnel   ${tunnelUrl}`);
+      console.log(`\n  🌍  Tunnel   ${baseUrl}`);
       console.log(`  ℹ️   Update FEEDURO_API_URL in .dev.vars if apps/web is also tunneled\n`);
 
       server.httpServer?.once("close", () => {

@@ -33,7 +33,7 @@ type LinearWebhookPayload = {
 };
 
 // Default mapping by Linear state type — used when no statusMappings are configured.
-const STATE_TYPE_TO_FEEDIYO: Partial<Record<LinearStateType, FeeduroStatus>> = {
+const STATE_TYPE_TO_FEEDURO: Partial<Record<LinearStateType, FeeduroStatus>> = {
   completed: "completed",
   cancelled: "closed",
   started: "in-progress",
@@ -49,7 +49,7 @@ function resolveStatus(
   if (nameMatch?.feeduroStatus) return nameMatch.feeduroStatus as FeeduroStatus;
 
   // Fall back to type-based defaults
-  return STATE_TYPE_TO_FEEDIYO[stateType] ?? null;
+  return STATE_TYPE_TO_FEEDURO[stateType] ?? null;
 }
 
 // POST /api/linear/webhook?orgId=<feeduro-org-id>

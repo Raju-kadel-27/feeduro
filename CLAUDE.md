@@ -1,11 +1,11 @@
-# Feediyo — Claude Project Instructions
+# Feeduro — Claude Project Instructions
 
 ## Monorepo layout
 This is a **Turborepo + pnpm workspace** monorepo. The main app lives in `apps/web/`. All app-level paths below (`app/routes/`, `app/features/`, `db/`, etc.) are relative to `apps/web/`.
 
 ```
 apps/web/     ← React Router / Cloudflare Workers app (this is the main codebase)
-packages/react/ ← @feediyo/react widget SDK
+packages/react/ ← @feeduro/react widget SDK
 ```
 
 ## Stack

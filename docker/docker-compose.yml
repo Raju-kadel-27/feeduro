@@ -1,4 +1,4 @@
-name: feediyo-dev
+name: feeduro-dev
 
 services:
   db:
@@ -9,13 +9,13 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-feediyo}
+      POSTGRES_DB: ${DB_NAME:-feeduro}
     volumes:
       - db_data:/var/lib/postgresql/data
 
   smtp:
     image: axllent/mailpit
-    container_name: feediyo-smtp
+    container_name: feeduro-smtp
     restart: always
     ports:
       - "8025:8025"  # Web UI

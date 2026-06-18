@@ -38,7 +38,7 @@ type JiraWebhookPayload = {
 };
 
 // Default mapping by Jira status category — used when no statusMappings are configured.
-const CATEGORY_TO_FEEDIYO: Partial<Record<JiraStatusCategoryKey, FeeduroStatus>> = {
+const CATEGORY_TO_FEEDURO: Partial<Record<JiraStatusCategoryKey, FeeduroStatus>> = {
   new: "open",
   indeterminate: "in-progress",
   done: "completed",
@@ -54,7 +54,7 @@ function resolveStatus(
   if (nameMatch?.feeduroStatus) return nameMatch.feeduroStatus as FeeduroStatus;
 
   // Fall back to category-based defaults
-  if (categoryKey) return CATEGORY_TO_FEEDIYO[categoryKey] ?? null;
+  if (categoryKey) return CATEGORY_TO_FEEDURO[categoryKey] ?? null;
   return null;
 }
 

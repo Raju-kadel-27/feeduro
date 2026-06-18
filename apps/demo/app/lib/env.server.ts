@@ -4,6 +4,7 @@ import { getBindings } from "../middleware/cloudflare.server";
 
 const EnvSchema = z.object({
   // Required
+  BASE_URL: z.string().url().default("http://localhost:3001"),
   FEEDURO_WIDGET_TOKEN: z.string().min(1, "Widget token required"),
   // Optional — extra tabs on /board
   FEEDURO_WIDGET_TOKEN_FEATURE: z.string().default(""),
@@ -33,11 +34,9 @@ export function getEnv(context: Readonly<RouterContextProvider>): Env {
     raw = process.env as Record<string, string | undefined>;
   }
 
-  // When NGROK_DOMAIN is set and the redirect URI hasn't been explicitly configured,
-  // default to the ngrok URL so OAuth callbacks work through the tunnel.
-  const ngrokDomain = raw.NGROK_DOMAIN;
-  if (ngrokDomain && !raw.FEEDURO_OAUTH_REDIRECT_URI) {
-    raw = { ...raw, FEEDURO_OAUTH_REDIRECT_URI: `https://${ngrokDomain}/oauth/callback` };
+  if (!raw.FEEDURO_OAUTH_REDIRECT_URI) {
+    const baseUrl = raw.BASE_URL ?? "http://localhost:3001";
+    raw = { ...raw, FEEDURO_OAUTH_REDIRECT_URI: `${baseUrl}/oauth/callback` };
   }
 
   const parsed = EnvSchema.safeParse(raw);

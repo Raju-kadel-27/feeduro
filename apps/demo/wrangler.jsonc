@@ -16,7 +16,7 @@
     "staging": {
       "name": "feediyo-demo-staging",
       "vars": {
-        "FEEDIYO_API_URL": "https://app.feediyo.com"
+        "FEEDURO_API_URL": "https://app.feeduro.com"
       }
     }
   }

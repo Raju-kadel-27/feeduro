@@ -12,7 +12,6 @@ import { CompletedPostsList } from "./completed-posts-list";
 import { HealthKpiRow } from "./health-kpi-row";
 import { StatCard } from "./stat-card";
 import { StatusBreakdownBar } from "./status-breakdown";
-import { StatusFunnelSteps } from "./status-funnel-steps";
 import { TagBreakdownChart } from "./tag-breakdown-chart";
 import { TrendingPostsList } from "./trending-posts-list";
 import { UnrespondedPostsCard } from "./unresponded-posts-card";
@@ -29,12 +28,11 @@ const RANGE_LABEL: Record<string, string | undefined> = {
 
 export function AnalyticsOverview({ data }: { data: OverviewData }) {
   const {
-    stats, boards, topPosts, funnel, statusBreakdown, activityOverTime, votesOverTime,
+    stats, boards, topPosts, statusBreakdown, activityOverTime, votesOverTime,
     completedPosts, tagBreakdown, trendingPosts, range, boardId,
     changelogEngagement, adminActivity, companyEngagement,
     boardVisitors, commentsAnalytics, unrespondedPosts, fetchedAt,
-    resolutionTime, responseRate, backlogAging, mergeRate, voteConversion, subscriberMetrics,
-    statusChangeFeed,
+    resolutionTime, responseRate, backlogAging, subscriberMetrics,
   } = data;
 
   const { deltas } = stats;
@@ -70,19 +68,12 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
           sub="across all boards"
           delta={deltas?.avgVotesPerPost}
         />
-        <StatCard
-          label="Status Changes"
-          value={statusChangeFeed.length}
-          sub={rangeLabel}
-        />
       </div>
 
       {/* Health KPIs — resolution time, response rate, merge rate, conversion */}
       <HealthKpiRow
         resolutionTime={resolutionTime}
         responseRate={responseRate}
-        mergeRate={mergeRate}
-        voteConversion={voteConversion}
       />
 
       {/* Unresponded posts — amber alert, only renders when there are items */}
@@ -109,15 +100,6 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
           <p className="text-xs text-muted-foreground">open posts by age</p>
         </div>
         <BacklogAgingChart aging={backlogAging} />
-      </div>
-
-      {/* Status funnel — full width */}
-      <div className="rounded-xl border bg-card p-5 space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold">Status Funnel</h2>
-          <p className="text-xs text-muted-foreground">avg days between transitions</p>
-        </div>
-        <StatusFunnelSteps steps={funnel} />
       </div>
 
       {/* Volume trend — full width */}

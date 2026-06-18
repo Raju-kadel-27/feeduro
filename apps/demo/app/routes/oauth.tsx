@@ -149,6 +149,8 @@ export async function action({ request, context }: Route.ActionArgs) {
       body: new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: tokens.refresh_token,
+        client_id: env.FEEDURO_OAUTH_CLIENT_ID,
+        client_secret: env.FEEDURO_OAUTH_CLIENT_SECRET,
       }),
     });
 
@@ -281,7 +283,7 @@ export default function OAuthTest({ loaderData }: Route.ComponentProps) {
               </div>
               <p className="text-xs text-gray-500">
                 Create an OAuth app in Settings, copy both the client ID and secret from the credentials banner, then set the <strong>Redirect URI</strong> to{" "}
-                <code className="rounded bg-gray-100 px-1 font-mono">http://localhost:3001/oauth/callback</code>.
+                <code className="rounded bg-gray-100 px-1 font-mono">{redirectUri}</code>.
               </p>
             </div>
           </Section>

@@ -32,6 +32,14 @@ export function getEnv(context: Readonly<RouterContextProvider>): Env {
   } catch {
     raw = process.env as Record<string, string | undefined>;
   }
+
+  // When NGROK_DOMAIN is set and the redirect URI hasn't been explicitly configured,
+  // default to the ngrok URL so OAuth callbacks work through the tunnel.
+  const ngrokDomain = raw.NGROK_DOMAIN;
+  if (ngrokDomain && !raw.FEEDURO_OAUTH_REDIRECT_URI) {
+    raw = { ...raw, FEEDURO_OAUTH_REDIRECT_URI: `https://${ngrokDomain}/oauth/callback` };
+  }
+
   const parsed = EnvSchema.safeParse(raw);
   if (!parsed.success) {
     const missing = Object.keys(parsed.error.flatten().fieldErrors).join(", ");

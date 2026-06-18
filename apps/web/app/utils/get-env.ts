@@ -3,6 +3,7 @@ import z from "zod";
 const envSchema = z.object({
   ENVIRONMENT: z.enum(["development", "staging", "production"]),
   BASE_URL: z.string(),
+  NGROK_DOMAIN: z.string().optional(),
   DATABASE_URL: z.string(),
   BETTER_AUTH_SECRET: z.string().min(32).optional(),
   GOOGLE_CLIENT_ID: z.string(),

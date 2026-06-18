@@ -12,7 +12,6 @@ import { CompletedPostsList } from "./completed-posts-list";
 import { HealthKpiRow } from "./health-kpi-row";
 import { StatCard } from "./stat-card";
 import { StatusBreakdownBar } from "./status-breakdown";
-import { StatusChangeFeedList } from "./status-change-feed";
 import { StatusFunnelSteps } from "./status-funnel-steps";
 import { TagBreakdownChart } from "./tag-breakdown-chart";
 import { TrendingPostsList } from "./trending-posts-list";
@@ -46,7 +45,7 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
       <CacheFreshnessBanner fetchedAt={fetchedAt} />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard
           label="Total Posts"
           value={stats.totalPosts}
@@ -70,6 +69,11 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
           value={stats.avgVotesPerPost}
           sub="across all boards"
           delta={deltas?.avgVotesPerPost}
+        />
+        <StatCard
+          label="Status Changes"
+          value={statusChangeFeed.length}
+          sub={rangeLabel}
         />
       </div>
 
@@ -193,20 +197,8 @@ export function AnalyticsOverview({ data }: { data: OverviewData }) {
         </div>
       </div>
 
-      {/* Status change feed */}
-      <div className="rounded-xl border bg-card p-5 space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold">Status Changes</h2>
-          <p className="text-xs text-muted-foreground">
-            {boardId
-              ? (boards.find((b) => b.boardId === boardId)?.boardName ?? "Selected board")
-              : "all boards"} · most recent 25
-          </p>
-        </div>
-        <StatusChangeFeedList feed={statusChangeFeed} />
-      </div>
 
-      <AnalyticsReports data={{ changelogEngagement, topPosts, companyEngagement, range, subscriberMetrics }} />
+<AnalyticsReports data={{ changelogEngagement, topPosts, companyEngagement, range, subscriberMetrics }} />
     </div>
   );
 }

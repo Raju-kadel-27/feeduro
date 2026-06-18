@@ -24,4 +24,7 @@ export default defineConfig({
     tsconfigPaths(),
   ],
   resolve: { dedupe: ["react", "react-dom"] },
+  optimizeDeps: {
+    include: ["react", "react-dom", "react-dom/server", "isbot"],
+  },
 });

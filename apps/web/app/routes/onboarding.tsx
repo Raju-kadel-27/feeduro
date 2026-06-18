@@ -32,14 +32,19 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (memberships.length > 0 && memberships[0]) {
     const firstOrgId = memberships[0].organizationId;
-    await auth.api.setActiveOrganization({
-      body: { organizationId: firstOrgId },
-      headers: request.headers,
+    const [setActiveResponse, org] = await Promise.all([
+      auth.api.setActiveOrganization({
+        body: { organizationId: firstOrgId },
+        headers: request.headers,
+        asResponse: true,
+      }),
+      db.query.organization.findFirst({
+        where: eq(organization.id, firstOrgId),
+      }),
+    ]);
+    throw redirect(org?.slug ? `/${org.slug}/dashboard` : "/", {
+      headers: setActiveResponse.headers,
     });
-    const org = await db.query.organization.findFirst({
-      where: eq(organization.id, firstOrgId),
-    });
-    throw redirect(org?.slug ? `/${org.slug}/dashboard` : "/");
   }
 
   return data({ user: session.user });

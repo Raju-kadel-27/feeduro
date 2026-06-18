@@ -1,5 +1,14 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
+import { Switch } from "@components/ui/switch";
 import type { Board, Category, Sort, Status, Tag } from "@features/internal/dashboard/types";
 import type { Segment } from "@features/internal/segmentation/types";
+import { cn } from "@lib/utils";
 
 const STATUS_OPTIONS = [
   { value: "open", label: "Pending" },
@@ -39,6 +48,14 @@ export const EMPTY_FILTER_STATE: FilterState = {
   hasComments: false,
 };
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      {children}
+    </p>
+  );
+}
+
 function Chips({
   label,
   options,
@@ -53,7 +70,7 @@ function Chips({
   if (!options.length) return null;
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <SectionLabel>{label}</SectionLabel>
       <div className="flex flex-wrap gap-1.5">
         {options.map((o) => {
           const active = selected.includes(o.value);
@@ -62,11 +79,54 @@ function Chips({
               key={o.value}
               type="button"
               onClick={() => onToggle(o.value)}
-              className={`px-2.5 py-1 rounded-md text-[12.5px] border transition-colors ${
+              aria-pressed={active}
+              className={cn(
+                "rounded-md border px-2.5 py-1 text-[12.5px] transition-colors",
                 active
-                  ? "bg-foreground text-background border-foreground"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
-              }`}
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground",
+              )}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function RadioChips({
+  label,
+  options,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  selected: string | undefined;
+  onSelect: (v: string | undefined) => void;
+}) {
+  if (!options.length) return null;
+  return (
+    <div className="space-y-1.5" role="radiogroup" aria-label={label}>
+      <SectionLabel>{label}</SectionLabel>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = selected === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onSelect(active ? undefined : o.value)}
+              className={cn(
+                "rounded-md border px-2.5 py-1 text-[12.5px] transition-colors",
+                active
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground",
+              )}
             >
               {o.label}
             </button>
@@ -95,44 +155,73 @@ export function ViewFilterFields({ state, onChange, boards, tags, categories, se
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sort</p>
-        <select
-          value={state.sort}
-          onChange={(e) => onChange("sort", e.target.value as Sort)}
-          className="h-9 px-2 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring w-full"
-        >
-          {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        <SectionLabel>Sort</SectionLabel>
+        <Select value={state.sort} onValueChange={(v) => onChange("sort", v as Sort)}>
+          <SelectTrigger className="h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      <Chips label="Status" options={STATUS_OPTIONS} selected={state.status} onToggle={(v) => toggleMulti("status", v)} />
-      {boards.length > 1 && (
-        <Chips label="Board" options={boards.map((b) => ({ value: b.id, label: b.name }))} selected={state.board} onToggle={(v) => toggleMulti("board", v)} />
-      )}
-      <Chips label="Tags" options={tags.map((t) => ({ value: t.id, label: t.name }))} selected={state.tagIds} onToggle={(v) => toggleMulti("tagIds", v)} />
-      <Chips label="Category" options={categories.map((c) => ({ value: c.id, label: c.name }))} selected={state.categoryId} onToggle={(v) => toggleMulti("categoryId", v)} />
+
       <Chips
+        label="Status"
+        options={STATUS_OPTIONS}
+        selected={state.status}
+        onToggle={(v) => toggleMulti("status", v)}
+      />
+
+      {boards.length > 1 && (
+        <Chips
+          label="Board"
+          options={boards.map((b) => ({ value: b.id, label: b.name }))}
+          selected={state.board}
+          onToggle={(v) => toggleMulti("board", v)}
+        />
+      )}
+
+      <Chips
+        label="Tags"
+        options={tags.map((t) => ({ value: t.id, label: t.name }))}
+        selected={state.tagIds}
+        onToggle={(v) => toggleMulti("tagIds", v)}
+      />
+
+      <Chips
+        label="Category"
+        options={categories.map((c) => ({ value: c.id, label: c.name }))}
+        selected={state.categoryId}
+        onToggle={(v) => toggleMulti("categoryId", v)}
+      />
+
+      <RadioChips
         label="Segment"
         options={segments.map((s) => ({ value: s.id, label: s.name }))}
-        selected={state.segmentId ? [state.segmentId] : []}
-        onToggle={(v) => onChange("segmentId", state.segmentId === v ? undefined : v)}
+        selected={state.segmentId}
+        onSelect={(v) => onChange("segmentId", v)}
       />
-      <div className="flex gap-5 pt-1">
-        {(
-          [
-            { key: "hasCustomerComment", label: "Customer commented" },
-            { key: "hasComments", label: "Has comments" },
-          ] as const
-        ).map(({ key, label }) => (
-          <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={state[key]}
-              onChange={(e) => onChange(key, e.target.checked)}
-              className="rounded border-border accent-foreground"
-            />
-            <span className="text-sm">{label}</span>
-          </label>
-        ))}
+
+      <div className="space-y-3 border-t border-border pt-4">
+        <label className="flex cursor-pointer items-center justify-between gap-4">
+          <span className="text-sm">Customer commented</span>
+          <Switch
+            checked={state.hasCustomerComment}
+            onCheckedChange={(v) => onChange("hasCustomerComment", v)}
+          />
+        </label>
+        <label className="flex cursor-pointer items-center justify-between gap-4">
+          <span className="text-sm">Has comments</span>
+          <Switch
+            checked={state.hasComments}
+            onCheckedChange={(v) => onChange("hasComments", v)}
+          />
+        </label>
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ import { oauthClient } from "@/db/schema";
 import type { Route } from "./+types/consent";
 
 export function meta() {
-  return [{ title: "Authorize Application — Feediyo" }];
+  return [{ title: "Authorize Application — Feeduro" }];
 }
 
 const SCOPE_DEFS: Record<
@@ -140,7 +140,7 @@ export default function ConsentPage({ loaderData }: Route.ComponentProps) {
         <div className="flex size-5 items-center justify-center rounded bg-primary text-primary-foreground">
           <GalleryVerticalEnd className="size-3" />
         </div>
-        <span className="text-sm">Feediyo</span>
+        <span className="text-sm">Feeduro</span>
       </a>
 
       {/* Card */}
@@ -175,7 +175,7 @@ export default function ConsentPage({ loaderData }: Route.ComponentProps) {
                 </a>
               )}
               <p className="mt-2 text-sm text-muted-foreground leading-snug">
-                is requesting access to your Feediyo account
+                is requesting access to your Feeduro account
               </p>
             </div>
           </div>

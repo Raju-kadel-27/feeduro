@@ -28,7 +28,7 @@ export function LanguageTab() {
       <div>
         <h2 className="text-[17px] font-semibold">Language</h2>
         <p className="text-[14px] text-muted-foreground mt-0.5">
-          Choose the language you'd like to use in Feediyo.
+          Choose the language you'd like to use in Feeduro.
         </p>
       </div>
 

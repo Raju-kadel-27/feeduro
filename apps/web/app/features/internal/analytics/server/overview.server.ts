@@ -12,18 +12,14 @@ import { getChangelogEngagement } from "./changelog-engagement.server";
 import { getCommentsAnalytics } from "./comments-analytics.server";
 import { getCompanyEngagement } from "./company-engagement.server";
 import { getCompletedInPeriod } from "./completed-posts.server";
-import { getMergeRate } from "./merge-rate.server";
 import { getPeriodDeltas } from "./previous-period.server";
 import { getResolutionTime } from "./resolution-time.server";
 import { getResponseRate } from "./response-rate.server";
 import { getStatusBreakdown } from "./status-breakdown.server";
-import { getStatusChangeFeed } from "./status-change-feed.server";
-import { getStatusFunnel } from "./status-funnel.server";
 import { getSubscriberMetrics } from "./subscriber-metrics.server";
 import { getTagBreakdown } from "./tag-breakdown.server";
 import { getTrendingPosts } from "./trending-posts.server";
 import { getUnrespondedPosts } from "./unresponded-posts.server";
-import { getVoteConversion } from "./vote-conversion.server";
 import { getTopPostsByVotes } from "./vote-trends.server";
 import { getVotesOverTime } from "./votes-over-time.server";
 
@@ -47,16 +43,14 @@ async function fetchAll(
     : undefined;
 
   const [
-    boards, topPosts, funnel, statusBreakdown,
+    boards, topPosts, statusBreakdown,
     activityOverTime, votesOverTime, completedPosts, tagBreakdown, trendingPosts,
     changelogEngagement, adminActivity, companyEngagement,
     boardVisitors, commentsAnalytics, unrespondedPosts, deltas,
-    resolutionTime, responseRate, backlogAging, mergeRate, voteConversion, subscriberMetrics,
-    statusChangeFeed,
+    resolutionTime, responseRate, backlogAging, subscriberMetrics,
   ] = await Promise.all([
     getBoardSummaries(organizationId, since),
     getTopPostsByVotes(organizationId, boardId, 8, since),
-    getStatusFunnel(organizationId, boardId, since),
     getStatusBreakdown(organizationId, boardId),
     getActivityOverTime(organizationId, range, since, boardId),
     getVotesOverTime(organizationId, range, since, boardId),
@@ -73,10 +67,7 @@ async function fetchAll(
     getResolutionTime(organizationId, since, boardId),
     getResponseRate(organizationId, since, boardId),
     getBacklogAging(organizationId, boardId),
-    getMergeRate(organizationId, since, boardId),
-    getVoteConversion(organizationId, since),
     getSubscriberMetrics(organizationId, since),
-    getStatusChangeFeed(organizationId, since, boardId),
   ]);
 
   const totalPosts = boards.reduce((s, b) => s + b.totalPosts, 0);
@@ -91,7 +82,6 @@ async function fetchAll(
     stats: { totalPosts, totalVotes, resolutionRate, avgVotesPerPost, deltas },
     boards,
     topPosts,
-    funnel,
     statusBreakdown,
     activityOverTime,
     votesOverTime,
@@ -107,10 +97,7 @@ async function fetchAll(
     resolutionTime,
     responseRate,
     backlogAging,
-    mergeRate,
-    voteConversion,
     subscriberMetrics,
-    statusChangeFeed,
     fetchedAt: Date.now(),
   };
 }

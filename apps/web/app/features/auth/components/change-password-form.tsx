@@ -71,13 +71,13 @@ export function ChangePasswordForm() {
       />
       {serverError && (
         <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          <XCircle size={14} className="shrink-0" />
+          <XCircle size={16} className="shrink-0" />
           {serverError}
         </div>
       )}
       {success && (
         <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-600">
-          <CheckCircle2 size={14} className="shrink-0" />
+          <CheckCircle2 size={16} className="shrink-0" />
           Password updated successfully.
         </div>
       )}

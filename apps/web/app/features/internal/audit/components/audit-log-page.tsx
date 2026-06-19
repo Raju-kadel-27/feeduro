@@ -20,20 +20,12 @@ export function AuditLogPage({ rows, total, page, pageCount }: Props) {
   }
 
   return (
-    <main className="px-8 py-6 w-full">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold">Audit Log</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          A record of security-relevant actions taken by members of this workspace.
-        </p>
-      </div>
-      <AuditLogTable
-        rows={rows}
-        total={total}
-        page={page}
-        pageCount={pageCount}
-        onPageChange={handlePageChange}
-      />
-    </main>
+    <AuditLogTable
+      rows={rows}
+      total={total}
+      page={page}
+      pageCount={pageCount}
+      onPageChange={handlePageChange}
+    />
   );
 }

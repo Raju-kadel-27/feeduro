@@ -1,3 +1,4 @@
+import { PageHeader } from "@components/common/page-header";
 import {
   Empty,
   EmptyDescription,
@@ -98,27 +99,26 @@ export function ViewsSettingsPage({ loaderData }: { loaderData: LoaderData }) {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+      <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium">Views</span>
       </header>
-      <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <p className="text-sm text-muted-foreground max-w-md">
-            Saved filter and sort combinations shown in the feedback sidebar. Built-in views cannot
-            be modified or deleted.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingView(null);
-              setDialogOpen(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer whitespace-nowrap shrink-0"
-          >
-            <Plus className="h-4 w-4" /> New view
-          </button>
-        </div>
+      <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+        <PageHeader
+          title="Views"
+          description="Saved filter and sort combinations shown in the feedback sidebar. Built-in views cannot be modified or deleted."
+          action={
+            <button
+              type="button"
+              onClick={() => {
+                setEditingView(null);
+                setDialogOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <Plus className="h-4 w-4" /> New view
+            </button>
+          }
+        />
 
         <div className="rounded-lg border border-border overflow-hidden">
           {views.length === 0 ? (

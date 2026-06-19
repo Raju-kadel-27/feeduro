@@ -1,4 +1,3 @@
-import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { WidgetSettingsPage } from "@features/widget/components/internal/widget-settings-page";
 import { SettingsActionSchema } from "@features/widget/schemas/settings";
@@ -68,9 +67,6 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
       <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
       </header>
-      <div className="px-6 pt-6 max-w-[840px] mx-auto w-full">
-        <PageHeader title="Widget" />
-      </div>
       <WidgetSettingsPage loaderData={loaderData} />
     </>
   );

@@ -320,7 +320,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
             ) : undefined}
           />
           </div>
-          <div className="space-y-4">
+          <div className="max-w-[840px] mx-auto w-full space-y-4">
               <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
               <p className="font-medium text-foreground mb-1">Identify users via API</p>
               <p className="text-muted-foreground text-[13px] mb-2">

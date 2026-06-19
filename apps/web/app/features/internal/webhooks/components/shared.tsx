@@ -24,7 +24,7 @@ export function CopyButton({ value }: { value: string }) {
             onClick={handleCopy}
             className="p-2 rounded-md text-muted-foreground hover:text-foreground transition-colors bg-muted/10 hover:bg-muted/20"
           >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
+            {copied ? <Check size={18} /> : <Copy size={18} />}
           </button>
         </TooltipTrigger>
         <TooltipContent>Copy</TooltipContent>

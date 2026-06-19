@@ -1,67 +1,38 @@
-import { Badge } from "@components/ui/badge";
+import { cn } from "@lib/utils";
+import { ChevronRight } from "lucide-react";
 import type { EndpointRow } from "../types";
-import { EndpointActions } from "./endpoint-actions";
-import { EndpointEvents } from "./endpoint-events";
 import { EndpointHeader } from "./endpoint-header";
-import { SecretRevealRow } from "./secret-reveal-row";
 
 interface EndpointCardProps {
   ep: EndpointRow;
-  isAdmin: boolean;
-  onToggle: (id: string, isActive: boolean) => void;
-  onRotateClick: (id: string) => void;
-  onDeleteClick: (id: string) => void;
-  rotating: boolean;
-  deleting: boolean;
+  onSelect: (endpoint: EndpointRow) => void;
 }
 
-export function EndpointCard({
-  ep,
-  isAdmin,
-  onToggle,
-  onRotateClick,
-  onDeleteClick,
-  rotating,
-  deleting,
-}: EndpointCardProps) {
-  const events: string[] = JSON.parse(ep.events) as string[];
-
+export function EndpointCard({ ep, onSelect }: EndpointCardProps) {
   return (
-    <div className="p-4 space-y-3">
-      {/* Top row: name + url + inactive badge + actions */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex items-start gap-2">
-          <EndpointHeader
-            name={ep.name}
-            url={ep.url}
-            lastDeliveryAt={ep.lastDeliveryAt}
-            lastDeliveryStatus={ep.lastDeliveryStatus}
-          />
-          {!ep.isActive && (
-            <Badge variant="outline" className="shrink-0 text-muted-foreground mt-0.5">
-              Inactive
-            </Badge>
-          )}
-        </div>
-
-        {isAdmin && (
-          <EndpointActions
-            id={ep.id}
-            isActive={ep.isActive}
-            onToggle={onToggle}
-            onRotateClick={() => onRotateClick(ep.id)}
-            onDeleteClick={() => onDeleteClick(ep.id)}
-            rotating={rotating}
-            deleting={deleting}
-          />
+    <button
+      type="button"
+      onClick={() => onSelect(ep)}
+      className={cn(
+        "w-full text-left p-4 flex items-center gap-3 hover:bg-muted/10 transition-colors",
+        !ep.isActive && "opacity-60",
+      )}
+    >
+      <span
+        className={cn(
+          "w-2 h-2 rounded-full shrink-0 mt-1",
+          ep.isActive ? "bg-emerald-500" : "bg-muted-foreground/30",
         )}
+      />
+      <div className="flex-1 min-w-0">
+        <EndpointHeader
+          name={ep.name}
+          url={ep.url}
+          lastDeliveryAt={ep.lastDeliveryAt}
+          lastDeliveryStatus={ep.lastDeliveryStatus}
+        />
       </div>
-
-      {/* Event badges + created date */}
-      <EndpointEvents events={events} createdAt={ep.createdAt} />
-
-      {/* Secret reveal (admin only) */}
-      {isAdmin && <SecretRevealRow endpointId={ep.id} />}
-    </div>
+      <ChevronRight size={15} className="text-muted-foreground/40 shrink-0" />
+    </button>
   );
 }

@@ -83,7 +83,7 @@ export function SecretRevealRow({ endpointId }: { endpointId: string }) {
                   onClick={hide}
                   className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
                 >
-                  <EyeOff size={14} />
+                  <EyeOff size={20} />
                 </button>
               </TooltipTrigger>
               <TooltipContent>Hide secret</TooltipContent>
@@ -102,7 +102,7 @@ export function SecretRevealRow({ endpointId }: { endpointId: string }) {
                   disabled={loading}
                   className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 shrink-0"
                 >
-                  <Eye size={14} />
+                  <Eye size={20} />
                 </button>
               </TooltipTrigger>
               <TooltipContent>Reveal signing secret</TooltipContent>

@@ -3,7 +3,7 @@ import WebhooksSettings from "@features/internal/webhooks/components/webhooks-se
 import { getWebhooksLoaderData } from "@features/internal/webhooks/server/queries";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
-import type { Route } from "./+types/webhooks";
+import type { Route } from "./+types/index";
 
 export function meta() {
   return [{ title: "Webhooks — Feeduro" }];

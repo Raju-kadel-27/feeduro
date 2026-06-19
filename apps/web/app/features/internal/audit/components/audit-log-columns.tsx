@@ -25,13 +25,39 @@ const ACTION_CLASS: Record<string, string> = {
   invitation_cancelled: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
 };
 
+const AVATAR_COLORS = [
+  "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+  "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
+  "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300",
+  "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
+  "bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300",
+];
+
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h * 31) + s.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+function getAvatarColor(email: string): string {
+  return AVATAR_COLORS[hashString(email) % AVATAR_COLORS.length];
+}
+
 function toDate(val: Date | string): Date {
   return val instanceof Date ? val : new Date(val);
 }
 
 function formatAbsolute(val: Date | string): string {
   return toDate(val).toLocaleString(undefined, {
-    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -57,8 +83,9 @@ export const auditLogColumns: ColumnDef<AuditLogRow>[] = [
     accessorKey: "createdAt",
     header: "When",
     cell: ({ row }) => (
-      <div title={formatRelative(row.original.createdAt)} className="whitespace-nowrap">
-        <p className="text-sm text-foreground/80">{formatAbsolute(row.original.createdAt)}</p>
+      <div className="whitespace-nowrap">
+        <p className="text-sm font-medium">{formatRelative(row.original.createdAt)}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{formatAbsolute(row.original.createdAt)}</p>
       </div>
     ),
   },
@@ -67,8 +94,10 @@ export const auditLogColumns: ColumnDef<AuditLogRow>[] = [
     header: "Actor",
     cell: ({ row }) => (
       <div className="flex items-center gap-2.5">
-        <div className="h-7 w-7 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
-          <span className="text-xs font-semibold text-muted-foreground">
+        <div
+          className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${getAvatarColor(row.original.actorEmail)}`}
+        >
+          <span className="text-xs font-semibold">
             {getInitial(row.original.actorName, row.original.actorEmail)}
           </span>
         </div>

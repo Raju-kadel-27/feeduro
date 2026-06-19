@@ -1,7 +1,8 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLogs } from "@/db/schema";
-import { AUDIT_PAGE_SIZE } from "../constants";
+import type { AuditCategory } from "../constants";
+import { AUDIT_CATEGORIES, AUDIT_PAGE_SIZE } from "../constants";
 
 export type AuditLogRow = {
   id: string;
@@ -14,9 +15,14 @@ export type AuditLogRow = {
   createdAt: Date;
 };
 
-export async function listAuditLogs(orgId: string, page: number) {
+export async function listAuditLogs(orgId: string, page: number, category?: AuditCategory) {
   const db = getDb();
   const offset = (page - 1) * AUDIT_PAGE_SIZE;
+  const actions = category ? AUDIT_CATEGORIES[category] : null;
+
+  const where = actions
+    ? and(eq(auditLogs.organizationId, orgId), inArray(auditLogs.action, actions))
+    : eq(auditLogs.organizationId, orgId);
 
   const [rows, [{ total }]] = await Promise.all([
     db
@@ -31,14 +37,14 @@ export async function listAuditLogs(orgId: string, page: number) {
         createdAt: auditLogs.createdAt,
       })
       .from(auditLogs)
-      .where(eq(auditLogs.organizationId, orgId))
+      .where(where)
       .orderBy(desc(auditLogs.createdAt))
       .limit(AUDIT_PAGE_SIZE)
       .offset(offset),
     db
       .select({ total: sql<number>`count(*)::int` })
       .from(auditLogs)
-      .where(eq(auditLogs.organizationId, orgId)),
+      .where(where),
   ]);
 
   return {

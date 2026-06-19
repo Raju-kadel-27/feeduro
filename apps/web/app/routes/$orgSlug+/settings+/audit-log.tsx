@@ -1,6 +1,8 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireAdmin, requireOrgBySlug } from "@features/auth/server/guards";
 import { AuditLogPage } from "@features/internal/audit/components/audit-log-page";
+import type { AuditCategory } from "@features/internal/audit/constants";
+import { AUDIT_CATEGORIES } from "@features/internal/audit/constants";
 import { listAuditLogs } from "@features/internal/audit/server/queries";
 import { data } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
@@ -15,11 +17,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   await requireAdmin(organizationId, session.user.id);
 
   const url = new URL(request.url);
+
   const rawPage = Number(url.searchParams.get("page"));
   const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.min(Math.floor(rawPage), 10_000) : 1;
 
-  const { rows, total, pageCount } = await listAuditLogs(organizationId, page);
-  return data({ rows, total, page, pageCount });
+  const rawCategory = url.searchParams.get("category");
+  const category: AuditCategory | undefined =
+    rawCategory !== null && Object.hasOwn(AUDIT_CATEGORIES, rawCategory)
+      ? (rawCategory as AuditCategory)
+      : undefined;
+
+  const { rows, total, pageCount } = await listAuditLogs(organizationId, page, category);
+  return data({ rows, total, page, pageCount, category });
 }
 
 export function ErrorBoundary() {
@@ -48,6 +57,7 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
           total={loaderData.total}
           page={loaderData.page}
           pageCount={loaderData.pageCount}
+          category={loaderData.category}
         />
       </main>
     </>

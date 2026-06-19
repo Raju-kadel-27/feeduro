@@ -13,20 +13,23 @@ export function AppAvatar({
   name,
   icon,
   clientId,
+  size = "md",
 }: {
   name?: string;
   icon?: string;
   clientId: string;
+  size?: "md" | "lg";
 }) {
   const hash = clientId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   const color = AVATAR_COLORS[hash % AVATAR_COLORS.length];
+  const sizeClass = size === "lg" ? "size-10 rounded-xl text-sm" : "size-8 rounded-lg text-xs";
 
   if (icon) {
     return (
       <img
         src={icon}
         alt={name ?? clientId}
-        className="size-8 rounded-lg object-cover ring-1 ring-border shrink-0"
+        className={cn(sizeClass, "object-cover ring-1 ring-border shrink-0")}
       />
     );
   }
@@ -34,7 +37,8 @@ export function AppAvatar({
   return (
     <div
       className={cn(
-        "flex size-8 items-center justify-center rounded-lg text-xs font-bold shrink-0",
+        "flex items-center justify-center font-bold shrink-0",
+        sizeClass,
         color,
       )}
     >

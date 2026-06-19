@@ -31,6 +31,7 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
     hubspotIntegration,
     salesforceIntegration,
     clickupIntegration,
+    notificationsIntegration,
   ] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
@@ -50,6 +51,7 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
     getIntegration(organizationId, "hubspot"),
     getIntegration(organizationId, "salesforce"),
     getIntegration(organizationId, "clickup"),
+    getIntegration(organizationId, "notifications"),
   ]);
 
   const githubSettings = parseSettings<{
@@ -108,6 +110,13 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
     displayName?: string;
   }>(salesforceIntegration?.settings);
 
+  const notificationSettings = parseSettings<{
+    enabledEvents?: string[];
+    discordWebhookUrl?: string;
+    slackWebhookUrl?: string;
+  }>(notificationsIntegration?.settings);
+  const enabledEvents = notificationSettings?.enabledEvents ?? ["feedback.created"];
+
   return {
     isAdmin: memberRecord?.role === "admin",
 
@@ -144,10 +153,20 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
 
     discord: {
       enabled: !!(process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET),
+      connected: !!(notificationSettings?.discordWebhookUrl),
     },
 
     slack: {
       enabled: !!(process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET),
+      connected: !!(notificationSettings?.slackWebhookUrl),
+    },
+
+    notifications: {
+      enabledEvents,
+      discordWebhookUrl: notificationSettings?.discordWebhookUrl ?? null,
+      discordChannelId: notificationSettings?.discordChannelId ?? null,
+      slackWebhookUrl: notificationSettings?.slackWebhookUrl ?? null,
+      slackChannel: notificationSettings?.slackChannel ?? null,
     },
 
     github: {

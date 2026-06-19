@@ -106,15 +106,19 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         </div>
       )}
       <pre className="overflow-x-auto p-4 text-xs font-mono leading-relaxed">
-        {lines.map((line, li) => (
-          <div key={li}>
-            {tokenize(line).map((token, ti) => (
-              <span key={ti} className={cn(TOKEN_CLASSES[token.type])}>
-                {token.text}
-              </span>
-            ))}
-          </div>
-        ))}
+        {lines.map((line, li) =>
+          line === "" ? (
+            <div key={li}>&nbsp;</div>
+          ) : (
+            <div key={li}>
+              {tokenize(line).map((token, ti) => (
+                <span key={ti} className={cn(TOKEN_CLASSES[token.type])}>
+                  {token.text}
+                </span>
+              ))}
+            </div>
+          ),
+        )}
       </pre>
     </div>
   );

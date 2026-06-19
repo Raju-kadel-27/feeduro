@@ -38,7 +38,10 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
       </header>
       <main className="p-6 space-y-8">
         <div className="max-w-[840px] mx-auto w-full">
-          <PageHeader title="Audit Log" />
+          <PageHeader
+            title="Audit Log"
+            description="A record of security-relevant actions taken by members of this workspace."
+          />
         </div>
         <AuditLogPage
           rows={loaderData.rows}

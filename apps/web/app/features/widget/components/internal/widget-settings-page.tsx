@@ -1,3 +1,4 @@
+import { PageHeader } from "@components/common/page-header";
 import { useState } from "react";
 import { useFetcher } from "react-router";
 import type { WidgetSettingsLoaderData } from "../../types";
@@ -81,13 +82,11 @@ export function WidgetSettingsPage({ loaderData }: Props) {
   }
 
   return (
-    <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">Embed Widget</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Embed feedback on your site — as a floating button or an inline board.
-        </p>
-      </div>
+    <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+      <PageHeader
+        title="Widget"
+        description="Embed feedback on your site — as a floating button or an inline board."
+      />
 
       <SettingsStatusSection
         enabled={enabled}

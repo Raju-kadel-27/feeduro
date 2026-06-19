@@ -2,10 +2,12 @@ import { Button } from "@components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@components/ui/dialog";
+import { Input } from "@components/ui/input";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 
@@ -65,40 +67,48 @@ export function CreateClientDialog({ open, onOpenChange, creating, onSubmit }: P
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Plus size={16} />
+        <Button variant="outline" size="sm">
+          <Plus size={14} />
           New App
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle>Register OAuth App</DialogTitle>
+          <DialogDescription>
+            Create an app that can authenticate users via your workspace using OAuth 2.1.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-5 pt-1">
+          {/* App name */}
           <div className="space-y-1.5">
-            <label htmlFor="oauth-name" className="text-sm text-muted-foreground">
+            <label htmlFor="oauth-name" className="text-sm font-medium text-foreground">
               App name
             </label>
-            <input
+            <Input
               id="oauth-name"
-              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My Integration"
               required
               maxLength={64}
-              className="w-full px-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
+          {/* Redirect URIs tag input */}
           <div className="space-y-1.5">
-            <label className="text-sm text-muted-foreground">
-              Redirect URIs
-              <span className="text-xs opacity-60 ml-1.5">— Enter or comma to add each</span>
-            </label>
+            <div>
+              <label className="text-sm font-medium text-foreground">
+                Redirect URIs
+              </label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Press Enter or comma to add each URI.
+              </p>
+            </div>
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: click delegates to child input */}
             <div
-              className="min-h-[72px] w-full flex flex-wrap gap-1.5 p-2.5 rounded-md border border-border bg-background focus-within:ring-2 focus-within:ring-ring cursor-text"
+              className="min-h-[76px] w-full flex flex-wrap gap-1.5 p-2.5 rounded-md border border-input bg-transparent text-sm shadow-sm focus-within:ring-1 focus-within:ring-ring transition-colors cursor-text"
               onClick={(e) => {
                 const input = (e.currentTarget as HTMLElement).querySelector("input");
                 input?.focus();
@@ -116,7 +126,7 @@ export function CreateClientDialog({ open, onOpenChange, creating, onSubmit }: P
                     type="button"
                     onClick={() => setUris((prev) => prev.filter((u) => u !== uri))}
                     aria-label={`Remove ${uri}`}
-                    className="text-muted-foreground hover:text-foreground shrink-0 ml-0.5"
+                    className="text-muted-foreground hover:text-foreground shrink-0 ml-0.5 transition-colors"
                   >
                     <X size={11} />
                   </button>
@@ -131,21 +141,24 @@ export function CreateClientDialog({ open, onOpenChange, creating, onSubmit }: P
                 className="flex-1 min-w-[160px] bg-transparent text-sm outline-none placeholder:text-muted-foreground/50 font-mono"
               />
             </div>
-            {!hasUris && (
-              <p className="text-xs text-muted-foreground/60">
-                One URI per entry. Press Enter or comma to confirm.
-              </p>
-            )}
           </div>
 
-          <div className="flex justify-end pt-2">
-            <button
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
               type="submit"
+              size="sm"
               disabled={creating || !name.trim() || !hasUris}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {creating ? "Creating…" : "Create App"}
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>

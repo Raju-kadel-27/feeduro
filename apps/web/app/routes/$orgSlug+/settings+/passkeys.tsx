@@ -84,7 +84,7 @@ export default function PasskeysSettings() {
           <SidebarTrigger className="-ml-1" />
         </header>
 
-        <main className="p-6 max-w-[840px] mx-auto w-full">
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <PageHeader
             title="Passkeys"
             action={

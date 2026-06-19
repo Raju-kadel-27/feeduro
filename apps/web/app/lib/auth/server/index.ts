@@ -85,6 +85,12 @@ export const auth = betterAuth({
 
   socialProviders,
 
+  account: {
+    accountLinking: {
+      allowDifferentEmails: true,
+    },
+  },
+
   plugins: [
     admin({
       adminUserIds: (getEnv().PLATFORM_ADMIN_USER_IDS ?? "")

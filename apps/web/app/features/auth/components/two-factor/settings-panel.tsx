@@ -1,3 +1,4 @@
+import { PageHeader } from "@components/common/page-header";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { BackupCodesStep } from "@features/auth/components/two-factor/backup-codes-step";
@@ -54,30 +55,26 @@ export function TwoFactorSettingsPanel() {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+      <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium">Two-Factor Authentication</span>
       </header>
 
-      <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-semibold">Two-Factor Authentication</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Add an extra layer of security to your account by requiring a verification code when
-              signing in.
-            </p>
-          </div>
-          {!twoFactorEnabled && (
-            <button
-              type="button"
-              onClick={openEnableDialog}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
-            >
-              Enable
-            </button>
-          )}
-        </div>
+      <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+        <PageHeader
+          title="Two-Factor Authentication"
+          description="Add an extra layer of security to your account by requiring a verification code when signing in."
+          action={
+            !twoFactorEnabled ? (
+              <button
+                type="button"
+                onClick={openEnableDialog}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
+              >
+                Enable
+              </button>
+            ) : undefined
+          }
+        />
 
         <TwoFactorStatus enabled={twoFactorEnabled} />
 

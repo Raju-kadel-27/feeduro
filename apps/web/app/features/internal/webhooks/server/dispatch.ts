@@ -1,4 +1,6 @@
+import { deliverToDiscord } from "@features/internal/integrations/discord/server/service";
 import { deliverToN8nWebhook } from "@features/internal/integrations/n8n/server/service";
+import { deliverToSlack } from "@features/internal/integrations/slack/server/service";
 import { deliverToZapierCatchHook } from "@features/internal/integrations/zapier/server/service";
 import { hmacHex } from "@lib/crypto";
 import { waitUntil } from "@middleware/cloudflare.server";
@@ -53,7 +55,7 @@ async function deliverWebhookBackground(
 ) {
   const db = getDb();
 
-  const [endpoints, zapierIntegration, n8nIntegration] = await Promise.all([
+  const [endpoints, zapierIntegration, n8nIntegration, notificationsIntegration] = await Promise.all([
     db.query.webhookEndpoints.findMany({
       where: and(
         eq(webhookEndpoints.organizationId, organizationId),
@@ -75,6 +77,14 @@ async function deliverWebhookBackground(
         eq(integrations.enabled, true),
       ),
       columns: { accessToken: true, settings: true },
+    }),
+    db.query.integrations.findFirst({
+      where: and(
+        eq(integrations.organizationId, organizationId),
+        eq(integrations.provider, "notifications"),
+        eq(integrations.enabled, true),
+      ),
+      columns: { settings: true },
     }),
   ]);
 
@@ -118,6 +128,23 @@ async function deliverWebhookBackground(
     const n8nEvents = settings?.events ?? ["*"];
     if (n8nEvents.includes("*") || n8nEvents.includes(event)) {
       sideDeliveries.push(deliverToN8nWebhook(n8nIntegration.accessToken, payload));
+    }
+  }
+
+  if (notificationsIntegration?.settings) {
+    const notifSettings = JSON.parse(notificationsIntegration.settings) as {
+      enabledEvents?: string[];
+      discordWebhookUrl?: string;
+      slackWebhookUrl?: string;
+    };
+    const enabledEvents = notifSettings.enabledEvents ?? [];
+    if (enabledEvents.includes(event)) {
+      if (notifSettings.discordWebhookUrl) {
+        sideDeliveries.push(deliverToDiscord(notifSettings.discordWebhookUrl, payload));
+      }
+      if (notifSettings.slackWebhookUrl) {
+        sideDeliveries.push(deliverToSlack(notifSettings.slackWebhookUrl, payload));
+      }
     }
   }
 

@@ -1,9 +1,8 @@
 import { cn } from "@lib/utils";
+import { ChevronRight } from "lucide-react";
 import type { EndpointRow } from "../types";
-import { EndpointActions } from "./endpoint-actions";
-import { EventBadge, formatDate } from "./shared";
 
-function DeliveryCell({
+function DeliveryStatus({
   lastDeliveryAt,
   lastDeliveryStatus,
 }: {
@@ -48,125 +47,71 @@ function DeliveryCell({
 
 interface EndpointsTableProps {
   endpoints: EndpointRow[];
-  isAdmin: boolean;
-  onToggle: (id: string, isActive: boolean) => void;
-  onRotateClick: (id: string) => void;
-  onDeleteClick: (id: string) => void;
-  rotating: boolean;
-  deleting: boolean;
+  onSelect: (endpoint: EndpointRow) => void;
 }
 
-export function EndpointsTable({
-  endpoints,
-  isAdmin,
-  onToggle,
-  onRotateClick,
-  onDeleteClick,
-  rotating,
-  deleting,
-}: EndpointsTableProps) {
+export function EndpointsTable({ endpoints, onSelect }: EndpointsTableProps) {
   return (
-    <div className="rounded-lg border border-border overflow-hidden bg-card shadow-md">
+    <div className="rounded-lg border border-border overflow-hidden bg-card shadow-sm">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border bg-muted/20">
-            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground w-[40%]">
+            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">
               Endpoint
             </th>
-            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">
-              Events
+            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground w-28">
+              Status
             </th>
-            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">
+            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground w-36">
               Last delivery
             </th>
-            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">
-              Added
-            </th>
-            {isAdmin && (
-              <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-left">
-                Actions
-              </th>
-            )}
+            <th className="w-8" />
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {endpoints.map((ep) => {
-            const events: string[] = JSON.parse(ep.events) as string[];
-            return (
-              <tr
-                key={ep.id}
-                className={cn("hover:bg-muted/10 transition-colors", !ep.isActive && "opacity-60")}
-              >
-                {/* Endpoint name + URL */}
-                <td className="px-4 py-3">
-                  <div className="flex items-start gap-2 min-w-0">
-                    <span
-                      className={cn(
-                        "mt-1.5 w-2 h-2 rounded-full shrink-0",
-                        ep.isActive ? "bg-emerald-500" : "bg-muted-foreground/30",
-                      )}
-                    />
-                    <div className="min-w-0">
-                      {ep.name && (
-                        <p className="font-medium text-foreground truncate text-xs">{ep.name}</p>
-                      )}
-                      <code className="text-xs font-mono text-muted-foreground break-all">
-                        {ep.url}
-                      </code>
-                      {!ep.isActive && (
-                        <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full border border-border text-muted-foreground bg-muted/20">
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </td>
-
-                {/* Events */}
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
-                    {events.includes("*") ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
-                        All events
-                      </span>
-                    ) : (
-                      events.map((e) => <EventBadge key={e} event={e} />)
+          {endpoints.map((ep) => (
+            <tr
+              key={ep.id}
+              onClick={() => onSelect(ep)}
+              className={cn(
+                "hover:bg-muted/10 transition-colors cursor-pointer",
+                !ep.isActive && "opacity-60",
+              )}
+            >
+              <td className="px-4 py-3">
+                <p className="text-xs font-medium text-foreground truncate">
+                  {ep.name ?? new URL(ep.url).hostname}
+                </p>
+              </td>
+              <td className="px-4 py-3 whitespace-nowrap">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium",
+                    ep.isActive
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      ep.isActive ? "bg-emerald-500" : "bg-muted-foreground/40",
                     )}
-                  </div>
-                </td>
-
-                {/* Last delivery */}
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <DeliveryCell
-                    lastDeliveryAt={ep.lastDeliveryAt}
-                    lastDeliveryStatus={ep.lastDeliveryStatus}
                   />
-                </td>
-
-                {/* Added date */}
-                <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap tabular-nums">
-                  {formatDate(ep.createdAt)}
-                </td>
-
-                {/* Actions */}
-                {isAdmin && (
-                  <td className="px-4 py-3">
-                    <div className="flex justify-start">
-                      <EndpointActions
-                        id={ep.id}
-                        isActive={ep.isActive}
-                        onToggle={onToggle}
-                        onRotateClick={() => onRotateClick(ep.id)}
-                        onDeleteClick={() => onDeleteClick(ep.id)}
-                        rotating={rotating}
-                        deleting={deleting}
-                      />
-                    </div>
-                  </td>
-                )}
-              </tr>
-            );
-          })}
+                  {ep.isActive ? "Active" : "Inactive"}
+                </span>
+              </td>
+              <td className="px-4 py-3 whitespace-nowrap">
+                <DeliveryStatus
+                  lastDeliveryAt={ep.lastDeliveryAt}
+                  lastDeliveryStatus={ep.lastDeliveryStatus}
+                />
+              </td>
+              <td className="pr-3 py-3">
+                <ChevronRight size={15} className="text-muted-foreground/40" />
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

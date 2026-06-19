@@ -55,6 +55,39 @@ export async function getWebhook(organizationId: string, id: string) {
   return ep ? fmtEndpoint(ep) : null;
 }
 
+export async function getWebhookDetailLoaderData(
+  sessionUserId: string,
+  organizationId: string,
+  endpointId: string,
+) {
+  const db = getDb();
+  const [ep, memberRecord] = await Promise.all([
+    db.query.webhookEndpoints.findFirst({
+      where: and(
+        eq(webhookEndpoints.id, endpointId),
+        eq(webhookEndpoints.organizationId, organizationId),
+      ),
+      columns: {
+        id: true,
+        name: true,
+        url: true,
+        events: true,
+        isActive: true,
+        createdAt: true,
+        lastDeliveryAt: true,
+        lastDeliveryStatus: true,
+      },
+    }),
+    db.query.member.findFirst({
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, sessionUserId)),
+      columns: { role: true },
+    }),
+  ]);
+
+  if (!ep) return null;
+  return { endpoint: ep as EndpointRow, isAdmin: memberRecord?.role === "admin" };
+}
+
 export async function getWebhooksLoaderData(sessionUserId: string, organizationId: string) {
   const db = getDb();
 

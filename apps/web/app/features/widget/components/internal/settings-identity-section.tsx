@@ -16,8 +16,6 @@ type Props = {
   onReveal: () => void;
   onHide: () => void;
   onRotateSecret: () => void;
-  currentToken: string;
-  position: "left" | "right";
   theme: "light" | "dark" | "auto";
   orgSlug: string;
   boards: Board[];
@@ -35,8 +33,6 @@ export function SettingsIdentitySection({
   onReveal,
   onHide,
   onRotateSecret,
-  currentToken,
-  position,
   theme,
   orgSlug,
   boards,
@@ -92,11 +88,9 @@ export function SettingsIdentitySection({
 
       {/* Step 2 */}
       <div className="space-y-3">
-        <StepBadge n={2} label="Generate the signature server-side and pass it to your widget" />
+        <StepBadge n={2} label="Generate the signature server-side and pass it to the embed" />
         <div className="pl-7">
           <SettingsIdentityCodeExamples
-            currentToken={currentToken}
-            position={position}
             theme={theme}
             orgSlug={orgSlug}
             boards={boards}

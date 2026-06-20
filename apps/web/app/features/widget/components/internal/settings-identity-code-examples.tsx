@@ -4,8 +4,6 @@ import { CodeBlock } from "./code-block";
 type Board = { id: string; name: string; isDefault: boolean; embedToken: string };
 
 type Props = {
-  currentToken: string;
-  position: "left" | "right";
   theme: "light" | "dark" | "auto";
   orgSlug: string;
   boards: Board[];
@@ -14,8 +12,6 @@ type Props = {
 };
 
 export function SettingsIdentityCodeExamples({
-  currentToken,
-  position,
   theme,
   orgSlug,
   boards,
@@ -51,28 +47,17 @@ export function SettingsIdentityCodeExamples({
 
       <TabsContent value="react" className="space-y-2">
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">
-          Server — one call, everything included
+          Server — generate the signature
         </p>
         <CodeBlock
           label="app/root.tsx  ·  layout.tsx  (React Router / Remix)"
           code={`import { createIdentityToken } from '~/lib/identity-token';\n\nexport async function loader({ request }) {\n  const user = await getAuthUser(request);\n\n  const feeduroAuth = user\n    ? await createIdentityToken(\n        user.id,\n        user.email,\n        user.name,\n        process.env.FEEDURO_SIGNING_SECRET!,\n      )\n    : null;\n\n  return { user, feeduroAuth };\n}`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
-          Client — pass to the provider, done
+          Client — pass the embed token and identity to the SDK
         </p>
-        <CodeBlock
-          label="app/root.tsx  ·  layout.tsx"
-          code={`import { FeeduroProvider } from '@feeduro/react';\n\nexport default function Root({ loaderData }) {\n  const { user, feeduroAuth } = loaderData;\n\n  return (\n    <FeeduroProvider\n      token="${currentToken}"\n      position="${position}"\n      theme="${theme}"\n      user={user && feeduroAuth\n        ? { id: user.id, email: user.email, name: user.name, ...feeduroAuth }\n        : null}\n    >\n      {/* your app */}\n    </FeeduroProvider>\n  );\n}`}
-        />
-        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
-          Automatic login — link to your public board
-        </p>
-        <CodeBlock
-          label="any component inside FeeduroProvider"
-          code={`import { useFeeduro } from '@feeduro/react';\n\nfunction FeedbackLink() {\n  const { createAutoLoginUrl } = useFeeduro();\n\n  return (\n    <a href={createAutoLoginUrl('https://${orgSlug}.feeduro.com')}>\n      View public board →\n    </a>\n  );\n}`}
-        />
         {boards.length > 1 && (
-          <div className="flex items-center gap-2 pl-7">
+          <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">Board</span>
             <select
               value={inlineBoardId}
@@ -90,7 +75,14 @@ export function SettingsIdentityCodeExamples({
         )}
         <CodeBlock
           label="feedback/page.tsx"
-          code={`import { FeeduroBoard } from '@feeduro/react';\n\nexport default function FeedbackPage() {\n  return (\n    <FeeduroBoard\n      token="${selectedBoard?.embedToken ?? currentToken}"\n      theme="${theme}"\n      style={{ height: 600 }}\n    />\n  );\n}`}
+          code={`export default function FeedbackPage({ loaderData }) {\n  const { user, feeduroAuth } = loaderData;\n\n  return (\n    <div style={{ height: 600 }}>\n      <div\n        data-fdy-embed="${selectedBoard?.embedToken ?? "YOUR_EMBED_TOKEN"}"\n        data-fdy-theme="${theme}"\n        data-fdy-user-id={user?.id}\n        data-fdy-user-email={user?.email}\n        data-fdy-user-name={user?.name}\n        data-fdy-signature={feeduroAuth?.signature}\n        style={{ height: '100%' }}\n      />\n    </div>\n  );\n}`}
+        />
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
+          Automatic login — link to your public board
+        </p>
+        <CodeBlock
+          label="any component"
+          code={`import { useFeeduro } from '@feeduro/react';\n\nfunction FeedbackLink() {\n  const { createAutoLoginUrl } = useFeeduro();\n\n  return (\n    <a href={createAutoLoginUrl('https://${orgSlug}.feeduro.com')}>\n      View public board →\n    </a>\n  );\n}`}
         />
       </TabsContent>
 

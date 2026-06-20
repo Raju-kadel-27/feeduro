@@ -25,7 +25,6 @@ export function WidgetSettingsPage({ loaderData }: Props) {
 
   const [enabled, setEnabled] = useState(config.enabled);
   const [boardId, setBoardId] = useState(config.boardId ?? "");
-  const [position, setPosition] = useState<"left" | "right">(config.position);
   const [theme, setTheme] = useState<"light" | "dark" | "auto">(config.theme);
   const [inlineBoardId, setInlineBoardId] = useState(
     boards.find((b) => b.isDefault)?.id ?? boards[0]?.id ?? "",
@@ -50,7 +49,6 @@ export function WidgetSettingsPage({ loaderData }: Props) {
     form.set("intent", "save");
     form.set("enabled", String(enabled));
     form.set("boardId", boardId);
-    form.set("position", position);
     form.set("theme", theme);
     saveFetcher.submit(form, { method: "POST" });
   }
@@ -85,7 +83,7 @@ export function WidgetSettingsPage({ loaderData }: Props) {
     <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
       <PageHeader
         title="Widget"
-        description="Embed feedback on your site — as a floating button or an inline board."
+        description="Embed your feedback board directly into any page on your site."
       />
 
       <SettingsStatusSection
@@ -98,8 +96,6 @@ export function WidgetSettingsPage({ loaderData }: Props) {
         boards={boards}
         boardId={boardId}
         setBoardId={setBoardId}
-        position={position}
-        setPosition={setPosition}
         theme={theme}
         setTheme={setTheme}
         onSave={handleSave}
@@ -110,12 +106,9 @@ export function WidgetSettingsPage({ loaderData }: Props) {
 
       <SettingsEmbedSection
         boards={boards}
-        currentToken={currentToken}
-        position={position}
         theme={theme}
         inlineBoardId={inlineBoardId}
         setInlineBoardId={setInlineBoardId}
-        orgSlug={orgSlug}
       />
 
       <SettingsBoardTokensSection boards={boards} />
@@ -130,8 +123,6 @@ export function WidgetSettingsPage({ loaderData }: Props) {
         onReveal={handleRevealSecret}
         onHide={() => setIsSecretVisible(false)}
         onRotateSecret={handleRotateSecret}
-        currentToken={currentToken}
-        position={position}
         theme={theme}
         orgSlug={orgSlug}
         boards={boards}

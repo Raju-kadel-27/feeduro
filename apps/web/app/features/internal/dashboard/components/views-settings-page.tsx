@@ -10,7 +10,7 @@ import { SidebarTrigger } from "@components/ui/sidebar";
 import type { Board, Category, Sort, Tag, View, ViewFilters } from "@features/internal/dashboard/types";
 import type { Segment } from "@features/internal/segmentation/types";
 import { useMutation } from "@tanstack/react-query";
-import { Layers, Plus } from "lucide-react";
+import { Layers, LayoutDashboard, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ViewFormDialog } from "./view-form-dialog";
@@ -105,6 +105,7 @@ export function ViewsSettingsPage({ loaderData }: { loaderData: LoaderData }) {
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Views"
+          icon={LayoutDashboard}
           description="Saved filter and sort combinations shown in the feedback sidebar. Built-in views cannot be modified or deleted."
           action={
             <button

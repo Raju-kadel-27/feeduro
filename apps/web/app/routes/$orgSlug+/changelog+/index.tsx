@@ -55,7 +55,7 @@ interface ChangelogEntry {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+  draft: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
   published: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400",
 };
 

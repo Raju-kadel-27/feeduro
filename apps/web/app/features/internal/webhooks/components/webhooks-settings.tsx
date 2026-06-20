@@ -1,6 +1,6 @@
 import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Webhook } from "lucide-react";
 import { useState } from "react";
 import { useRevalidator } from "react-router";
 import type { EndpointRow } from "../types";
@@ -20,6 +20,7 @@ export default function WebhooksSettings({ loaderData }: Props) {
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Webhooks"
+          icon={Webhook}
           description="Receive HTTP POST notifications when events happen in your workspace. Every delivery is signed so you can verify authenticity."
           action={
             isAdmin ? (

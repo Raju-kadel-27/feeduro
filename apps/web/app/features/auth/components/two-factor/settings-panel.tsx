@@ -7,6 +7,7 @@ import { TwoFactorManageSection } from "@features/auth/components/two-factor/man
 import { TwoFactorPasswordStep } from "@features/auth/components/two-factor/password-step";
 import { TwoFactorStatus } from "@features/auth/components/two-factor/status";
 import { useTwoFactor } from "@features/auth/hooks/use-two-factor";
+import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -62,6 +63,7 @@ export function TwoFactorSettingsPanel() {
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Two-Factor Authentication"
+          icon={ShieldCheck}
           description="Add an extra layer of security to your account by requiring a verification code when signing in."
           action={
             !twoFactorEnabled ? (

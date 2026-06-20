@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { LayoutPanelLeft } from "lucide-react";
 import { useState } from "react";
 import { useFetcher } from "react-router";
 import type { WidgetSettingsLoaderData } from "../../types";
@@ -8,7 +9,6 @@ import { SettingsDangerSection } from "./settings-danger-section";
 import { SettingsEmbedSection } from "./settings-embed-section";
 import { SettingsIdentitySection } from "./settings-identity-section";
 import { SettingsOriginsSection } from "./settings-origins-section";
-import { SettingsStatusSection } from "./settings-status-section";
 
 export type { WidgetSettingsLoaderData };
 
@@ -43,6 +43,7 @@ export function WidgetSettingsPage({ loaderData }: Props) {
     form.set("enabled", String(v));
     toggleFetcher.submit(form, { method: "POST" });
   }
+
 
   function handleSave() {
     const form = new FormData();
@@ -83,16 +84,14 @@ export function WidgetSettingsPage({ loaderData }: Props) {
     <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
       <PageHeader
         title="Widget"
+        icon={LayoutPanelLeft}
         description="Embed your feedback board directly into any page on your site."
       />
 
-      <SettingsStatusSection
+      <SettingsConfigSection
         enabled={enabled}
         onToggle={handleToggle}
-        isLoading={toggleFetcher.state !== "idle"}
-      />
-
-      <SettingsConfigSection
+        isTogglingEnabled={toggleFetcher.state !== "idle"}
         boards={boards}
         boardId={boardId}
         setBoardId={setBoardId}

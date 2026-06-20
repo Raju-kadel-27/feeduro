@@ -55,7 +55,7 @@ export function ChipTrigger({
           "inline-flex items-center rounded-md text-[17px] transition-colors",
           isActive
             ? "border border-border bg-accent font-medium text-foreground"
-            : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
+            : "border border-border text-muted-foreground hover:bg-accent hover:text-foreground",
         )}
       >
         <button

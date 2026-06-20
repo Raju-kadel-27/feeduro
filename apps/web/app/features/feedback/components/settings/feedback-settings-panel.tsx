@@ -139,16 +139,9 @@ export function FeedbackSettingsPanel({
 
   return (
     <div className="w-full space-y-10">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Feedback</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Configure feedback behavior, boards, tags, and categories for your workspace.
-        </p>
-      </div>
-
       {/* General */}
       <section className="space-y-1">
-        <h3 className="text-sm font-semibold text-foreground mb-1">General</h3>
+        <h3 className="text-base font-semibold text-foreground mb-1">General</h3>
         <div className="rounded-lg border border-border bg-card divide-y divide-border px-4">
           <ToggleRow
             label="Enable Roadmap"
@@ -171,13 +164,13 @@ export function FeedbackSettingsPanel({
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Feedback Boards</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <h3 className="text-base font-semibold text-foreground">Feedback Boards</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">
               Boards group feedback by topic. Each board can be public or private.
             </p>
           </div>
           {isAdmin && (
-            <Button variant="default" onClick={() => setShowBoardDialog(true)}>
+            <Button variant="default" className="px-3" onClick={() => setShowBoardDialog(true)}>
               <Plus size={14} />
               New board
             </Button>
@@ -197,13 +190,13 @@ export function FeedbackSettingsPanel({
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Feedback Tags</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <h3 className="text-base font-semibold text-foreground">Feedback Tags</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">
               Tags help team members categorize and filter feedback posts.
             </p>
           </div>
           {isAdmin && (
-            <Button variant="default" onClick={() => setShowTagDialog(true)}>
+            <Button variant="default" className="px-3" onClick={() => setShowTagDialog(true)}>
               <Plus size={14} />
               New tag
             </Button>
@@ -216,13 +209,13 @@ export function FeedbackSettingsPanel({
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Feedback Categories</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <h3 className="text-base font-semibold text-foreground">Feedback Categories</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">
               Users can select a category when submitting new feedback.
             </p>
           </div>
           {isAdmin && (
-            <Button variant="default" onClick={() => setShowCategoryDialog(true)}>
+            <Button variant="default" className="px-3" onClick={() => setShowCategoryDialog(true)}>
               <Plus size={14} />
               New category
             </Button>

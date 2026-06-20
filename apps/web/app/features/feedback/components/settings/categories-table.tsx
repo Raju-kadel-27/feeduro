@@ -11,7 +11,7 @@ interface CategoriesTableProps {
 export function CategoriesTable({ categories, isAdmin, onDelete }: CategoriesTableProps) {
   if (categories.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+      <div className="rounded-md border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
         No categories yet.
       </div>
     );
@@ -20,7 +20,7 @@ export function CategoriesTable({ categories, isAdmin, onDelete }: CategoriesTab
   return (
     <div className="rounded-md border border-border overflow-hidden bg-card">
       <div className="px-3 h-9 flex items-center bg-muted/30 border-b border-border">
-        <div className="text-xs text-muted-foreground">Name</div>
+        <div className="text-sm text-muted-foreground">Name</div>
       </div>
       <ul>
         {categories.map((c, i) => (
@@ -36,7 +36,7 @@ export function CategoriesTable({ categories, isAdmin, onDelete }: CategoriesTab
                 className="h-2.5 w-2.5 rounded-full shrink-0"
                 style={{ backgroundColor: c.color }}
               />
-              <span className="text-xs text-foreground truncate">{c.name}</span>
+              <span className="text-sm text-foreground truncate">{c.name}</span>
             </div>
             {isAdmin && onDelete && (
               <button
@@ -45,7 +45,7 @@ export function CategoriesTable({ categories, isAdmin, onDelete }: CategoriesTab
                 onClick={() => onDelete(c.id)}
                 className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
               >
-                <Trash2 size={13} />
+                <Trash2 size={15} />
               </button>
             )}
           </li>

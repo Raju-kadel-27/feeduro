@@ -1,5 +1,5 @@
 import { cn } from "@lib/utils";
-import { GripVertical, MoreVertical } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import { useState } from "react";
 import type { FeedbackBoard } from "./types";
 
@@ -44,7 +44,6 @@ function BoardRow({
     <li className={cn(index !== 0 && "border-t border-border")}>
       {/* Main row */}
       <div className="flex items-center gap-3 px-4 py-3">
-        <GripVertical size={15} className="text-muted-foreground/40 cursor-grab shrink-0" />
         <span className={cn("h-2 w-2 rounded-full shrink-0", dotColor[board.color])} />
 
         {/* Board name + badges */}
@@ -59,7 +58,7 @@ function BoardRow({
 
         {/* Smart Replies toggle */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-muted-foreground">Smart Replies</span>
+          <span className="text-sm text-muted-foreground">Smart Replies</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -73,7 +72,7 @@ function BoardRow({
 
         {/* Anonymize users toggle */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-muted-foreground">Anonymize users</span>
+          <span className="text-sm text-muted-foreground">Anonymize users</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -116,7 +115,7 @@ function BoardRow({
       {/* Instructions — only shown when Smart Replies is on */}
       {board.smartRepliesEnabled && (
         <div className="px-4 pb-4 border-t border-border/50 bg-muted/10 pt-3 space-y-1.5">
-          <label className="text-xs font-medium text-foreground">
+          <label className="text-sm font-medium text-foreground">
             Custom instructions{" "}
             <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
@@ -129,7 +128,7 @@ function BoardRow({
             maxLength={2000}
             className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
           />
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Leave blank to use the default AI prompt. Custom instructions replace it entirely.
           </p>
         </div>

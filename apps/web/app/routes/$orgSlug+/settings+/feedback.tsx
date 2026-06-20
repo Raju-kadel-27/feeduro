@@ -80,7 +80,10 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader title="Feedback" />
+          <PageHeader
+            title="Feedback"
+            description="Configure feedback behavior, boards, tags, and categories for your workspace."
+          />
           <FeedbackSettingsPanel
             boards={boards}
             tags={tags}

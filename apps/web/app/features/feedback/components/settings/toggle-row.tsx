@@ -10,8 +10,8 @@ export function ToggleRow({ label, hint, checked, onChange, disabled }: ToggleRo
   return (
     <div className="flex items-start justify-between gap-6 py-4">
       <div className="space-y-0.5">
-        <p className="text-sm font-medium text-foreground">{label}</p>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        <p className="text-base font-medium text-foreground">{label}</p>
+        {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
       </div>
       <button
         type="button"

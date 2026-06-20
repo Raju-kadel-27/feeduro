@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@components/ui/dialog";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { RESOURCE_DEFINITIONS } from "../constants";
@@ -36,7 +37,7 @@ function PermissionSummary({ permission }: { permission: Record<string, string[]
       {granted.map((res) => (
         <span
           key={res.key}
-          className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50"
+          className="text-xs px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20"
         >
           {res.label} ({(permission[res.key] ?? []).length})
         </span>
@@ -62,22 +63,23 @@ export function RolesTable({
 
   if (roles.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed p-12 flex flex-col items-center gap-3 text-center">
-        <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-          <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <p className="text-sm font-medium">No custom roles yet</p>
-        <p className="text-xs text-muted-foreground max-w-[280px]">
-          Custom roles let you grant team members precise access beyond the built-in admin, member,
-          and viewer levels.
-        </p>
+      <Empty className="border border-border">
+        <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><ShieldCheck /></EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>No custom roles yet</EmptyTitle>
+          <EmptyDescription>
+            Custom roles let you grant team members precise access beyond the built-in admin, member, and viewer levels.
+          </EmptyDescription>
+        </EmptyHeader>
         {isAdmin && onCreateClick && (
-          <Button variant="outline" size="sm" onClick={onCreateClick} className="mt-1 gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            Create first role
-          </Button>
+          <EmptyContent>
+            <Button variant="outline" size="sm" onClick={onCreateClick} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" />
+              Create first role
+            </Button>
+          </EmptyContent>
         )}
-      </div>
+      </Empty>
     );
   }
 

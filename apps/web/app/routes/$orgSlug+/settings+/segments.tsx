@@ -1,5 +1,6 @@
 import { PageHeader } from "@components/common/page-header";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
 import { getOrgSegments } from "@features/internal/segmentation/server/service";
@@ -7,7 +8,7 @@ import type { Segment, SegmentFilters } from "@features/internal/segmentation/ty
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Check, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, Layers, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -342,12 +343,13 @@ Authorization: Bearer <your-api-key>
             </div>
 
             {segments.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground">
-                <p className="text-sm font-medium">No segments yet</p>
-                <p className="text-xs mt-1">
-                  Create a segment to filter feedback by customer traits.
-                </p>
-              </div>
+              <Empty className="border border-border">
+                <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Layers /></EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No segments yet</EmptyTitle>
+                  <EmptyDescription>Create a segment to filter feedback by customer traits.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             ) : (
               <div className="space-y-2">
                 {segments.map((seg) => (

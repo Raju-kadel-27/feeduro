@@ -29,25 +29,23 @@ export function SubscriptionsSection({ initialEnabled, subscriberCount }: Props)
   }
 
   return (
-    <div className="rounded-lg border p-5">
-      <div className="flex items-start justify-between gap-6">
-        <div>
-          <p className="text-sm font-medium">Email Subscriptions</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Let visitors subscribe to changelog updates. A subscribe form will appear on your public
-            changelog, and you can notify subscribers on each publish.
+    <div className="flex items-start justify-between gap-6">
+      <div>
+        <p className="text-sm font-medium">Email Subscriptions</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Let visitors subscribe to changelog updates. A subscribe form will appear on your public
+          changelog, and you can notify subscribers on each publish.
+        </p>
+        {enabled && (
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <UsersIcon className="h-3.5 w-3.5" />
+            {subscriberCount === 0
+              ? "No subscribers yet"
+              : `${subscriberCount} active subscriber${subscriberCount === 1 ? "" : "s"}`}
           </p>
-          {enabled && (
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <UsersIcon className="h-3.5 w-3.5" />
-              {subscriberCount === 0
-                ? "No subscribers yet"
-                : `${subscriberCount} active subscriber${subscriberCount === 1 ? "" : "s"}`}
-            </p>
-          )}
-        </div>
-        <Switch checked={enabled} onCheckedChange={handleToggle} />
+        )}
       </div>
+      <Switch checked={enabled} onCheckedChange={handleToggle} />
     </div>
   );
 }

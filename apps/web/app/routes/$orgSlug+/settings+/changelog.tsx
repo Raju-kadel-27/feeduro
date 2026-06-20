@@ -62,8 +62,8 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <PageHeader title="Changelog" />
 
-          <div className="rounded-lg border p-5">
-            <div className="flex items-start justify-between gap-6">
+          <div className="rounded-lg border divide-y">
+            <div className="flex items-start justify-between gap-6 p-5">
               <div>
                 <p className="text-sm font-medium">Enable Changelog</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -72,12 +72,13 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
               </div>
               <Switch checked={enabled} onCheckedChange={handleToggle} />
             </div>
+            <div className="p-5">
+              <SubscriptionsSection
+                initialEnabled={loaderData.emailSubscriptionsEnabled}
+                subscriberCount={loaderData.subscriberCount}
+              />
+            </div>
           </div>
-
-          <SubscriptionsSection
-            initialEnabled={loaderData.emailSubscriptionsEnabled}
-            subscriberCount={loaderData.subscriberCount}
-          />
 
           <TagsSection initialTags={loaderData.tags} />
         </main>

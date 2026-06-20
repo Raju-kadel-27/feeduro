@@ -1,3 +1,4 @@
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
 import {
   Tooltip,
@@ -32,10 +33,13 @@ export function ProviderList({ providers, isAdmin }: ProviderListProps) {
 
   if (providers.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border p-10 text-center bg-muted/10">
-        <Shield size={24} className="mx-auto mb-3 text-muted-foreground/50" />
-        <p className="text-sm text-muted-foreground">No SSO provider configured yet.</p>
-      </div>
+      <Empty className="border border-border">
+        <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Shield /></EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>No SSO provider configured yet</EmptyTitle>
+          <EmptyDescription>Configure a SAML or OIDC provider to enable single sign-on for your workspace.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 

@@ -22,10 +22,6 @@ async function headCheck(url: string, label: string, id: string): Promise<Check>
 export async function runConnectivityChecks(env: Env, apiUrl: string, boards: Board[]): Promise<Check[]> {
   const checks: Check[] = [];
 
-  // Widget page reachability — HEAD /widget/:token
-  const widgetCheck = await headCheck(`${apiUrl}/widget/${env.FEEDURO_WIDGET_TOKEN}`, "Widget page reachable", "conn-widget");
-  checks.push(widgetCheck);
-
   // Board embed token cross-reference — local env tokens vs. what the API returned
   const boardByToken = new Map(boards.map(b => [b.embedToken, b]));
 

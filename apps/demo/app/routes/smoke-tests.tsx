@@ -1,6 +1,6 @@
-import { data, Form, useNavigation } from "react-router";
+import type { Check, Status } from "@lib/smoke-checks.server";
 import { runChecks } from "@lib/smoke-checks.server";
-import type { Status, Check } from "@lib/smoke-checks.server";
+import { data, Form, useNavigation } from "react-router";
 import type { Route } from "./+types/smoke-tests";
 
 export function meta(): Route.MetaDescriptors {
@@ -24,12 +24,12 @@ const ICON: Record<Status, { icon: string; cls: string }> = {
 };
 
 const GROUPS = [
-  { label: "Environment", ids: ["env-token", "env-apikey", "env-url", "env-wh", "env-sign"] },
+  { label: "Environment", ids: ["env-apikey", "env-url", "env-wh", "env-sign"] },
   { label: "API — Boards", ids: ["api-boards", "api-noauth"] },
   { label: "API — Post lifecycle", ids: ["api-post-create", "api-post-patch", "api-post-get", "api-post-delete"] },
   { label: "API — Users", ids: ["api-user-identify", "api-users-list"] },
   { label: "Webhooks", ids: ["wh-sig-valid", "wh-sig-tamper", "wh-sig-missing", "wh-e2e"] },
-  { label: "Connectivity", ids: ["conn-widget", "conn-board-feature", "conn-board-integrations", "conn-board-bugs", "conn-board-url"] },
+  { label: "Connectivity", ids: ["conn-board-feature", "conn-board-integrations", "conn-board-bugs", "conn-board-url"] },
 ];
 
 function CheckRow({ c }: { c: Check }) {

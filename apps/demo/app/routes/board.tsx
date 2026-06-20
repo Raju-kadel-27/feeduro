@@ -1,13 +1,12 @@
+import { FeeduroBoard } from "@feeduro/react";
+import { getEnv } from "@lib/env.server";
+import { getActiveApiUrl } from "@lib/env-override.server";
 import { useState } from "react";
 import { data } from "react-router";
-import { FeeduroBoard } from "@feeduro/react";
+import type { Route } from "./+types/board";
 
 type Theme = "auto" | "light" | "dark";
 const THEMES: Theme[] = ["auto", "light", "dark"];
-
-import type { Route } from "./+types/board";
-import { getActiveApiUrl } from "@lib/env-override.server";
-import { getEnv } from "@lib/env.server";
 
 const BOARD_TABS = [
   { key: "feature", label: "Feature Requests" },
@@ -52,7 +51,7 @@ export default function BoardEmbed({ loaderData }: Route.ComponentProps) {
   if (!tabs.length) {
     return (
       <p className="p-8 text-sm text-gray-500">
-        No boards configured. Set FEEDURO_WIDGET_TOKEN in .dev.vars.
+        No boards configured. Set FEEDURO_WIDGET_TOKEN_FEATURE in .dev.vars.
       </p>
     );
   }

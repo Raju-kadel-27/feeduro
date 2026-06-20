@@ -60,7 +60,7 @@ export function DroppableColumn({
       <div
         ref={ref}
         className={cn(
-          "flex-1 flex flex-col rounded-xl overflow-hidden min-h-[200px]",
+          "flex flex-col rounded-xl",
           "transition-colors duration-150",
           isDropTarget && isDraggingActive && "ring-1 ring-primary/20",
         )}
@@ -68,7 +68,7 @@ export function DroppableColumn({
 
         <div
           className={cn(
-            "flex-1 flex flex-col gap-2 p-2 overflow-y-auto",
+            "h-[calc(100svh-10rem)] flex flex-col gap-3 p-2 overflow-y-auto",
             "[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent",
             "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border",
           )}

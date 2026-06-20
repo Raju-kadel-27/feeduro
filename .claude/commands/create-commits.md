@@ -9,7 +9,7 @@ Stage and commit all pending changes, grouped by concern, on a clean working bra
    - `git branch -r` — list remote branches
    - `git status --short` — all changed/untracked files
 
-2. **Create a new branch if needed** — create one if the current branch is `main`, `master`, or any branch that already exists on the remote (i.e. appears in `git branch -r`). Derive the branch name from the dominant concern in the diff (e.g. `feat/views-chip-refactor`, `fix/billing-ui`). Skip this step if already on a local-only branch.
+2. **Create a new branch if needed** — create one if the current branch is `main`, `master`, or any branch that already exists on the remote (i.e. appears in `git branch -r`). Derive the branch name from the dominant concern in the diff (e.g. `feat/views-chip-refactor`, `fix/billing-ui`). Run `git checkout -b <branch-name>` immediately so all subsequent commits land on it. Skip this step if already on a local-only branch.
 
 3. **Scan the diff** — run in parallel:
    - `git diff HEAD --stat` — files changed with ±line counts

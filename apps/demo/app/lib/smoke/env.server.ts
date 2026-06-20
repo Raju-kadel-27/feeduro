@@ -7,7 +7,6 @@ const isSet = (v: string) => v.length > 0 && !v.startsWith("FILL_IN");
 
 export function runEnvChecks(env: Env, apiUrl: string): Check[] {
   const checks: Check[] = [
-    { id: "env-token",  label: "Widget token",          status: isSet(env.FEEDURO_WIDGET_TOKEN) ? "pass" : "fail",  detail: isSet(env.FEEDURO_WIDGET_TOKEN) ? `${env.FEEDURO_WIDGET_TOKEN.slice(0, 8)}…` : "Not set" },
     { id: "env-apikey", label: "API key",               status: isSet(env.FEEDURO_API_KEY) ? "pass" : "fail",       detail: isSet(env.FEEDURO_API_KEY) ? `${env.FEEDURO_API_KEY.slice(0, 12)}…` : "Not set — add to .dev.vars" },
     { id: "env-url",    label: "API URL",               status: "pass",                                             detail: apiUrl },
     { id: "env-wh",     label: "Webhook secret",        status: isSet(env.FEEDURO_WEBHOOK_SECRET) ? "pass" : "warn", detail: isSet(env.FEEDURO_WEBHOOK_SECRET) ? "Set" : "Not set — webhook tests skipped" },

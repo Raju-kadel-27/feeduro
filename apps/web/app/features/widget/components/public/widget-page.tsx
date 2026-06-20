@@ -7,7 +7,7 @@ import { WidgetInlineForm } from "./widget-inline-form";
 import { WidgetPostDetail } from "./widget-post-detail";
 
 export function WidgetPage({ loaderData }: { loaderData: WidgetLoaderData }) {
-  const { token, org, board, posts, theme, mode } = loaderData;
+  const { token, org, board, posts, theme } = loaderData;
 
   const [view, setView] = useState<"feed" | "detail">("feed");
   const [selectedPost, setSelectedPost] = useState<WidgetPost | null>(null);
@@ -63,7 +63,6 @@ export function WidgetPage({ loaderData }: { loaderData: WidgetLoaderData }) {
         orgName={org.name}
         boardName={board?.name}
         boardDescription={board?.description}
-        mode={mode}
         onBackClick={handleBack}
       />
 

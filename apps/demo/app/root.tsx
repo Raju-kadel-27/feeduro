@@ -1,17 +1,14 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-import { FeeduroProvider } from "@feeduro/react";
 
 import type { Route } from "./+types/root";
 import { SidebarNav } from "./components/sidebar-nav";
-import { getActiveApiUrl, getActiveEnv } from "./lib/env-override.server";
 import { getEnv } from "./lib/env.server";
+import { getActiveEnv } from "./lib/env-override.server";
 import "./app.css";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const env = getEnv(context);
   return {
-    widgetToken: env.FEEDURO_WIDGET_TOKEN,
-    widgetBaseUrl: getActiveApiUrl(request, env),
     activeEnv: getActiveEnv(request),
     hasStaging: env.FEEDURO_STAGING_API_URL.length > 0,
     hasProd: env.FEEDURO_PROD_API_URL.length > 0,
@@ -38,14 +35,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App({ loaderData }: Route.ComponentProps) {
   return (
-    <FeeduroProvider token={loaderData.widgetToken} baseUrl={loaderData.widgetBaseUrl}>
-      <div className="flex h-screen overflow-hidden">
-        <SidebarNav activeEnv={loaderData.activeEnv} hasStaging={loaderData.hasStaging} hasProd={loaderData.hasProd} />
-        <main className="flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
-      </div>
-    </FeeduroProvider>
+    <div className="flex h-screen overflow-hidden">
+      <SidebarNav activeEnv={loaderData.activeEnv} hasStaging={loaderData.hasStaging} hasProd={loaderData.hasProd} />
+      <main className="flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
+    </div>
   );
 }
 

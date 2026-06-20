@@ -6,8 +6,6 @@ type Props = {
   boards: Board[];
   boardId: string;
   setBoardId: (v: string) => void;
-  position: "left" | "right";
-  setPosition: (v: "left" | "right") => void;
   theme: "light" | "dark" | "auto";
   setTheme: (v: "light" | "dark" | "auto") => void;
   onSave: () => void;
@@ -20,8 +18,6 @@ export function SettingsConfigSection({
   boards,
   boardId,
   setBoardId,
-  position,
-  setPosition,
   theme,
   setTheme,
   onSave,
@@ -55,30 +51,6 @@ export function SettingsConfigSection({
             <div className="w-px h-5 bg-border hidden sm:block" />
           </>
         )}
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-            Position
-          </span>
-          <div className="inline-flex items-center rounded-md border border-border bg-muted/40 p-0.5 gap-0.5">
-            {(["right", "left"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setPosition(v)}
-                className={`px-2.5 py-1 rounded text-xs transition-all ${
-                  position === v
-                    ? "bg-background text-foreground font-medium shadow-sm border border-border/60"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {v === "right" ? "Right" : "Left"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="w-px h-5 bg-border hidden sm:block" />
 
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Theme</span>

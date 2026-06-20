@@ -5,8 +5,7 @@ import { getBindings } from "../middleware/cloudflare.server";
 const EnvSchema = z.object({
   // Required
   BASE_URL: z.string().url().default("http://localhost:3001"),
-  FEEDURO_WIDGET_TOKEN: z.string().min(1, "Widget token required"),
-  // Optional — extra tabs on /board
+  // Optional — board embed tokens for /board tabs
   FEEDURO_WIDGET_TOKEN_FEATURE: z.string().default(""),
   FEEDURO_WIDGET_TOKEN_INTEGRATIONS: z.string().default(""),
   FEEDURO_WIDGET_TOKEN_BUGS: z.string().default(""),

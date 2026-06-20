@@ -24,7 +24,7 @@ export function toStatusKey(dbStatus: string): StatusKey {
   return map[dbStatus] ?? "pending";
 }
 
-export async function getWidgetLoaderData(widgetToken: string, mode: "popup" | "inline" = "popup") {
+export async function getWidgetLoaderData(widgetToken: string) {
   const db = getDb();
 
   const config = await db.query.widgetConfigs.findFirst({
@@ -76,7 +76,7 @@ export async function getWidgetLoaderData(widgetToken: string, mode: "popup" | "
       board: null,
       posts: [] as WidgetPost[],
       theme: config.theme,
-      mode,
+      mode: "inline" as const,
     };
   }
 
@@ -150,6 +150,6 @@ export async function getWidgetLoaderData(widgetToken: string, mode: "popup" | "
     board: { id: board.id, name: board.name, description: board.description ?? null },
     posts,
     theme: config.theme,
-    mode,
+    mode: "inline" as const,
   };
 }

@@ -12,7 +12,6 @@ export type WidgetSettingsConfig = {
   token: string;
   enabled: boolean;
   boardId: string | null;
-  position: "left" | "right";
   theme: "light" | "dark" | "auto";
   allowedOrigins: string | null;
 };
@@ -23,7 +22,7 @@ export type WidgetSettingsLoaderData = {
   boards: WidgetSettingsBoard[];
 };
 
-export type WidgetMode = "popup" | "inline";
+export type WidgetMode = "inline";
 
 export interface WidgetPost {
   id: string;

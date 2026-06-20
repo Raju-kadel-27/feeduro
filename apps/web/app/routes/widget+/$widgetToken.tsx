@@ -12,14 +12,13 @@ export function headers() {
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const mode = url.searchParams.get("mode") === "inline" ? "inline" : "popup";
   const theme = url.searchParams.get("theme") ?? "auto";
 
   // Board-level embed token takes priority; falls back to org widget config token
-  const boardData = await getBoardWidgetData(params.widgetToken, mode, theme);
+  const boardData = await getBoardWidgetData(params.widgetToken, theme);
   if (boardData) return boardData;
 
-  return getWidgetLoaderData(params.widgetToken, mode);
+  return getWidgetLoaderData(params.widgetToken);
 }
 
 export default WidgetPage;

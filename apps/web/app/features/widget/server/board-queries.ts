@@ -10,7 +10,6 @@ import { toStatusKey } from "./queries";
  */
 export async function getBoardWidgetData(
   embedToken: string,
-  mode: "popup" | "inline",
   theme: string,
 ): Promise<WidgetLoaderData | null> {
   const db = getDb();
@@ -109,6 +108,6 @@ export async function getBoardWidgetData(
     board: { id: board.id, name: board.name, description: board.description ?? null },
     posts,
     theme: validTheme,
-    mode,
+    mode: "inline",
   };
 }

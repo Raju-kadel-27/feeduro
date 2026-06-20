@@ -1,13 +1,11 @@
 import { z } from "zod";
 
-export const WidgetPositionSchema = z.enum(["left", "right"]);
 export const WidgetThemeSchema = z.enum(["light", "dark", "auto"]);
 
 export const SaveSettingsSchema = z.object({
   intent: z.literal("save"),
   enabled: z.enum(["true", "false"]).transform((v) => v === "true"),
   boardId: z.string().optional(),
-  position: WidgetPositionSchema,
   theme: WidgetThemeSchema,
 });
 

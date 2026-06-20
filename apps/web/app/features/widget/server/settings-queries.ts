@@ -14,7 +14,6 @@ export async function getWidgetSettings(orgId: string) {
         token: true,
         enabled: true,
         boardId: true,
-        position: true,
         theme: true,
         allowedOrigins: true,
         signingSecret: true,
@@ -45,7 +44,6 @@ export async function getWidgetSettings(orgId: string) {
         token: widgetConfigs.token,
         enabled: widgetConfigs.enabled,
         boardId: widgetConfigs.boardId,
-        position: widgetConfigs.position,
         theme: widgetConfigs.theme,
         allowedOrigins: widgetConfigs.allowedOrigins,
       });

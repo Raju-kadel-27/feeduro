@@ -13,7 +13,6 @@ export async function saveWidgetSettings(orgId: string, input: SaveSettingsInput
     .set({
       enabled: input.enabled,
       boardId: input.boardId || null,
-      position: input.position,
       theme: input.theme,
     })
     .where(eq(widgetConfigs.organizationId, orgId));

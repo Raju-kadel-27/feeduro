@@ -1,5 +1,6 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { Palette } from "lucide-react";
 import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
@@ -61,7 +62,11 @@ export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
       </header>
 
       <main className="p-6 max-w-[1100px] mx-auto w-full space-y-8">
-        <PageHeader title="Branding" />
+        <PageHeader
+          title="Branding"
+          description="Customize how your workspace looks to your users — logo, colors, and more."
+          icon={Palette}
+        />
 
         <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
       </main>

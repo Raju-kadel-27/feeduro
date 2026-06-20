@@ -4,7 +4,7 @@ import { Switch } from "@components/ui/switch";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
-import { EyeOff, Lock, ShieldCheck, Users } from "lucide-react";
+import { EyeOff, Lock, Shield, ShieldCheck, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
@@ -136,7 +136,7 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader title="Privacy & Access" />
+          <PageHeader title="Privacy & Access" icon={Shield} />
 
           <SettingCard
             id="allowGuestSubmissions"

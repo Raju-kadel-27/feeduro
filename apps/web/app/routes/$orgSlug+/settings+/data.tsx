@@ -1,7 +1,7 @@
 import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { DownloadIcon, FileSpreadsheetIcon, UploadIcon } from "lucide-react";
+import { Database, DownloadIcon, FileSpreadsheetIcon, UploadIcon } from "lucide-react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
@@ -89,7 +89,7 @@ export default function DataImport(_: Route.ComponentProps) {
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader title="Data & Import" />
+          <PageHeader title="Data & Import" icon={Database} />
 
           {/* ── Import ── */}
           <section className="space-y-3">

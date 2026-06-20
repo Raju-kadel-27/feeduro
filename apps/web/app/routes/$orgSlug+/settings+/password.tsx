@@ -1,7 +1,7 @@
 import { PageHeader } from "@components/common/page-header";
 import { ChangePasswordForm } from "@features/auth/components/change-password-form";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { Lock, LogOut, ShieldCheck } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 import type { Route } from "./+types/password";
@@ -31,7 +31,7 @@ export default function PasswordSettings() {
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader title="Change Password" />
+          <PageHeader title="Change Password" icon={Lock} />
 
           <section className="rounded-lg border border-border bg-card overflow-hidden">
             <div className="px-6 py-4 border-b border-border">

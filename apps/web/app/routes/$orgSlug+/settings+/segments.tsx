@@ -8,7 +8,7 @@ import type { Segment, SegmentFilters } from "@features/internal/segmentation/ty
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Check, Layers, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, Layers, Pencil, Plus, Trash2, Upload, Users2, X } from "lucide-react";
 import { useState } from "react";
 import { useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -301,6 +301,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
           <div className="max-w-[840px] mx-auto w-full">
           <PageHeader
             title="Segments"
+            icon={Users2}
             action={loaderData.isAdmin ? (
               <div className="flex items-center gap-2">
                 <button

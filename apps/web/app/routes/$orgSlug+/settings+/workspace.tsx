@@ -10,7 +10,7 @@ import {
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { isAdmin } from "@features/internal/roles/server/queries";
 import { useMutation } from "@tanstack/react-query";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
@@ -92,7 +92,7 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader title="Workspace" />
+          <PageHeader title="Workspace" icon={Settings} />
 
           {/* Workspace name */}
           <section className="rounded-lg border p-5 space-y-4">

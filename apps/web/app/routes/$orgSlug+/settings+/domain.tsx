@@ -133,13 +133,13 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
       </header>
 
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-        <PageHeader title="Domain" />
+        <PageHeader
+          title="Custom Domain"
+          description="Point a custom domain to this workspace so your users see your brand, not ours."
+          icon={Globe}
+        />
 
         <section>
-          <h2 className="text-base font-semibold mb-1">Custom Domain</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Point a custom domain to this workspace so your users see your brand, not ours.
-          </p>
 
           {!domain ? (
             isAdmin ? (

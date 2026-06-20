@@ -8,7 +8,7 @@ import { authClient } from "@lib/auth/client";
 import { auth } from "@lib/auth/server";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Plus } from "lucide-react";
+import { Plus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
@@ -117,6 +117,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Roles & Permissions"
+          icon={ShieldCheck}
           action={loaderData.isAdmin ? (
             <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
               <Plus className="h-4 w-4" />

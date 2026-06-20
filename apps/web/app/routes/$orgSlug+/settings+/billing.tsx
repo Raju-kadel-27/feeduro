@@ -11,7 +11,7 @@ import {
 import { authClient } from "@lib/auth/client";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, or } from "drizzle-orm";
-import { CheckIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
+import { CheckIcon, CreditCard, ExternalLinkIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useFetcher, useRevalidator, useSearchParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
@@ -282,7 +282,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader title="Billing & Plans" />
+          <PageHeader title="Billing & Plans" icon={CreditCard} />
 
           {/* Success banner */}
           {justUpgraded && (

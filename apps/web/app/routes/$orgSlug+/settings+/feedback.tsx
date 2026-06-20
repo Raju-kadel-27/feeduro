@@ -5,6 +5,7 @@ import { getOrgCategories } from "@features/feedback/server/categories.server";
 import { parseFeedbackSettings } from "@features/feedback/server/feedback-settings";
 import { getOrgTags } from "@features/feedback/server/tags.server";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { MessageSquare } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts, member, organization } from "@/db/schema";
@@ -82,6 +83,7 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <PageHeader
             title="Feedback"
+            icon={MessageSquare}
             description="Configure feedback behavior, boards, tags, and categories for your workspace."
           />
           <FeedbackSettingsPanel

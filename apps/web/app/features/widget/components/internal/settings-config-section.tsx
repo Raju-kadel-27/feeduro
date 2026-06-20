@@ -1,8 +1,12 @@
+import { Switch } from "@components/ui/switch";
 import { Check } from "lucide-react";
 
 type Board = { id: string; name: string; isDefault: boolean };
 
 type Props = {
+  enabled: boolean;
+  onToggle: (v: boolean) => void;
+  isTogglingEnabled: boolean;
   boards: Board[];
   boardId: string;
   setBoardId: (v: string) => void;
@@ -15,6 +19,9 @@ type Props = {
 };
 
 export function SettingsConfigSection({
+  enabled,
+  onToggle,
+  isTogglingEnabled,
   boards,
   boardId,
   setBoardId,
@@ -26,8 +33,22 @@ export function SettingsConfigSection({
   hasError,
 }: Props) {
   return (
-    <section className="rounded-xl border border-border bg-card px-5 py-4">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+    <section className="rounded-xl border border-border bg-card">
+      {/* Enable toggle */}
+      <div className="flex items-center justify-between gap-4 px-5 py-4">
+        <div>
+          <p className="text-sm font-medium">Widget enabled</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            When off, the embed iframe returns 404 and the button disappears.
+          </p>
+        </div>
+        <Switch checked={enabled} onCheckedChange={onToggle} disabled={isTogglingEnabled} />
+      </div>
+
+      <div className="border-t border-border/60" />
+
+      {/* Board + theme + save */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
         {boards.length > 0 && (
           <>
             <div className="flex items-center gap-2 min-w-0">

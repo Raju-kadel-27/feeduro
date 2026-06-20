@@ -36,6 +36,7 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Login & SSO"
+          icon={KeyRound}
           action={isAdmin ? <AddProviderDialog baseUrl={baseUrl} /> : undefined}
         />
 

@@ -1,10 +1,15 @@
+import { PageHeader } from "@components/common/page-header";
 import { SidebarTrigger } from "@components/ui/sidebar";
+import { PostDetailPanel } from "@features/internal/post-detail-panel/components/post-detail-panel";
 import { ColumnSkeleton } from "@features/roadmap/components/internal/column-skeleton";
 import { KanbanBoard } from "@features/roadmap/components/internal/kanban-board";
 import { useRoadmap } from "@features/roadmap/hooks/use-roadmap";
 import { loadRoadmapData } from "@features/roadmap/server/queries";
 import type { Post } from "@features/roadmap/types";
-import { useLoaderData } from "react-router";
+import { useDragToScroll } from "@hooks/use-drag-to-scroll";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useLoaderData, useParams } from "react-router";
 import type { Route } from "./+types/roadmap";
 
 export function meta() {
@@ -17,43 +22,52 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function RoadmapPage() {
   const loaderData = useLoaderData<typeof loader>();
-  const { posts, isLoading, updateStatus, updateRank, patchGithubIssue } = useRoadmap(
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+  const qc = useQueryClient();
+  const { posts, isLoading, updateStatus, updateRank } = useRoadmap(
     loaderData.posts as Post[],
     loaderData.fetchedAt,
   );
-  const total = posts.length;
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const dragScroll = useDragToScroll();
 
   return (
-        <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <h1 className="text-sm font-semibold">Roadmap</h1>
-          {!isLoading && total > 0 && (
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {total} {total === 1 ? "item" : "items"}
-            </span>
-          )}
-          <div className="flex-1" />
-          <span className="text-sm text-muted-foreground">
-            {loaderData.user.name ?? loaderData.user.email}
-          </span>
-        </header>
+    <div className="flex flex-col h-svh">
+      <header className="flex shrink-0 items-center gap-3 px-6 pt-3 pb-4">
+        <SidebarTrigger className="-ml-1" />
+        <PageHeader title="Roadmap" />
+      </header>
 
-        <div className="flex flex-col h-[calc(100svh-3.5rem)] overflow-hidden">
-          <div className="flex-1 overflow-x-auto overflow-y-hidden px-6 py-5">
-            {isLoading ? (
-              <ColumnSkeleton />
-            ) : (
-              <KanbanBoard
-                posts={posts}
-                onStatusChange={(id, status) => updateStatus({ id, status })}
-                onRankChange={(status, orderedIds) => updateRank({ status, orderedIds })}
-                hasGithubIntegration={loaderData.hasGithubIntegration}
-                onIssueCreated={patchGithubIssue}
-              />
-            )}
-          </div>
-        </div>
-        </>
+      <div
+        ref={dragScroll.ref}
+        className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden px-6 pb-5 cursor-grab active:cursor-grabbing select-none"
+        onMouseDown={dragScroll.onMouseDown}
+        onMouseMove={dragScroll.onMouseMove}
+        onMouseUp={dragScroll.onMouseUp}
+        onMouseLeave={dragScroll.onMouseLeave}
+      >
+        {isLoading ? (
+          <ColumnSkeleton />
+        ) : (
+          <KanbanBoard
+            posts={posts}
+            onStatusChange={(id, status) => updateStatus({ id, status })}
+            onRankChange={(status, orderedIds) => updateRank({ status, orderedIds })}
+            onOpen={setSelectedPostId}
+          />
+        )}
+      </div>
+
+      {selectedPostId && orgSlug && (
+        <PostDetailPanel
+          key={selectedPostId}
+          postId={selectedPostId}
+          orgSlug={orgSlug}
+          onClose={() => setSelectedPostId(null)}
+          onDataChange={() => qc.invalidateQueries({ queryKey: ["roadmap"] })}
+          onOpenPost={(id) => setSelectedPostId(id)}
+        />
+      )}
+    </div>
   );
 }

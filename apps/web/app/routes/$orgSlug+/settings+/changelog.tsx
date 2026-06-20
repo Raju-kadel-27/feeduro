@@ -6,6 +6,7 @@ import { TagsSection } from "@features/changelog/components/settings/tags-sectio
 import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
 import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { eq } from "drizzle-orm";
+import { FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
@@ -60,7 +61,7 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader title="Changelog" />
+          <PageHeader title="Changelog" icon={FileText} />
 
           <div className="rounded-lg border divide-y">
             <div className="flex items-start justify-between gap-6 p-5">

@@ -140,6 +140,7 @@ export default function PasskeysSettings() {
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Passkeys"
+          icon={Fingerprint}
           action={
             <button
               type="button"

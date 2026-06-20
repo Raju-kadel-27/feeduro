@@ -1,6 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { AppDetailView } from "@features/oauth-clients/components/app-detail-view";
 import {
   ClientsTable,
   type OAuthClientRow,
@@ -10,7 +9,7 @@ import { DeleteAppDialog } from "@features/oauth-clients/components/delete-app-d
 import { RotateConfirmDialog } from "@features/oauth-clients/components/rotate-confirm-dialog";
 import { useMutation } from "@tanstack/react-query";
 import { and, count, gt, inArray, isNull, or } from "drizzle-orm";
-import { Download } from "lucide-react";
+import { AppWindow, Download } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -100,10 +99,6 @@ function downloadEndpoints(appOrigin: string) {
   URL.revokeObjectURL(url);
 }
 
-type View =
-  | { type: "list" }
-  | { type: "detail"; client: OAuthClientRow; newSecret: string | null };
-
 export default function OAuthClientsSettings({ loaderData }: Route.ComponentProps) {
   const { clients, appOrigin } = loaderData as { clients: OAuthClientRow[]; appOrigin: string };
   const revalidator = useRevalidator();
@@ -111,7 +106,6 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
 
   type DialogTarget = { clientId: string; clientName?: string; activeTokens: number };
 
-  const [view, setView] = useState<View>({ type: "list" });
   const [deleteTarget, setDeleteTarget] = useState<DialogTarget | null>(null);
   const [rotateTarget, setRotateTarget] = useState<DialogTarget | null>(null);
 
@@ -139,25 +133,18 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
 
   const { mutate: rotateSecret, isPending: rotating } = useMutation({
     mutationFn: (clientId: string) => callAction({ intent: "rotate", clientId }),
-    onSuccess: (result) => {
+    onSuccess: (result, clientId) => {
       const secret = result.secret as string | null;
-      revalidator.revalidate();
-      if (view.type === "detail") {
-        setView((prev) => (prev.type === "detail" ? { ...prev, newSecret: secret } : prev));
+      setRotateTarget(null);
+      if (secret) {
+        navigate(clientId, { relative: "path", state: { newSecret: secret } });
+      } else {
+        revalidator.revalidate();
+        toast.success("Secret rotated");
       }
-      if (secret) toast.success("Secret rotated — copy it now");
     },
     onError: (err) => toast.error(err.message),
   });
-
-  async function revealSecret(clientId: string): Promise<string | null> {
-    try {
-      const result = await callAction({ intent: "reveal", clientId });
-      return (result.secret as string | null) ?? null;
-    } catch {
-      return null;
-    }
-  }
 
   function handleDeleteConfirm() {
     if (!deleteTarget) return;
@@ -167,13 +154,7 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
   function handleRotateConfirm() {
     if (!rotateTarget) return;
     rotateSecret(rotateTarget.clientId);
-    setRotateTarget(null);
   }
-
-  const activeClient =
-    view.type === "detail"
-      ? (clients.find((c) => c.client_id === view.client.client_id) ?? view.client)
-      : null;
 
   return (
     <>
@@ -182,112 +163,87 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
       </header>
 
       <main className="p-6 max-w-[975px] mx-auto w-full space-y-8">
-        {view.type === "list" ? (
-          <>
-            <PageHeader
-              title="OAuth Apps"
-              description="Register apps that authenticate users via your workspace."
-              action={
-                <button
-                  type="button"
-                  onClick={() => navigate("new", { relative: "path" })}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                >
-                  Register an app
-                </button>
-              }
-            />
+        <PageHeader
+          title="OAuth Apps"
+          icon={AppWindow}
+          description="Register apps that authenticate users via your workspace."
+          action={
+            <button
+              type="button"
+              onClick={() => navigate("new", { relative: "path" })}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Register an app
+            </button>
+          }
+        />
 
-            <section>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Registered Apps</h3>
-              <ClientsTable
-                clients={clients}
-                appOrigin={appOrigin}
-                onRowClick={(client) => setView({ type: "detail", client, newSecret: null })}
-                onEdit={(client) =>
-                  navigate(`${client.client_id}/edit`, { relative: "path" })
-                }
-                onCreateClick={() => navigate("new", { relative: "path" })}
-                onRotate={(c) =>
-                  setRotateTarget({
-                    clientId: c.client_id,
-                    clientName: c.client_name,
-                    activeTokens: c.activeTokens,
-                  })
-                }
-                onDelete={(c) =>
-                  setDeleteTarget({
-                    clientId: c.client_id,
-                    clientName: c.client_name,
-                    activeTokens: c.activeTokens,
-                  })
-                }
-              />
-            </section>
+        <section>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Registered Apps</h3>
+          <ClientsTable
+            clients={clients}
+            appOrigin={appOrigin}
+            onRowClick={(client) => navigate(client.client_id, { relative: "path" })}
+            onEdit={(client) => navigate(`${client.client_id}/edit`, { relative: "path" })}
+            onCreateClick={() => navigate("new", { relative: "path" })}
+            onRotate={(c) =>
+              setRotateTarget({
+                clientId: c.client_id,
+                clientName: c.client_name,
+                activeTokens: c.activeTokens,
+              })
+            }
+            onDelete={(c) =>
+              setDeleteTarget({
+                clientId: c.client_id,
+                clientName: c.client_name,
+                activeTokens: c.activeTokens,
+              })
+            }
+          />
+        </section>
 
-            <section className="rounded-lg border border-border bg-muted/10 p-6 space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-[15px] font-semibold">OAuth 2.1 Endpoints</h3>
-                  <p className="text-[13px] text-muted-foreground mt-0.5">
-                    Use these URLs to configure your OAuth client.
-                  </p>
+        <section className="rounded-lg border border-border bg-muted/10 p-6 space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-[15px] font-semibold">OAuth 2.1 Endpoints</h3>
+              <p className="text-[13px] text-muted-foreground mt-0.5">
+                Use these URLs to configure your OAuth client.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => downloadEndpoints(appOrigin)}
+              className="shrink-0 inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-md border border-border hover:bg-muted/50 transition-colors"
+            >
+              <Download size={12} />
+              Download
+            </button>
+          </div>
+          <div className="space-y-2">
+            {OAUTH_ENDPOINTS.map(([label, path]) => {
+              const fullUrl = `${appOrigin}${path}`;
+              return (
+                <div key={label} className="flex items-start gap-3">
+                  <span className="w-32 shrink-0 text-muted-foreground text-[14.5px] pt-1.5">
+                    {label}
+                  </span>
+                  <div className="flex items-start gap-1 flex-1 min-w-0">
+                    <code className="font-mono text-[12px] bg-muted px-2 py-1.5 rounded flex-1 break-all leading-relaxed">
+                      {fullUrl}
+                    </code>
+                    <CopyButton
+                      value={fullUrl}
+                      label={label}
+                      iconSize={16}
+                      className="p-1.5 shrink-0 mt-0.5"
+                    />
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => downloadEndpoints(appOrigin)}
-                  className="shrink-0 inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-md border border-border hover:bg-muted/50 transition-colors"
-                >
-                  <Download size={12} />
-                  Download
-                </button>
-              </div>
-              <div className="space-y-2">
-                {OAUTH_ENDPOINTS.map(([label, path]) => {
-                  const fullUrl = `${appOrigin}${path}`;
-                  return (
-                    <div key={label} className="flex items-start gap-3">
-                      <span className="w-32 shrink-0 text-muted-foreground text-[14.5px] pt-1.5">
-                        {label}
-                      </span>
-                      <div className="flex items-start gap-1 flex-1 min-w-0">
-                        <code className="font-mono text-[12px] bg-muted px-2 py-1.5 rounded flex-1 break-all leading-relaxed">
-                          {fullUrl}
-                        </code>
-                        <CopyButton
-                          value={fullUrl}
-                          label={label}
-                          iconSize={16}
-                          className="p-1.5 shrink-0 mt-0.5"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          </>
-        ) : (
-          activeClient && (
-            <AppDetailView
-              client={activeClient}
-              newSecret={view.newSecret}
-              appOrigin={appOrigin}
-              rotating={rotating}
-              onBack={() => setView({ type: "list" })}
-              onEdit={() => navigate(`${activeClient.client_id}/edit`, { relative: "path" })}
-              onRotateConfirm={() => rotateSecret(activeClient.client_id)}
-              onDelete={() =>
-                setDeleteTarget({
-                  clientId: activeClient.client_id,
-                  clientName: activeClient.client_name,
-                  activeTokens: activeClient.activeTokens,
-                })
-              }
-              onRevealSecret={() => revealSecret(activeClient.client_id)}
-            />
-          )
-        )}
+              );
+            })}
+          </div>
+        </section>
       </main>
 
       <DeleteAppDialog

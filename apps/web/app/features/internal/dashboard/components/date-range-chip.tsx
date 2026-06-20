@@ -54,7 +54,7 @@ export function DateRangeChip({
         "inline-flex items-center rounded-md text-[17px] transition-colors cursor-pointer select-none",
         isActive
           ? "border border-border bg-accent font-medium text-foreground"
-          : "border border-dashed border-border text-muted-foreground hover:bg-accent hover:border-solid hover:text-foreground",
+          : "border border-border text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
     >
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1">

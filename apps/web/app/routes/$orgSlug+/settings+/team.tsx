@@ -1,5 +1,13 @@
 import { PageHeader } from "@components/common/page-header";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@components/ui/dialog";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -10,7 +18,7 @@ import { InviteMemberDialog } from "@features/internal/workspace/components/invi
 import { auth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Crown, Mail, Plus, UserMinus, X } from "lucide-react";
+import { Crown, Mail, Plus, UserMinus, Users, X } from "lucide-react";
 import { useState } from "react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
@@ -82,6 +90,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
   const [role, setRole] = useState("member");
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [confirmRemoveMember, setConfirmRemoveMember] = useState<Member | null>(null);
 
   const members: Member[] = loaderData.members as Member[];
   const pendingInvitations: PendingInvitation[] =
@@ -121,7 +130,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["team"] }),
   });
 
-  const { mutate: removeMember } = useMutation({
+  const { mutate: removeMember, isPending: removing } = useMutation({
     mutationFn: async (memberId: string) => {
       const res = await fetch("/api/invitations", {
         method: "POST",
@@ -130,7 +139,10 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
       });
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["team"] }),
+    onSuccess: () => {
+      setConfirmRemoveMember(null);
+      qc.invalidateQueries({ queryKey: ["team"] });
+    },
   });
 
   const handleInviteSubmit = (e: React.FormEvent) => {
@@ -148,6 +160,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <PageHeader
             title="Team"
+            icon={Users}
             action={isAdmin ? (
               <button
                 type="button"
@@ -250,7 +263,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
                             <TooltipTrigger asChild>
                               <button
                                 type="button"
-                                onClick={() => removeMember(m.id)}
+                                onClick={() => setConfirmRemoveMember(m)}
                                 className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
                               >
                                 <UserMinus className="h-4 w-4" />
@@ -267,6 +280,37 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
             </div>
           </section>
         </main>
+
+        <Dialog
+          open={!!confirmRemoveMember}
+          onOpenChange={(open) => { if (!open) setConfirmRemoveMember(null); }}
+        >
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Remove member</DialogTitle>
+              <DialogDescription>
+                Remove <strong>{confirmRemoveMember?.user?.name ?? confirmRemoveMember?.user?.email}</strong> from this workspace? They will lose access immediately.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setConfirmRemoveMember(null)}
+                className="px-3 py-1.5 rounded-md border text-sm hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmRemoveMember && removeMember(confirmRemoveMember.id)}
+                disabled={removing}
+                className="px-3 py-1.5 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 transition-colors"
+              >
+                {removing ? "Removing…" : "Remove"}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
     </>
   );
 }

@@ -18,14 +18,12 @@ export function KanbanBoard({
   posts,
   onStatusChange,
   onRankChange,
-  hasGithubIntegration,
-  onIssueCreated,
+  onOpen,
 }: {
   posts: Post[];
   onStatusChange: (id: string, status: Status) => void;
   onRankChange: (status: Status, orderedIds: string[]) => void;
-  hasGithubIntegration: boolean;
-  onIssueCreated: (postId: string, issueNumber: number, issueUrl: string) => void;
+  onOpen: (id: string) => void;
 }) {
   const [groups, setGroups] = useState<Groups>(() => buildGroups(posts));
   const [isDraggingActive, setIsDraggingActive] = useState(false);
@@ -129,8 +127,7 @@ export function KanbanBoard({
                   post={post}
                   index={index}
                   column={col.id}
-                  hasGithubIntegration={hasGithubIntegration}
-                  onIssueCreated={onIssueCreated}
+                  onOpen={onOpen}
                 />
               ))}
             </DroppableColumn>

@@ -1,7 +1,12 @@
+import { PageHeader } from "@components/common/page-header";
+import { Puzzle } from "lucide-react";
+
 export function IntegrationsPageHeader() {
   return (
-      <h2 className="text-xl font-semibold text-foreground">
-        Connect with your favorite tools and services.
-      </h2>
+    <PageHeader
+      title="Integrations"
+      icon={Puzzle}
+      description="Connect with your favorite tools and services."
+    />
   );
 }

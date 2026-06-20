@@ -12,7 +12,7 @@ import { cn } from "@lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { and, desc, eq } from "drizzle-orm";
-import { AlertCircle, Check, Copy, Key, Plus, Terminal, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Code, Copy, Key, Plus, Terminal, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -235,6 +235,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="API Tokens"
+          icon={Code}
           action={isAdmin ? (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>

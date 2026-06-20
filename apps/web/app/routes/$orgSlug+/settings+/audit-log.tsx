@@ -4,6 +4,7 @@ import { AuditLogPage } from "@features/internal/audit/components/audit-log-page
 import type { AuditCategory } from "@features/internal/audit/constants";
 import { AUDIT_CATEGORIES } from "@features/internal/audit/constants";
 import { listAuditLogs } from "@features/internal/audit/server/queries";
+import { ScrollText } from "lucide-react";
 import { data } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import type { Route } from "./+types/audit-log";
@@ -49,6 +50,7 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
         <div className="max-w-[840px] mx-auto w-full">
           <PageHeader
             title="Audit Log"
+            icon={ScrollText}
             description="A record of security-relevant actions taken by members of this workspace."
           />
         </div>

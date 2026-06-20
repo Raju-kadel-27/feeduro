@@ -2,7 +2,6 @@ import { Button } from "@components/ui/button";
 import { cn } from "@lib/utils";
 import {
   AlertCircle,
-  ArrowLeft,
   Download,
   ExternalLink,
   Eye,
@@ -23,7 +22,6 @@ interface Props {
   newSecret: string | null;
   appOrigin: string;
   rotating: boolean;
-  onBack: () => void;
   onEdit: () => void;
   onRotateConfirm: () => void;
   onDelete: () => void;
@@ -75,7 +73,6 @@ export function AppDetailView({
   newSecret,
   appOrigin,
   rotating,
-  onBack,
   onEdit,
   onRotateConfirm,
   onDelete,
@@ -102,85 +99,71 @@ export function AppDetailView({
 
   return (
     <>
-      <div className="flex gap-6">
-        {/* Sticky back column */}
-        <div className="hidden lg:block w-28 shrink-0 pt-1">
-          <div className="sticky top-[76px]">
-            <button
-              type="button"
-              onClick={onBack}
-              className="group inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border transition-all"
-            >
-              <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-              Back
-            </button>
-          </div>
-        </div>
-
-        {/* Main content — all sections live here */}
-        <div className="flex-1 min-w-0 space-y-8">
-          {/* Actions bar */}
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => downloadManifest(client, appOrigin)}
-            >
-              <Download size={13} />
-              Download manifest
-            </Button>
-            <Button variant="outline" size="sm" onClick={onEdit}>
-              <Pencil size={13} />
-              Edit
-            </Button>
-          </div>
-
-          {/* App identity */}
-          <div className="flex items-center gap-4">
-            <AppAvatar
-              name={client.client_name}
-              icon={client.icon}
-              clientId={client.client_id}
-              size="lg"
-            />
-            <div className="min-w-0">
+      <div className="space-y-6">
+          {/* Page header: identity + actions */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <AppAvatar
+                name={client.client_name}
+                icon={client.icon}
+                clientId={client.client_id}
+                size="lg"
+              />
               <h2 className="text-2xl font-semibold text-foreground leading-tight truncate">
                 {client.client_name ?? "Unnamed App"}
               </h2>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                    client.public
-                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                      : "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {client.public ? "Public" : "Confidential"}
-                </span>
-                {createdAt && (
-                  <span className="text-sm text-muted-foreground/60">Created {createdAt}</span>
-                )}
-                {client.activeTokens > 0 && (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400">
-                    <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    {client.activeTokens} active token{client.activeTokens !== 1 ? "s" : ""}
-                  </span>
-                )}
-              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => downloadManifest(client, appOrigin)}
+              >
+                <Download size={13} />
+                Download manifest
+              </Button>
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                <Pencil size={13} />
+                Edit
+              </Button>
             </div>
           </div>
 
-          {/* Credentials */}
-          <section className="rounded-lg border border-border bg-muted/10 divide-y divide-border overflow-hidden">
-            <div className="px-6 py-5">
-              <h3 className="text-base font-semibold text-foreground">Credentials</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Use these values to configure your OAuth integration.
-              </p>
+          {/* Unified sections container — only divide-y lines between sections, no inner borders */}
+          <div className="rounded-lg border border-border overflow-hidden divide-y divide-border bg-muted/10">
+            {/* App meta */}
+            <div className="px-6 py-4 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                  client.public
+                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {client.public ? "Public" : "Confidential"}
+              </span>
+              {createdAt && (
+                <span className="text-sm text-muted-foreground/60">Created {createdAt}</span>
+              )}
+              {client.activeTokens > 0 && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400">
+                  <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  {client.activeTokens} active token{client.activeTokens !== 1 ? "s" : ""}
+                </span>
+              )}
             </div>
 
-            <div className="px-6 py-6 space-y-6">
+            {/* Credentials */}
+            <div className="px-6 py-6 space-y-5">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Credentials</h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Use these values to configure your OAuth integration.
+                </p>
+              </div>
+
               {/* New / rotated secret banner */}
               {newSecret && (
                 <div className="rounded-lg border border-amber-500/25 bg-amber-500/[0.07] overflow-hidden">
@@ -218,7 +201,7 @@ export function AppDetailView({
                   <Key size={12} className="text-muted-foreground/60 shrink-0" />
                   <span className="text-sm text-muted-foreground font-medium">Client ID</span>
                 </div>
-                <div className="flex items-center gap-3 rounded-md border border-border bg-muted/20 px-4 py-3">
+                <div className="flex items-center gap-3 rounded-md border border-border bg-background px-4 py-3">
                   <code className="text-sm font-mono flex-1 break-all text-foreground leading-relaxed">
                     {client.client_id}
                   </code>
@@ -239,7 +222,7 @@ export function AppDetailView({
                     <span className="text-sm text-muted-foreground font-medium">Client Secret</span>
                   </div>
 
-                  <div className="flex items-center gap-2 rounded-md border border-border bg-muted/20 px-4 py-3">
+                  <div className="flex items-center gap-2 rounded-md border border-border bg-background px-4 py-3">
                     {secretReady ? (
                       <code className="text-sm font-mono flex-1 break-all text-foreground leading-relaxed">
                         {secretVisible
@@ -256,7 +239,6 @@ export function AppDetailView({
                       </span>
                     )}
 
-                    {/* Action buttons inline */}
                     <div className="flex items-center gap-1 shrink-0">
                       {secretReady ? (
                         <>
@@ -291,7 +273,6 @@ export function AppDetailView({
                         </button>
                       ) : null}
 
-                      {/* Inline rotate — always visible for confidential clients */}
                       <button
                         type="button"
                         onClick={() => setRotateOpen(true)}
@@ -312,27 +293,25 @@ export function AppDetailView({
                 </div>
               )}
             </div>
-          </section>
 
-          {/* Configuration */}
-          <section className="rounded-lg border border-border bg-muted/10 divide-y divide-border overflow-hidden">
-            <div className="px-6 py-5 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">Configuration</h3>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  App name and allowed redirect URIs.
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={onEdit}>
-                <Pencil size={13} />
-                Edit
-              </Button>
-            </div>
-
+            {/* Configuration */}
             <div className="px-6 py-6 space-y-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Configuration</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    App name and allowed redirect URIs.
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={onEdit}>
+                  <Pencil size={13} />
+                  Edit
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 <span className="text-sm text-muted-foreground font-medium">App name</span>
-                <div className="flex items-center gap-3 rounded-md border border-border bg-muted/20 px-4 py-3">
+                <div className="flex items-center gap-3 rounded-md border border-border bg-background px-4 py-3">
                   <span className="text-sm text-foreground flex-1">
                     {client.client_name ?? "Unnamed App"}
                   </span>
@@ -346,7 +325,7 @@ export function AppDetailView({
                     {client.redirect_uris.map((uri) => (
                       <div
                         key={uri}
-                        className="group flex items-center gap-3 rounded-md border border-border bg-muted/20 px-4 py-3"
+                        className="group flex items-center gap-3 rounded-md border border-border bg-background px-4 py-3"
                       >
                         <code className="text-sm font-mono flex-1 break-all text-foreground leading-relaxed">
                           {uri}
@@ -368,35 +347,30 @@ export function AppDetailView({
                 )}
               </div>
             </div>
-          </section>
 
-          {/* Danger zone */}
-          <section className="rounded-lg border border-destructive/20 bg-destructive/[0.02] divide-y divide-destructive/10 overflow-hidden">
-            <div className="px-6 py-5">
-              <h3 className="text-base font-semibold text-foreground">Danger Zone</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Irreversible actions. Proceed with care.
+          </div>
+
+          {/* Danger Zone — separated from main container */}
+          <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/[0.02] px-6 py-5 space-y-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-destructive">Delete this app</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Permanently deletes this OAuth app and immediately revokes all active access
+                tokens and refresh tokens issued to it. Any integrations or services
+                authenticating through this client will lose access and cannot be recovered.
+                This action is irreversible.
               </p>
             </div>
-            <div className="px-6 py-5 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-destructive">Delete app</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Permanently removes this app and revokes all issued tokens.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onDelete}
-                className="shrink-0 border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/50"
-              >
-                <Trash2 size={13} />
-                Delete
-              </Button>
-            </div>
-          </section>
-        </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDelete}
+              className="border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/50"
+            >
+              <Trash2 size={13} />
+              Delete this app
+            </Button>
+          </div>
       </div>
 
       <RotateConfirmDialog

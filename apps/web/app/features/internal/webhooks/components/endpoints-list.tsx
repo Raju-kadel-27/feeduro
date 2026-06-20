@@ -1,4 +1,5 @@
 import { Button } from "@components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { Plus, Webhook } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { EndpointRow } from "../types";
@@ -23,22 +24,23 @@ export function EndpointsList({ endpoints, isAdmin, onAddEndpoint }: EndpointsLi
       <h3 className="text-base font-bold text-foreground mb-4">Endpoints</h3>
 
       {endpoints.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-10 text-center bg-muted/10 space-y-3">
-          <Webhook size={40} className="mx-auto text-muted-foreground/40" />
-          <div>
-            <p className="text-sm font-medium text-foreground">No endpoints configured</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Connect your backend to receive real-time events when feedback is submitted or
-              changelogs are published.
-            </p>
-          </div>
+        <Empty className="border border-border">
+          <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Webhook /></EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No endpoints configured</EmptyTitle>
+            <EmptyDescription>
+              Connect your backend to receive real-time events when feedback is submitted or changelogs are published.
+            </EmptyDescription>
+          </EmptyHeader>
           {isAdmin && (
-            <Button size="sm" onClick={onAddEndpoint}>
-              <Plus size={16} />
-              Add your first endpoint
-            </Button>
+            <EmptyContent>
+              <Button size="sm" onClick={onAddEndpoint}>
+                <Plus size={16} />
+                Add your first endpoint
+              </Button>
+            </EmptyContent>
           )}
-        </div>
+        </Empty>
       ) : (
         <>
           <div className="hidden md:block">

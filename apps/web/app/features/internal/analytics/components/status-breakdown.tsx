@@ -28,6 +28,35 @@ const chartConfig = {
   closed: { label: "Closed", color: "hsl(215 14% 55%)" },
 } satisfies ChartConfig;
 
+const RADIAN = Math.PI / 180;
+
+function SliceLabel({
+  cx, cy, midAngle, outerRadius, payload,
+}: {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  outerRadius: number;
+  payload: { status: string; pct: number };
+}) {
+  if (payload.pct < 5) return null;
+  const radius = outerRadius + 24;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+      fontSize={11}
+      className="fill-foreground"
+    >
+      {`${payload.pct}%`}
+    </text>
+  );
+}
+
 interface StatusBreakdownProps {
   breakdown: StatusBreakdown;
 }
@@ -50,31 +79,32 @@ export function StatusBreakdownBar({ breakdown }: StatusBreakdownProps) {
   }));
 
   return (
-    <div className="flex items-center gap-8">
-      <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[160px] shrink-0">
+    <div className="flex flex-col sm:flex-row items-center gap-8">
+      <ChartContainer config={chartConfig} className="w-[320px] h-[320px] shrink-0">
         <PieChart>
           <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
           <Pie
             data={chartData}
             dataKey="count"
             nameKey="status"
-            innerRadius={42}
-            outerRadius={70}
+            innerRadius={72}
+            outerRadius={112}
             paddingAngle={2}
             strokeWidth={0}
+            labelLine={{ stroke: "var(--muted-foreground)", strokeWidth: 1 }}
+            label={SliceLabel}
           />
         </PieChart>
       </ChartContainer>
 
-      <div className="flex-1 space-y-2 min-w-0">
+      <div className="flex-1 space-y-3 min-w-0 w-full">
         {chartData.map(({ status, count, pct }) => {
           const color = (chartConfig as Record<string, { color?: string }>)[status]?.color ?? "#ccc";
           return (
-            <div key={status} className="flex items-center gap-2 text-xs">
+            <div key={status} className="flex items-center gap-2 text-xs min-w-0">
               <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: color }} />
-              <span className="flex-1 text-muted-foreground truncate">{STATUS_LABEL[status] ?? status}</span>
-              <span className="tabular-nums font-medium w-6 text-right">{count}</span>
-              <span className="tabular-nums text-muted-foreground w-9 text-right">{pct}%</span>
+              <span className="text-muted-foreground truncate">{STATUS_LABEL[status] ?? status}</span>
+              <span className="tabular-nums font-medium">{count}</span>
             </div>
           );
         })}

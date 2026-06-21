@@ -7,13 +7,15 @@ import {
   cancelDodoSubscription,
   changeDodoPlan,
   createDodoCheckoutSession,
+  resumeDodoSubscription,
 } from "@features/internal/billing/server/dodo";
+import { useBillingPoll } from "@features/internal/billing/use-billing-poll";
 import { authClient } from "@lib/auth/client";
 import { getEnv } from "@utils/get-env";
 import { and, desc, eq, or } from "drizzle-orm";
 import { CheckIcon, CreditCard, ExternalLinkIcon, SparklesIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { redirect, useFetcher, useRevalidator, useSearchParams } from "react-router";
+import { useEffect, useState } from "react";
+import { redirect, useFetcher } from "react-router";
 import { z } from "zod";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
@@ -87,6 +89,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         eq(subscription.status, "past_due"),
       ),
     ),
+    columns: {
+      plan: true,
+      status: true,
+      billingInterval: true,
+      periodEnd: true,
+      cancelAtPeriodEnd: true,
+      cancelAt: true,
+      trialEnd: true,
+      dodoSubscriptionId: true,
+    },
     orderBy: desc(subscription.periodEnd),
   });
 
@@ -104,7 +116,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const db = getDb();
   const formData = await request.formData();
   const intentResult = z
-    .enum(["dodo-checkout", "dodo-change-plan", "dodo-cancel"])
+    .enum(["dodo-checkout", "dodo-change-plan", "dodo-cancel", "dodo-resume"])
     .safeParse(formData.get("intent"));
   if (!intentResult.success) return { ok: false, error: "Invalid intent" };
   const intent = intentResult.data;
@@ -134,7 +146,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     const result = await createDodoCheckoutSession({
       productId,
       organizationId,
-      returnUrl: `${returnUrl}?upgraded=true`,
+      returnUrl,
     });
     if ("error" in result) return { ok: false, error: result.error };
     return redirect(result.url);
@@ -167,7 +179,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     if (result.error) return { ok: false, error: result.error };
 
     // DB state is updated authoritatively by onSubscriptionUpdated webhook — do not write here.
-    return redirect(`${returnUrl}?upgraded=true`);
+    return redirect(returnUrl);
   }
 
   if (intent === "dodo-cancel") {
@@ -188,7 +200,28 @@ export async function action({ request, params }: Route.ActionArgs) {
       .update(subscription)
       .set({ cancelAtPeriodEnd: true })
       .where(eq(subscription.dodoSubscriptionId, activeSub.dodoSubscriptionId));
-    return redirect(`${returnUrl}?upgraded=true`);
+    return redirect(returnUrl);
+  }
+
+  if (intent === "dodo-resume") {
+    const activeSub = await db.query.subscription.findFirst({
+      where: and(
+        eq(subscription.referenceId, organizationId),
+        or(eq(subscription.status, "active"), eq(subscription.status, "trialing")),
+      ),
+      columns: { dodoSubscriptionId: true },
+    });
+    if (!activeSub?.dodoSubscriptionId)
+      return { ok: false, error: "No active subscription found" };
+
+    const result = await resumeDodoSubscription(activeSub.dodoSubscriptionId);
+    if (result.error) return { ok: false, error: result.error };
+
+    await db
+      .update(subscription)
+      .set({ cancelAtPeriodEnd: false })
+      .where(eq(subscription.dodoSubscriptionId, activeSub.dodoSubscriptionId));
+    return redirect(returnUrl);
   }
 
   return { ok: false, error: "Unknown intent" };
@@ -218,25 +251,7 @@ function formatDate(date: Date | null | undefined) {
 export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   const { subscription: activeSub, currentBillingInterval } = loaderData;
 
-  const [searchParams] = useSearchParams();
-  const justUpgraded = searchParams.get("upgraded") === "true";
-  const { revalidate, state } = useRevalidator();
   const fetcher = useFetcher();
-
-  const pollCountRef = useRef(0);
-
-  // Poll until the webhook has been processed and the subscription row appears (max 10 retries = 20s)
-  useEffect(() => {
-    if (!justUpgraded) {
-      pollCountRef.current = 0;
-      return;
-    }
-    if (state === "loading") return;
-    if (pollCountRef.current >= 10) return;
-    pollCountRef.current++;
-    const id = setTimeout(revalidate, 2000);
-    return () => clearTimeout(id);
-  }, [justUpgraded, state, revalidate]);
 
   const currentPlan = planFromSub(activeSub?.plan);
   const isTrialing = activeSub?.status === "trialing";
@@ -244,8 +259,27 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   const isCancelingAtPeriodEnd = activeSub?.cancelAtPeriodEnd === true;
   const hasManagedSub = Boolean(activeSub?.dodoSubscriptionId);
 
+  // Composite key so polling stops when plan OR cancelAtPeriodEnd changes.
+  const subState = `${currentPlan}:${isCancelingAtPeriodEnd}`;
+
+  const { startPoll } = useBillingPoll({ subState, fetcherState: fetcher.state });
+
+  // Detect return from external Dodo checkout via sessionStorage flag.
+  useEffect(() => {
+    const raw = sessionStorage.getItem("dodo-checkout-pending");
+    if (!raw) return;
+    sessionStorage.removeItem("dodo-checkout-pending");
+    try {
+      const { plan, ts } = JSON.parse(raw) as { plan: string; ts: number };
+      const isRecent = Date.now() - ts < 15 * 60 * 1000;
+      if (!isRecent || currentPlan === plan) return;
+      startPoll();
+    } catch {
+      // Corrupted flag — ignore silently.
+    }
+  }, [startPoll, currentPlan]);
+
   const [billingInterval, setBillingInterval] = useState<BillingInterval>("annual");
-  const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [dodoPortalLoading, setDodoPortalLoading] = useState(false);
 
   const isSubmitting = fetcher.state !== "idle" || dodoPortalLoading;
@@ -265,7 +299,10 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   }
 
   function handleCheckout(planId: Exclude<PlanId, "free">) {
-    setLoadingPlan(planId);
+    sessionStorage.setItem(
+      "dodo-checkout-pending",
+      JSON.stringify({ plan: planId, ts: Date.now() }),
+    );
     fetcher.submit(
       { intent: "dodo-checkout", plan: planId, interval: billingInterval },
       { method: "POST" },
@@ -274,10 +311,8 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
 
   function handleChangePlan(planId: PlanId) {
     if (planId === "free") {
-      setLoadingPlan("free");
       fetcher.submit({ intent: "dodo-cancel", plan: "free" }, { method: "POST" });
     } else {
-      setLoadingPlan(planId);
       fetcher.submit(
         { intent: "dodo-change-plan", plan: planId, interval: intervalForPlanChange() },
         { method: "POST" },
@@ -291,16 +326,8 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
           <SidebarTrigger className="-ml-1" />
         </header>
 
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+        <main className="px-6 pt-2 pb-6 max-w-[840px] mx-auto w-full space-y-8">
           <PageHeader title="Billing & Plans" icon={CreditCard} />
-
-          {/* Success banner */}
-          {justUpgraded && (
-            <Alert variant="success" className="mb-6">
-              <CheckIcon className="h-4 w-4 shrink-0" />
-              <AlertDescription>Your plan has been updated successfully.</AlertDescription>
-            </Alert>
-          )}
 
           {/* Error alert */}
           {actionError && (
@@ -349,6 +376,20 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {isCancelingAtPeriodEnd && hasManagedSub && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={isSubmitting}
+                      onClick={() =>
+                        fetcher.submit({ intent: "dodo-resume" }, { method: "POST" })
+                      }
+                    >
+                      {fetcher.formData?.get("intent") === "dodo-resume"
+                        ? "Resuming…"
+                        : "Resume subscription"}
+                    </Button>
+                  )}
                   {isPastDue && hasManagedSub && (
                     <Button
                       size="sm"
@@ -376,48 +417,55 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
             </div>
           )}
 
-          {/* Billing interval toggle */}
-          <div className="mb-6 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => setBillingInterval("monthly")}
-              className={`text-sm font-medium transition-colors ${
-                billingInterval === "monthly"
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={billingInterval === "annual"}
-              onClick={() => setBillingInterval((i) => (i === "monthly" ? "annual" : "monthly"))}
-              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                billingInterval === "annual" ? "bg-primary" : "bg-input"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-background shadow-lg transition-transform ${
-                  billingInterval === "annual" ? "translate-x-4" : "translate-x-0"
+          {/* Billing interval toggle — only relevant for new subscriptions */}
+          <div className="mb-6 flex flex-col items-center gap-1.5">
+            <div className={`flex items-center gap-3 ${hasManagedSub ? "opacity-40 pointer-events-none" : ""}`}>
+              <button
+                type="button"
+                onClick={() => setBillingInterval("monthly")}
+                className={`text-sm font-medium transition-colors ${
+                  billingInterval === "monthly"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
-              />
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingInterval("annual")}
-              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
-                billingInterval === "annual"
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Yearly
-              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-semibold text-primary">
-                Save ~33%
-              </span>
-            </button>
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={billingInterval === "annual"}
+                onClick={() => setBillingInterval((i) => (i === "monthly" ? "annual" : "monthly"))}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  billingInterval === "annual" ? "bg-primary" : "bg-input"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-background shadow-lg transition-transform ${
+                    billingInterval === "annual" ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingInterval("annual")}
+                className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                  billingInterval === "annual"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Yearly
+                <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-semibold text-primary">
+                  Save ~33%
+                </span>
+              </button>
+            </div>
+            {hasManagedSub && (
+              <p className="text-xs text-muted-foreground">
+                Plan changes keep your current {currentBillingInterval} billing cycle.
+              </p>
+            )}
           </div>
 
           {/* Plan cards */}
@@ -427,9 +475,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
               const planRank = { free: 0, starter: 1, professional: 2 };
               const isHigherPlan = planRank[plan.id] > planRank[currentPlan];
               const isLowerPlan = planRank[plan.id] < planRank[currentPlan];
-              const loading =
-                loadingPlan === plan.id ||
-                (isSubmitting && fetcher.formData?.get("plan") === plan.id);
+              const loading = isSubmitting && fetcher.formData?.get("plan") === plan.id;
 
               return (
                 <div
@@ -491,20 +537,14 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                       {loading ? "Processing…" : `Upgrade to ${plan.id === "professional" ? "Pro" : plan.name}`}
                     </Button>
                   ) : isLowerPlan ? (
-                    plan.id === "free" && isCancelingAtPeriodEnd ? (
-                      <Button variant="outline" size="sm" disabled>
-                        Cancellation scheduled
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={loading || isSubmitting}
-                        onClick={() => handleChangePlan(plan.id as PlanId)}
-                      >
-                        {loading ? "Processing…" : "Downgrade"}
-                      </Button>
-                    )
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={loading || isSubmitting || (plan.id === "free" && isCancelingAtPeriodEnd)}
+                      onClick={() => handleChangePlan(plan.id as PlanId)}
+                    >
+                      {loading ? "Processing…" : "Downgrade"}
+                    </Button>
                   ) : null}
                 </div>
               );

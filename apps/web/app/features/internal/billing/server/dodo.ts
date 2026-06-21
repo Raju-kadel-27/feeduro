@@ -60,3 +60,18 @@ export async function cancelDodoSubscription(
     return { error: message };
   }
 }
+
+export async function resumeDodoSubscription(
+  dodoSubscriptionId: string,
+): Promise<{ error?: string }> {
+  try {
+    const dodo = getDodoClient();
+    await dodo.subscriptions.update(dodoSubscriptionId, {
+      cancel_at_next_billing_date: false,
+    });
+    return {};
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Dodo Payments API error";
+    return { error: message };
+  }
+}

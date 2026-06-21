@@ -5,7 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@components/ui/sidebar";
-import { BarChart2, FileText, Map, Settings } from "lucide-react";
+import { BarChart2, FileText, Map, Settings, Share2 } from "lucide-react";
 import type { ElementType } from "react";
 import { Link, useLocation } from "react-router";
 
@@ -20,6 +20,7 @@ export function WorkspaceNav({ base, orgSlug: _orgSlug }: Props) {
     { title: "Analytics", url: `${base}/analytics`, icon: BarChart2 },
     { title: "Roadmap", url: `${base}/roadmap`, icon: Map },
     { title: "Changelog", url: `${base}/changelog`, icon: FileText },
+    { title: "Share", url: `${base}/share`, icon: Share2 },
     { title: "Settings", url: `${base}/settings`, icon: Settings },
   ];
 

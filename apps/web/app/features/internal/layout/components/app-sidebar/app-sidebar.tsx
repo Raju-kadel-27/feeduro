@@ -11,7 +11,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { orgSlug = "" } = useParams();
   const base = `/${orgSlug}`;
-  const isSettingsRoute = location.pathname.includes("/settings") || location.pathname === `${base}/share`;
+  const isSettingsRoute = location.pathname.includes("/settings");
   const isDashboard = location.pathname === `${base}/dashboard`;
 
   return (

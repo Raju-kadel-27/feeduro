@@ -5,22 +5,77 @@ import {
   ChartTooltipContent,
 } from "@components/ui/chart";
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import type { ActivityOverTime, DateRange, VotesOverTime } from "../schemas/analytics";
 
 const chartConfig = {
-  posts: { label: "New posts", color: "var(--chart-1)" },
-  votes: { label: "Votes cast", color: "var(--chart-2)" },
+  posts: { label: "New posts", color: "hsl(142 71% 45%)" },
+  votes: { label: "Votes cast", color: "hsl(217 91% 60%)" },
 } satisfies ChartConfig;
 
 type ActiveKey = "posts" | "votes";
 
+function toDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function getMonday(d: Date): Date {
+  const day = d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+  return monday;
+}
+
+// DB GROUP BY only returns rows that exist — fill every expected period with 0
+// so the line chart always spans the full range.
+function fillGaps(
+  data: { period: string; count: number }[],
+  range: DateRange,
+): { period: string; count: number }[] {
+  const dataMap = new Map(data.map((d) => [d.period, d.count]));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const periods: string[] = [];
+
+  if (range === "7d") {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      periods.push(toDateStr(d));
+    }
+  } else if (range === "30d") {
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      periods.push(toDateStr(d));
+    }
+  } else if (range === "90d") {
+    // Postgres date_trunc('week') truncates to Monday — match that here
+    const monday = getMonday(today);
+    for (let i = 12; i >= 0; i--) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() - i * 7);
+      periods.push(toDateStr(d));
+    }
+  } else {
+    // "all" — monthly, last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      periods.push(toDateStr(d));
+    }
+  }
+
+  return periods.map((period) => ({ period, count: dataMap.get(period) ?? 0 }));
+}
+
 function formatPeriod(period: string, range: DateRange): string {
-  const [yearStr, monthStr, dayStr] = period.split("-");
-  const d = new Date(Number(yearStr), Number(monthStr) - 1, Number(dayStr));
+  const [y, m, day] = period.split("-").map(Number);
+  const d = new Date(y, m - 1, day);
   if (range === "7d") return d.toLocaleDateString("en", { weekday: "short" });
-  if (range === "30d") return d.toLocaleDateString("en", { month: "short", day: "numeric" });
-  if (range === "90d") return d.toLocaleDateString("en", { month: "short", day: "numeric" });
+  if (range === "30d" || range === "90d") return d.toLocaleDateString("en", { month: "short", day: "numeric" });
   return d.toLocaleDateString("en", { month: "short" });
 }
 
@@ -35,9 +90,10 @@ interface Props {
 export function ActivityCombinedChart({ postsData, votesData, totalPosts, totalVotes, range }: Props) {
   const [active, setActive] = useState<ActiveKey>("votes");
 
-  const series = active === "votes" ? votesData : postsData;
+  const rawSeries = active === "votes" ? votesData : postsData;
+  const filled = fillGaps(rawSeries, range);
 
-  const chartData = series.map((d) => ({
+  const chartData = filled.map((d) => ({
     period: formatPeriod(d.period, range),
     count: d.count,
   }));
@@ -71,43 +127,43 @@ export function ActivityCombinedChart({ postsData, votesData, totalPosts, totalV
         ))}
       </div>
 
-      {chartData.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">No activity in this period.</p>
-      ) : (
-        <div className="px-2 pt-4 pb-2">
-          <ChartContainer config={chartConfig} className="h-52 w-full">
-            <BarChart
-              accessibilityLayer
-              data={chartData}
-              margin={{ top: 8, left: 12, right: 12, bottom: 0 }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="period"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tick={{ fontSize: 11 }}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                allowDecimals={false}
-                width={36}
-              />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent nameKey="count" />} />
-              <Bar
-                dataKey="count"
-                name={chartConfig[active].label}
-                fill={`var(--color-${active})`}
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ChartContainer>
-        </div>
-      )}
+      <div className="px-2 pt-4 pb-2">
+        <ChartContainer config={chartConfig} className="aspect-auto h-52 w-full">
+          <LineChart
+            accessibilityLayer
+            data={chartData}
+            margin={{ left: 12, right: 12, top: 20, bottom: 4 }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="period"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={32}
+              tick={{ fontSize: 11 }}
+            />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  className="w-[140px]"
+                  nameKey="count"
+                  labelFormatter={(value) => value}
+                />
+              }
+            />
+            <Line
+              dataKey="count"
+              name={chartConfig[active].label}
+              type="monotone"
+              stroke={`var(--color-${active})`}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+          </LineChart>
+        </ChartContainer>
+      </div>
     </div>
   );
 }

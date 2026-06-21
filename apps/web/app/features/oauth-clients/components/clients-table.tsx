@@ -5,6 +5,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
+import { Button } from "@components/ui/button";
 import { cn } from "@lib/utils";
 import { FileDown, Key, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { AppAvatar } from "./app-avatar";
@@ -72,7 +73,7 @@ export function ClientsTable({
     return (
       <div className="rounded-lg border border-dashed border-border py-14 px-8 text-center bg-muted/10 flex flex-col items-center gap-3">
         <div className="flex size-14 items-center justify-center rounded-full bg-teal-500/10">
-          <Key size={26} className="text-teal-500" />
+          <Key size={28} className="text-teal-500/70" />
         </div>
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">No OAuth apps yet</p>
@@ -81,14 +82,10 @@ export function ClientsTable({
           </p>
         </div>
         {onCreateClick && (
-          <button
-            type="button"
-            onClick={onCreateClick}
-            className="mt-1 inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
+          <Button variant="secondary" size="sm" onClick={onCreateClick} className="mt-1">
             <Plus size={14} />
             Register an app
-          </button>
+          </Button>
         )}
       </div>
     );

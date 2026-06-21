@@ -25,7 +25,7 @@ export function EndpointsList({ endpoints, isAdmin, onAddEndpoint }: EndpointsLi
 
       {endpoints.length === 0 ? (
         <Empty className="border border-border">
-          <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Webhook /></EmptyMedia>
+          <EmptyMedia variant="icon" className="size-14 [&_svg]:size-7 bg-teal-500/10 text-teal-600 dark:text-teal-400"><Webhook /></EmptyMedia>
           <EmptyHeader>
             <EmptyTitle>No endpoints configured</EmptyTitle>
             <EmptyDescription>
@@ -34,7 +34,7 @@ export function EndpointsList({ endpoints, isAdmin, onAddEndpoint }: EndpointsLi
           </EmptyHeader>
           {isAdmin && (
             <EmptyContent>
-              <Button size="sm" onClick={onAddEndpoint}>
+              <Button variant="secondary" size="sm" onClick={onAddEndpoint}>
                 <Plus size={16} />
                 Add your first endpoint
               </Button>

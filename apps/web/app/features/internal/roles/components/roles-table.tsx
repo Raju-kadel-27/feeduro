@@ -64,7 +64,7 @@ export function RolesTable({
   if (roles.length === 0) {
     return (
       <Empty className="border border-border">
-        <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><ShieldCheck /></EmptyMedia>
+        <EmptyMedia variant="icon" className="size-14 [&_svg]:size-7 bg-teal-500/10 text-teal-600 dark:text-teal-400"><ShieldCheck /></EmptyMedia>
         <EmptyHeader>
           <EmptyTitle>No custom roles yet</EmptyTitle>
           <EmptyDescription>
@@ -73,7 +73,7 @@ export function RolesTable({
         </EmptyHeader>
         {isAdmin && onCreateClick && (
           <EmptyContent>
-            <Button variant="outline" size="sm" onClick={onCreateClick} className="gap-1.5">
+            <Button variant="secondary" size="sm" onClick={onCreateClick} className="gap-1.5">
               <Plus className="h-3.5 w-3.5" />
               Create first role
             </Button>

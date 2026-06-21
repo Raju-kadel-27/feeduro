@@ -31,13 +31,13 @@ export function SubscriptionsSection({ initialEnabled, subscriberCount }: Props)
   return (
     <div className="flex items-start justify-between gap-6">
       <div>
-        <p className="text-sm font-medium">Email Subscriptions</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <p className="text-base font-semibold">Email Subscriptions</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Let visitors subscribe to changelog updates. A subscribe form will appear on your public
           changelog, and you can notify subscribers on each publish.
         </p>
         {enabled && (
-          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <p className="mt-2 flex items-center gap-1.5 text-[13px] text-muted-foreground">
             <UsersIcon className="h-3.5 w-3.5" />
             {subscriberCount === 0
               ? "No subscribers yet"

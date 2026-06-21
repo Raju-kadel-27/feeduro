@@ -61,7 +61,7 @@ export function TagsSection({ initialTags }: { initialTags: Tag[] }) {
   return (
     <div className="rounded-lg border">
       <div className="flex items-center gap-2 border-b px-5 py-4">
-        <h2 className="text-sm font-medium">Changelog Tags</h2>
+        <h2 className="text-base font-semibold">Changelog Tags</h2>
       </div>
       <div className="divide-y">
         {tags.length === 0 ? (
@@ -70,7 +70,7 @@ export function TagsSection({ initialTags }: { initialTags: Tag[] }) {
           tags.map((tag) => (
             <div key={tag.id} className="flex items-center justify-between gap-3 px-5 py-3">
               <div className="flex items-center gap-2">
-                <TagIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <TagIcon className="h-3.5 w-3.5 shrink-0 text-teal-500" />
                 <span className="text-base">{tag.name}</span>
               </div>
               <button

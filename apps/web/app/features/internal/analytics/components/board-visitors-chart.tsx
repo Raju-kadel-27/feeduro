@@ -9,8 +9,8 @@ import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import type { BoardVisitorPoint } from "../schemas/analytics";
 
 const chartConfig = {
-  uniqueVisitors: { label: "Unique visitors", color: "var(--chart-2)" },
-  totalViews: { label: "Total views", color: "var(--chart-3)" },
+  uniqueVisitors: { label: "Unique visitors", color: "hsl(217 91% 60%)" },
+  totalViews: { label: "Total views", color: "hsl(217 91% 45%)" },
 } satisfies ChartConfig;
 
 type ActiveKey = "uniqueVisitors" | "totalViews";

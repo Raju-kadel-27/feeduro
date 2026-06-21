@@ -94,70 +94,73 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <PageHeader title="Workspace" icon={Settings} />
 
-          {/* Workspace name */}
-          <section className="rounded-lg border p-5 space-y-4">
-            <div>
-              <h2 className="text-sm font-semibold">Workspace name</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                The display name of your workspace shown across the app.
-              </p>
-            </div>
-            <div className="flex gap-2 items-start">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={!admin}
-                className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-              />
-              {admin && (
-                <button
-                  type="button"
-                  onClick={() => saveName()}
-                  disabled={savingName || name.trim() === orgName}
-                  className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                >
-                  {savingName ? "Saving…" : "Save"}
-                </button>
-              )}
-            </div>
-            {nameError && <p className="text-xs text-destructive">{nameError.message}</p>}
-          </section>
-
-          {/* Workspace slug */}
-          <section className="rounded-lg border p-5 space-y-4">
-            <div>
-              <h2 className="text-sm font-semibold">Workspace URL</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                The unique slug used in your workspace URL. Changing it will break any existing
-                links.
-              </p>
-            </div>
-            <div className="flex gap-2 items-start">
-              <div className="flex flex-1 items-center rounded-md border border-input overflow-hidden">
-                <span className="px-3 py-1.5 text-sm text-muted-foreground bg-muted border-r border-input select-none">
-                  app.feeduro.com/
-                </span>
+          {/* Workspace name + URL */}
+          <section className="rounded-lg border p-5 space-y-6">
+            {/* Name */}
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-sm font-semibold">Workspace name</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  The display name of your workspace shown across the app.
+                </p>
+              </div>
+              <div className="flex gap-2 items-start">
                 <input
                   type="text"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   disabled={!admin}
-                  className="flex-1 px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                  className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
                 />
+                {admin && (
+                  <button
+                    type="button"
+                    onClick={() => saveName()}
+                    disabled={savingName || name.trim() === orgName}
+                    className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    {savingName ? "Saving…" : "Save"}
+                  </button>
+                )}
               </div>
-              {admin && (
-                <button
-                  type="button"
-                  onClick={() => saveSlug()}
-                  disabled={savingSlug || slug.trim() === orgSlug}
-                  className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                >
-                  {savingSlug ? "Saving…" : "Save"}
-                </button>
-              )}
+              {nameError && <p className="text-xs text-destructive">{nameError.message}</p>}
             </div>
-            {slugError && <p className="text-xs text-destructive">{slugError.message}</p>}
+
+            {/* URL / slug */}
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-sm font-semibold">Workspace URL</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  The unique slug used in your workspace URL. Changing it will break any existing
+                  links.
+                </p>
+              </div>
+              <div className="flex gap-2 items-start">
+                <div className="flex flex-1 items-center rounded-md border border-input overflow-hidden">
+                  <span className="px-3 py-1.5 text-sm text-muted-foreground bg-muted border-r border-input select-none">
+                    app.feeduro.com/
+                  </span>
+                  <input
+                    type="text"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                    disabled={!admin}
+                    className="flex-1 px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                  />
+                </div>
+                {admin && (
+                  <button
+                    type="button"
+                    onClick={() => saveSlug()}
+                    disabled={savingSlug || slug.trim() === orgSlug}
+                    className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    {savingSlug ? "Saving…" : "Save"}
+                  </button>
+                )}
+              </div>
+              {slugError && <p className="text-xs text-destructive">{slugError.message}</p>}
+            </div>
           </section>
 
           {/* Danger zone */}

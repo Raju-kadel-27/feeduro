@@ -66,8 +66,8 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
           <div className="rounded-lg border divide-y">
             <div className="flex items-start justify-between gap-6 p-5">
               <div>
-                <p className="text-sm font-medium">Enable Changelog</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <p className="text-base font-semibold">Enable Changelog</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">
                   When disabled, your changelog is hidden from the public board.
                 </p>
               </div>

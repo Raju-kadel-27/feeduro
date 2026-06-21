@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@components/ui/alert-dialog";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
 import {
@@ -11,6 +21,7 @@ import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { desc, eq } from "drizzle-orm";
 import { Clock, FileText, Globe, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate, useOutlet, useParams } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "@/db";
@@ -79,6 +90,7 @@ function ChangelogList({
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["changelogs"],
@@ -233,7 +245,7 @@ function ChangelogList({
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          onClick={() => deleteEntry(entry.id)}
+                          onClick={() => setPendingDeleteId(entry.id)}
                           disabled={deleting}
                           className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-all text-muted-foreground disabled:opacity-30"
                         >
@@ -248,6 +260,29 @@ function ChangelogList({
             </div>
           )}
         </main>
+
+        <AlertDialog open={!!pendingDeleteId} onOpenChange={(open) => !open && setPendingDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete changelog entry?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The entry will be permanently deleted.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingDeleteId) deleteEntry(pendingDeleteId);
+                  setPendingDeleteId(null);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         </>
   );
 }

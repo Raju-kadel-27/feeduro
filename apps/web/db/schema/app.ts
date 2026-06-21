@@ -98,6 +98,14 @@ export const importJobStatusEnum = pgEnum("import_job_status", [
   "rolled_back",
 ]);
 
+// ============ Dodo Payments — processed webhook events (idempotency log) ============
+
+export const dodoWebhookEvents = pgTable("dodo_webhook_events", {
+  // Composite key encoding event type + subscription ID + discriminator (see dodo-webhook-handlers.ts)
+  eventKey: varchar("event_key", { length: 512 }).primaryKey(),
+  processedAt: timestamp("processed_at").notNull().defaultNow(),
+});
+
 // ============ Subscription (Dodo Payments — managed here due to custom columns) ============
 
 export const subscription = pgTable(

@@ -234,7 +234,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   const isCancelingAtPeriodEnd = activeSub?.cancelAtPeriodEnd === true;
   const hasManagedSub = Boolean(activeSub?.dodoSubscriptionId);
 
-  const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>("annual");
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [dodoPortalLoading, setDodoPortalLoading] = useState(false);
 

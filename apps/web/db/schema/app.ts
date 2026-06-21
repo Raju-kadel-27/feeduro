@@ -100,11 +100,28 @@ export const importJobStatusEnum = pgEnum("import_job_status", [
 
 // ============ Dodo Payments — processed webhook events (idempotency log) ============
 
-export const dodoWebhookEvents = pgTable("dodo_webhook_events", {
-  // Composite key encoding event type + subscription ID + discriminator (see dodo-webhook-handlers.ts)
-  eventKey: varchar("event_key", { length: 512 }).primaryKey(),
-  processedAt: timestamp("processed_at").notNull().defaultNow(),
-});
+export const dodoWebhookEvents = pgTable(
+  "dodo_webhook_events",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    eventType: varchar("event_type", { length: 50 }).notNull(),
+    subscriptionId: varchar("subscription_id", { length: 255 }).notNull(),
+    productId: varchar("product_id", { length: 255 }).notNull(),
+    // YYYY-MM-DD string; "1970-01-01" sentinel for events with no next billing date (cancelled/expired)
+    billingDate: varchar("billing_date", { length: 10 }).notNull().default("1970-01-01"),
+    processedAt: timestamp("processed_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("dwe_unique_event_idx").on(
+      t.eventType,
+      t.subscriptionId,
+      t.productId,
+      t.billingDate,
+    ),
+  ],
+);
 
 // ============ Subscription (Dodo Payments — managed here due to custom columns) ============
 
@@ -241,7 +258,6 @@ export const feedbackPosts = pgTable(
       .$onUpdateFn(() => new Date()),
     searchVector: tsvectorCol("search_vector").generatedAlwaysAs(
       sql`to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, ''))`,
-      { mode: "stored" },
     ),
   },
   (t) => ({

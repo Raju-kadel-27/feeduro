@@ -41,7 +41,7 @@ export function buildDodoPlugin() {
       use: [
         checkout({
           products: buildCheckoutProducts(),
-          successUrl: "/billing?upgraded=true",
+          successUrl: "/",
           authenticatedUsersOnly: true,
         }),
         portal(),

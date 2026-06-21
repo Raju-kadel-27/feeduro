@@ -31,6 +31,10 @@ fresh: docker_up
 	@pnpm db:migrate
 	@echo "Seeding database..."
 	@pnpm db:seed
+	@echo "Seeding post dates..."
+	@node scripts/seed-post-dates.mjs
+	@echo "Seeding vote dates..."
+	@node scripts/seed-vote-dates.mjs
 	@echo "Done. Run 'make dev' to start the server."
 
 docker_up:

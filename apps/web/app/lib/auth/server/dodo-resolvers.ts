@@ -10,7 +10,7 @@ export function resolveDodoPlan(e: Env, productId: string): string {
     return "starter";
   if (productId === e.DODO_PRO_MONTHLY_PRODUCT_ID || productId === e.DODO_PRO_ANNUAL_PRODUCT_ID)
     return "professional";
-  return "starter";
+  throw new Error(`Unknown Dodo product ID: ${productId}`);
 }
 
 export function resolveDodoInterval(e: Env, productId: string): string {

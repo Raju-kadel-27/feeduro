@@ -1,4 +1,4 @@
-import { and, eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { getDb } from "@/db";
 import { subscription } from "@/db/schema";
 
@@ -21,9 +21,14 @@ export async function getOrgPlanLimits(organizationId: string): Promise<PlanLimi
   const activeSub = await db.query.subscription.findFirst({
     where: and(
       eq(subscription.referenceId, organizationId),
-      or(eq(subscription.status, "active"), eq(subscription.status, "trialing")),
+      or(
+        eq(subscription.status, "active"),
+        eq(subscription.status, "trialing"),
+        eq(subscription.status, "past_due"),
+      ),
     ),
     columns: { plan: true },
+    orderBy: [desc(subscription.periodEnd)],
   });
 
   const plan = activeSub?.plan?.toLowerCase() ?? "free";

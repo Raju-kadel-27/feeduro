@@ -45,7 +45,13 @@ const envSchema = z.object({
   GROQ_API_KEY: z.string().optional(),
   // Comma-separated list of user IDs with platform-admin access (impersonation, admin-users page)
   PLATFORM_ADMIN_USER_IDS: z.string().optional(),
-});
+}).refine(
+  (data) => !(data.DODO_PAYMENTS_API_KEY && !data.DODO_PAYMENTS_WEBHOOK_SECRET),
+  {
+    message: "DODO_PAYMENTS_WEBHOOK_SECRET must be set when DODO_PAYMENTS_API_KEY is present — without it, payments will process but subscriptions will never activate",
+    path: ["DODO_PAYMENTS_WEBHOOK_SECRET"],
+  },
+);
 
 export const getEnv = () => {
   if (typeof window !== "undefined") {

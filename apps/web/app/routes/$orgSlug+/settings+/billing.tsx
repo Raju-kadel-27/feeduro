@@ -14,6 +14,7 @@ import { and, desc, eq, or } from "drizzle-orm";
 import { CheckIcon, CreditCard, ExternalLinkIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useFetcher, useRevalidator, useSearchParams } from "react-router";
+import { z } from "zod";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "@/db";
 import { subscription } from "@/db/schema";
@@ -102,7 +103,11 @@ export async function action({ request, params }: Route.ActionArgs) {
   const env = getEnv();
   const db = getDb();
   const formData = await request.formData();
-  const intent = formData.get("intent") as string;
+  const intentResult = z
+    .enum(["dodo-checkout", "dodo-change-plan", "dodo-cancel"])
+    .safeParse(formData.get("intent"));
+  if (!intentResult.success) return { ok: false, error: "Invalid intent" };
+  const intent = intentResult.data;
   const returnUrl = `${new URL(request.url).origin}${new URL(request.url).pathname}`;
 
   const dodoProductIds = {
@@ -117,8 +122,12 @@ export async function action({ request, params }: Route.ActionArgs) {
   };
 
   if (intent === "dodo-checkout") {
-    const plan = formData.get("plan") as Exclude<PlanId, "free">;
-    const interval = formData.get("interval") as BillingInterval;
+    const planResult = z.enum(["starter", "professional"]).safeParse(formData.get("plan"));
+    const intervalResult = z.enum(["monthly", "annual"]).safeParse(formData.get("interval"));
+    if (!planResult.success || !intervalResult.success)
+      return { ok: false, error: "Invalid plan or interval" };
+    const plan = planResult.data;
+    const interval = intervalResult.data;
     const productId = dodoProductIds[plan]?.[interval];
     if (!productId) return { ok: false, error: "Product not configured" };
 
@@ -132,8 +141,12 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   if (intent === "dodo-change-plan") {
-    const plan = formData.get("plan") as Exclude<PlanId, "free">;
-    const interval = formData.get("interval") as BillingInterval;
+    const planResult = z.enum(["starter", "professional"]).safeParse(formData.get("plan"));
+    const intervalResult = z.enum(["monthly", "annual"]).safeParse(formData.get("interval"));
+    if (!planResult.success || !intervalResult.success)
+      return { ok: false, error: "Invalid plan or interval" };
+    const plan = planResult.data;
+    const interval = intervalResult.data;
     const productId = dodoProductIds[plan]?.[interval];
     if (!productId) return { ok: false, error: "Product not configured" };
 
@@ -153,10 +166,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
     if (result.error) return { ok: false, error: result.error };
 
-    await db
-      .update(subscription)
-      .set({ plan, billingInterval: interval })
-      .where(eq(subscription.dodoSubscriptionId, activeSub.dodoSubscriptionId));
+    // DB state is updated authoritatively by onSubscriptionUpdated webhook — do not write here.
     return redirect(`${returnUrl}?upgraded=true`);
   }
 
@@ -217,7 +227,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
 
   // Poll until the webhook has been processed and the subscription row appears (max 10 retries = 20s)
   useEffect(() => {
-    if (!justUpgraded || activeSub) {
+    if (!justUpgraded) {
       pollCountRef.current = 0;
       return;
     }
@@ -226,7 +236,7 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
     pollCountRef.current++;
     const id = setTimeout(revalidate, 2000);
     return () => clearTimeout(id);
-  }, [justUpgraded, activeSub, state, revalidate]);
+  }, [justUpgraded, state, revalidate]);
 
   const currentPlan = planFromSub(activeSub?.plan);
   const isTrialing = activeSub?.status === "trialing";

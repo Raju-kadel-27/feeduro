@@ -1,26 +1,14 @@
 import { timeAgo } from "@features/feedback/utils";
 import { cn } from "@lib/utils";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useFetcher } from "react-router";
-
-type Voter = {
-  name: string | null;
-  email: string;
-  plan: string | null;
-  role: string | null;
-  location: string | null;
-  mrr: number | null;
-  votedAt: string;
-};
+import { useState } from "react";
+import type { Voter } from "../hooks/use-voter-data";
 
 function formatMrr(amount: number): string {
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
   if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;
   return `$${amount}`;
 }
-
-type LoaderData = { voters: Voter[] };
 
 const AVATAR_COLORS = [
   "bg-blue-500", "bg-violet-500", "bg-emerald-500",
@@ -87,17 +75,18 @@ function SkeletonRow() {
   );
 }
 
-export function PostVotersPanel({ postId, voteCount }: { postId: string; voteCount: number }) {
-  const fetcher = useFetcher<LoaderData>();
+export function PostVotersPanel({
+  voters,
+  voteCount,
+  isLoading,
+}: {
+  voters: Voter[];
+  voteCount: number;
+  isLoading: boolean;
+}) {
   const [expanded, setExpanded] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
-  useEffect(() => {
-    fetcher.load(`/api/post-voters?postId=${postId}`);
-  }, [postId]);
-
-  const voters = fetcher.data?.voters ?? [];
-  const isLoading = fetcher.state === "loading" || !fetcher.data;
   const visible = showAll ? voters : voters.slice(0, 5);
   const hiddenCount = voters.length - 5;
 

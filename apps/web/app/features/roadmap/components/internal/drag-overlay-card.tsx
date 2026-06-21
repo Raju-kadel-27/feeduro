@@ -8,7 +8,7 @@ export function DragOverlayCard({ post }: { post: Post }) {
         {post.title}
       </p>
       {post.boardName && (
-        <span className="inline-flex self-start items-center px-1.5 py-0.5 rounded-full text-[10px] border border-border/80 text-muted-foreground font-medium">
+        <span className="inline-flex self-start items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border border-border/80 text-foreground">
           {post.boardName}
         </span>
       )}

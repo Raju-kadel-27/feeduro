@@ -6,13 +6,19 @@ import {
   SidebarMenuItem,
 } from "@components/ui/sidebar";
 import { ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Props = { orgSlug: string };
 
 export function PublicBoardLink({ orgSlug }: Props) {
-  const url = import.meta.env.DEV
-    ? `${typeof window !== "undefined" ? window.location.origin : ""}/${orgSlug}`
-    : `https://${orgSlug}.feeduro.com`;
+  const prodUrl = `https://${orgSlug}.feeduro.com`;
+  const [url, setUrl] = useState(import.meta.env.DEV ? `/${orgSlug}` : prodUrl);
+
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      setUrl(`${window.location.origin}/${orgSlug}`);
+    }
+  }, [orgSlug]);
   return (
     <SidebarGroup className="py-0">
       <SidebarGroupContent>

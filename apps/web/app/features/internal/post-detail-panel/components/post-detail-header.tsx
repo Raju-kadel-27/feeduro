@@ -1,38 +1,50 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@components/ui/alert-dialog";
+import { buttonVariants } from "@components/ui/button";
 import { ADMIN_STATUS_CONFIG } from "@features/feedback/constants";
 import type { AdminStatus } from "@features/feedback/schemas/admin";
-import { ArrowUpRight, Smile, X } from "lucide-react";
+import { cn } from "@lib/utils";
+import { ArrowUpRight, GitMerge, Smile, Trash2, X } from "lucide-react";
 import { Link } from "react-router";
-import type { useIntegrationLinks } from "../hooks/use-integration-links";
 import type { useOwnerPicker } from "../hooks/use-owner-picker";
 import type { useVoteStatus } from "../hooks/use-vote-status";
-import { AdminMenu } from "./post-admin-menu";
 import { OwnerPicker } from "./post-owner-picker";
 import { StatusPill } from "./post-status-pill";
 
 type VoteState = ReturnType<typeof useVoteStatus>;
-type Integrations = ReturnType<typeof useIntegrationLinks>;
 type OwnerState = ReturnType<typeof useOwnerPicker>;
 type StatusConfig = (typeof ADMIN_STATUS_CONFIG)[AdminStatus];
 
 export function PostDetailHeader({
   orgSlug,
   postId,
+  postTitle,
   isAdmin,
   hasMergedInto,
   vote,
-  integrations,
   owner,
   onMergeOpen,
+  onDeletePost,
   onClose,
 }: {
   orgSlug: string;
   postId: string;
+  postTitle: string;
   isAdmin: boolean;
   hasMergedInto: boolean;
   vote: VoteState;
-  integrations: Integrations;
   owner: OwnerState;
   onMergeOpen: () => void;
+  onDeletePost: () => void;
   onClose: () => void;
 }) {
   const cfg = ADMIN_STATUS_CONFIG[vote.status] as StatusConfig;
@@ -66,14 +78,45 @@ export function PostDetailHeader({
           <Smile className="h-3.5 w-3.5" />
           Share
         </button>
+        {isAdmin && !hasMergedInto && (
+          <button
+            type="button"
+            onClick={onMergeOpen}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <GitMerge className="h-3.5 w-3.5" />
+            Merge
+          </button>
+        )}
         {isAdmin && (
-          <AdminMenu
-            orgSlug={orgSlug}
-            hasMergedInto={hasMergedInto}
-            integrations={integrations}
-            onMergeOpen={onMergeOpen}
-            onClose={onClose}
-          />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-destructive hover:bg-muted transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete "{postTitle}"?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete the post and all its votes and comments. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onDeletePost}
+                  className={cn(buttonVariants({ variant: "destructive" }))}
+                >
+                  Delete post
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
         <button
           type="button"

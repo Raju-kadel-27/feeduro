@@ -53,7 +53,7 @@ export default function ChangelogEditor({ initialContent, onChange, editable = t
               ),
               {
                 title: "Image",
-                subtext: "Embed an image from a URL",
+                subtext: "Embed an image from a URL or upload",
                 onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "image" }),
                 group: "Media",
                 icon: <ImageIcon className="h-4 w-4" />,
@@ -62,7 +62,7 @@ export default function ChangelogEditor({ initialContent, onChange, editable = t
               },
               {
                 title: "Video",
-                subtext: "Embed a video from a URL (.mp4, .webm, …)",
+                subtext: "Embed a video from a URL or upload",
                 onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "video" }),
                 group: "Media",
                 icon: <VideoIcon className="h-4 w-4" />,

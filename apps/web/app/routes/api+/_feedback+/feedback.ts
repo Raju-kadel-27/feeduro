@@ -9,7 +9,7 @@ import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
 import { getDb } from "@/db";
-import { member } from "@/db/schema";
+import { feedbackPosts, member } from "@/db/schema";
 import type { Route } from "./+types/feedback";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -60,6 +60,15 @@ export async function action({ request, context }: Route.ActionArgs) {
         newOwnerId: parsed.data.ownerId ?? null,
       });
       if (result.error) return data({ error: result.error }, { status: 400 });
+      return data({ success: true });
+    }
+    case "delete": {
+      if (role !== "admin") return data({ error: "Forbidden" }, { status: 403 });
+      const parsed = z.object({ id: z.string().min(1) }).safeParse(rawBody);
+      if (!parsed.success) return data({ error: "Post id required" }, { status: 400 });
+      await db
+        .delete(feedbackPosts)
+        .where(and(eq(feedbackPosts.id, parsed.data.id), eq(feedbackPosts.organizationId, organizationId)));
       return data({ success: true });
     }
     default:

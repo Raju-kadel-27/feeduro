@@ -36,7 +36,7 @@ export function DraggableCard({
         }
       }}
       className={cn(
-        "group relative h-[130px] shrink-0 flex flex-col overflow-hidden",
+        "group relative h-[130px] shrink-0 flex flex-col overflow-hidden border-border/30",
         "cursor-grab active:cursor-grabbing select-none",
         "transition-shadow duration-150 hover:shadow-md",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
@@ -49,7 +49,7 @@ export function DraggableCard({
       {/* Title — fixed 2-line height */}
       <div className="shrink-0 px-3 pt-3 pr-8">
         <div className="h-10 overflow-hidden">
-          <p className="text-sm font-semibold leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors duration-150">
+          <p className="text-sm font-semibold leading-snug line-clamp-2 text-foreground/70 group-hover:text-primary transition-colors duration-150">
             {post.title}
           </p>
         </div>
@@ -78,7 +78,7 @@ export function DraggableCard({
 
         {/* Board name */}
         {post.boardName && (
-          <span className="ml-auto text-xs text-muted-foreground/80 truncate max-w-[96px]">
+          <span className="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border border-border/80 text-foreground truncate max-w-[96px]">
             {post.boardName}
           </span>
         )}

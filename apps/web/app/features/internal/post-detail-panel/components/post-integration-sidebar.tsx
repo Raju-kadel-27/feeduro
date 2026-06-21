@@ -35,9 +35,9 @@ function IssueActions({ onLink, onCreate, createLabel = "Create new issue", prov
   );
 }
 
-export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin, onOpenPost }: {
+/** Inner content without the <aside> wrapper — reusable in other sidebars. */
+export function IntegrationSections({ post, detailData, integrations, isAdmin }: {
   post: PostDetail; detailData: DetailData; integrations: Integrations; isAdmin: boolean;
-  onOpenPost?: (id: string) => void;
 }) {
   const [jiraModalOpen, setJiraModalOpen] = useState(false);
   const [linearModalOpen, setLinearModalOpen] = useState(false);
@@ -45,7 +45,6 @@ export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin
 
   const { linearMode, setLinearMode, jiraMode, setJiraMode, asanaMode, setAsanaMode } = integrations;
 
-  // When AdminMenu sets mode to "create", open the corresponding modal
   useEffect(() => {
     if (linearMode === "create") { setLinearModalOpen(true); setLinearMode(null); }
   }, [linearMode, setLinearMode]);
@@ -56,11 +55,8 @@ export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin
     if (asanaMode === "create") { setAsanaModalOpen(true); setAsanaMode(null); }
   }, [asanaMode, setAsanaMode]);
 
-  const hasAny = detailData.linearConnected || detailData.jiraConnected || detailData.asanaConnected;
-  if (!isAdmin || !hasAny) return null;
-
   return (
-    <aside className="w-[400px] shrink-0 border-l px-4 pt-4 pb-6 space-y-5 overflow-y-auto">
+    <>
       {detailData.linearConnected && (
         <SidebarSection icon={<LinearIcon size={14} />} title="Linear">
           {integrations.linearLink ? (
@@ -115,7 +111,19 @@ export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin
       <CreateAsanaTaskModal open={asanaModalOpen} defaultName={post.title} defaultNotes={post.description ?? ""}
         onClose={() => setAsanaModalOpen(false)} creating={integrations.creatingAsanaTask}
         onSubmit={(p) => { integrations.createAsanaTask(p); setAsanaModalOpen(false); }} />
+    </>
+  );
+}
 
+export function PostIntegrationSidebar({ post, detailData, integrations, isAdmin, onOpenPost }: {
+  post: PostDetail; detailData: DetailData; integrations: Integrations; isAdmin: boolean;
+  onOpenPost?: (id: string) => void;
+}) {
+  const hasAny = detailData.linearConnected || detailData.jiraConnected || detailData.asanaConnected;
+  if (!isAdmin || !hasAny) return null;
+  return (
+    <aside className="w-[400px] shrink-0 border-l px-4 pt-4 pb-6 space-y-5 overflow-y-auto">
+      <IntegrationSections post={post} detailData={detailData} integrations={integrations} isAdmin={isAdmin} />
     </aside>
   );
 }

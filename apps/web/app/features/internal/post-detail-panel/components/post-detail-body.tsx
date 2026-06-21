@@ -2,18 +2,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@compo
 import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import type { DetailData, PostDetail } from "@features/feedback/schemas/admin";
 import { timeAgo } from "@features/feedback/utils";
+import type { Segment } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
-import { Bot, ChevronUp, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { Bot, ChevronUp, GitMerge, RefreshCw } from "lucide-react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 import type { useCommentActions } from "../hooks/use-comment-actions";
 import type { useIntegrationLinks } from "../hooks/use-integration-links";
 import type { useMergeActions } from "../hooks/use-merge-actions";
 import type { useVoteStatus } from "../hooks/use-vote-status";
+import { useVoterData } from "../hooks/use-voter-data";
 import { type FeedItem, PostActivityFeed } from "./post-activity-feed";
 import { PostComposeFooter } from "./post-compose-footer";
-import { PostIntegrationSidebar } from "./post-integration-sidebar";
 import { PostMergedBanner } from "./post-merged-banner";
+import { PostSegmentSidebar } from "./post-segment-sidebar";
 import { PostVotersPanel } from "./post-voters-panel";
 
 type VoteState = ReturnType<typeof useVoteStatus>;
@@ -21,16 +23,29 @@ type CommentState = ReturnType<typeof useCommentActions>;
 type MergeState = ReturnType<typeof useMergeActions>;
 type IntegrationState = ReturnType<typeof useIntegrationLinks>;
 
-type Tab = "comments" | "voters";
+export type Tab = "comments" | "segments";
 
 export function PostDetailBody({
-  post, detailData, orgSlug, postId, isAdmin, vote, comments, merge, integrations, feed, totalComments, onClose, onOpenPost,
+  post, detailData, orgSlug, postId, isAdmin, vote, comments, merge, integrations,
+  feed, totalComments, segments, activeTab, onTabChange, onClose, onOpenPost,
 }: {
   post: PostDetail; detailData: DetailData; orgSlug: string; postId: string; isAdmin: boolean;
   vote: VoteState; comments: CommentState; merge: MergeState; integrations: IntegrationState;
-  feed: FeedItem[]; totalComments: number; onClose: () => void; onOpenPost?: (id: string) => void;
+  feed: FeedItem[]; totalComments: number; segments: Segment[];
+  activeTab: Tab; onTabChange: (tab: Tab) => void;
+  onClose: () => void; onOpenPost?: (id: string) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<Tab>("comments");
+  const { voters, isLoading: votersLoading } = useVoterData(postId, isAdmin);
+
+  type MergedActivity = Extract<FeedItem, { kind: "activity" }>;
+  const mergedPosts = useMemo(
+    () => feed.filter((item): item is MergedActivity => item.kind === "activity" && item.data.type === "merged"),
+    [feed],
+  );
+  const mainFeed = useMemo(
+    () => feed.filter((item) => !(item.kind === "activity" && item.data.type === "merged")),
+    [feed],
+  );
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -92,11 +107,11 @@ export function PostDetailBody({
             <div className="sticky top-0 bg-background z-10 border-b px-5">
               <div className="flex items-center justify-between max-w-2xl">
                 <div className="flex items-center">
-                  {(["comments", "voters"] as Tab[]).map((tab) => (
+                  {(["comments", "segments"] as Tab[]).map((tab) => (
                     <button
                       key={tab}
                       type="button"
-                      onClick={() => setActiveTab(tab)}
+                      onClick={() => onTabChange(tab)}
                       className={cn(
                         "px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors capitalize",
                         activeTab === tab
@@ -106,7 +121,7 @@ export function PostDetailBody({
                     >
                       {tab === "comments"
                         ? <>Comments{totalComments > 0 && <span className="ml-1.5 font-normal">{totalComments}</span>}</>
-                        : <>Voters{vote.voteCount > 0 && <span className="ml-1.5 font-normal">{vote.voteCount}</span>}</>
+                        : <>Segments{vote.voteCount > 0 && <span className="ml-1.5 font-normal">{vote.voteCount}</span>}</>
                       }
                     </button>
                   ))}
@@ -145,6 +160,30 @@ export function PostDetailBody({
           <div className="px-5 pt-3 pb-3 max-w-2xl">
             {activeTab === "comments" || !isAdmin ? (
               <div className="space-y-3">
+                {/* Merged posts — distinct block at top */}
+                {mergedPosts.length > 0 && (
+                  <div className="rounded-lg border border-violet-200/60 dark:border-violet-900/40 bg-violet-50/50 dark:bg-violet-950/15 px-3.5 py-3 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <GitMerge className="h-3.5 w-3.5 text-violet-500 shrink-0" />
+                      <span className="text-[11px] font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide">
+                        {mergedPosts.length === 1 ? "1 post merged" : `${mergedPosts.length} posts merged`}
+                      </span>
+                    </div>
+                    {mergedPosts.map(({ data }) => (
+                      <div key={data.id} className="flex items-start gap-1.5 text-xs flex-wrap pl-5">
+                        <span className="font-medium text-foreground/80">{data.userName ?? "Someone"}</span>
+                        <span className="text-muted-foreground">merged</span>
+                        <span className="font-medium text-foreground/90 italic">
+                          &ldquo;{data.oldValue ?? "a post"}&rdquo;
+                        </span>
+                        <span className="text-muted-foreground">into this post</span>
+                        <span className="text-muted-foreground/50">·</span>
+                        <span className="text-muted-foreground">{timeAgo(data.createdAt)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {comments.summary && (
                   <div className="rounded-lg border bg-primary/5 border-primary/20 px-3.5 py-3 space-y-1.5">
                     <div className="flex items-center gap-1.5">
@@ -160,7 +199,7 @@ export function PostDetailBody({
                   </div>
                 )}
                 <PostActivityFeed
-                  feed={feed} isAdmin={isAdmin} replyingTo={comments.replyingTo}
+                  feed={mainFeed} isAdmin={isAdmin} replyingTo={comments.replyingTo}
                   replyBodies={comments.replyBodies} replying={comments.replying}
                   onSetReplyingTo={comments.setReplyingTo}
                   onReplyBodyChange={(id, body) => comments.setReplyBodies((prev) => ({ ...prev, [id]: body }))}
@@ -169,19 +208,29 @@ export function PostDetailBody({
                 />
               </div>
             ) : (
-              <PostVotersPanel postId={postId} voteCount={vote.voteCount} />
+              <PostVotersPanel voters={voters} voteCount={vote.voteCount} isLoading={votersLoading} />
             )}
             <div className="h-2" />
           </div>
         </div>
 
-        {/* Compose footer — hidden on voters tab */}
+        {/* Compose footer — hidden on segments tab */}
         {(activeTab === "comments" || !isAdmin) && (
           <PostComposeFooter post={post} comments={comments} isAdmin={isAdmin} />
         )}
       </div>
 
-      <PostIntegrationSidebar post={post} detailData={detailData} integrations={integrations} isAdmin={isAdmin} onOpenPost={onOpenPost} />
+      {/* ── Right column ─────────────────────────────────────────────────── */}
+      <PostSegmentSidebar
+        voters={voters}
+        voteCount={vote.voteCount}
+        segments={segments}
+        isLoading={votersLoading}
+        post={post}
+        detailData={detailData}
+        integrations={integrations}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }

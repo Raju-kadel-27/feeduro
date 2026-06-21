@@ -304,6 +304,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
           key={selectedPostId}
           postId={selectedPostId}
           orgSlug={orgSlug}
+          segments={segments}
           onClose={() => setSelectedPostId(null)}
           onDataChange={() => qc.invalidateQueries({ queryKey: ["feedback", "all", orgSlug] })}
           onOpenPost={setSelectedPostId}

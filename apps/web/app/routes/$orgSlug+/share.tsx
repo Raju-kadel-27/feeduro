@@ -88,7 +88,7 @@ function CopyBtn({
   text: string;
   label?: string;
   className?: string;
-  variant?: "ghost" | "primary";
+  variant?: "ghost" | "primary" | "secondary";
 }) {
   const [copied, setCopied] = useState(false);
   function handleCopy() {
@@ -105,7 +105,9 @@ function CopyBtn({
         "inline-flex items-center gap-1.5 rounded-md text-sm border transition-colors shrink-0",
         variant === "ghost"
           ? "px-2.5 h-7 border-border text-muted-foreground hover:text-foreground hover:bg-muted"
-          : "px-3 h-8 border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
+          : variant === "secondary"
+            ? "px-3 h-8 border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            : "px-3 h-8 border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
         className,
       )}
     >
@@ -209,7 +211,6 @@ function MessageCard({
 
 export default function SharePage({ loaderData }: Route.ComponentProps) {
   const { org, userName, publicBoardUrl, links } = loaderData;
-  const [socialOpen, setSocialOpen] = useState(false);
 
   // ── Social share URLs ──────────────────────────────────────────────────────
   // Twitter: text + url as separate params so Twitter counts the URL as 23 chars
@@ -306,9 +307,8 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+      <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
-        <span className="text-sm font-medium">Share</span>
       </header>
 
       <main className="p-6 max-w-3xl mx-auto w-full space-y-8 pb-16">
@@ -337,7 +337,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
               {publicBoardUrl}
             </span>
             <div className="flex items-center gap-1.5 shrink-0">
-              <CopyBtn text={publicBoardUrl} label="Copy link" variant="primary" />
+              <CopyBtn text={publicBoardUrl} label="Copy link" variant="secondary" />
               <a
                 href={publicBoardUrl}
                 target="_blank"
@@ -352,27 +352,14 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
 
           {/* Social share — collapsed by default */}
           <div>
-            <button
-              type="button"
-              onClick={() => setSocialOpen((v) => !v)}
-              aria-expanded={socialOpen}
-              className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3 hover:text-foreground transition-colors"
-            >
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3">
               Share on social
-              <ChevronDown
-                className={cn(
-                  "h-3.5 w-3.5 transition-transform duration-150",
-                  socialOpen && "rotate-180",
-                )}
-              />
-            </button>
-            {socialOpen && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {socials.map((s) => (
-                  <SocialBtn key={s.label} {...s} />
-                ))}
-              </div>
-            )}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {socials.map((s) => (
+                <SocialBtn key={s.label} {...s} />
+              ))}
+            </div>
           </div>
         </section>
 

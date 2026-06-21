@@ -1,5 +1,5 @@
+import { SidebarTrigger } from "@components/ui/sidebar";
 import { useLoaderData } from "react-router";
-import { PageTitle } from "@/app/components/common/page-title";
 import type { IntegrationsLoaderData } from "../server/loader";
 import { AutomationIntegrations } from "./automation-integrations";
 import { CrmIntegrations } from "./crm-integrations";
@@ -12,7 +12,9 @@ export default function IntegrationsSettings() {
   const loaderData = useLoaderData() as IntegrationsLoaderData;
   return (
     <>
-      <PageTitle title="Integrations" />
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
         <IntegrationsPageHeader />
         <ProjectManagementIntegrations loaderData={loaderData} />

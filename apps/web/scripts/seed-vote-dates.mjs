@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Load DATABASE_URL from apps/web/.env
 // ---------------------------------------------------------------------------
 function loadEnv() {
-  const envPath = resolve(__dirname, "../apps/web/.env");
+  const envPath = resolve(__dirname, "../.env");
   const raw = readFileSync(envPath, "utf8");
   for (const line of raw.split("\n")) {
     const trimmed = line.trim();
@@ -34,7 +34,7 @@ function loadEnv() {
 loadEnv();
 
 // pg lives in apps/web/node_modules — resolve from there
-const require = createRequire(resolve(__dirname, "../apps/web/package.json"));
+const require = createRequire(resolve(__dirname, "../package.json"));
 const { Client } = require("pg");
 
 const DRY_RUN = process.argv.includes("--dry-run");

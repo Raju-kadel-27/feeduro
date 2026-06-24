@@ -1,5 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { SegmentActionSchema } from "@features/internal/segmentation/schemas/segment";
+import { SegmentActionSchema, SegmentFiltersSchema } from "@features/internal/segmentation/schemas/segment";
 import {
   createSegment,
   deleteSegment,
@@ -16,6 +16,22 @@ import type { Route } from "./+types/segments";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const { organizationId } = await requireOrganization(request);
+  const url = new URL(request.url);
+  const filtersParam = url.searchParams.get("filters");
+
+  if (filtersParam) {
+    let raw: unknown;
+    try {
+      raw = JSON.parse(filtersParam);
+    } catch {
+      return data({ count: 0 });
+    }
+    const parsed = SegmentFiltersSchema.safeParse(raw);
+    if (!parsed.success) return data({ count: 0 });
+    const counts = await getSegmentMemberCounts(organizationId, [{ id: "preview", filters: parsed.data }]);
+    return data({ count: counts.preview ?? 0 });
+  }
+
   const segmentList = await getOrgSegments(organizationId);
   const memberCounts = await getSegmentMemberCounts(organizationId, segmentList);
   const segments = segmentList.map((s) => ({ ...s, memberCount: memberCounts[s.id] ?? 0 }));

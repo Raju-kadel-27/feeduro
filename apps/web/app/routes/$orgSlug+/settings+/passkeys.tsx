@@ -146,7 +146,7 @@ export default function PasskeysSettings() {
               type="button"
               onClick={handleAdd}
               disabled={adding}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
             >
               <Plus size={16} />
               {adding ? "Registering…" : "Add Passkey"}

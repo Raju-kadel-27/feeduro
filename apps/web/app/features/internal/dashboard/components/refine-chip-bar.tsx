@@ -154,7 +154,7 @@ export function RefineChipBar({
             <button
               type="button"
               onClick={onNewRequest}
-              className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg text-[15px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
             >
               <span className="text-base leading-none">+</span>
               New feedback

@@ -87,7 +87,7 @@ export function SaveAsViewPopover({
           <button
             type="submit"
             disabled={!name.trim()}
-            className="flex-1 px-3 py-1.5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 disabled:opacity-50 transition-colors"
+            className="flex-1 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
             Create view
           </button>
@@ -158,7 +158,7 @@ export function NewViewForm({ onSave, onCancel }: NewViewFormProps) {
           type="button"
           disabled={!name.trim()}
           onClick={() => name.trim() && onSave(name.trim(), emoji)}
-          className="flex-1 px-3 py-1.5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 disabled:opacity-50 transition-colors"
+          className="flex-1 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
           Create view
         </button>

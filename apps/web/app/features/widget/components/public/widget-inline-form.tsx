@@ -82,7 +82,7 @@ export function WidgetInlineForm({ boardId, orgSlug, widgetToken, identity, onSu
           type="button"
           onClick={handleSubmit}
           disabled={!title.trim() || submitting}
-          className="px-4 py-1.5 rounded-md bg-foreground text-background text-[12px] font-semibold hover:bg-foreground/90 disabled:opacity-40 transition-colors"
+          className="px-4 py-1.5 rounded-md bg-primary text-primary-foreground text-[12px] font-semibold hover:bg-primary/90 disabled:opacity-40 transition-colors"
         >
           {submitting ? "Posting…" : "Post"}
         </button>

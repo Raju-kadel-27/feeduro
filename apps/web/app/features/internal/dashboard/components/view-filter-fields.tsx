@@ -83,7 +83,7 @@ function Chips({
               className={cn(
                 "rounded-md border px-2.5 py-1 text-[12.5px] transition-colors",
                 active
-                  ? "border-foreground bg-foreground text-background"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : "border-border text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground",
               )}
             >
@@ -124,7 +124,7 @@ function RadioChips({
               className={cn(
                 "rounded-md border px-2.5 py-1 text-[12.5px] transition-colors",
                 active
-                  ? "border-foreground bg-foreground text-background"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : "border-border text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground",
               )}
             >

@@ -70,7 +70,7 @@ export function TwoFactorSettingsPanel() {
               <button
                 type="button"
                 onClick={openEnableDialog}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap shrink-0"
               >
                 Enable
               </button>

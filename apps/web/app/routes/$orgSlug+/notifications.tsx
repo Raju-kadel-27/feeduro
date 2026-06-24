@@ -101,7 +101,7 @@ export default function NotificationsPage() {
                   className={cn(
                     "flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors",
                     filter === tab.value
-                      ? "bg-foreground text-background"
+                      ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",
                   )}
                 >

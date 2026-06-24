@@ -165,7 +165,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
               <button
                 type="button"
                 onClick={() => setShowInvite(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 Invite Member

@@ -209,7 +209,7 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
                     className={cn(
                       "inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
                       isAdmin && configured
-                        ? "bg-foreground text-background hover:bg-foreground/90"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "bg-muted text-muted-foreground cursor-not-allowed",
                     )}
                   >
@@ -264,7 +264,7 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
                     type="button"
                     onClick={() => saveSettings()}
                     disabled={saving}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
                     {saving ? (
                       <>

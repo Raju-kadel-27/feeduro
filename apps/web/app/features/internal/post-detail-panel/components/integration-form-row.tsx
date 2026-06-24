@@ -69,7 +69,7 @@ export function IntegrationFormRow({
         type="button"
         onClick={onLink}
         disabled={linking || !input.trim()}
-        className="px-2.5 py-1 text-xs font-medium bg-foreground text-background rounded-md disabled:opacity-50"
+        className="px-2.5 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-md disabled:opacity-50"
       >
         {linking ? "Linking…" : "Link"}
       </button>

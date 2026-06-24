@@ -47,7 +47,7 @@ export function AuditLogPage({ rows, total, page, pageCount, category }: Props) 
           onClick={() => handleCategory(undefined)}
           className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
             !activeCategory
-              ? "bg-foreground text-background border-foreground"
+              ? "bg-primary text-primary-foreground border-primary"
               : "bg-background text-muted-foreground border-border hover:bg-muted"
           }`}
         >
@@ -60,7 +60,7 @@ export function AuditLogPage({ rows, total, page, pageCount, category }: Props) 
             onClick={() => handleCategory(key)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
               activeCategory === key
-                ? "bg-foreground text-background border-foreground"
+                ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background text-muted-foreground border-border hover:bg-muted"
             }`}
           >

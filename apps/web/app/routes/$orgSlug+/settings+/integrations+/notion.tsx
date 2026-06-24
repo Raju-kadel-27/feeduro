@@ -196,7 +196,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
                   </p>
                   <a
                     href="/api/notion?intent=connect"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-foreground text-background hover:bg-foreground/90 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     <NotionIcon size={14} />
                     Connect Notion
@@ -308,7 +308,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
                   type="button"
                   onClick={() => saveSettings()}
                   disabled={saving}
-                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
                   {saving ? (
                     <>

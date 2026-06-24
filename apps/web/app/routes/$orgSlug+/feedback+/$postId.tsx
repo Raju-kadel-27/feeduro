@@ -2176,7 +2176,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     type="button"
                     onClick={() => linkJiraIssue(linkJiraInput.trim())}
                     disabled={linkingJiraIssue || !linkJiraInput.trim()}
-                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-foreground text-background rounded-md disabled:opacity-50 transition-colors"
+                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-md disabled:opacity-50 transition-colors"
                   >
                     {linkingJiraIssue ? "Linking…" : "Link"}
                   </button>
@@ -2343,7 +2343,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     type="button"
                     onClick={() => linkAsanaTask(linkAsanaInput.trim())}
                     disabled={linkingAsanaTask || !linkAsanaInput.trim()}
-                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-foreground text-background rounded-md disabled:opacity-50 transition-colors"
+                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-md disabled:opacity-50 transition-colors"
                   >
                     {linkingAsanaTask ? "Linking…" : "Link"}
                   </button>
@@ -2512,7 +2512,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     type="button"
                     onClick={() => linkShortcutStory(linkShortcutInput.trim())}
                     disabled={linkingShortcutStory || !linkShortcutInput.trim()}
-                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-foreground text-background rounded-md disabled:opacity-50 transition-colors"
+                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-md disabled:opacity-50 transition-colors"
                   >
                     {linkingShortcutStory ? "Linking…" : "Link"}
                   </button>
@@ -2679,7 +2679,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     type="button"
                     onClick={() => linkLinearIssue(linkIssueInput.trim())}
                     disabled={linkingLinearIssue || !linkIssueInput.trim()}
-                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-foreground text-background rounded-md disabled:opacity-50 transition-colors"
+                    className="flex-1 px-2.5 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-md disabled:opacity-50 transition-colors"
                   >
                     {linkingLinearIssue ? "Linking…" : "Link"}
                   </button>
@@ -2776,7 +2776,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
           <button
             type="button"
             onClick={() => updateStatus(nextStatus)}
-            className="flex items-center gap-1.5 px-6 py-2 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+            className="flex items-center gap-1.5 px-6 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             Mark {STATUS_CONFIG[nextStatus].label}
           </button>

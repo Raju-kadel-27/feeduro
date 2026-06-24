@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { createHash } from "node:crypto";
 import { createId } from "@paralleldrive/cuid2";
 import { hashPassword } from "better-auth/crypto";
 import { eq } from "drizzle-orm";
@@ -7,6 +8,7 @@ import { Pool } from "pg";
 
 import * as schema from "./schema";
 import {
+  boardViews,
   changelogs,
   changelogTags,
   comments,
@@ -148,6 +150,7 @@ async function seed() {
   await db.delete(widgetConfigs).where(eq(widgetConfigs.organizationId, orgId));
   await db.delete(segments).where(eq(segments.organizationId, orgId));
   await db.delete(userProfiles).where(eq(userProfiles.organizationId, orgId));
+  await db.delete(boardViews).where(eq(boardViews.organizationId, orgId));
 
   // ── 3. Members ───────────────────────────────────────────────────────────
 
@@ -1860,6 +1863,47 @@ async function seed() {
 
   console.log(`✅ Created ${segmentDefs.length} segments`);
 
+  // ── 17. Board Views (traffic analytics) ──────────────────────────────────
+  // 60 deterministic visitor hashes simulating unique browser fingerprints.
+  // Per-day config mirrors a realistic growing-product traffic pattern.
+
+  const VISITOR_HASHES = Array.from({ length: 60 }, (_, i) =>
+    createHash("sha256").update(`feeduro-seed-visitor-${i}`).digest("hex"),
+  );
+
+  const boardViewDayConfigs = [
+    { daysAgo: 6, views: 28, uniques: 18 },
+    { daysAgo: 5, views: 37, uniques: 24 },
+    { daysAgo: 4, views: 54, uniques: 33 },
+    { daysAgo: 3, views: 43, uniques: 27 },
+    { daysAgo: 2, views: 66, uniques: 41 },
+    { daysAgo: 1, views: 51, uniques: 32 },
+    { daysAgo: 0, views: 38, uniques: 24 },
+  ];
+
+  const boardViewRows = [];
+  for (const { daysAgo, views, uniques } of boardViewDayConfigs) {
+    const dayStart = new Date();
+    dayStart.setDate(dayStart.getDate() - daysAgo);
+    dayStart.setHours(7, 0, 0, 0); // spread 7 am → 10 pm (15 h window)
+
+    const dayVisitors = VISITOR_HASHES.slice(0, uniques);
+    const windowMs = 15 * 60 * 60 * 1000;
+
+    for (let i = 0; i < views; i++) {
+      boardViewRows.push({
+        organizationId: orgId,
+        // first N views per day are from logged-in users, rest anonymous
+        userId: i < allUserIds.length ? allUserIds[i] : null,
+        visitorHash: dayVisitors[i % uniques],
+        createdAt: new Date(dayStart.getTime() + Math.floor((i / views) * windowMs)),
+      });
+    }
+  }
+
+  await db.insert(boardViews).values(boardViewRows);
+  console.log(`✅ Created ${boardViewRows.length} board views across 7 days`);
+
   // ── Done ─────────────────────────────────────────────────────────────────
 
   console.log(`
@@ -1872,6 +1916,7 @@ async function seed() {
   Views:     ${viewDefs.length} feedback views (5 system + 1 custom)
   Segments:  ${segmentDefs.length} segments  |  ${profileDefs.length} user profiles (5 linked + 20 external)
   Dev data:  2 webhook endpoints  |  3 GitHub external links  |  1 GitHub integration
+  Traffic:   ${boardViewRows.length} board views across last 7 days
 `);
 
   await pool.end();

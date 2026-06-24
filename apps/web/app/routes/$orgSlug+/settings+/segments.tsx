@@ -1,14 +1,21 @@
 import { PageHeader } from "@components/common/page-header";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
+import { FilterChips } from "@features/internal/segmentation/components/filter-chips";
+import type { SegmentFormState } from "@features/internal/segmentation/components/segment-form";
+import {
+  defaultForm,
+  filtersFromForm,
+  formFromSegment,
+  SegmentForm,
+} from "@features/internal/segmentation/components/segment-form";
 import { getOrgSegments } from "@features/internal/segmentation/server/service";
-import type { Segment, SegmentFilters } from "@features/internal/segmentation/types";
+import type { Segment } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Check, Layers, Pencil, Plus, Trash2, Upload, Users2, X } from "lucide-react";
+import { Layers, Pencil, Plus, Trash2, Upload, Users2 } from "lucide-react";
 import { useState } from "react";
 import { useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -37,192 +44,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     isAdmin: memberRecord?.role === "admin",
     segments: segmentList,
   };
-}
-
-const PLAN_OPTIONS = ["free", "trial", "paying", "churned"];
-const COLOR_OPTIONS = [
-  "#6366f1",
-  "#8b5cf6",
-  "#ec4899",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#06b6d4",
-  "#64748b",
-];
-
-interface SegmentFormState {
-  name: string;
-  color: string;
-  plan: string[];
-  role: string;
-  industry: string;
-  location: string;
-  minCompanySize: string;
-  maxCompanySize: string;
-}
-
-const defaultForm = (): SegmentFormState => ({
-  name: "",
-  color: "#6366f1",
-  plan: [],
-  role: "",
-  industry: "",
-  location: "",
-  minCompanySize: "",
-  maxCompanySize: "",
-});
-
-function filtersFromForm(form: SegmentFormState): SegmentFilters {
-  const filters: SegmentFilters = {};
-  if (form.plan.length) filters.plan = form.plan;
-  if (form.role.trim()) filters.role = [form.role.trim()];
-  if (form.industry.trim()) filters.industry = [form.industry.trim()];
-  if (form.location.trim()) filters.location = [form.location.trim()];
-  const min = Number.parseInt(form.minCompanySize, 10);
-  const max = Number.parseInt(form.maxCompanySize, 10);
-  if (!Number.isNaN(min) && min > 0) filters.minCompanySize = min;
-  if (!Number.isNaN(max) && max > 0) filters.maxCompanySize = max;
-  return filters;
-}
-
-function formFromSegment(seg: Segment): SegmentFormState {
-  return {
-    name: seg.name,
-    color: seg.color,
-    plan: seg.filters.plan ?? [],
-    role: seg.filters.role?.[0] ?? "",
-    industry: seg.filters.industry?.[0] ?? "",
-    location: seg.filters.location?.[0] ?? "",
-    minCompanySize: seg.filters.minCompanySize?.toString() ?? "",
-    maxCompanySize: seg.filters.maxCompanySize?.toString() ?? "",
-  };
-}
-
-function SegmentForm({
-  initial,
-  onSave,
-  onCancel,
-}: {
-  initial: SegmentFormState;
-  onSave: (form: SegmentFormState) => void;
-  onCancel: () => void;
-}) {
-  const [form, setForm] = useState<SegmentFormState>(initial);
-
-  function togglePlan(p: string) {
-    setForm((f) => ({
-      ...f,
-      plan: f.plan.includes(p) ? f.plan.filter((x) => x !== p) : [...f.plan, p],
-    }));
-  }
-
-  return (
-    <div className="space-y-4 p-4 rounded-lg border border-border bg-muted/40">
-      <div className="flex items-center gap-3">
-        <div className="flex gap-1.5 flex-wrap">
-          {COLOR_OPTIONS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, color: c }))}
-              className={cn(
-                "h-5 w-5 rounded-full transition-transform",
-                form.color === c && "ring-2 ring-offset-1 ring-ring scale-110",
-              )}
-              style={{ backgroundColor: c }}
-            />
-          ))}
-        </div>
-        <input
-          type="text"
-          placeholder="Segment name (e.g. Paying customers)"
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          className="flex-1 px-3 py-1.5 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-        />
-      </div>
-
-      <div>
-        <p className="text-xs text-muted-foreground font-medium mb-1.5">Customer plan</p>
-        <div className="flex flex-wrap gap-1.5">
-          {PLAN_OPTIONS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => togglePlan(p)}
-              className={cn(
-                "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
-                form.plan.includes(p)
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-              )}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        {(["role", "industry", "location"] as const).map((field) => (
-          <label key={field} className="block">
-            <span className="text-xs text-muted-foreground font-medium capitalize block mb-1">
-              {field}
-            </span>
-            <input
-              type="text"
-              placeholder={`e.g. ${field === "role" ? "founder" : field === "industry" ? "SaaS" : "North America"}`}
-              value={form[field]}
-              onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-              className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-          </label>
-        ))}
-      </div>
-
-      <div>
-        <p className="text-xs text-muted-foreground font-medium mb-1.5">Company size (employees)</p>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min={1}
-            placeholder="Min"
-            value={form.minCompanySize}
-            onChange={(e) => setForm((f) => ({ ...f, minCompanySize: e.target.value }))}
-            className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-          <span className="text-xs text-muted-foreground shrink-0">to</span>
-          <input
-            type="number"
-            min={1}
-            placeholder="Max"
-            value={form.maxCompanySize}
-            onChange={(e) => setForm((f) => ({ ...f, maxCompanySize: e.target.value }))}
-            className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md border border-border hover:bg-accent transition-colors"
-        >
-          <X className="h-3.5 w-3.5" /> Cancel
-        </button>
-        <button
-          type="button"
-          disabled={!form.name.trim()}
-          onClick={() => onSave(form)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
-        >
-          <Check className="h-3.5 w-3.5" /> Save segment
-        </button>
-      </div>
-    </div>
-  );
 }
 
 export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
@@ -262,25 +83,24 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
     onError: (e) => toast.error(e.message),
   });
 
+  function startCreating() {
+    setEditingSegment(null);
+    setCreating(true);
+  }
+
+  function startEditing(seg: Segment) {
+    setCreating(false);
+    setEditingSegment(seg);
+  }
+
   function handleCreate(form: SegmentFormState) {
-    mutate({
-      intent: "create",
-      name: form.name,
-      color: form.color,
-      filters: filtersFromForm(form),
-    });
+    mutate({ intent: "create", name: form.name, color: form.color, filters: filtersFromForm(form) });
     setCreating(false);
     toast.success("Segment created");
   }
 
   function handleUpdate(id: string, form: SegmentFormState) {
-    mutate({
-      intent: "update",
-      id,
-      name: form.name,
-      color: form.color,
-      filters: filtersFromForm(form),
-    });
+    mutate({ intent: "update", id, name: form.name, color: form.color, filters: filtersFromForm(form) });
     setEditingSegment(null);
     toast.success("Segment updated");
   }
@@ -292,13 +112,13 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-        <>
-        <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
+    <>
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
 
-        <main className="p-6 space-y-8">
-          <div className="max-w-[840px] mx-auto w-full">
+      <main className="p-6 space-y-8">
+        <div className="max-w-[840px] mx-auto w-full">
           <PageHeader
             title="Segments"
             icon={Users2}
@@ -313,7 +133,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCreating(true)}
+                  onClick={startCreating}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   <Plus className="h-4 w-4" /> New segment
@@ -321,10 +141,34 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
               </div>
             ) : undefined}
           />
-          </div>
-          <div className="max-w-[840px] mx-auto w-full space-y-4">
-              <div className="rounded-lg border border-border p-4 text-sm bg-muted/30">
-              <p className="font-medium text-foreground mb-1">Identify users via API</p>
+        </div>
+
+        <div className="max-w-[840px] mx-auto w-full space-y-4">
+          {/* Inline create form */}
+          {creating && (
+            <div className="rounded-lg border border-border p-4 bg-muted/40 animate-in slide-in-from-top-2 fade-in duration-150">
+              <p className="text-sm font-medium mb-4">New segment</p>
+              <SegmentForm
+                initial={defaultForm()}
+                onSave={handleCreate}
+                onCancel={() => setCreating(false)}
+              />
+            </div>
+          )}
+
+          {/* API reference — collapsed by default */}
+          <details className="rounded-lg border border-border text-sm bg-muted/30 group">
+            <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-medium text-foreground select-none">
+              <span>Identify users via API</span>
+              <svg
+                className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </summary>
+            <div className="px-4 pb-4">
               <p className="text-muted-foreground text-[13px] mb-2">
                 Push customer traits from your backend using your API key:
               </p>
@@ -342,22 +186,27 @@ Authorization: Bearer <your-api-key>
   }
 }`}</pre>
             </div>
+          </details>
 
-            {segments.length === 0 ? (
-              <Empty className="border border-border">
-                <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Layers /></EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>No segments yet</EmptyTitle>
-                  <EmptyDescription>Create a segment to filter feedback by customer traits.</EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <div className="space-y-2">
-                {segments.map((seg) => (
-                  <div
-                    key={seg.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
-                  >
+          {segments.length === 0 && !creating ? (
+            <Empty className="border border-border">
+              <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Layers /></EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No segments yet</EmptyTitle>
+                <EmptyDescription>Create a segment to filter feedback by customer traits.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <div className="space-y-2">
+              {segments.map((seg) => (
+                <div
+                  key={seg.id}
+                  className={cn(
+                    "rounded-lg border border-border overflow-hidden bg-card",
+                    editingSegment?.id === seg.id && "border-primary/40",
+                  )}
+                >
+                  <div className="flex items-center gap-3 p-3">
                     <span
                       className="h-3 w-3 rounded-full shrink-0"
                       style={{ backgroundColor: seg.color }}
@@ -372,21 +221,26 @@ Authorization: Bearer <your-api-key>
                           </span>
                         )}
                       </div>
-                      <p className="text-[12px] text-muted-foreground truncate">
-                        {describeFilters(seg.filters)}
-                      </p>
+                      <FilterChips filters={seg.filters} />
                     </div>
                     {loaderData.isAdmin && (
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           type="button"
-                          onClick={() => setEditingSegment(seg)}
-                          className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label={`Edit segment ${seg.name}`}
+                          onClick={() => editingSegment?.id === seg.id ? setEditingSegment(null) : startEditing(seg)}
+                          className={cn(
+                            "p-1.5 rounded hover:bg-accent transition-colors",
+                            editingSegment?.id === seg.id
+                              ? "text-foreground bg-accent"
+                              : "text-muted-foreground hover:text-foreground",
+                          )}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
+                          aria-label={`Delete segment ${seg.name}`}
                           onClick={() => handleDelete(seg.id, seg.name)}
                           className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                         >
@@ -395,11 +249,24 @@ Authorization: Bearer <your-api-key>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
+
+                  {/* Inline edit form */}
+                  {editingSegment?.id === seg.id && (
+                    <div className="border-t border-border p-4 animate-in slide-in-from-top-1 fade-in duration-150">
+                      <SegmentForm
+                        initial={formFromSegment(editingSegment)}
+                        onSave={(form) => handleUpdate(seg.id, form)}
+                        onCancel={() => setEditingSegment(null)}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
       <CsvImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
@@ -408,45 +275,6 @@ Authorization: Bearer <your-api-key>
           revalidator.revalidate();
         }}
       />
-      <Dialog open={creating} onOpenChange={(v) => { if (!v) setCreating(false); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>New segment</DialogTitle>
-          </DialogHeader>
-          <SegmentForm
-            initial={defaultForm()}
-            onSave={handleCreate}
-            onCancel={() => setCreating(false)}
-          />
-        </DialogContent>
-      </Dialog>
-      <Dialog open={editingSegment !== null} onOpenChange={(v) => { if (!v) setEditingSegment(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Edit segment</DialogTitle>
-          </DialogHeader>
-          {editingSegment && (
-            <SegmentForm
-              initial={formFromSegment(editingSegment)}
-              onSave={(form) => handleUpdate(editingSegment.id, form)}
-              onCancel={() => setEditingSegment(null)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-        </>
+    </>
   );
-}
-
-function describeFilters(filters: SegmentFilters): string {
-  const parts: string[] = [];
-  if (filters.plan?.length) parts.push(`Plan: ${filters.plan.join(", ")}`);
-  if (filters.role?.length) parts.push(`Role: ${filters.role.join(", ")}`);
-  if (filters.industry?.length) parts.push(`Industry: ${filters.industry.join(", ")}`);
-  if (filters.location?.length) parts.push(`Location: ${filters.location.join(", ")}`);
-  if (filters.minCompanySize != null && filters.maxCompanySize != null)
-    parts.push(`${filters.minCompanySize}–${filters.maxCompanySize} employees`);
-  else if (filters.minCompanySize != null) parts.push(`≥${filters.minCompanySize} employees`);
-  else if (filters.maxCompanySize != null) parts.push(`≤${filters.maxCompanySize} employees`);
-  return parts.length ? parts.join(" · ") : "No filters defined";
 }

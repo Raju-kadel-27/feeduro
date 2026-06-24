@@ -1,3 +1,5 @@
 packages:
   - "apps/*"
   - "packages/*"
+patchedDependencies:
+  '@remix-run/node-fetch-server@0.13.0': patches/@remix-run__node-fetch-server@0.13.0.patch

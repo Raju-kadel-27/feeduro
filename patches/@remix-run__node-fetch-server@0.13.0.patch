@@ -1,0 +1,17 @@
+diff --git a/dist/lib/request-listener.js b/dist/lib/request-listener.js
+index ead6b3fb3bcdda91a97579a11735a5106a6d5ed4..a6ba27e3eac8020fd7dbac430bd18ff3123db025 100755
+--- a/dist/lib/request-listener.js
++++ b/dist/lib/request-listener.js
+@@ -164,6 +164,12 @@ export async function sendResponse(res, response) {
+         // HTTP2 `res.writeHead()` will safely ignore the statusText parameter, but
+         // it will emit a warning which we want to avoid.
+         // https://nodejs.org/docs/latest-v22.x/api/http2.html#responsewriteheadstatuscode-statusmessage-headers
++        //
++        // HTTP/2 also forbids HTTP/1.1 connection-specific headers (RFC 7540 §8.1.2.2).
++        const h2Forbidden = new Set(['transfer-encoding', 'connection', 'keep-alive', 'upgrade', 'proxy-connection']);
++        for (const key of Object.keys(headers)) {
++            if (h2Forbidden.has(key.toLowerCase())) delete headers[key];
++        }
+         ;
+         res.writeHead(response.status, headers);
+     }

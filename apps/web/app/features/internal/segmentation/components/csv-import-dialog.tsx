@@ -105,7 +105,7 @@ export function CsvImportDialog({ open, onOpenChange, onSuccess }: Props) {
           <button type="button" onClick={() => { onOpenChange(false); reset(); }} className={`${btnBase} border border-border hover:bg-accent`}>
             Cancel
           </button>
-          <button type="button" disabled={!result?.valid.length || importing} onClick={handleImport} className={`${btnBase} bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40`}>
+          <button type="button" disabled={!result?.valid.length || importing} onClick={handleImport} className={`${btnBase} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40`}>
             {importing ? "Importing…" : `Import ${result?.valid.length ?? 0} contacts`}
           </button>
         </DialogFooter>

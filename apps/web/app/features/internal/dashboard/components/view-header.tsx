@@ -56,7 +56,7 @@ export function ViewHeader({
           <button
             type="button"
             onClick={onNewRequest}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-foreground text-background hover:bg-foreground/90 transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
           >
             <Plus className="h-4 w-4" />
             New Request

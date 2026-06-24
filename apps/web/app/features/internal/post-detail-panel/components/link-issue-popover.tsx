@@ -104,7 +104,7 @@ export function LinkIssuePopover({
               className="flex-1 h-7 px-2 text-xs border rounded bg-background focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <button type="button" onClick={handlePasteLink} disabled={!pasteValue.trim()}
-              className="h-7 px-2.5 text-xs font-medium bg-foreground text-background rounded disabled:opacity-40 shrink-0">
+              className="h-7 px-2.5 text-xs font-medium bg-primary text-primary-foreground rounded disabled:opacity-40 shrink-0">
               Link
             </button>
           </div>

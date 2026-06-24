@@ -139,7 +139,7 @@
     "tailwindcss": "^4.2.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^7.1.5",
+    "vite": "^6.3.5",
     "vite-plugin-babel": "^1.7.1",
     "wrangler": "^4.35.0"
   },

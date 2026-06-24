@@ -154,7 +154,7 @@ function SegmentForm({
               className={cn(
                 "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
                 form.plan.includes(p)
-                  ? "bg-foreground text-background border-foreground"
+                  ? "bg-primary text-primary-foreground border-primary"
                   : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
               )}
             >
@@ -216,7 +216,7 @@ function SegmentForm({
           type="button"
           disabled={!form.name.trim()}
           onClick={() => onSave(form)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
         >
           <Check className="h-3.5 w-3.5" /> Save segment
         </button>
@@ -314,7 +314,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
                 <button
                   type="button"
                   onClick={() => setCreating(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   <Plus className="h-4 w-4" /> New segment
                 </button>

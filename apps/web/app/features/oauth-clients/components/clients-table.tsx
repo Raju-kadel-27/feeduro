@@ -71,8 +71,8 @@ export function ClientsTable({
   if (clients.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border py-14 px-8 text-center bg-muted/10 flex flex-col items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-full bg-muted/50">
-          <Key size={18} className="text-muted-foreground/50" />
+        <div className="flex size-14 items-center justify-center rounded-full bg-teal-500/10">
+          <Key size={26} className="text-teal-500" />
         </div>
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">No OAuth apps yet</p>

@@ -82,7 +82,7 @@ export function AuditLogTable({ rows, total, page, pageCount, onPageChange }: Pr
             {isEmpty ? (
               <tr>
                 <td colSpan={auditLogColumns.length} className="px-5 py-16 text-center">
-                  <ShieldOff className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
+                  <ShieldOff className="h-12 w-12 mx-auto text-teal-500 mb-3" />
                   <p className="text-sm font-medium text-muted-foreground">No audit events yet</p>
                   <p className="text-xs text-muted-foreground/60 mt-1">
                     Security-relevant actions will appear here.

@@ -5,6 +5,17 @@
       "dependsOn": ["^build"],
       "outputs": ["build/**", "dist/**"]
     },
+    "build:staging": {
+      "dependsOn": ["^build"],
+      "outputs": ["build/**", "dist/**"]
+    },
+    "build:production": {
+      "dependsOn": ["^build"],
+      "outputs": ["build/**", "dist/**"]
+    },
+    "deploy:preview": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "persistent": true

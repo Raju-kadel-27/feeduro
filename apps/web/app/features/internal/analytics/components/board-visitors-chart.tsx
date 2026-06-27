@@ -8,10 +8,15 @@ import { useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import type { BoardVisitorPoint } from "../schemas/analytics";
 
-const chartConfig = {
-  uniqueVisitors: { label: "Unique visitors", color: "hsl(217 91% 60%)" },
-  totalViews: { label: "Total views", color: "hsl(217 91% 45%)" },
-} satisfies ChartConfig;
+const DEFAULT_COLORS = {
+  uniqueVisitors: "hsl(217 91% 60%)",
+  totalViews: "hsl(217 91% 45%)",
+};
+
+const BROWN_COLORS = {
+  uniqueVisitors: "hsl(25 55% 45%)",
+  totalViews: "hsl(25 55% 30%)",
+};
 
 type ActiveKey = "uniqueVisitors" | "totalViews";
 
@@ -19,9 +24,15 @@ interface Props {
   chart: BoardVisitorPoint[];
   totalViews: number;
   uniqueVisitors: number;
+  variant?: "blue" | "brown";
 }
 
-export function BoardVisitorsChart({ chart, totalViews, uniqueVisitors }: Props) {
+export function BoardVisitorsChart({ chart, totalViews, uniqueVisitors, variant = "blue" }: Props) {
+  const colors = variant === "brown" ? BROWN_COLORS : DEFAULT_COLORS;
+  const chartConfig = {
+    uniqueVisitors: { label: "Unique visitors", color: colors.uniqueVisitors },
+    totalViews: { label: "Total views", color: colors.totalViews },
+  } satisfies ChartConfig;
   const [active, setActive] = useState<ActiveKey>("uniqueVisitors");
 
   const totals = { uniqueVisitors, totalViews } as const;

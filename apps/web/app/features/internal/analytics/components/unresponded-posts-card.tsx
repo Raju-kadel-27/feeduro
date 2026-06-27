@@ -10,7 +10,6 @@ export function UnrespondedPostsCard({ posts }: Props) {
 
   return (
     <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-4 dark:border-amber-500/30 dark:bg-amber-500/10">
-      {/* Header */}
       <div className="flex items-start gap-3">
         <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
         <div>
@@ -23,21 +22,35 @@ export function UnrespondedPostsCard({ posts }: Props) {
         </div>
       </div>
 
-      {/* Post list */}
-      <ul className="space-y-2">
-        {posts.map((post) => (
-          <li key={post.id} className="flex items-center justify-between gap-3 min-w-0">
-            <p className="text-sm text-amber-900 dark:text-amber-100 truncate flex-1">
-              {post.title}
-            </p>
-            <div className="flex shrink-0 items-center gap-3 text-xs text-amber-700 dark:text-amber-400 tabular-nums">
-              <span>{post.voteCount} vote{post.voteCount !== 1 ? "s" : ""}</span>
-              <span className="text-amber-500">·</span>
-              <span>{post.daysOpen}d open</span>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <table className="w-full text-sm">
+        <colgroup>
+          <col />
+          <col className="w-20" />
+          <col className="w-20" />
+        </colgroup>
+        <thead>
+          <tr className="border-b border-amber-200/60 dark:border-amber-500/20">
+            <th className="pb-2 text-left text-[11px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wide">Post</th>
+            <th className="pb-2 text-right text-[11px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wide">Votes</th>
+            <th className="pb-2 text-right text-[11px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wide">Open For</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-amber-200/60 dark:divide-amber-500/20">
+          {posts.map((post) => (
+            <tr key={post.id}>
+              <td className="py-2 pr-6 text-amber-900 dark:text-amber-100 max-w-0">
+                <span className="block truncate" title={post.title}>{post.title}</span>
+              </td>
+              <td className="py-2 text-right tabular-nums text-xs text-amber-700 dark:text-amber-400">
+                {post.voteCount}
+              </td>
+              <td className="py-2 text-right tabular-nums text-xs text-amber-700 dark:text-amber-400 whitespace-nowrap">
+                {post.daysOpen}d
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

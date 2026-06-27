@@ -48,26 +48,44 @@ export function CommentsAnalyticsPanel({ data, rangeLabel }: Props) {
           No comments in this period.
         </p>
       ) : (
-        <ul className="space-y-2">
-          {topPosts.map((post) => {
-            const badge = STATUS_BADGE[post.status] ?? STATUS_BADGE.closed;
-            const label = STATUS_LABEL[post.status] ?? post.status;
-            return (
-              <li key={post.id} className="flex items-center justify-between gap-3 min-w-0">
-                <p className="text-sm truncate flex-1">{post.title}</p>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span className={cn("rounded border px-1.5 py-0.5 text-xs font-medium", badge)}>
-                    {label}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums">
-                    <MessageSquare className="h-3 w-3" />
-                    {post.commentCount}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <table className="w-full text-sm">
+          <colgroup>
+            <col />
+            <col className="w-28" />
+            <col className="w-16" />
+          </colgroup>
+          <thead>
+            <tr className="border-b">
+              <th className="pb-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Post</th>
+              <th className="pb-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+              <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Comments</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {topPosts.map((post) => {
+              const badge = STATUS_BADGE[post.status] ?? STATUS_BADGE.closed;
+              const label = STATUS_LABEL[post.status] ?? post.status;
+              return (
+                <tr key={post.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="py-2.5 pr-6 text-foreground max-w-0">
+                    <span className="block truncate" title={post.title}>{post.title}</span>
+                  </td>
+                  <td className="py-2.5 pr-4">
+                    <span className={cn("inline-flex rounded border px-1.5 py-0.5 text-xs font-medium whitespace-nowrap", badge)}>
+                      {label}
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-right">
+                    <span className="inline-flex items-center justify-end gap-1 tabular-nums text-muted-foreground text-xs">
+                      <MessageSquare className="h-3 w-3" />
+                      {post.commentCount}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       )}
     </div>
   );

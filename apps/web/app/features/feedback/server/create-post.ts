@@ -1,5 +1,5 @@
 import { fireAutoCreateIntegrations } from "@features/feedback/server/post-auto-create";
-import { triggerSmartReply } from "@features/feedback/server/smart-replies.server";
+import { triggerSmartReply } from "@features/feedback/server/smart-replies";
 import { runDuplicateDetection } from "@features/internal/autopilot/server/service";
 import { notifyNewPost } from "@features/internal/notifications/server/service";
 import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";

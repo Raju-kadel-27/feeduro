@@ -2,13 +2,12 @@
 import { createHash } from "node:crypto";
 import { createId } from "@paralleldrive/cuid2";
 import { hashPassword } from "better-auth/crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 import * as schema from "./schema";
 import {
-  boardViews,
   changelogs,
   changelogTags,
   comments,
@@ -18,6 +17,7 @@ import {
   feedbackTags,
   feedbackViews,
   integrations,
+  portalEvents,
   postActivities,
   postExternalLinks,
   postTags,
@@ -150,7 +150,7 @@ async function seed() {
   await db.delete(widgetConfigs).where(eq(widgetConfigs.organizationId, orgId));
   await db.delete(segments).where(eq(segments.organizationId, orgId));
   await db.delete(userProfiles).where(eq(userProfiles.organizationId, orgId));
-  await db.delete(boardViews).where(eq(boardViews.organizationId, orgId));
+  await db.delete(portalEvents).where(eq(portalEvents.organizationId, orgId));
 
   // ── 3. Members ───────────────────────────────────────────────────────────
 
@@ -651,6 +651,16 @@ async function seed() {
   }
 
   console.log(`✅ Added ${voteCount} votes`);
+
+  // Sync denormalized voteCount on every post from actual vote rows
+  await db.execute(sql`
+    UPDATE feedback_posts
+    SET vote_count = (
+      SELECT COUNT(*) FROM votes WHERE votes.post_id = feedback_posts.id
+    )
+    WHERE organization_id = ${orgId}
+  `);
+  console.log("✅ Synced voteCount on all posts");
 
   // ── 7. Comments ──────────────────────────────────────────────────────────
 
@@ -1338,8 +1348,12 @@ async function seed() {
     },
   ];
 
+  const changelogIds: string[] = [];
   for (const cl of changelogDefs) {
+    const clId = createId();
+    changelogIds.push(clId);
     await db.insert(changelogs).values({
+      id: clId,
       organizationId: orgId,
       title: cl.title,
       slug: cl.slug,
@@ -1863,7 +1877,7 @@ async function seed() {
 
   console.log(`✅ Created ${segmentDefs.length} segments`);
 
-  // ── 17. Board Views (traffic analytics) ──────────────────────────────────
+  // ── 17. Portal Events (traffic analytics) ────────────────────────────────
   // 60 deterministic visitor hashes simulating unique browser fingerprints.
   // Per-day config mirrors a realistic growing-product traffic pattern.
 
@@ -1871,7 +1885,7 @@ async function seed() {
     createHash("sha256").update(`feeduro-seed-visitor-${i}`).digest("hex"),
   );
 
-  const boardViewDayConfigs = [
+  const dayConfigs = [
     { daysAgo: 6, views: 28, uniques: 18 },
     { daysAgo: 5, views: 37, uniques: 24 },
     { daysAgo: 4, views: 54, uniques: 33 },
@@ -1881,28 +1895,79 @@ async function seed() {
     { daysAgo: 0, views: 38, uniques: 24 },
   ];
 
-  const boardViewRows = [];
-  for (const { daysAgo, views, uniques } of boardViewDayConfigs) {
+  // Board distribution: ~60% Feature Requests, ~25% Bug Reports, ~15% Integrations
+  const boardViewBoardIds = Object.values(boardIds);
+  const boardWeights = [0.6, 0.25, 0.15];
+
+  // Published changelog IDs (indexes 0–5); drafts at 6–7 get no views
+  const publishedChangelogIds = changelogIds.slice(0, 6);
+  // Older entries have had more time to accumulate — weight by recency index (0 = oldest)
+  const changelogViewCounts = [22, 18, 14, 11, 8, 5];
+
+  const portalEventRows = [];
+
+  for (const { daysAgo, views, uniques } of dayConfigs) {
     const dayStart = new Date();
     dayStart.setDate(dayStart.getDate() - daysAgo);
     dayStart.setHours(7, 0, 0, 0); // spread 7 am → 10 pm (15 h window)
-
     const dayVisitors = VISITOR_HASHES.slice(0, uniques);
     const windowMs = 15 * 60 * 60 * 1000;
 
+    // board_view — distributed across 3 boards
     for (let i = 0; i < views; i++) {
-      boardViewRows.push({
+      const r = i / views;
+      const bIdx = r < boardWeights[0] ? 0 : r < boardWeights[0] + boardWeights[1] ? 1 : 2;
+      portalEventRows.push({
         organizationId: orgId,
-        // first N views per day are from logged-in users, rest anonymous
-        userId: i < allUserIds.length ? allUserIds[i] : null,
+        type: "board_view",
+        resourceId: boardViewBoardIds[bIdx],
         visitorHash: dayVisitors[i % uniques],
         createdAt: new Date(dayStart.getTime() + Math.floor((i / views) * windowMs)),
       });
     }
+
+    // roadmap_view — ~15% of board traffic per day
+    const roadmapViews = Math.round(views * 0.15);
+    for (let i = 0; i < roadmapViews; i++) {
+      portalEventRows.push({
+        organizationId: orgId,
+        type: "roadmap_view",
+        resourceId: null,
+        visitorHash: dayVisitors[i % uniques],
+        createdAt: new Date(dayStart.getTime() + Math.floor((i / roadmapViews) * windowMs)),
+      });
+    }
+
+    // updates_view — ~10% of board traffic per day
+    const updatesViews = Math.round(views * 0.1);
+    for (let i = 0; i < updatesViews; i++) {
+      portalEventRows.push({
+        organizationId: orgId,
+        type: "updates_view",
+        resourceId: null,
+        visitorHash: dayVisitors[i % uniques],
+        createdAt: new Date(dayStart.getTime() + Math.floor((i / updatesViews) * windowMs)),
+      });
+    }
+
+    // changelog_view — one batch of views per published entry per day
+    // Older entries get more views (they've been live longer)
+    for (let ci = 0; ci < publishedChangelogIds.length; ci++) {
+      const count = Math.max(1, Math.round(changelogViewCounts[ci] / 7));
+      for (let i = 0; i < count; i++) {
+        portalEventRows.push({
+          organizationId: orgId,
+          type: "changelog_view",
+          resourceId: publishedChangelogIds[ci],
+          visitorHash: dayVisitors[(ci * 3 + i) % uniques],
+          createdAt: new Date(dayStart.getTime() + Math.floor((i / count) * windowMs)),
+        });
+      }
+    }
   }
 
-  await db.insert(boardViews).values(boardViewRows);
-  console.log(`✅ Created ${boardViewRows.length} board views across 7 days`);
+  await db.insert(portalEvents).values(portalEventRows);
+  console.log(`✅ Created ${portalEventRows.length} portal events across 7 days (board/roadmap/updates/changelog views)`);
 
   // ── Done ─────────────────────────────────────────────────────────────────
 
@@ -1916,7 +1981,7 @@ async function seed() {
   Views:     ${viewDefs.length} feedback views (5 system + 1 custom)
   Segments:  ${segmentDefs.length} segments  |  ${profileDefs.length} user profiles (5 linked + 20 external)
   Dev data:  2 webhook endpoints  |  3 GitHub external links  |  1 GitHub integration
-  Traffic:   ${boardViewRows.length} board views across last 7 days
+  Traffic:   ${portalEventRows.length} portal events across last 7 days (board/roadmap/updates/changelog)
 `);
 
   await pool.end();

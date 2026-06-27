@@ -63,14 +63,20 @@ export function PublicBoardPage({ loaderData }: Props) {
     };
   }, [branding.theme]);
 
-  // Fire-and-forget: record the board visit for analytics without blocking render
+  // Fire-and-forget: record portal visit per tab/board change for analytics
   useEffect(() => {
-    fetch("/api/board-view", {
+    const type =
+      currentTab === "roadmap" ? "roadmap_view"
+      : currentTab === "updates" ? "updates_view"
+      : "board_view";
+    const payload: Record<string, string> = { orgId: org.id, type };
+    if (type === "board_view" && selectedBoardId) payload.resourceId = selectedBoardId;
+    fetch("/api/portal-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orgId: org.id }),
+      body: JSON.stringify(payload),
     }).catch(() => {});
-  }, [org.id]);
+  }, [org.id, currentTab, selectedBoardId]);
 
   const safeVotedIds = votedPostIds ?? [];
 
@@ -183,6 +189,7 @@ export function PublicBoardPage({ loaderData }: Props) {
         {currentTab === "updates" && (
           <UpdatesView
             entries={changelogEntries ?? []}
+            orgId={org.id}
             orgSlug={org.slug}
             subscriptionsEnabled={loaderData.emailSubscriptionsEnabled ?? false}
             isSubscribed={loaderData.isSubscribed ?? false}

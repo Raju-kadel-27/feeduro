@@ -10,6 +10,7 @@ const FILTERS: ChangelogFilter[] = ['All', 'Features', 'Improvements', 'Fixes', 
 
 interface Props {
   entries: PublicChangelog[];
+  orgId: string;
   orgSlug: string;
   subscriptionsEnabled: boolean;
   isSubscribed: boolean;
@@ -36,7 +37,7 @@ function applyFilters(entries: PublicChangelog[], filter: ChangelogFilter, searc
   return result;
 }
 
-export function UpdatesView({ entries, orgSlug, subscriptionsEnabled, isSubscribed, userEmail, onAuthRequired }: Props) {
+export function UpdatesView({ entries, orgId, orgSlug, subscriptionsEnabled, isSubscribed, userEmail, onAuthRequired }: Props) {
   const [filter, setFilter] = useState<ChangelogFilter>('All');
   const [search, setSearch] = useState('');
   const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(isSubscribed ? 'success' : 'idle');
@@ -148,6 +149,7 @@ export function UpdatesView({ entries, orgSlug, subscriptionsEnabled, isSubscrib
               key={entry.id}
               entry={entry}
               isLast={i === visible.length - 1}
+              orgId={orgId}
               orgSlug={orgSlug}
               userEmail={userEmail}
               onAuthRequired={onAuthRequired}

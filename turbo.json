@@ -16,6 +16,9 @@
     "deploy:preview": {
       "cache": false
     },
+    "deploy:production": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "persistent": true

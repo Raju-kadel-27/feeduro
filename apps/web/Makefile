@@ -18,7 +18,7 @@ dev-local: docker_up
 	else \
 		echo "No supported terminal found; run 'pnpm db:studio' manually"; \
 	fi
-	pnpm dev
+	BASE_URL=https://localhost:3000 pnpm dev
 
 fresh: docker_up
 	@echo "Nuking database..."

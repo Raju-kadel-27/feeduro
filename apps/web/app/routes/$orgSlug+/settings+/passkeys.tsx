@@ -161,7 +161,7 @@ export default function PasskeysSettings() {
             </div>
           ) : passkeys.length === 0 ? (
             <Empty className="border border-border">
-              <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Fingerprint /></EmptyMedia>
+              <EmptyMedia variant="icon" className="size-14 [&_svg]:size-7 bg-teal-500/10 text-teal-600 dark:text-teal-400"><Fingerprint /></EmptyMedia>
               <EmptyHeader>
                 <EmptyTitle>No passkeys registered yet</EmptyTitle>
                 <EmptyDescription>Add a passkey to sign in with your device biometrics instead of a password.</EmptyDescription>

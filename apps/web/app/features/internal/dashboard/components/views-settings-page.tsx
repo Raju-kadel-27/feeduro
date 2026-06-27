@@ -124,7 +124,7 @@ export function ViewsSettingsPage({ loaderData }: { loaderData: LoaderData }) {
         <div className="rounded-lg border border-border overflow-hidden">
           {views.length === 0 ? (
             <Empty className="border-0 rounded-none py-12">
-              <EmptyMedia variant="icon">
+              <EmptyMedia variant="icon" className="size-14 [&_svg]:size-7 bg-teal-500/10 text-teal-600 dark:text-teal-400">
                 <Layers />
               </EmptyMedia>
               <EmptyHeader>

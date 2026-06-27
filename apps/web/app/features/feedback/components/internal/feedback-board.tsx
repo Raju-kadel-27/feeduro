@@ -1,3 +1,4 @@
+import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -262,20 +263,16 @@ export function FeedbackBoard({ boardId }: Props) {
         </div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
-            <MessageSquare className="h-5 w-5 text-muted-foreground" />
+          <div className="size-14 rounded-full bg-teal-500/10 flex items-center justify-center mb-3">
+            <MessageSquare className="size-7 text-teal-600 dark:text-teal-400" />
           </div>
           <p className="text-sm font-medium">No feedback yet</p>
           <p className="text-xs text-muted-foreground mt-1">
             Be the first to submit a feature request or bug report.
           </p>
-          <button
-            type="button"
-            onClick={() => setShowCreate(true)}
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
+          <Button variant="secondary" size="sm" onClick={() => setShowCreate(true)} className="mt-4">
             Submit feedback
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="space-y-2">

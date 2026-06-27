@@ -323,7 +323,7 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
 
           {keys.length === 0 ? (
             <Empty className="border border-border">
-              <EmptyMedia variant="icon" className="bg-teal-500/10 text-teal-600 dark:text-teal-400"><Key /></EmptyMedia>
+              <EmptyMedia variant="icon" className="size-14 [&_svg]:size-7 bg-teal-500/10 text-teal-600 dark:text-teal-400"><Key /></EmptyMedia>
               <EmptyHeader>
                 <EmptyTitle>No API keys yet</EmptyTitle>
                 <EmptyDescription>Generate a key to authenticate requests to the Feeduro API.</EmptyDescription>

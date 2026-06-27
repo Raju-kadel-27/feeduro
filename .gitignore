@@ -60,5 +60,5 @@ Thumbs.db
 
 # Misc
 *.local
-
+.turbo
 .fuse_hidden*

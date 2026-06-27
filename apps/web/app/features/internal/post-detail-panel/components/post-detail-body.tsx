@@ -10,6 +10,7 @@ import { Link } from "react-router";
 import type { useCommentActions } from "../hooks/use-comment-actions";
 import type { useIntegrationLinks } from "../hooks/use-integration-links";
 import type { useMergeActions } from "../hooks/use-merge-actions";
+import { useSegmentCounts } from "../hooks/use-segment-counts";
 import type { useVoteStatus } from "../hooks/use-vote-status";
 import { useVoterData } from "../hooks/use-voter-data";
 import { type FeedItem, PostActivityFeed } from "./post-activity-feed";
@@ -36,6 +37,7 @@ export function PostDetailBody({
   onClose: () => void; onOpenPost?: (id: string) => void;
 }) {
   const { voters, isLoading: votersLoading } = useVoterData(postId, isAdmin);
+  const { segmentCounts, otherCount, profiledCount, isLoading: countsLoading } = useSegmentCounts(postId, isAdmin);
 
   type MergedActivity = Extract<FeedItem, { kind: "activity" }>;
   const mergedPosts = useMemo(
@@ -222,10 +224,12 @@ export function PostDetailBody({
 
       {/* ── Right column ─────────────────────────────────────────────────── */}
       <PostSegmentSidebar
-        voters={voters}
+        segmentCounts={segmentCounts}
+        otherCount={otherCount}
+        profiledCount={profiledCount}
         voteCount={vote.voteCount}
         segments={segments}
-        isLoading={votersLoading}
+        isLoading={countsLoading}
         post={post}
         detailData={detailData}
         integrations={integrations}

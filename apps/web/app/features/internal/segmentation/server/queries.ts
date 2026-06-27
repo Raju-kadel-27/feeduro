@@ -181,6 +181,68 @@ export async function getVoterProfilesByPost(
   return rows.map((r) => ({ ...r, votedAt: r.votedAt.toISOString() }));
 }
 
+export async function getSegmentCountsByPost(
+  organizationId: string,
+  postId: string,
+  segmentList: Array<{ id: string; filters: SegmentFilters }>,
+): Promise<{ segmentCounts: Record<string, number>; otherCount: number; profiledCount: number }> {
+  if (segmentList.length === 0) return { segmentCounts: {}, otherCount: 0, profiledCount: 0 };
+
+  const db = getDb();
+  const { nativeProfile, importedProfile } = voterProfileAliases();
+
+  const rows = await db
+    .select({
+      plan: sql<string | null>`coalesce(${nativeProfile.plan}, ${importedProfile.plan})`,
+      role: sql<string | null>`coalesce(${nativeProfile.role}, ${importedProfile.role})`,
+      industry: sql<string | null>`coalesce(${nativeProfile.industry}, ${importedProfile.industry})`,
+      location: sql<string | null>`coalesce(${nativeProfile.location}, ${importedProfile.location})`,
+      companySize: sql<number | null>`coalesce(${nativeProfile.companySize}, ${importedProfile.companySize})`,
+    })
+    .from(votes)
+    .leftJoin(user, eq(votes.userId, user.id))
+    .leftJoin(
+      nativeProfile,
+      and(eq(nativeProfile.organizationId, organizationId), eq(nativeProfile.email, user.email)),
+    )
+    .leftJoin(
+      importedProfile,
+      and(
+        eq(importedProfile.organizationId, organizationId),
+        eq(importedProfile.id, votes.userProfileId),
+      ),
+    )
+    .where(
+      and(
+        eq(votes.organizationId, organizationId),
+        eq(votes.postId, postId),
+        sql`(${nativeProfile.id} IS NOT NULL OR ${importedProfile.id} IS NOT NULL)`,
+      ),
+    );
+
+  const segmentCounts: Record<string, number> = {};
+  let otherCount = 0;
+
+  for (const row of rows) {
+    let matched = false;
+    for (const seg of segmentList) {
+      const f = seg.filters;
+      if (f.plan?.length && !f.plan.includes(row.plan ?? "")) continue;
+      if (f.role?.length && !f.role.includes(row.role ?? "")) continue;
+      if (f.industry?.length && !f.industry.includes(row.industry ?? "")) continue;
+      if (f.location?.length && !f.location.includes(row.location ?? "")) continue;
+      if (f.minCompanySize != null && (row.companySize == null || row.companySize < f.minCompanySize)) continue;
+      if (f.maxCompanySize != null && (row.companySize == null || row.companySize > f.maxCompanySize)) continue;
+      segmentCounts[seg.id] = (segmentCounts[seg.id] ?? 0) + 1;
+      matched = true;
+      break;
+    }
+    if (!matched) otherCount++;
+  }
+
+  return { segmentCounts, otherCount, profiledCount: rows.length };
+}
+
 // Returns the total MRR ($/mo) attributed to each post by summing voter MRRs.
 // Includes votes from merged child posts when callers pass allRelevantIds.
 export async function getMrrImpactByPost(

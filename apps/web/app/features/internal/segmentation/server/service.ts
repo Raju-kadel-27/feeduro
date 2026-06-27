@@ -9,6 +9,7 @@ export type { VoterProfileRow } from "./queries";
 export {
   getMrrImpactByPost,
   getOrgSegments,
+  getSegmentCountsByPost,
   getSegmentMemberCounts,
   getVoterProfilesByPost,
   getVoterTraitCountsByPost,

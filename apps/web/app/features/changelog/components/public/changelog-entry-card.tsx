@@ -1,6 +1,6 @@
 import type { PublicChangelog } from "@features/feedback/schemas/public";
 import { Check, Link, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChangelogContent } from "./changelog-content";
 import { ChangelogTag } from "./changelog-tag";
 
@@ -9,6 +9,7 @@ const MINT_SOFT = 'rgba(126,184,166,0.14)';
 const MONO = '"Geist Mono", "JetBrains Mono", ui-monospace, monospace';
 
 type Props = Pick<PublicChangelog, 'id' | 'title' | 'body' | 'version' | 'tags' | 'voteCount' | 'voted' | 'slug'> & {
+  orgId: string;
   orgSlug: string;
   onAuthRequired: () => void;
   userEmail: string | null;
@@ -53,8 +54,16 @@ const iconBtn: React.CSSProperties = {
   transition: 'background 0.15s, color 0.15s',
 };
 
-export function ChangelogEntryCard({ id, title, body, version, tags, voteCount, voted, slug, orgSlug, onAuthRequired, userEmail }: Props) {
+export function ChangelogEntryCard({ id, title, body, version, tags, voteCount, voted, slug, orgId, orgSlug, onAuthRequired, userEmail }: Props) {
   const [expanded, setExpanded] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/portal-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orgId, type: "changelog_view", resourceId: id }),
+    }).catch(() => {});
+  }, [orgId, id]);
   const [liked, setLiked] = useState(voted ?? false);
   const [likes, setLikes] = useState(voteCount ?? 0);
   const [copied, setCopied] = useState(false);

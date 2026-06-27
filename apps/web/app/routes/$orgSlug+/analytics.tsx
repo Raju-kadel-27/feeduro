@@ -2,7 +2,7 @@ import { SidebarTrigger } from "@components/ui/sidebar";
 import { AnalyticsOverview } from "@features/internal/analytics/components/analytics-overview";
 import { BoardFilter } from "@features/internal/analytics/components/board-filter";
 import { DateRangePicker } from "@features/internal/analytics/components/date-range-picker";
-import { loadAnalyticsOverview } from "@features/internal/analytics/server/overview.server";
+import { loadAnalyticsOverview } from "@features/internal/analytics/server/overview";
 
 import type { Route } from "./+types/analytics";
 

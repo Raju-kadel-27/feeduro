@@ -21,12 +21,13 @@ function formatRelative(iso: string): string {
 interface Props {
   entry: PublicChangelog;
   isLast: boolean;
+  orgId: string;
   orgSlug: string;
   userEmail: string | null;
   onAuthRequired: () => void;
 }
 
-export function UpdateEntry({ entry, isLast, orgSlug, userEmail, onAuthRequired }: Props) {
+export function UpdateEntry({ entry, isLast, orgId, orgSlug, userEmail, onAuthRequired }: Props) {
   const { id, title, publishedAt, body, version, tags, voteCount, voted, slug } = entry;
 
   return (
@@ -91,6 +92,7 @@ export function UpdateEntry({ entry, isLast, orgSlug, userEmail, onAuthRequired 
         slug={slug}
         voteCount={voteCount}
         voted={voted}
+        orgId={orgId}
         orgSlug={orgSlug}
         userEmail={userEmail}
         onAuthRequired={onAuthRequired}

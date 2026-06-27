@@ -1,5 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { generateCommentSummary } from "@features/internal/autopilot/server/comment-summary.server";
+import { generateCommentSummary } from "@features/internal/autopilot/server/comment-summary";
 import { getEnv } from "@utils/get-env";
 import { data } from "react-router";
 import { z } from "zod";

@@ -4,7 +4,7 @@ import {
   deleteView,
   getOrgViewsWithCounts,
   updateView,
-} from "@features/internal/dashboard/server/views.server";
+} from "@features/internal/dashboard/server/views";
 import type { Sort, ViewFilters } from "@features/internal/dashboard/types";
 import { data } from "react-router";
 import type { Route } from "./+types/views";

@@ -4,7 +4,7 @@ import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, postExternalLinks, votes } from "@/db/schema";
-import { getPostTagsBatch } from "./tags.server";
+import { getPostTagsBatch } from "./tags";
 
 const EMPTY_TRAITS: VoterTraitCounts = { plan: {}, role: {}, industry: {}, location: {} };
 

@@ -2,7 +2,7 @@ import { notifyAutopilotDuplicate } from "@features/internal/notifications/serve
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts } from "@/db/schema";
-import { detectDuplicate } from "./duplicate-detection.server";
+import { detectDuplicate } from "./duplicate-detection";
 import { createDuplicateSuggestion } from "./mutations";
 
 interface NewPost {

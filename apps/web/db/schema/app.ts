@@ -447,29 +447,30 @@ export const changelogs = pgTable(
   }),
 );
 
-export const changelogViews = pgTable(
-  "changelog_views",
+export const portalEvents = pgTable(
+  "portal_events",
   {
     id: varchar("id", { length: 128 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    changelogId: varchar("changelog_id", { length: 128 })
-      .notNull()
-      .references(() => changelogs.id, { onDelete: "cascade" }),
     organizationId: varchar("organization_id", { length: 36 })
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    // Nullable: logged-in users can be tracked; anonymous visitors get null
-    userId: varchar("user_id", { length: 36 }).references(() => user.id, { onDelete: "set null" }),
-    // Hash of IP + User-Agent for unique visitor counting without storing PII
+    // sha256(ip + ua + orgId) — anonymous dedup without PII
     visitorHash: varchar("visitor_hash", { length: 64 }).notNull(),
+    // board_view | roadmap_view | updates_view | changelog_view
+    type: varchar("type", { length: 32 }).notNull(),
+    // boardId for board_view, changelogId for changelog_view, null for roadmap/updates
+    resourceId: varchar("resource_id", { length: 128 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
-    changelogIdIdx: index("clv_changelog_id_idx").on(t.changelogId),
-    orgIdIdx: index("clv_org_id_idx").on(t.organizationId),
-    // Unique visitor lookup per changelog
-    changelogVisitorIdx: index("clv_changelog_visitor_idx").on(t.changelogId, t.visitorHash),
+    // Primary filter: org + type + date range
+    orgTypeCreatedAtIdx: index("pe_org_type_created_at_idx").on(t.organizationId, t.type, t.createdAt),
+    // Per-resource traffic (per-board, per-changelog)
+    orgResourceCreatedAtIdx: index("pe_org_resource_created_at_idx").on(t.organizationId, t.resourceId, t.createdAt),
+    // Unique visitor dedup
+    orgVisitorIdx: index("pe_org_visitor_idx").on(t.organizationId, t.visitorHash),
   }),
 );
 
@@ -498,30 +499,6 @@ export const reactions = pgTable(
   }),
 );
 
-export const boardViews = pgTable(
-  "board_views",
-  {
-    id: varchar("id", { length: 128 })
-      .primaryKey()
-      .$defaultFn(() => createId()),
-    organizationId: varchar("organization_id", { length: 36 })
-      .notNull()
-      .references(() => organization.id, { onDelete: "cascade" }),
-    // Nullable: logged-in users can be tracked; anonymous visitors get null
-    userId: varchar("user_id", { length: 36 }).references(() => user.id, {
-      onDelete: "set null",
-    }),
-    // Hash of IP + User-Agent for unique visitor counting without storing PII
-    visitorHash: varchar("visitor_hash", { length: 64 }).notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  },
-  (t) => ({
-    // Primary analytics query: filter by org + date range
-    orgCreatedAtIdx: index("bv_org_created_at_idx").on(t.organizationId, t.createdAt),
-    // Unique visitor lookup per org (for deduplication in COUNT DISTINCT)
-    orgVisitorIdx: index("bv_org_visitor_idx").on(t.organizationId, t.visitorHash),
-  }),
-);
 
 export const postActivities = pgTable(
   "post_activities",

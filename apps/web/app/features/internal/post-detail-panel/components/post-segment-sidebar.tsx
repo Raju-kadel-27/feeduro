@@ -1,21 +1,12 @@
 import type { DetailData, PostDetail } from "@features/feedback/schemas/admin";
-import type { Segment, SegmentFilters } from "@features/internal/segmentation/types";
+import type { Segment } from "@features/internal/segmentation/types";
 import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import { Cell, Pie, PieChart, Tooltip } from "recharts";
 import type { useIntegrationLinks } from "../hooks/use-integration-links";
-import type { Voter } from "../hooks/use-voter-data";
 import { IntegrationSections } from "./post-integration-sidebar";
 
 type Integrations = ReturnType<typeof useIntegrationLinks>;
-
-function voterMatchesSegment(voter: Voter, filters: SegmentFilters): boolean {
-  if (filters.plan?.length && !filters.plan.includes(voter.plan ?? "")) return false;
-  if (filters.role?.length && !filters.role.includes(voter.role ?? "")) return false;
-  if (filters.industry?.length && !filters.industry.includes(voter.industry ?? "")) return false;
-  if (filters.location?.length && !filters.location.includes(voter.location ?? "")) return false;
-  return true;
-}
 
 type Slice = { name: string; color: string; count: number; pct: number };
 
@@ -77,7 +68,9 @@ function SkeletonDonut() {
 }
 
 export function PostSegmentSidebar({
-  voters,
+  segmentCounts,
+  otherCount,
+  profiledCount,
   voteCount,
   segments,
   isLoading,
@@ -86,7 +79,9 @@ export function PostSegmentSidebar({
   integrations,
   isAdmin,
 }: {
-  voters: Voter[];
+  segmentCounts: Record<string, number>;
+  otherCount: number;
+  profiledCount: number;
   voteCount: number;
   segments: Segment[];
   isLoading: boolean;
@@ -101,32 +96,16 @@ export function PostSegmentSidebar({
     detailData.linearConnected || detailData.jiraConnected || detailData.asanaConnected;
 
   const slices = useMemo<Slice[]>(() => {
-    if (!segments.length || !voters.length) return [];
-
-    const counts = new Map<string, { name: string; color: string; count: number }>();
-    let otherCount = 0;
-    const anonymousCount = Math.max(0, voteCount - voters.length);
-
-    for (const voter of voters) {
-      let matched = false;
-      for (const seg of segments) {
-        if (voterMatchesSegment(voter, seg.filters)) {
-          const prev = counts.get(seg.id) ?? { name: seg.name, color: seg.color, count: 0 };
-          counts.set(seg.id, { ...prev, count: prev.count + 1 });
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) otherCount++;
-    }
+    if (!segments.length || !profiledCount) return [];
 
     const total = voteCount || 1;
+    const anonymousCount = Math.max(0, voteCount - profiledCount);
     const result: Slice[] = [];
 
     for (const seg of segments) {
-      const s = counts.get(seg.id);
-      if (s?.count) {
-        result.push({ name: s.name, color: s.color, count: s.count, pct: Math.round((s.count / total) * 100) });
+      const count = segmentCounts[seg.id] ?? 0;
+      if (count > 0) {
+        result.push({ name: seg.name, color: seg.color, count, pct: Math.round((count / total) * 100) });
       }
     }
     if (otherCount > 0) {
@@ -137,18 +116,16 @@ export function PostSegmentSidebar({
     }
 
     return result;
-  }, [voters, segments, voteCount]);
+  }, [segmentCounts, otherCount, profiledCount, voteCount, segments]);
 
   return (
     <aside className="w-[400px] shrink-0 border-l overflow-y-auto">
-      {/* Integration links at top */}
       {isAdmin && hasAnyIntegration && (
         <div className="px-4 pt-4 pb-5 space-y-5 border-b">
           <IntegrationSections post={post} detailData={detailData} integrations={integrations} isAdmin={isAdmin} />
         </div>
       )}
 
-      {/* Segment breakdown below */}
       <div className="px-5 pt-4 pb-6">
         <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
           Segment Breakdown

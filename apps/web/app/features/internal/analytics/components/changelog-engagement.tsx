@@ -24,29 +24,35 @@ export function ChangelogEngagementList({ entries }: ChangelogEngagementProps) {
 
   return (
     <table className="w-full text-sm">
+      <colgroup>
+        <col />
+        <col className="w-28" />
+        <col className="w-16" />
+        <col className="w-24" />
+      </colgroup>
       <thead>
         <tr className="border-b">
-          <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Title</th>
-          <th className="pb-2 text-left text-xs font-medium text-muted-foreground whitespace-nowrap">Published</th>
-          <th className="pb-2 text-right text-xs font-medium text-muted-foreground">Views</th>
-          <th className="pb-2 text-right text-xs font-medium text-muted-foreground whitespace-nowrap">Unique Readers</th>
+          <th className="pb-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Title</th>
+          <th className="pb-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Published</th>
+          <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Views</th>
+          <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Unique Readers</th>
         </tr>
       </thead>
       <tbody className="divide-y">
         {entries.map((entry) => (
           <tr key={entry.changelogId} className="hover:bg-muted/40 transition-colors">
-            <td className="py-2.5 pr-4 text-foreground max-w-0 w-full">
+            <td className="py-3 pr-6 text-foreground max-w-0">
               <span className="block truncate" title={entry.title}>
                 {entry.title}
               </span>
             </td>
-            <td className="py-2.5 pr-4 text-muted-foreground whitespace-nowrap">
+            <td className="py-3 pr-6 text-muted-foreground whitespace-nowrap">
               {entry.publishedAt ? formatDate(entry.publishedAt) : "—"}
             </td>
-            <td className="py-2.5 pr-4 text-right tabular-nums font-medium">
+            <td className="py-3 text-right tabular-nums font-medium">
               {entry.totalViews.toLocaleString()}
             </td>
-            <td className="py-2.5 text-right tabular-nums text-muted-foreground">
+            <td className="py-3 text-right tabular-nums text-muted-foreground">
               {entry.uniqueReaders.toLocaleString()}
             </td>
           </tr>

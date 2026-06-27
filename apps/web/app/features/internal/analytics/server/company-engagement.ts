@@ -14,12 +14,13 @@ export async function getCompanyEngagement(
   const sinceVoteFilter = since ? sql`AND v.created_at  >= ${since}` : sql``;
   const sinceCommentFilter = since ? sql`AND c.created_at >= ${since}` : sql``;
   const boardPostFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
-  const boardVoteFilter = boardId
-    ? sql`AND v.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
+  // Compute board post IDs once in a CTE and reuse for both votes and comments
+  // rather than running two identical IN subqueries against feedback_posts.
+  const boardPostIdsCte = boardId
+    ? sql`, board_post_ids AS (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
     : sql``;
-  const boardCommentFilter = boardId
-    ? sql`AND c.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
-    : sql``;
+  const boardVoteFilter = boardId ? sql`AND v.post_id IN (SELECT id FROM board_post_ids)` : sql``;
+  const boardCommentFilter = boardId ? sql`AND c.post_id IN (SELECT id FROM board_post_ids)` : sql``;
 
   const result = await db.execute(sql`
     WITH external_users AS (
@@ -27,7 +28,7 @@ export async function getCompanyEngagement(
       FROM "user" u
       LEFT JOIN member m ON m.user_id = u.id AND m.organization_id = ${organizationId}
       WHERE m.user_id IS NULL
-    )
+    )${boardPostIdsCte}
     SELECT
       eu.domain                                             AS "domain",
       COUNT(DISTINCT eu.id)::int                           AS "userCount",

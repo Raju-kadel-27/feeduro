@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { feedbackCategories } from "@/db/schema";
-import { createCategory, deleteCategory, getOrgCategories } from "./categories.server";
+import { createCategory, deleteCategory, getOrgCategories } from "./categories";
 
 export const CreateCategorySchema = z.object({
   name: z.string().min(1).max(100).trim(),

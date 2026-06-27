@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feedbackPosts, votes } from "@/db/schema";
 import { VoteTrendsSchema } from "../schemas/analytics";
@@ -50,24 +50,25 @@ export async function getTopPostsByVotes(
   const db = getDb();
 
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
-  const sinceFilter = since ? sql`AND fp.created_at >= ${since}` : sql``;
+  // Filter votes by the selected period so voteCount and uniqueCompanies
+  // reflect activity within the chosen date range, not all-time totals.
+  const sinceJoinFilter = since ? sql`AND v.created_at >= ${since}` : sql``;
 
   const result = await db.execute(sql`
     SELECT
       fp.id,
       fp.title,
       fp.status,
-      fp.vote_count                                             AS "voteCount",
+      COUNT(v.id)::int                                          AS "voteCount",
       COUNT(DISTINCT SPLIT_PART(u.email, '@', 2))::int         AS "uniqueCompanies"
     FROM feedback_posts fp
-    LEFT JOIN votes v  ON  v.post_id = fp.id
+    LEFT JOIN votes v  ON  v.post_id = fp.id ${sinceJoinFilter}
     LEFT JOIN "user" u ON  u.id = v.user_id
     WHERE fp.organization_id    = ${organizationId}
       AND fp.merged_into_post_id IS NULL
       ${boardFilter}
-      ${sinceFilter}
-    GROUP BY fp.id, fp.title, fp.status, fp.vote_count
-    ORDER BY fp.vote_count DESC
+    GROUP BY fp.id, fp.title, fp.status
+    ORDER BY COUNT(v.id) DESC
     LIMIT ${limit}
   `);
 

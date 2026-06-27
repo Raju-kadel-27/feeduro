@@ -1,4 +1,4 @@
-import { getPostTagsBatch } from "@features/feedback/server/tags.server";
+import { getPostTagsBatch } from "@features/feedback/server/tags";
 import { getMrrImpactByPost, getVoterTraitCountsByPost } from "@features/internal/segmentation/server/service";
 import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";

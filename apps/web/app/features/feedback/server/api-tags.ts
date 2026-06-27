@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { feedbackPosts, feedbackTags, postTags } from "@/db/schema";
-import { createTag, deleteTag, getOrgTags } from "./tags.server";
+import { createTag, deleteTag, getOrgTags } from "./tags";
 
 export const CreateTagSchema = z.object({
   name: z.string().min(1).max(100).trim(),

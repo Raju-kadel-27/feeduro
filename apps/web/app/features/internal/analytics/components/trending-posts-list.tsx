@@ -1,8 +1,7 @@
 import { cn } from "@lib/utils";
-import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type { TrendingPosts } from "../schemas/analytics";
 
-const STATUS_COLOR: Record<string, string> = {
+const STATUS_DOT: Record<string, string> = {
   open: "bg-blue-500",
   reviewing: "bg-yellow-400",
   planned: "bg-purple-500",
@@ -43,44 +42,56 @@ export function TrendingPostsList({ posts }: TrendingPostsListProps) {
   }
 
   return (
-    <ul className="relative">
-      {posts.map((post, i) => {
-        const isLast = i === posts.length - 1;
-        const dot = STATUS_COLOR[post.status] ?? STATUS_COLOR.closed;
-        const badge = STATUS_BADGE[post.status] ?? STATUS_BADGE.closed;
-        const label = STATUS_LABEL[post.status] ?? post.status;
-        const diff = post.votesThisWeek - post.votesLastWeek;
+    <table className="w-full text-sm">
+      <colgroup>
+        <col className="w-4" />
+        <col />
+        <col className="w-20" />
+        <col className="w-16" />
+        <col className="w-24" />
+      </colgroup>
+      <thead>
+        <tr className="border-b">
+          <th />
+          <th className="pb-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Post</th>
+          <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">This Week</th>
+          <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Change</th>
+          <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {posts.map((post) => {
+          const diff = post.votesThisWeek - post.votesLastWeek;
+          const dot = STATUS_DOT[post.status] ?? STATUS_DOT.closed;
+          const badge = STATUS_BADGE[post.status] ?? STATUS_BADGE.closed;
+          const label = STATUS_LABEL[post.status] ?? post.status;
 
-        return (
-          <li key={post.id} className="relative flex gap-4 pb-5 last:pb-0">
-            {/* thread line */}
-            <div className="relative flex flex-col items-center self-stretch">
-              <span className={cn("relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-background", dot)} />
-              {!isLast && <span className="absolute top-4 -bottom-5 w-px bg-border" />}
-            </div>
-
-            {/* content */}
-            <div className="flex flex-1 items-start justify-between gap-4 min-w-0">
-              <p className="text-sm leading-snug pt-0.5 truncate">{post.title}</p>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  {post.votesThisWeek}w · {post.votesLastWeek}lw
-                </span>
-                {diff > 0 ? (
-                  <TrendingUp className="h-3.5 w-3.5 text-green-500" />
-                ) : diff < 0 ? (
-                  <TrendingDown className="h-3.5 w-3.5 text-red-400" />
-                ) : (
-                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
-                )}
-                <span className={cn("rounded border px-1.5 py-0.5 text-xs font-medium", badge)}>
+          return (
+            <tr key={post.id} className="hover:bg-muted/30 transition-colors">
+              <td className="py-2.5 pr-3">
+                <span className={cn("h-2.5 w-2.5 rounded-full block", dot)} />
+              </td>
+              <td className="py-2.5 pr-6 text-foreground max-w-0">
+                <span className="block truncate" title={post.title}>{post.title}</span>
+              </td>
+              <td className="py-2.5 text-right tabular-nums font-medium text-foreground">
+                {post.votesThisWeek}
+              </td>
+              <td className={cn(
+                "py-2.5 text-right tabular-nums text-xs font-medium",
+                diff > 0 ? "text-green-500" : diff < 0 ? "text-rose-400" : "text-muted-foreground"
+              )}>
+                {diff > 0 ? `+${diff}` : diff === 0 ? "—" : diff}
+              </td>
+              <td className="py-2.5 text-right">
+                <span className={cn("inline-flex rounded border px-1.5 py-0.5 text-xs font-medium whitespace-nowrap", badge)}>
                   {label}
                 </span>
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }

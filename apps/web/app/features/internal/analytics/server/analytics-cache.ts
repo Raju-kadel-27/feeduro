@@ -1,6 +1,6 @@
 import { createContext, type RouterContextProvider } from "react-router";
 
-const TTL_MS = 30 * 60 * 1000; // 30 minutes
+const TTL_MS = 60 * 60 * 1000; // 1 hour
 
 interface CacheEntry {
   data: unknown;

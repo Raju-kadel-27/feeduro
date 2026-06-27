@@ -1,6 +1,6 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getOrgTags, getPostTags } from "@features/feedback/server/tags.server";
+import { getOrgTags, getPostTags } from "@features/feedback/server/tags";
 import { PostMergeDialog } from "@features/internal/post-detail-panel/components/post-merge-dialog";
 import { PostMergedBanner } from "@features/internal/post-detail-panel/components/post-merged-banner";
 import { useMergeActions } from "@features/internal/post-detail-panel/hooks/use-merge-actions";

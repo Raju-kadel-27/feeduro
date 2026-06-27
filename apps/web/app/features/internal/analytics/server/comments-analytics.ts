@@ -28,8 +28,9 @@ export async function getCommentsAnalytics(
     since && prevSince
       ? sql`AND c.created_at >= ${prevSince} AND c.created_at < ${since}`
       : null;
-  const boardFilter = boardId
-    ? sql`AND c.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
+  // Use a conditional JOIN instead of an IN subquery — avoids a redundant scan of feedback_posts
+  const boardCountsJoin = boardId
+    ? sql`INNER JOIN feedback_posts fpb ON fpb.id = c.post_id AND fpb.board_id = ${boardId} AND fpb.organization_id = ${organizationId}`
     : sql``;
   const boardPostFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
@@ -40,8 +41,8 @@ export async function getCommentsAnalytics(
         COUNT(CASE WHEN TRUE ${sinceFilter} THEN 1 END)::int AS "currentComments",
         ${prevFilter ? sql`COUNT(CASE WHEN TRUE ${prevFilter} THEN 1 END)::int` : sql`NULL`} AS "prevComments"
       FROM comments c
+      ${boardCountsJoin}
       WHERE c.organization_id = ${organizationId}
-        ${boardFilter}
     `),
     // top posts by comment count in the period
     db.execute(sql`

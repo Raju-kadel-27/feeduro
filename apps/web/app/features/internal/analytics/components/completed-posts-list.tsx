@@ -25,21 +25,39 @@ export function CompletedPostsList({ posts, rangeLabel }: CompletedPostsListProp
   }
 
   return (
-    <div className="space-y-1.5">
-      {posts.map((post) => (
-        <div key={post.id} className="flex items-center gap-3 py-1">
-          <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
-          <span className="flex-1 text-sm text-foreground truncate" title={post.title}>
-            {post.title}
-          </span>
-          <span className="text-xs tabular-nums text-muted-foreground shrink-0">
-            {post.voteCount}v
-          </span>
-          <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-            {formatDate(post.completedAt)}
-          </span>
-        </div>
-      ))}
-    </div>
+    <table className="w-full text-sm">
+      <colgroup>
+        <col className="w-4" />
+        <col />
+        <col className="w-16" />
+        <col className="w-24" />
+      </colgroup>
+      <thead>
+        <tr className="border-b">
+          <th />
+          <th className="pb-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Post</th>
+          <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Votes</th>
+          <th className="pb-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Completed</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {posts.map((post) => (
+          <tr key={post.id} className="hover:bg-muted/30 transition-colors">
+            <td className="py-2.5 pr-3">
+              <span className="h-2 w-2 rounded-full bg-green-500 block" />
+            </td>
+            <td className="py-2.5 pr-6 text-foreground max-w-0">
+              <span className="block truncate" title={post.title}>{post.title}</span>
+            </td>
+            <td className="py-2.5 text-right tabular-nums text-muted-foreground text-xs">
+              {post.voteCount}
+            </td>
+            <td className="py-2.5 text-right text-xs text-muted-foreground whitespace-nowrap pl-4">
+              {formatDate(post.completedAt)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

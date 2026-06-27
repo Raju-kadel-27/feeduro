@@ -12,6 +12,9 @@ export async function getResponseRate(
 ) {
   const db = getDb();
   const sinceFilter = since ? sql`AND fp.created_at >= ${since}` : sql``;
+  // Push the period boundary into the CTE — posts in the period can only have
+  // responses after `since`, so this is safe and avoids a full comments scan.
+  const sinceCommentFilter = since ? sql`AND c.created_at >= ${since}` : sql``;
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`
@@ -26,6 +29,7 @@ export async function getResponseRate(
       JOIN team_members tm ON tm.user_id = c.user_id
       WHERE c.organization_id = ${organizationId}
         AND c.is_internal     = false
+        ${sinceCommentFilter}
       ORDER BY c.post_id, c.created_at ASC
     )
     SELECT

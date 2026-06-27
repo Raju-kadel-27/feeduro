@@ -1,7 +1,6 @@
 import {
   AlertCircle,
   Check,
-  ChevronDown,
   Code2,
   Copy,
   ExternalLink,
@@ -15,7 +14,6 @@ import {
 import { useState } from "react";
 import { data } from "react-router";
 
-// Brand icons not available in lucide-react — minimal inline SVGs
 function XIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -61,10 +59,8 @@ export function meta({ data: d }: Route.MetaArgs) {
 export async function loader({ request, params }: Route.LoaderArgs) {
   const { session, org } = await requireOrgBySlug(request, params.orgSlug);
   const env = getEnv();
-
   const isDev = env.ENVIRONMENT === "development";
   const publicBoardUrl = isDev ? `${env.BASE_URL}/${org.slug}` : `https://${org.slug}.feeduro.com`;
-
   return data({
     org: { name: org.name ?? "", slug: org.slug ?? "" },
     userName: session.user.name ?? "",
@@ -117,192 +113,106 @@ function CopyBtn({
   );
 }
 
-// ─── Social share button ──────────────────────────────────────────────────────
-
-function SocialBtn({
-  href,
-  icon: Icon,
-  label,
-  description,
-  color,
-}: {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  color: string;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`Share on ${label}`}
-      className="flex items-center gap-3 rounded-lg border border-border p-3.5 hover:bg-muted/50 transition-colors group"
-    >
-      <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white text-sm font-bold"
-        style={{ background: color }}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium leading-none">{label}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-      </div>
-      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors shrink-0" />
-    </a>
-  );
-}
-
-// ─── Expandable message card ──────────────────────────────────────────────────
-
-function MessageCard({
-  icon: Icon,
-  title,
-  description,
-  message,
-}: {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  message: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const panelId = `msg-${title.toLowerCase().replace(/\s+/g, "-")}`;
-  return (
-    <div className="rounded-lg border border-border overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-controls={panelId}
-        className="flex w-full items-center gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
-      >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
-          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-none">{title}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-        </div>
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-150",
-            open && "rotate-180",
-          )}
-        />
-      </button>
-      {open && (
-        <div id={panelId} className="border-t border-border bg-muted/20">
-          <pre className="px-4 py-3 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap font-sans">
-            {message}
-          </pre>
-          <div className="flex justify-end px-4 pb-3">
-            <CopyBtn text={message} label="Copy message" />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+type Tab = "announce" | "footer" | "links" | "outreach";
 
 export default function SharePage({ loaderData }: Route.ComponentProps) {
   const { org, userName, publicBoardUrl, links } = loaderData;
+  const [tab, setTab] = useState<Tab>("announce");
+  const [selectedMsg, setSelectedMsg] = useState(0);
 
-  // ── Social share URLs ──────────────────────────────────────────────────────
-  // Twitter: text + url as separate params so Twitter counts the URL as 23 chars
-  // LinkedIn: only url is supported by their sharer — OG tags generate the preview
-  // Facebook: only u is supported — OG tags generate the preview
-  // Reddit: url + title pre-fills a ready-to-submit link post
   const shareUrl = encodeURIComponent(publicBoardUrl);
   const tweetText = encodeURIComponent(
-    `We just set up a public feedback board for ${org.name} — share your ideas and vote on what we should build next! 🚀`,
+    `We opened up our feedback board for ${org.name} — drop your ideas, vote on what matters, and help shape what we build next.`,
   );
   const redditTitle = encodeURIComponent(
-    `We just launched a public feedback board for ${org.name} — tell us what to build next!`,
+    `${org.name} now has a public feedback board — vote on what gets built next`,
   );
   const linkedInText = encodeURIComponent(
-    `We just launched a public feedback board for ${org.name}.\n\nGot feature requests, bug reports, or ideas? Head over, drop them in, and vote on what matters most:\n\n${publicBoardUrl}\n\nWe review everything — your input shapes what we build next.`,
+    `We've opened a public feedback board for ${org.name}.\n\nHave a feature request, spotted a bug, or just have thoughts on where we should go? This is the place:\n\n${publicBoardUrl}\n\nWe go through every submission. Highest-voted ideas get prioritized first.`,
   );
 
   const socials = [
     {
       label: "Twitter / X",
-      description: "Post to your followers.",
+      description: "Reach your followers in one post",
       icon: XIcon,
       color: "#000000",
       href: `https://x.com/intent/post?text=${tweetText}&url=${shareUrl}`,
     },
     {
       label: "LinkedIn",
-      description: "Share with your network.",
+      description: "Announce it to your professional network",
       icon: LinkedinIcon,
       color: "#0a66c2",
       href: `https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&summary=${linkedInText}&title=${encodeURIComponent(`Feedback board for ${org.name}`)}`,
     },
     {
       label: "Facebook",
-      description: "Post to a page or group.",
+      description: "Share it on a page or in a group",
       icon: FacebookIcon,
       color: "#1877f2",
       href: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
     },
     {
       label: "Reddit",
-      description: "Share in a subreddit.",
+      description: "Post it where your community hangs out",
       icon: RedditIcon,
       color: "#ff4500",
       href: `https://www.reddit.com/submit?url=${shareUrl}&title=${redditTitle}`,
     },
   ];
 
-  // ── App links ──────────────────────────────────────────────────────────────
-  const allLinks = `Feedback: ${links.feedback}\nRoadmap: ${links.roadmap}\nChangelog: ${links.changelog}`;
+  const footerSnippet = `${userName || "[Your name]"} from ${org.name}\n\nHave thoughts on ${org.name}? We'd love to hear them.\n${publicBoardUrl}`;
 
-  // ── Email signature ────────────────────────────────────────────────────────
-  const emailSig = `${userName || "[Your name]"} from ${org.name}\n\nGot feedback about ${org.name}?\nShare your thoughts here → ${publicBoardUrl}`;
-
-  // ── Ready-to-paste messages ────────────────────────────────────────────────
-  const messages = [
+  const channels = [
     {
       icon: MessageSquare,
-      title: "Slack / Discord",
-      description: "Drop this in a team or community channel.",
-      message: `Hey team 👋 We've set up a feedback board for ${org.name}. Got ideas, bugs, or requests? Drop them here and upvote what matters most:\n\n${publicBoardUrl}\n\nWe review everything — your input directly shapes what we build next.`,
+      label: "Team chat",
+      description: "Paste into Slack, Discord, or Teams",
+      message: `Hey team 👋\n\nWe set up a place to collect product ideas — drop anything in:\n\n${publicBoardUrl}\n\nFeature requests, bugs, things that annoy you, things you love — it all helps. Upvote what matters most and we'll build from the top.`,
     },
     {
       icon: Mail,
-      title: "Email to users",
-      description: "Send this to customers you want to hear from.",
-      message: `Subject: We want to hear from you\n\nHi [name],\n\nWe're always working to make ${org.name} better — and your feedback is the most valuable thing we have.\n\nGot a feature request? Spotted a bug? Have ideas about where we should go next? Head to our feedback board:\n\n${publicBoardUrl}\n\nIt takes 2 minutes and directly shapes what we build. We read everything.\n\nThanks for being part of this,\n${userName || "[Your name]"}`,
+      label: "User outreach",
+      description: "A direct note to customers you want input from",
+      message: `Subject: Got 60 seconds? Tell us what to build next.\n\nHi [name],\n\nYou've been using ${org.name} for a while now, and I'd love to know what's on your mind.\n\nWhat's missing? What should work differently? What would make your day easier?\n\n→ ${publicBoardUrl}\n\nIt's quick, your vote actually counts, and we read everything.\n\nThanks,\n${userName || "[Your name]"}`,
     },
     {
       icon: Users,
-      title: "Community post",
-      description: "For forums, groups, or anywhere your users gather.",
-      message: `We've launched a public feedback board for ${org.name}!\n\nTell us what you'd like to see, vote on ideas from other users, and follow along as we build in the open.\n\n👉 ${publicBoardUrl}\n\nEvery vote and comment helps us prioritize. Would love to see you there.`,
+      label: "Community",
+      description: "Works for Reddit, Discord servers, or forums",
+      message: `We just launched a public feedback board for ${org.name} 🎉\n\nTell us what you want to see, vote on ideas from other users, and watch us build in the open.\n\n${publicBoardUrl}\n\nEvery vote shapes what we prioritize. Come make your mark.`,
     },
     {
       icon: LifeBuoy,
-      title: "Support reply",
-      description: "Paste this into a ticket reply or canned response.",
-      message: `Thanks for reaching out!\n\nYou can also share feature requests and vote on ideas from other users on our feedback board — we check it regularly and it helps us prioritize:\n\n${publicBoardUrl}\n\nWe'd love to see your idea there too.`,
+      label: "Support response",
+      description: "Add to your helpdesk as a canned reply",
+      message: `Thanks for writing in!\n\nOne more thing — if you have a feature request or idea, our feedback board is the fastest way to get it in front of us:\n\n${publicBoardUrl}\n\nYour idea might already have votes, or you can add a new one. We check it regularly and it directly influences what we build.`,
     },
     {
       icon: Send,
-      title: "Customer email",
-      description: "Send this to your user list to kick things off.",
-      message: `Subject: Your feedback shapes ${org.name}\n\nHi [name],\n\nQuick note: we've made it easy to share feedback, vote on features, and see what's coming next for ${org.name}.\n\nDrop your ideas here:\n${publicBoardUrl}\n\nTakes 60 seconds. We read everything and the most-voted ideas get built first.\n\nThanks,\n${userName || "[Your name]"}`,
+      label: "Broadcast email",
+      description: "A short note for your next newsletter or mailing list",
+      message: `Subject: You help decide what ${org.name} builds next.\n\nHi [name],\n\nWe just made it easy to tell us exactly what you want from ${org.name}.\n\nVote on existing ideas, add your own, or just browse what others are saying:\n\n${publicBoardUrl}\n\nTakes a minute. We build from the top of the board, so your vote matters.\n\n— ${userName || "[Your name]"}`,
     },
     {
       icon: Code2,
-      title: "Send to your developer",
-      description: "Forward this to whoever handles your codebase.",
-      message: `Hey!\n\nCan you add a link to our feedback board in the app? Just link to:\n\n${publicBoardUrl}\n\nGood places to add it:\n- Help or support menu\n- Settings page footer\n- App footer or sidebar\n- Onboarding flow\n\nThanks!`,
+      label: "Dev request",
+      description: "Forward to whoever manages your codebase",
+      message: `Hey,\n\nSmall ask: can you add a link to our feedback board somewhere in the product?\n\n${publicBoardUrl}\n\nGreat spots for it:\n- Help menu or "?" icon\n- App footer\n- Settings page\n- Onboarding flow\n\nA simple text link works great. Thanks!`,
     },
+  ];
+
+  const allLinks = `Feedback: ${links.feedback}\nRoadmap: ${links.roadmap}\nChangelog: ${links.changelog}`;
+  const ActiveMsgIcon = channels[selectedMsg].icon;
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "announce", label: "Social" },
+    { id: "footer", label: "Email" },
+    { id: "links", label: "Your links" },
+    { id: "outreach", label: "Copy & paste" },
   ];
 
   return (
@@ -311,144 +221,201 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
         <SidebarTrigger className="-ml-1" />
       </header>
 
-      <main className="p-6 max-w-3xl mx-auto w-full space-y-8 pb-16">
-        {/* Page header */}
-        <div>
-          <h1 className="text-xl font-semibold">Collect Feedback</h1>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Hero */}
+        <div className="px-6 pt-1 pb-3">
+          <h1 className="text-lg font-semibold">Share your board</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Get {org.name} in front of your users.
-          </p>
-        </div>
-
-        {/* ── Board is live ─────────────────────────────────────────────── */}
-        <section className="rounded-xl border border-border p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            <h2 className="text-sm font-semibold">Your {org.name} board is live</h2>
-          </div>
-          <p className="text-sm text-muted-foreground -mt-2">
-            Share it with your users, drop it in your docs, or link it from your website.
+            Put {org.name} in front of the people who matter most.
           </p>
 
-          {/* URL row */}
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
-            <Link2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span className="flex-1 text-sm text-foreground/80 truncate font-mono min-w-0">
-              {publicBoardUrl}
-            </span>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <CopyBtn text={publicBoardUrl} label="Copy link" variant="secondary" />
+          <div className="mt-3 rounded-xl border border-border bg-gradient-to-br from-muted/40 to-muted/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+              </span>
+              <span className="text-sm font-medium">{org.name} is accepting feedback</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div
+                className="flex items-center gap-2 flex-1 min-w-0 rounded-lg border border-border bg-background px-3 py-2 cursor-text"
+                onClick={(e) => {
+                  const range = document.createRange();
+                  range.selectNodeContents(e.currentTarget);
+                  window.getSelection()?.removeAllRanges();
+                  window.getSelection()?.addRange(range);
+                }}
+              >
+                <Link2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-sm font-mono text-foreground/80 truncate">{publicBoardUrl}</span>
+              </div>
+              <CopyBtn text={publicBoardUrl} label="Copy link" variant="primary" />
               <a
                 href={publicBoardUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                title="Open your public board"
+                className="inline-flex items-center gap-1.5 px-3 h-8 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
               >
                 <ExternalLink className="h-3 w-3" />
                 Visit
               </a>
             </div>
           </div>
+        </div>
 
-          {/* Social share — collapsed by default */}
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3">
-              Share on social
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {socials.map((s) => (
-                <SocialBtn key={s.label} {...s} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Email signature ───────────────────────────────────────────── */}
-        <section className="rounded-xl border border-border p-5 space-y-4">
-          <div>
-            <h2 className="text-sm font-semibold">Email signature</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Add this to your sign-off. Every email you send becomes an invite.
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1.5">
-            <p className="text-sm font-medium text-foreground">
-              {userName || "[Your name]"} from {org.name}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Got feedback about {org.name}?{" "}
-              <span className="text-primary underline-offset-2 underline">
-                Share your thoughts here →
-              </span>
-            </p>
-          </div>
-
-          <div className="flex justify-end">
-            <CopyBtn text={emailSig} label="Copy snippet" />
-          </div>
-        </section>
-
-        {/* ── Add to your app ───────────────────────────────────────────── */}
-        <section className="rounded-xl border border-border p-5 space-y-4">
-          <div>
-            <h2 className="text-sm font-semibold">Add to your app or website</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Drop these links into your help menu, footer, or docs. Set once, collect forever.
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-border divide-y divide-border overflow-hidden">
-            {[
-              { label: "Feedback", url: links.feedback },
-              { label: "Roadmap", url: links.roadmap },
-              { label: "Changelog", url: links.changelog },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-muted/20"
+        {/* Tab nav */}
+        <div className="border-b border-border shrink-0 overflow-x-auto scrollbar-none">
+          <div className="flex flex-nowrap gap-0 -mb-px px-6 min-w-fit">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                  tab === t.id
+                    ? "border-foreground text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
+                )}
               >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{item.label}</p>
-                  <p className="text-xs text-muted-foreground truncate font-mono">{item.url}</p>
-                </div>
-                <CopyBtn text={item.url} />
-              </div>
+                {t.label}
+              </button>
             ))}
           </div>
+        </div>
 
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              © {org.name} · Feedback · Roadmap · Changelog
-            </p>
-            <CopyBtn text={allLinks} label="Copy all links" />
-          </div>
-        </section>
-
-        {/* ── Ready-to-paste messages ───────────────────────────────────── */}
-        <section className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold">Ready-to-paste messages</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Pick a channel, copy the message, paste it. Each one is written for {org.name}.
-            </p>
-          </div>
-
-          {!userName && (
-            <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-2.5 text-sm text-amber-800 dark:text-amber-300">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              Messages contain <strong className="mx-0.5">[Your name]</strong> — add your name in
-              account settings before copying.
+        {/* Tab content */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 max-w-5xl w-full">
+          {/* ── Announce (Social) ────────────────────────────────────── */}
+          {tab === "announce" && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {socials.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`Share on ${s.label}`}
+                  className="flex flex-col items-center gap-3 rounded-xl border border-border p-5 hover:bg-muted/50 hover:border-border/80 transition-all group text-center"
+                >
+                  <span
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-white"
+                    style={{ background: s.color }}
+                  >
+                    <s.icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium leading-none">{s.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1.5 leading-snug">{s.description}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors flex items-center gap-1 mt-auto">
+                    Share <ExternalLink className="h-3 w-3" />
+                  </span>
+                </a>
+              ))}
             </div>
           )}
 
-          <div className="space-y-2">
-            {messages.map((m) => (
-              <MessageCard key={m.title} {...m} />
-            ))}
-          </div>
-        </section>
-      </main>
+          {/* ── Email footer ─────────────────────────────────────────── */}
+          {tab === "footer" && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Add this to the bottom of your emails — every outbound message carries a quiet invite.
+              </p>
+              <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-1.5">
+                <p className="text-sm font-medium">
+                  {userName || "[Your name]"} from {org.name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Have thoughts on {org.name}? We'd love to hear them.{" "}
+                  <span className="text-primary underline underline-offset-2">{publicBoardUrl}</span>
+                </p>
+              </div>
+              <div className="flex justify-end">
+                <CopyBtn text={footerSnippet} label="Copy footer" variant="secondary" />
+              </div>
+            </div>
+          )}
+
+          {/* ── Embed links ──────────────────────────────────────────── */}
+          {tab === "links" && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Wire these into your product — help menus, footers, docs. Paste once and they work forever.
+              </p>
+              <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+                {[
+                  { label: "Feedback", url: links.feedback },
+                  { label: "Roadmap", url: links.roadmap },
+                  { label: "Changelog", url: links.changelog },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between gap-3 px-4 py-3 bg-muted/10"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{item.label}</p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">{item.url}</p>
+                    </div>
+                    <CopyBtn text={item.url} />
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <CopyBtn text={allLinks} label="Copy all" variant="secondary" />
+              </div>
+            </div>
+          )}
+
+          {/* ── Outreach kit ─────────────────────────────────────────── */}
+          {tab === "outreach" && (
+            <div className="space-y-4">
+              {!userName && (
+                <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-2.5 text-sm text-amber-800 dark:text-amber-300">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  Some messages include <strong className="mx-0.5">[Your name]</strong> — fill that in via
+                  account settings first.
+                </div>
+              )}
+
+              <div className="flex gap-6 items-start">
+                {/* Left: vertical channel list */}
+                <div className="flex flex-col gap-1 w-44 shrink-0">
+                  {channels.map((c, i) => (
+                    <button
+                      key={c.label}
+                      type="button"
+                      onClick={() => setSelectedMsg(i)}
+                      className={cn(
+                        "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs font-medium text-left transition-colors",
+                        selectedMsg === i
+                          ? "bg-foreground text-background"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                      )}
+                    >
+                      <c.icon className="h-3.5 w-3.5 shrink-0" />
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Right: message panel */}
+                <div className="flex-1 min-w-0 rounded-xl border border-border overflow-hidden">
+                  <div className="px-4 py-2.5 bg-muted/30 border-b border-border flex items-center justify-between gap-3">
+                    <span className="text-xs text-muted-foreground truncate">{channels[selectedMsg].description}</span>
+                    <CopyBtn text={channels[selectedMsg].message} label="Copy message" variant="secondary" />
+                  </div>
+                  <pre className="px-4 py-4 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap font-sans">
+                    {channels[selectedMsg].message}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 }

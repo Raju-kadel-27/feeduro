@@ -3,7 +3,7 @@ import {
   createCategory,
   deleteCategory,
   getOrgCategories,
-} from "@features/feedback/server/categories.server";
+} from "@features/feedback/server/categories";
 import { data } from "react-router";
 
 import type { Route } from "./+types/categories";

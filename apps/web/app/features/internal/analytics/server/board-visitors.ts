@@ -13,8 +13,12 @@ export type BoardVisitors7d = z.infer<typeof SummarySchema>;
 
 export async function getBoardVisitorsLast7Days(
   organizationId: string,
+  boardId?: string,
 ): Promise<BoardVisitors7d> {
   const db = getDb();
+  const boardFilter = boardId
+    ? sql`AND resource_id = ${boardId}`
+    : sql`AND type = 'board_view'`;
 
   // generate_series guarantees all 7 days are present (zeros for empty days)
   // so the line chart never skips a day and creates a misleading shape
@@ -31,9 +35,10 @@ export async function getBoardVisitorsLast7Days(
         created_at::date                    AS day,
         COUNT(DISTINCT visitor_hash)::int   AS "uniqueVisitors",
         COUNT(*)::int                       AS "totalViews"
-      FROM board_views
+      FROM portal_events
       WHERE organization_id = ${organizationId}
         AND created_at >= now() - interval '7 days'
+        ${boardFilter}
       GROUP BY created_at::date
     )
     SELECT

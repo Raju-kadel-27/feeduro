@@ -6,7 +6,7 @@ import {
   getOrgTags,
   getPostTags,
   removeTagFromPost,
-} from "@features/feedback/server/tags.server";
+} from "@features/feedback/server/tags";
 import { data } from "react-router";
 
 import type { Route } from "./+types/tags";

@@ -1,9 +1,9 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getOrgCategories } from "@features/feedback/server/categories.server";
+import { getOrgCategories } from "@features/feedback/server/categories";
 import { getBoards } from "@features/feedback/server/queries";
-import { getOrgTags } from "@features/feedback/server/tags.server";
+import { getOrgTags } from "@features/feedback/server/tags";
 import { ViewsSettingsPage } from "@features/internal/dashboard/components/views-settings-page";
-import { getOrgViews } from "@features/internal/dashboard/server/views.server";
+import { getOrgViews } from "@features/internal/dashboard/server/views";
 import type { Category, Tag } from "@features/internal/dashboard/types";
 import { getOrgSegments } from "@features/internal/segmentation/server/service";
 import type { Segment } from "@features/internal/segmentation/types";

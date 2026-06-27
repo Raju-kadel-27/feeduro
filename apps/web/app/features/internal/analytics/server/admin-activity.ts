@@ -14,14 +14,16 @@ export async function getAdminActivity(
   const sinceVoteFilter = since ? sql`AND v.created_at   >= ${since}` : sql``;
   const sinceCommentFilter = since ? sql`AND c.created_at >= ${since}` : sql``;
   const boardPostFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
-  const boardVoteFilter = boardId
-    ? sql`AND v.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
+  // Compute board post IDs once in a CTE and reuse for both votes and comments
+  // rather than running two identical IN subqueries against feedback_posts.
+  const boardCte = boardId
+    ? sql`WITH board_post_ids AS (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
     : sql``;
-  const boardCommentFilter = boardId
-    ? sql`AND c.post_id IN (SELECT id FROM feedback_posts WHERE board_id = ${boardId} AND organization_id = ${organizationId})`
-    : sql``;
+  const boardVoteFilter = boardId ? sql`AND v.post_id IN (SELECT id FROM board_post_ids)` : sql``;
+  const boardCommentFilter = boardId ? sql`AND c.post_id IN (SELECT id FROM board_post_ids)` : sql``;
 
   const result = await db.execute(sql`
+    ${boardCte}
     SELECT
       u.id                                            AS "userId",
       u.name                                          AS "name",

@@ -2,26 +2,27 @@ import { requireOrgBySlug } from "@features/auth/server/guards";
 import { type RouterContextProvider } from "react-router";
 import type { DateRange } from "../schemas/analytics";
 import { DATE_RANGE_OPTIONS } from "../schemas/analytics";
-import { getActivityOverTime } from "./activity-over-time.server";
-import { getAdminActivity } from "./admin-activity.server";
-import { getAnalyticsCache } from "./analytics-cache.server";
-import { getBacklogAging } from "./backlog-aging.server";
-import { getBoardSummaries } from "./board-summary.server";
-import { getBoardVisitorsLast7Days } from "./board-visitors.server";
-import { getChangelogEngagement } from "./changelog-engagement.server";
-import { getCommentsAnalytics } from "./comments-analytics.server";
-import { getCompanyEngagement } from "./company-engagement.server";
-import { getCompletedInPeriod } from "./completed-posts.server";
-import { getPeriodDeltas } from "./previous-period.server";
-import { getResolutionTime } from "./resolution-time.server";
-import { getResponseRate } from "./response-rate.server";
-import { getStatusBreakdown } from "./status-breakdown.server";
-import { getSubscriberMetrics } from "./subscriber-metrics.server";
-import { getTagBreakdown } from "./tag-breakdown.server";
-import { getTrendingPosts } from "./trending-posts.server";
-import { getUnrespondedPosts } from "./unresponded-posts.server";
-import { getTopPostsByVotes } from "./vote-trends.server";
-import { getVotesOverTime } from "./votes-over-time.server";
+import { getActivityOverTime } from "./activity-over-time";
+import { getAdminActivity } from "./admin-activity";
+import { getAnalyticsCache } from "./analytics-cache";
+import { getBacklogAging } from "./backlog-aging";
+import { getBoardSummaries } from "./board-summary";
+import { getBoardVisitorsLast7Days } from "./board-visitors";
+import { getRoadmapVisitorsLast7Days } from "./roadmap-visitors";
+import { getChangelogEngagement } from "./changelog-engagement";
+import { getCommentsAnalytics } from "./comments-analytics";
+import { getCompanyEngagement } from "./company-engagement";
+import { getCompletedInPeriod } from "./completed-posts";
+import { getPeriodDeltas } from "./previous-period";
+import { getResolutionTime } from "./resolution-time";
+import { getResponseRate } from "./response-rate";
+import { getStatusBreakdown } from "./status-breakdown";
+import { getSubscriberMetrics } from "./subscriber-metrics";
+import { getTagBreakdown } from "./tag-breakdown";
+import { getTrendingPosts } from "./trending-posts";
+import { getUnrespondedPosts } from "./unresponded-posts";
+import { getTopPostsByVotes } from "./vote-trends";
+import { getVotesOverTime } from "./votes-over-time";
 
 function parseSince(range: string): Date | undefined {
   const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : null;
@@ -46,7 +47,7 @@ async function fetchAll(
     boards, topPosts, statusBreakdown,
     activityOverTime, votesOverTime, completedPosts, tagBreakdown, trendingPosts,
     changelogEngagement, adminActivity, companyEngagement,
-    boardVisitors, commentsAnalytics, unrespondedPosts, deltas,
+    boardVisitors, roadmapVisitors, commentsAnalytics, unrespondedPosts, deltas,
     resolutionTime, responseRate, backlogAging, subscriberMetrics,
   ] = await Promise.all([
     getBoardSummaries(organizationId, since),
@@ -60,7 +61,8 @@ async function fetchAll(
     getChangelogEngagement(organizationId),
     getAdminActivity(organizationId, since, 20, boardId),
     getCompanyEngagement(organizationId, since, 20, boardId),
-    getBoardVisitorsLast7Days(organizationId),
+    getBoardVisitorsLast7Days(organizationId, boardId),
+    getRoadmapVisitorsLast7Days(organizationId),
     getCommentsAnalytics(organizationId, since, boardId),
     getUnrespondedPosts(organizationId, boardId),
     since ? getPeriodDeltas(organizationId, since, boardId) : Promise.resolve(null),
@@ -70,9 +72,10 @@ async function fetchAll(
     getSubscriberMetrics(organizationId, since),
   ]);
 
-  const totalPosts = boards.reduce((s, b) => s + b.totalPosts, 0);
-  const totalVotes = boards.reduce((s, b) => s + b.totalVotes, 0);
-  const totalResolved = boards.reduce((s, b) => s + b.resolvedPosts, 0);
+  const relevantBoards = boardId ? boards.filter((b) => b.boardId === boardId) : boards;
+  const totalPosts = relevantBoards.reduce((s, b) => s + b.totalPosts, 0);
+  const totalVotes = relevantBoards.reduce((s, b) => s + b.totalVotes, 0);
+  const totalResolved = relevantBoards.reduce((s, b) => s + b.resolvedPosts, 0);
   const resolutionRate = totalPosts > 0 ? Math.round((totalResolved / totalPosts) * 100) : 0;
   const avgVotesPerPost = totalPosts > 0 ? Math.round((totalVotes / totalPosts) * 10) / 10 : 0;
 
@@ -92,6 +95,7 @@ async function fetchAll(
     adminActivity,
     companyEngagement,
     boardVisitors,
+    roadmapVisitors,
     commentsAnalytics,
     unrespondedPosts,
     resolutionTime,

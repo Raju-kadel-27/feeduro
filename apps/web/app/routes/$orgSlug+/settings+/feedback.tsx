@@ -1,9 +1,9 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { FeedbackSettingsPanel } from "@features/feedback/components/settings/feedback-settings-panel";
-import { getOrgCategories } from "@features/feedback/server/categories.server";
+import { getOrgCategories } from "@features/feedback/server/categories";
 import { parseFeedbackSettings } from "@features/feedback/server/feedback-settings";
-import { getOrgTags } from "@features/feedback/server/tags.server";
+import { getOrgTags } from "@features/feedback/server/tags";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { MessageSquare } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";

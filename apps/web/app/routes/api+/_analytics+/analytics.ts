@@ -1,9 +1,9 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { getBoardSummaries } from "@features/internal/analytics/server/board-summary.server";
-import { getTopContributors } from "@features/internal/analytics/server/contributor-rank.server";
-import { getSegmentDemand } from "@features/internal/analytics/server/segment-demand.server";
-import { getStatusFunnel } from "@features/internal/analytics/server/status-funnel.server";
-import { getTopPostsByVotes, getVoteTrends } from "@features/internal/analytics/server/vote-trends.server";
+import { getBoardSummaries } from "@features/internal/analytics/server/board-summary";
+import { getTopContributors } from "@features/internal/analytics/server/contributor-rank";
+import { getSegmentDemand } from "@features/internal/analytics/server/segment-demand";
+import { getStatusFunnel } from "@features/internal/analytics/server/status-funnel";
+import { getTopPostsByVotes, getVoteTrends } from "@features/internal/analytics/server/vote-trends";
 import { data } from "react-router";
 import { z } from "zod";
 

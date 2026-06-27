@@ -13,7 +13,7 @@ export async function getChangelogEngagement(organizationId: string, limit = 20)
       COUNT(cv.id)::int                               AS "totalViews",
       COUNT(DISTINCT cv.visitor_hash)::int            AS "uniqueReaders"
     FROM changelogs cl
-    LEFT JOIN changelog_views cv ON cv.changelog_id = cl.id
+    LEFT JOIN portal_events cv ON cv.resource_id = cl.id AND cv.type = 'changelog_view'
     WHERE cl.organization_id = ${organizationId}
       AND cl.status = 'published'
     GROUP BY cl.id, cl.title, cl.published_at

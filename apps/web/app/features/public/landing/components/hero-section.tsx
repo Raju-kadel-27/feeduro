@@ -1,4 +1,4 @@
-import { TrendingUp } from "lucide-react";
+import { BarChart2 } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -28,9 +28,9 @@ export function HeroSection() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-6">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 text-sm font-medium mb-8 animate-slide-up-fade">
-            <TrendingUp className="w-3.5 h-3.5 text-orange-500" />
-            <span className="landing-gradient-text-animated">Revenue-aware feedback board</span>
+          <div className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-1.5 text-sm font-semibold text-white mb-8 animate-slide-up-fade">
+            <BarChart2 className="w-3.5 h-3.5 text-white" />
+            <span>Analytics rich feedback board</span>
           </div>
 
           <h1

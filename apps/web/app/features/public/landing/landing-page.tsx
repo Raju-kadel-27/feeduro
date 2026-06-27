@@ -10,7 +10,7 @@ import { TestimonialSection } from "./components/testimonial-section";
 
 export function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="force-light relative min-h-screen bg-background text-foreground">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"

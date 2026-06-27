@@ -1,6 +1,6 @@
 import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/server/service";
 import { createId } from "@paralleldrive/cuid2";
-import { and, count, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { feedbackPosts, user, votes } from "@/db/schema";
@@ -42,13 +42,15 @@ export async function createVote(
   const id = createId();
   const createdAt = new Date();
 
-  await db.insert(votes).values({ id, postId: input.postId, userId: input.userId, organizationId });
-
-  const [countRow] = await db
-    .select({ count: count() })
-    .from(votes)
-    .where(eq(votes.postId, input.postId));
-  const voteCount = countRow?.count ?? 1;
+  const { voteCount } = await db.transaction(async (tx) => {
+    await tx.insert(votes).values({ id, postId: input.postId, userId: input.userId, organizationId });
+    const [updated] = await tx
+      .update(feedbackPosts)
+      .set({ voteCount: sql`vote_count + 1` })
+      .where(eq(feedbackPosts.id, input.postId))
+      .returning({ voteCount: feedbackPosts.voteCount });
+    return { voteCount: updated?.voteCount ?? 1 };
+  });
 
   notifyVoteMilestoneIfReached({
     postId: input.postId,
@@ -61,9 +63,16 @@ export async function createVote(
 
 export async function deleteVote(organizationId: string, voteId: string): Promise<boolean> {
   const db = getDb();
-  const result = await db
-    .delete(votes)
-    .where(and(eq(votes.id, voteId), eq(votes.organizationId, organizationId)))
-    .returning({ id: votes.id });
-  return result.length > 0;
+  return await db.transaction(async (tx) => {
+    const [deleted] = await tx
+      .delete(votes)
+      .where(and(eq(votes.id, voteId), eq(votes.organizationId, organizationId)))
+      .returning({ postId: votes.postId });
+    if (!deleted) return false;
+    await tx
+      .update(feedbackPosts)
+      .set({ voteCount: sql`greatest(vote_count - 1, 0)` })
+      .where(eq(feedbackPosts.id, deleted.postId));
+    return true;
+  });
 }

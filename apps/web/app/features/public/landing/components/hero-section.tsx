@@ -2,7 +2,7 @@ import { BarChart2 } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pt-32 pb-20">
+    <section className="relative overflow-hidden pt-20 pb-10">
       <div
         aria-hidden
         className="absolute inset-0"
@@ -27,7 +27,7 @@ export function HeroSection() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-1.5 text-sm font-semibold text-white mb-8 animate-slide-up-fade">
             <BarChart2 className="w-3.5 h-3.5 text-white" />
             <span>Analytics rich feedback board</span>
@@ -71,10 +71,14 @@ export function HeroSection() {
                 app.feeduro.com
               </div>
             </div>
-            <img
-              src="/screenshots/landing.png"
-              alt="Feeduro feedback intelligence platform"
+            <video
+              src="https://res.cloudinary.com/dlimsxfkf/video/upload/v1782641096/Untitled_design_1_mk3hmr.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
               className="w-full h-auto block"
+              aria-label="Feeduro feedback intelligence platform"
             />
           </div>
         </div>

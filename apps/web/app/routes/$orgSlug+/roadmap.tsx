@@ -1,6 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
 import { SidebarTrigger } from "@components/ui/sidebar";
-import { PostDetailPanel } from "@features/internal/post-detail-panel/components/post-detail-panel";
 import { ColumnSkeleton } from "@features/roadmap/components/internal/column-skeleton";
 import { KanbanBoard } from "@features/roadmap/components/internal/kanban-board";
 import { useRoadmap } from "@features/roadmap/hooks/use-roadmap";
@@ -8,9 +7,15 @@ import { loadRoadmapData } from "@features/roadmap/server/queries";
 import type { Post } from "@features/roadmap/types";
 import { useDragToScroll } from "@hooks/use-drag-to-scroll";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useLoaderData, useParams } from "react-router";
 import type { Route } from "./+types/roadmap";
+
+const PostDetailPanel = lazy(() =>
+  import("@features/internal/post-detail-panel/components/post-detail-panel").then((m) => ({
+    default: m.PostDetailPanel,
+  })),
+);
 
 export function meta() {
   return [{ title: "Roadmap – Feeduro" }];
@@ -61,14 +66,16 @@ export default function RoadmapPage() {
       </div>
 
       {selectedPostId && orgSlug && (
-        <PostDetailPanel
-          key={selectedPostId}
-          postId={selectedPostId}
-          orgSlug={orgSlug}
-          onClose={() => setSelectedPostId(null)}
-          onDataChange={() => qc.invalidateQueries({ queryKey: ["roadmap"] })}
-          onOpenPost={(id) => setSelectedPostId(id)}
-        />
+        <Suspense>
+          <PostDetailPanel
+            key={selectedPostId}
+            postId={selectedPostId}
+            orgSlug={orgSlug}
+            onClose={() => setSelectedPostId(null)}
+            onDataChange={() => qc.invalidateQueries({ queryKey: ["roadmap"] })}
+            onOpenPost={(id) => setSelectedPostId(id)}
+          />
+        </Suspense>
       )}
     </div>
   );

@@ -11,12 +11,18 @@ import { RefineChipBar } from "@features/internal/dashboard/components/refine-ch
 import { useViewState } from "@features/internal/dashboard/hooks/use-view-state";
 import { getOrgViewsWithCounts } from "@features/internal/dashboard/server/views";
 import type { Board, Category, Post, Tag, View } from "@features/internal/dashboard/types";
-import { PostDetailPanel } from "@features/internal/post-detail-panel/components/post-detail-panel";
 import { getOrgSegments } from "@features/internal/segmentation/server/service";
 import type { Segment } from "@features/internal/segmentation/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+
+const PostDetailPanel = lazy(() =>
+  import("@features/internal/post-detail-panel/components/post-detail-panel").then((m) => ({
+    default: m.PostDetailPanel,
+  })),
+);
+
 import { redirect, useParams } from "react-router";
 import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
@@ -300,15 +306,17 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
         </div>
 
       {selectedPostId && orgSlug && (
-        <PostDetailPanel
-          key={selectedPostId}
-          postId={selectedPostId}
-          orgSlug={orgSlug}
-          segments={segments}
-          onClose={() => setSelectedPostId(null)}
-          onDataChange={() => qc.invalidateQueries({ queryKey: ["feedback", "all", orgSlug] })}
-          onOpenPost={setSelectedPostId}
-        />
+        <Suspense>
+          <PostDetailPanel
+            key={selectedPostId}
+            postId={selectedPostId}
+            orgSlug={orgSlug}
+            segments={segments}
+            onClose={() => setSelectedPostId(null)}
+            onDataChange={() => qc.invalidateQueries({ queryKey: ["feedback", "all", orgSlug] })}
+            onOpenPost={setSelectedPostId}
+          />
+        </Suspense>
       )}
 
       {showCreate && defaultBoard && (

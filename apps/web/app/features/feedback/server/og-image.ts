@@ -1,7 +1,7 @@
 import { COLOR_OPTIONS } from "@features/branding/constants/branding-options";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { createElement as h } from "react";
-import satori from "satori";
+import satori, { init as initSatori } from "satori/standalone";
 
 export type OgImageParams = {
   orgName: string;
@@ -15,6 +15,7 @@ type FontEntry = { name: string; data: ArrayBuffer; weight: 400 | 700; style: "n
 
 const FONT_BASE = "https://cdn.jsdelivr.net/npm/@fontsource/inter@5/files";
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2/index_bg.wasm";
+const YOGA_WASM_URL = "https://cdn.jsdelivr.net/npm/satori@0.26.0/yoga.wasm";
 
 // Per-worker-instance caches — initialized once, reused for every subsequent request
 let fontCache: FontEntry[] | null = null;
@@ -38,7 +39,10 @@ function boot(): Promise<void> {
         })(),
         (async () => {
           if (wasmReady) return;
-          await initWasm(fetch(WASM_URL));
+          await Promise.all([
+            initWasm(fetch(WASM_URL)),
+            initSatori(fetch(YOGA_WASM_URL)),
+          ]);
           wasmReady = true;
         })(),
       ]);

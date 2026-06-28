@@ -22,7 +22,7 @@ export function LandingPage() {
       <LandingNav />
       <main>
         <HeroSection />
-        <ChurnSection />
+<ChurnSection />
 <OutcomesSection />
         <ShowcaseSection />
         <FeaturesSection />

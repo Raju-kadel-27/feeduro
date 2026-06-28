@@ -14,10 +14,12 @@
       "outputs": ["build/**", "dist/**"]
     },
     "deploy:preview": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["CLOUDFLARE_API_TOKEN"]
     },
     "deploy:production": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["CLOUDFLARE_API_TOKEN"]
     },
     "dev": {
       "cache": false,

@@ -61,24 +61,22 @@ export function IntegrationsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
           {INTEGRATIONS.map((item) => (
             <div
               key={item.name}
-              className="relative flex flex-col gap-3 rounded-xl border border-border bg-card p-5 hover:border-border/80 hover:bg-card/80 transition-colors"
+              className="relative flex flex-col p-7 rounded-2xl border border-border bg-card hover:border-border/60 hover:-translate-y-0.5 transition-all duration-200"
             >
               {item.comingSoon && (
                 <span className="absolute top-3 right-3 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                   Coming soon
                 </span>
               )}
-              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-background border border-border/60">
+              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-muted/60 mb-5 shrink-0">
                 {item.icon}
               </div>
-              <div>
-                <p className="font-semibold text-foreground text-sm mb-1">{item.name}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
-              </div>
+              <p className="text-base font-bold mb-2">{item.name}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
             </div>
           ))}
         </div>

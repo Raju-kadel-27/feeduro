@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
   "account_id": "eaf872daa611531b2c95caf488b832c9",
-  "name": "feediyo",
+  "name": "feeduro",
   "main": "./app/entry.worker.ts",
   "alias": {
     "virtual:react-router/server-build": "./build/server/index.js"

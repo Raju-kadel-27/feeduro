@@ -1,10 +1,17 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
-import { AnalyticsOverview } from "@features/internal/analytics/components/analytics-overview";
+import { Skeleton } from "@components/ui/skeleton";
 import { BoardFilter } from "@features/internal/analytics/components/board-filter";
 import { DateRangePicker } from "@features/internal/analytics/components/date-range-picker";
 import { loadAnalyticsOverview } from "@features/internal/analytics/server/overview";
+import { lazy, Suspense } from "react";
 
 import type { Route } from "./+types/analytics";
+
+const AnalyticsOverview = lazy(() =>
+  import("@features/internal/analytics/components/analytics-overview").then((m) => ({
+    default: m.AnalyticsOverview,
+  })),
+);
 
 export function meta() {
   return [{ title: "Analytics – Feeduro" }];
@@ -29,7 +36,22 @@ export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
               <DateRangePicker />
             </div>
           </div>
-          <AnalyticsOverview data={data} />
+          <Suspense fallback={<AnalyticsOverviewSkeleton />}>
+            <AnalyticsOverview data={data} />
+          </Suspense>
         </div>
+  );
+}
+
+function AnalyticsOverviewSkeleton() {
+  return (
+    <div className="p-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-24 rounded-xl" />
+      ))}
+      <Skeleton className="col-span-2 h-64 rounded-xl md:col-span-4" />
+      <Skeleton className="col-span-2 h-64 rounded-xl" />
+      <Skeleton className="col-span-2 h-64 rounded-xl" />
+    </div>
   );
 }

@@ -10,7 +10,6 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import { Tailwind } from "@react-email/tailwind";
 
 interface InvitationEmailProps {
   inviterName: string;
@@ -28,50 +27,110 @@ export function InvitationEmail({
   acceptUrl,
 }: InvitationEmailProps) {
   return (
-    <Tailwind>
-      <Html>
-        <Head />
-        <Preview>
-          {inviterName} invited you to join {workspaceName} on Feeduro
-        </Preview>
-        <Body className="bg-zinc-100 m-0 py-10 font-sans">
-          <Container className="max-w-[560px] mx-auto bg-white rounded-xl p-10 border border-zinc-200">
-            <Text className="m-0 mb-2 text-[22px] font-semibold text-zinc-900 leading-tight">
-              You've been invited to {workspaceName}
-            </Text>
+    <Html>
+      <Head />
+      <Preview>
+        {inviterName} invited you to join {workspaceName} on Feeduro
+      </Preview>
+      <Body
+        style={{
+          backgroundColor: "#f4f4f5",
+          margin: 0,
+          paddingTop: "2.5rem",
+          paddingBottom: "2.5rem",
+          fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+        }}
+      >
+        <Container
+          style={{
+            maxWidth: "560px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            backgroundColor: "#ffffff",
+            borderRadius: "0.75rem",
+            padding: "2.5rem",
+            border: "1px solid #e4e4e7",
+          }}
+        >
+          <Text
+            style={{
+              margin: 0,
+              marginBottom: "0.5rem",
+              fontSize: "22px",
+              fontWeight: 600,
+              color: "#18181b",
+              lineHeight: 1.25,
+            }}
+          >
+            You've been invited to {workspaceName}
+          </Text>
 
-            <Text className="m-0 mb-7 text-sm text-zinc-500 leading-relaxed">
-              <strong className="text-zinc-700">{inviterName}</strong>{" "}
-              <span className="text-zinc-400">({inviterEmail})</span> invited you to join{" "}
-              <strong className="text-zinc-700">{workspaceName}</strong> as a{" "}
-              <strong className="text-zinc-700">{role}</strong>.
-            </Text>
+          <Text
+            style={{
+              margin: 0,
+              marginBottom: "1.75rem",
+              fontSize: "0.875rem",
+              color: "#71717a",
+              lineHeight: 1.625,
+            }}
+          >
+            <strong style={{ color: "#3f3f46" }}>{inviterName}</strong>{" "}
+            <span style={{ color: "#a1a1aa" }}>({inviterEmail})</span> invited you to join{" "}
+            <strong style={{ color: "#3f3f46" }}>{workspaceName}</strong> as a{" "}
+            <strong style={{ color: "#3f3f46" }}>{role}</strong>.
+          </Text>
 
-            <Section className="mb-7">
-              <Button
-                href={acceptUrl}
-                className="bg-zinc-900 text-white text-sm font-medium px-6 py-2.5 rounded-lg no-underline"
-              >
-                Accept invitation
-              </Button>
-            </Section>
+          <Section style={{ marginBottom: "1.75rem" }}>
+            <Button
+              href={acceptUrl}
+              style={{
+                backgroundColor: "#18181b",
+                color: "#ffffff",
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                paddingLeft: "1.5rem",
+                paddingRight: "1.5rem",
+                paddingTop: "0.625rem",
+                paddingBottom: "0.625rem",
+                borderRadius: "0.5rem",
+                textDecoration: "none",
+                display: "inline-block",
+              }}
+            >
+              Accept invitation
+            </Button>
+          </Section>
 
-            <Text className="m-0 mb-7 text-xs text-zinc-400 leading-relaxed">
-              Or copy this link into your browser:
-              <br />
-              <Link href={acceptUrl} className="text-zinc-500 break-all">
-                {acceptUrl}
-              </Link>
-            </Text>
+          <Text
+            style={{
+              margin: 0,
+              marginBottom: "1.75rem",
+              fontSize: "0.75rem",
+              color: "#a1a1aa",
+              lineHeight: 1.625,
+            }}
+          >
+            Or copy this link into your browser:
+            <br />
+            <Link href={acceptUrl} style={{ color: "#71717a", wordBreak: "break-all" }}>
+              {acceptUrl}
+            </Link>
+          </Text>
 
-            <Hr className="my-7 border-none border-t border-zinc-200" />
+          <Hr
+            style={{
+              marginTop: "1.75rem",
+              marginBottom: "1.75rem",
+              border: "none",
+              borderTop: "1px solid #e4e4e7",
+            }}
+          />
 
-            <Text className="m-0 text-xs text-zinc-400">
-              If you weren't expecting this invitation you can ignore this email.
-            </Text>
-          </Container>
-        </Body>
-      </Html>
-    </Tailwind>
+          <Text style={{ margin: 0, fontSize: "0.75rem", color: "#a1a1aa" }}>
+            If you weren't expecting this invitation you can ignore this email.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
   );
 }

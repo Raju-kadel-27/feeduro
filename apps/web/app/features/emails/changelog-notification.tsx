@@ -10,7 +10,6 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import { Tailwind } from "@react-email/tailwind";
 
 interface ChangelogNotificationEmailProps {
   orgName: string;
@@ -28,46 +27,113 @@ export function ChangelogNotificationEmail({
   unsubscribeUrl,
 }: ChangelogNotificationEmailProps) {
   return (
-    <Tailwind>
-      <Html>
-        <Head />
-        <Preview>
-          {orgName} published a new update: {changelogTitle}
-        </Preview>
-        <Body className="bg-zinc-100 m-0 py-10 font-sans">
-          <Container className="max-w-[560px] mx-auto bg-white rounded-xl p-10 border border-zinc-200">
-            <Text className="m-0 mb-1 text-xs font-medium text-zinc-400 uppercase tracking-wide">
-              {orgName} · New Update
+    <Html>
+      <Head />
+      <Preview>
+        {orgName} published a new update: {changelogTitle}
+      </Preview>
+      <Body
+        style={{
+          backgroundColor: "#f4f4f5",
+          margin: 0,
+          paddingTop: "2.5rem",
+          paddingBottom: "2.5rem",
+          fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+        }}
+      >
+        <Container
+          style={{
+            maxWidth: "560px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            backgroundColor: "#ffffff",
+            borderRadius: "0.75rem",
+            padding: "2.5rem",
+            border: "1px solid #e4e4e7",
+          }}
+        >
+          <Text
+            style={{
+              margin: 0,
+              marginBottom: "0.25rem",
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              color: "#a1a1aa",
+              textTransform: "uppercase",
+              letterSpacing: "0.025em",
+            }}
+          >
+            {orgName} · New Update
+          </Text>
+          <Text
+            style={{
+              margin: 0,
+              marginBottom: "1rem",
+              fontSize: "22px",
+              fontWeight: 600,
+              color: "#18181b",
+              lineHeight: 1.25,
+            }}
+          >
+            {changelogTitle}
+          </Text>
+
+          {excerpt ? (
+            <Text
+              style={{
+                margin: 0,
+                marginBottom: "1.75rem",
+                fontSize: "0.875rem",
+                color: "#52525b",
+                lineHeight: 1.625,
+              }}
+            >
+              {excerpt}
             </Text>
-            <Text className="m-0 mb-4 text-[22px] font-semibold text-zinc-900 leading-tight">
-              {changelogTitle}
-            </Text>
+          ) : null}
 
-            {excerpt ? (
-              <Text className="m-0 mb-7 text-sm text-zinc-600 leading-relaxed">{excerpt}</Text>
-            ) : null}
+          <Section style={{ marginBottom: "1.75rem" }}>
+            <Button
+              href={changelogUrl}
+              style={{
+                backgroundColor: "#18181b",
+                color: "#ffffff",
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                paddingLeft: "1.5rem",
+                paddingRight: "1.5rem",
+                paddingTop: "0.625rem",
+                paddingBottom: "0.625rem",
+                borderRadius: "0.5rem",
+                textDecoration: "none",
+                display: "inline-block",
+              }}
+            >
+              Read the full update
+            </Button>
+          </Section>
 
-            <Section className="mb-7">
-              <Button
-                href={changelogUrl}
-                className="bg-zinc-900 text-white text-sm font-medium px-6 py-2.5 rounded-lg no-underline"
-              >
-                Read the full update
-              </Button>
-            </Section>
+          <Hr
+            style={{
+              marginTop: "1.75rem",
+              marginBottom: "1.75rem",
+              border: "none",
+              borderTop: "1px solid #e4e4e7",
+            }}
+          />
 
-            <Hr className="my-7 border-none border-t border-zinc-200" />
-
-            <Text className="m-0 text-xs text-zinc-400">
-              You received this because you subscribed to changelog updates from{" "}
-              <strong className="text-zinc-500">{orgName}</strong>.{" "}
-              <Link href={unsubscribeUrl} className="text-zinc-400 underline">
-                Unsubscribe
-              </Link>
-            </Text>
-          </Container>
-        </Body>
-      </Html>
-    </Tailwind>
+          <Text style={{ margin: 0, fontSize: "0.75rem", color: "#a1a1aa" }}>
+            You received this because you subscribed to changelog updates from{" "}
+            <strong style={{ color: "#71717a" }}>{orgName}</strong>.{" "}
+            <Link
+              href={unsubscribeUrl}
+              style={{ color: "#a1a1aa", textDecoration: "underline" }}
+            >
+              Unsubscribe
+            </Link>
+          </Text>
+        </Container>
+      </Body>
+    </Html>
   );
 }

@@ -48,14 +48,6 @@ export function HeroSection() {
             See <strong className="text-foreground">who's asking</strong>, what they're worth, and the churn risk hiding behind every request. Build what moves revenue, not what gets the most upvotes.
           </p>
 
-<p
-            className="text-xs text-muted-foreground animate-slide-up-fade"
-            style={{ animationDelay: "300ms" }}
-          >
-            Trusted by{" "}
-            <span className="text-foreground font-medium">500+ product teams</span>
-            {" "}· Free plan available
-          </p>
         </div>
 
         <div

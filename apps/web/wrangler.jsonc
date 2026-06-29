@@ -11,6 +11,9 @@
   "observability": { "enabled": true },
   "assets": { "directory": "./build/client" },
   "workers_dev": true,
+  "services": [
+    { "binding": "OG_WORKER", "service": "feeduro-og" }
+  ],
   "env": {
     "dev": {
       "name": "nextgen-email-dev"

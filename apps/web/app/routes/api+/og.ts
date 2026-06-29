@@ -1,11 +1,11 @@
 import { parseBranding } from "@features/branding/server/parse-branding";
-import { generateOgPng } from "@features/feedback/server/og-image";
+import { getBindings } from "@middleware/cloudflare.server";
 import { eq } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { getDb } from "@/db";
 import { feedbackPosts, organization } from "@/db/schema";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const orgSlug = url.searchParams.get("orgSlug");
   const postId = url.searchParams.get("postId");
@@ -41,18 +41,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  const png = await generateOgPng({
-    orgName: org.name ?? orgSlug,
-    primaryColor: branding.primaryColor,
-    hidePoweredBy: branding.hidePoweredBy,
-    postTitle,
-    voteCount,
-  });
+  const env = getBindings(context);
+  const ogWorker = (env as unknown as { OG_WORKER?: Fetcher }).OG_WORKER;
 
-  return new Response(png, {
-    headers: {
-      "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600",
-    },
-  });
+  if (!ogWorker) {
+    return new Response("OG image service unavailable", { status: 503 });
+  }
+
+  const ogUrl = new URL("https://feeduro-og.workers.dev/");
+  ogUrl.searchParams.set("orgName", org.name ?? orgSlug);
+  ogUrl.searchParams.set("primaryColor", branding.primaryColor);
+  ogUrl.searchParams.set("hidePoweredBy", String(branding.hidePoweredBy));
+  if (postTitle) ogUrl.searchParams.set("postTitle", postTitle);
+  if (voteCount !== undefined) ogUrl.searchParams.set("voteCount", String(voteCount));
+
+  return ogWorker.fetch(new Request(ogUrl.toString()));
 }

@@ -1,8 +1,7 @@
-import { ChangelogNotificationEmail } from "@emails/changelog-notification";
+import { renderChangelogNotificationEmail } from "@emails/changelog-notification";
 import { sendEmail } from "@lib/mailer";
 import { waitUntil } from "@middleware/cloudflare.server";
 import { createId } from "@paralleldrive/cuid2";
-import { render } from "@react-email/render";
 import { and, eq, isNull } from "drizzle-orm";
 import type { RouterContextProvider } from "react-router";
 import { getDb } from "@/db";
@@ -125,15 +124,13 @@ async function sendNotifications(opts: {
   await Promise.all(
     subscribers.map(async (sub) => {
       const unsubscribeUrl = `${opts.baseUrl}/api/changelog-unsubscribe?token=${sub.unsubscribeToken}`;
-      const html = await render(
-        ChangelogNotificationEmail({
-          orgName: opts.orgName,
-          changelogTitle: opts.changelogTitle,
-          excerpt: opts.excerpt,
-          changelogUrl: opts.changelogUrl,
-          unsubscribeUrl,
-        }),
-      );
+      const html = renderChangelogNotificationEmail({
+        orgName: opts.orgName,
+        changelogTitle: opts.changelogTitle,
+        excerpt: opts.excerpt,
+        changelogUrl: opts.changelogUrl,
+        unsubscribeUrl,
+      });
       await sendEmail({
         to: sub.email,
         subject: `${opts.orgName}: ${opts.changelogTitle}`,

@@ -1,6 +1,5 @@
-import { InvitationEmail } from "@emails/invitation";
+import { renderInvitationEmail } from "@emails/invitation";
 import { sendEmail } from "@lib/mailer";
-import { render } from "@react-email/render";
 
 interface SendInvitationEmailProps {
   inviterName: string;
@@ -19,15 +18,13 @@ export async function sendInvitationEmail({
   acceptUrl,
   recipientEmail,
 }: SendInvitationEmailProps) {
-  const html = await render(
-    InvitationEmail({
-      inviterName,
-      inviterEmail,
-      workspaceName,
-      role,
-      acceptUrl,
-    }),
-  );
+  const html = renderInvitationEmail({
+    inviterName,
+    inviterEmail,
+    workspaceName,
+    role,
+    acceptUrl,
+  });
 
   return sendEmail({
     to: recipientEmail,

@@ -103,6 +103,28 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  apps/og-worker:
+    dependencies:
+      '@resvg/resvg-wasm':
+        specifier: ^2.6.2
+        version: 2.6.2
+      react:
+        specifier: ^19.2.4
+        version: 19.2.5
+      satori:
+        specifier: ^0.26.0
+        version: 0.26.0
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20251202.0
+        version: 4.20260425.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      wrangler:
+        specifier: ^4.35.0
+        version: 4.85.0(@cloudflare/workers-types@4.20260425.1)
+
   apps/web:
     dependencies:
       '@better-auth/api-key':
@@ -201,39 +223,6 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@react-email/body':
-        specifier: ^0.3.0
-        version: 0.3.0(react@19.2.5)
-      '@react-email/button':
-        specifier: ^0.2.1
-        version: 0.2.1(react@19.2.5)
-      '@react-email/container':
-        specifier: ^0.0.16
-        version: 0.0.16(react@19.2.5)
-      '@react-email/head':
-        specifier: ^0.0.13
-        version: 0.0.13(react@19.2.5)
-      '@react-email/hr':
-        specifier: ^0.0.12
-        version: 0.0.12(react@19.2.5)
-      '@react-email/html':
-        specifier: ^0.0.12
-        version: 0.0.12(react@19.2.5)
-      '@react-email/link':
-        specifier: ^0.0.13
-        version: 0.0.13(react@19.2.5)
-      '@react-email/preview':
-        specifier: ^0.0.14
-        version: 0.0.14(react@19.2.5)
-      '@react-email/render':
-        specifier: ^2.0.7
-        version: 2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@react-email/section':
-        specifier: ^0.0.17
-        version: 0.0.17(react@19.2.5)
-      '@react-email/text':
-        specifier: ^0.1.6
-        version: 0.1.6(react@19.2.5)
       '@react-router/cloudflare':
         specifier: ^7.10.0
         version: 7.14.2(@cloudflare/workers-types@4.20260425.1)(react-router@7.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)
@@ -243,9 +232,6 @@ importers:
       '@react-router/serve':
         specifier: 7.14.0
         version: 7.14.0(react-router@7.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)
-      '@resvg/resvg-wasm':
-        specifier: ^2.6.2
-        version: 2.6.2
       '@tanstack/react-query':
         specifier: ^5.90.9
         version: 5.100.3(react@19.2.5)
@@ -327,9 +313,6 @@ importers:
       resend:
         specifier: ^6.12.2
         version: 6.12.2(@react-email/render@2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5))
-      satori:
-        specifier: ^0.26.0
-        version: 0.26.0
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -2787,82 +2770,12 @@ packages:
   '@radix-ui/rect@1.1.2':
     resolution: {integrity: sha512-xnXE7wG13PI+cxieVssYXlQJuYVRhH9NBoxt3KNwzghDIA69GMm7d4wXRouHIYjE+KvS6U/MsMO73NdS2MH9ZA==}
 
-  '@react-email/body@0.3.0':
-    resolution: {integrity: sha512-uGo0BOOzjbMUo3lu+BIDWayvn5o6Xyfmnlla5VGf05n8gHMvO1ll7U4FtzWe3hxMLwt53pmc4iE0M+B5slG+Ug==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/button@0.2.1':
-    resolution: {integrity: sha512-qXyj7RZLE7POy9BMKSoqQ00tOXThjOZSUnI2Yu9i29IHngPlmrNayIWBoVKtElES7OWwypUcpiajwi1mUWx6/A==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/container@0.0.16':
-    resolution: {integrity: sha512-QWBB56RkkU0AJ9h+qy33gfT5iuZknPC7Un/IjZv9B0QmMIK+WWacc0cH6y2SV5Cv/b99hU94fjEMOOO4enpkbQ==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/head@0.0.13':
-    resolution: {integrity: sha512-AJg6le/08Gz4tm+6MtKXqtNNyKHzmooOCdmtqmWxD7FxoAdU1eVcizhtQ0gcnVaY6ethEyE/hnEzQxt1zu5Kog==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/hr@0.0.12':
-    resolution: {integrity: sha512-TwmOmBDibavUQpXBxpmZYi2Iks/yeZOzFYh+di9EltMSnEabH8dMZXrl+pxNXzCgZ2XE8HY7VmUL65Lenfu5PA==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/html@0.0.12':
-    resolution: {integrity: sha512-KTShZesan+UsreU7PDUV90afrZwU5TLwYlALuCSU0OT+/U8lULNNbAUekg+tGwCnOfIKYtpDPKkAMRdYlqUznw==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/link@0.0.13':
-    resolution: {integrity: sha512-lkWc/NjOcefRZMkQoSDDbuKBEBDES9aXnFEOuPH845wD3TxPwh+QTf0fStuzjoRLUZWpHnio4z7qGGRYusn/sw==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/preview@0.0.14':
-    resolution: {integrity: sha512-aYK8q0IPkBXyMsbpMXgxazwHxYJxTrXrV95GFuu2HbEiIToMwSyUgb8HDFYwPqqfV03/jbwqlsXmFxsOd+VNaw==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
   '@react-email/render@2.0.7':
     resolution: {integrity: sha512-XCsqujKURb4egU8+z7RX1/yxRx1Qo89uGhy6UXyB5Oxq1SK+48t0AD/3qeuDGgDvyS+Ti+0oDT3nn5/dcG4Ttg==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
       react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/section@0.0.17':
-    resolution: {integrity: sha512-qNl65ye3W0Rd5udhdORzTV9ezjb+GFqQQSae03NDzXtmJq6sqVXNWNiVolAjvJNypim+zGXmv6J9TcV5aNtE/w==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/text@0.1.6':
-    resolution: {integrity: sha512-TYqkioRS45wTR5il3dYk/SbUjjEdhSwh9BtRNB99qNH1pXAwA45H7rAuxehiu8iJQJH0IyIr+6n62gBz9ezmsw==}
-    engines: {node: '>=20.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
 
   '@react-router/cloudflare@7.14.2':
     resolution: {integrity: sha512-TLZlsrmHRyE2xk7eX4LNHgfYQoKvTzpcUKrylQgwIDC2QbEemCz8LMK5B+Sdtp1wQlM4IbLQq1Pf8vp7g7GR6A==}
@@ -8872,52 +8785,13 @@ snapshots:
 
   '@radix-ui/rect@1.1.2': {}
 
-  '@react-email/body@0.3.0(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/button@0.2.1(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/container@0.0.16(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/head@0.0.13(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/hr@0.0.12(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/html@0.0.12(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/link@0.0.13(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/preview@0.0.14(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
   '@react-email/render@2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
       html-to-text: 9.0.5
       prettier: 3.8.3
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
-
-  '@react-email/section@0.0.17(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
-
-  '@react-email/text@0.1.6(react@19.2.5)':
-    dependencies:
-      react: 19.2.5
+    optional: true
 
   '@react-router/cloudflare@7.14.2(@cloudflare/workers-types@4.20260425.1)(react-router@7.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)':
     dependencies:
@@ -9161,6 +9035,7 @@ snapshots:
     dependencies:
       domhandler: 5.0.3
       selderee: 0.11.0
+    optional: true
 
   '@shikijs/core@1.29.2':
     dependencies:
@@ -10152,7 +10027,8 @@ snapshots:
 
   dedent@1.7.2: {}
 
-  deepmerge@4.3.1: {}
+  deepmerge@4.3.1:
+    optional: true
 
   defu@6.1.7: {}
 
@@ -10883,6 +10759,7 @@ snapshots:
       dom-serializer: 2.0.0
       htmlparser2: 8.0.2
       selderee: 0.11.0
+    optional: true
 
   html-void-elements@3.0.0: {}
 
@@ -10894,6 +10771,7 @@ snapshots:
       domhandler: 5.0.3
       domutils: 3.2.2
       entities: 4.5.0
+    optional: true
 
   http-cache-semantics@4.2.0: {}
 
@@ -11007,7 +10885,8 @@ snapshots:
 
   kysely@0.29.2: {}
 
-  leac@0.6.0: {}
+  leac@0.6.0:
+    optional: true
 
   lib0@0.2.117:
     dependencies:
@@ -11810,6 +11689,7 @@ snapshots:
     dependencies:
       leac: 0.6.0
       peberminta: 0.9.0
+    optional: true
 
   parseurl@1.3.3: {}
 
@@ -11827,7 +11707,8 @@ snapshots:
 
   pathe@2.0.3: {}
 
-  peberminta@0.9.0: {}
+  peberminta@0.9.0:
+    optional: true
 
   pg-cloudflare@1.3.0:
     optional: true
@@ -12483,6 +12364,7 @@ snapshots:
   selderee@0.11.0:
     dependencies:
       parseley: 0.12.1
+    optional: true
 
   semver@6.3.1: {}
 

@@ -1,15 +1,4 @@
-import { Body } from "@react-email/body";
-import { Button } from "@react-email/button";
-import { Container } from "@react-email/container";
-import { Head } from "@react-email/head";
-import { Hr } from "@react-email/hr";
-import { Html } from "@react-email/html";
-import { Link } from "@react-email/link";
-import { Preview } from "@react-email/preview";
-import { Section } from "@react-email/section";
-import { Text } from "@react-email/text";
-
-interface ChangelogNotificationEmailProps {
+interface Props {
   orgName: string;
   changelogTitle: string;
   excerpt: string;
@@ -17,121 +6,49 @@ interface ChangelogNotificationEmailProps {
   unsubscribeUrl: string;
 }
 
-export function ChangelogNotificationEmail({
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+export function renderChangelogNotificationEmail({
   orgName,
   changelogTitle,
   excerpt,
   changelogUrl,
   unsubscribeUrl,
-}: ChangelogNotificationEmailProps) {
-  return (
-    <Html>
-      <Head />
-      <Preview>
-        {orgName} published a new update: {changelogTitle}
-      </Preview>
-      <Body
-        style={{
-          backgroundColor: "#f4f4f5",
-          margin: 0,
-          paddingTop: "2.5rem",
-          paddingBottom: "2.5rem",
-          fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-        }}
-      >
-        <Container
-          style={{
-            maxWidth: "560px",
-            marginLeft: "auto",
-            marginRight: "auto",
-            backgroundColor: "#ffffff",
-            borderRadius: "0.75rem",
-            padding: "2.5rem",
-            border: "1px solid #e4e4e7",
-          }}
-        >
-          <Text
-            style={{
-              margin: 0,
-              marginBottom: "0.25rem",
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              color: "#a1a1aa",
-              textTransform: "uppercase",
-              letterSpacing: "0.025em",
-            }}
-          >
-            {orgName} · New Update
-          </Text>
-          <Text
-            style={{
-              margin: 0,
-              marginBottom: "1rem",
-              fontSize: "22px",
-              fontWeight: 600,
-              color: "#18181b",
-              lineHeight: 1.25,
-            }}
-          >
-            {changelogTitle}
-          </Text>
-
-          {excerpt ? (
-            <Text
-              style={{
-                margin: 0,
-                marginBottom: "1.75rem",
-                fontSize: "0.875rem",
-                color: "#52525b",
-                lineHeight: 1.625,
-              }}
-            >
-              {excerpt}
-            </Text>
-          ) : null}
-
-          <Section style={{ marginBottom: "1.75rem" }}>
-            <Button
-              href={changelogUrl}
-              style={{
-                backgroundColor: "#18181b",
-                color: "#ffffff",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                paddingLeft: "1.5rem",
-                paddingRight: "1.5rem",
-                paddingTop: "0.625rem",
-                paddingBottom: "0.625rem",
-                borderRadius: "0.5rem",
-                textDecoration: "none",
-                display: "inline-block",
-              }}
-            >
-              Read the full update
-            </Button>
-          </Section>
-
-          <Hr
-            style={{
-              marginTop: "1.75rem",
-              marginBottom: "1.75rem",
-              border: "none",
-              borderTop: "1px solid #e4e4e7",
-            }}
-          />
-
-          <Text style={{ margin: 0, fontSize: "0.75rem", color: "#a1a1aa" }}>
-            You received this because you subscribed to changelog updates from{" "}
-            <strong style={{ color: "#71717a" }}>{orgName}</strong>.{" "}
-            <Link
-              href={unsubscribeUrl}
-              style={{ color: "#a1a1aa", textDecoration: "underline" }}
-            >
-              Unsubscribe
-            </Link>
-          </Text>
-        </Container>
-      </Body>
-    </Html>
-  );
+}: Props): string {
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en" dir="ltr">
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta name="x-apple-disable-message-reformatting">
+  </head>
+  <body style="background-color:#f4f4f5;margin:0;padding-top:2.5rem;padding-bottom:2.5rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif">
+    <div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">${esc(orgName)} published a new update: ${esc(changelogTitle)}</div>
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td>
+          <table align="center" width="100%" style="max-width:560px;margin:0 auto;background-color:#ffffff;border-radius:0.75rem;padding:2.5rem;border:1px solid #e4e4e7" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+              <td>
+                <p style="margin:0;margin-bottom:0.25rem;font-size:0.75rem;font-weight:500;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.025em">${esc(orgName)} · New Update</p>
+                <p style="margin:0;margin-bottom:1rem;font-size:22px;font-weight:600;color:#18181b;line-height:1.25">${esc(changelogTitle)}</p>
+                ${excerpt ? `<p style="margin:0;margin-bottom:1.75rem;font-size:0.875rem;color:#52525b;line-height:1.625">${esc(excerpt)}</p>` : ""}
+                <table style="margin-bottom:1.75rem" cellpadding="0" cellspacing="0" role="presentation">
+                  <tr>
+                    <td>
+                      <a href="${esc(changelogUrl)}" style="background-color:#18181b;color:#ffffff;font-size:0.875rem;font-weight:500;padding:0.625rem 1.5rem;border-radius:0.5rem;text-decoration:none;display:inline-block">Read the full update</a>
+                    </td>
+                  </tr>
+                </table>
+                <hr style="margin-top:1.75rem;margin-bottom:1.75rem;border:none;border-top:1px solid #e4e4e7">
+                <p style="margin:0;font-size:0.75rem;color:#a1a1aa">You received this because you subscribed to changelog updates from <strong style="color:#71717a">${esc(orgName)}</strong>. <a href="${esc(unsubscribeUrl)}" style="color:#a1a1aa;text-decoration:underline">Unsubscribe</a></p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
 }

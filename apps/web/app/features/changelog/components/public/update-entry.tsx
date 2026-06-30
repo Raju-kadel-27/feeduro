@@ -48,6 +48,7 @@ export function UpdateEntry({ entry, isLast, orgId, orgSlug, userEmail, onAuthRe
         </div>
         <div
           style={{ fontFamily: MONO, fontSize: 12, color: 'var(--cl-text-muted)', opacity: 0.7, marginTop: 2 }}
+          suppressHydrationWarning
         >
           {formatRelative(publishedAt)}
         </div>

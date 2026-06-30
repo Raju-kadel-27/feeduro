@@ -4,16 +4,15 @@
   "name": "feeduro",
   "main": "./app/entry.worker.ts",
   "alias": {
-    "virtual:react-router/server-build": "./build/server/index.js"
+    "virtual:react-router/server-build": "./build/server/index.js",
+    "react-dom/cjs/react-dom-server-legacy.browser.production.js": "./cloudflare-stubs/react-dom-legacy.cjs"
   },
   "compatibility_date": "2025-04-07",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "assets": { "directory": "./build/client" },
   "workers_dev": true,
-  "services": [
-    { "binding": "OG_WORKER", "service": "feeduro-og" }
-  ],
+  "services": [{ "binding": "OG_WORKER", "service": "feeduro-og" }],
   "env": {
     "dev": {
       "name": "nextgen-email-dev"

@@ -3,11 +3,7 @@
   "account_id": "eaf872daa611531b2c95caf488b832c9",
   "name": "feeduro",
   "main": "./app/entry.worker.ts",
-  "alias": {
-    "virtual:react-router/server-build": "./build/server/index.js",
-    "react-dom/cjs/react-dom-server-legacy.browser.production.js": "./cloudflare-stubs/react-dom-legacy.cjs"
-  },
-  "compatibility_date": "2025-04-07",
+"compatibility_date": "2025-04-07",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "assets": { "directory": "./build/client" },

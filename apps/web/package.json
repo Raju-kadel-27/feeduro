@@ -105,7 +105,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",
-    "@cloudflare/vite-plugin": "^1.8.0",
+    "@cloudflare/vite-plugin": "1.40.0",
     "@cloudflare/workers-types": "^4.20251202.0",
     "@react-router/dev": "7.14.0",
     "@react-router/remix-routes-option-adapter": "^7.8.2",
@@ -116,7 +116,6 @@
     "@types/node": "^22",
     "@types/nodemailer": "^8.0.0",
     "@types/papaparse": "^5.5.2",
-    "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-basic-ssl": "2.1.0",
@@ -124,6 +123,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "dotenv-cli": "^7.4.2",
     "drizzle-kit": "^0.31.10",
+    "@types/pg": "^8.20.0",
     "husky": "^9.1.7",
     "pg": "^8.20.0",
     "postcss": "8.4.38",
@@ -131,9 +131,9 @@
     "tailwindcss": "^4.2.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^6.3.5",
+    "vite": "^7.3.2",
     "vite-plugin-babel": "^1.7.1",
-    "wrangler": "^4.35.0"
+    "wrangler": "^4.98.0"
   },
   "pnpm": {
     "overrides": {

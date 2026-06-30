@@ -108,39 +108,40 @@ export default {
     }
 
     // ── 2. Custom domain: look up in DB (via KV cache) ───────────────────────
-    const isAppDomain = hostname === APP_DOMAIN || hostname.endsWith(`.${APP_DOMAIN}`);
-    if (!isAppDomain) {
-      const kv = (env as unknown as { CMS_KV?: KVNamespace }).CMS_KV;
-      const orgSlug = await resolveCustomDomain(hostname, kv);
-      if (orgSlug) {
-        const rewritten = new URL(`/${orgSlug}${url.pathname}`, url);
-        rewritten.search = url.search;
-        const context = new RouterContextProvider();
-        context.set(CloudflareContext, { env, ctx, cf: request.cf });
-        return await handler(buildRewrittenRequest(request, rewritten, hostname), context);
-      }
-
-      if (request.method === "GET" || request.method === "HEAD") {
-        if (isHtmlRequest(request)) {
-          const rewritten = new URL(`/domain-not-configured`, url);
-          const context = new RouterContextProvider();
-          context.set(CloudflareContext, { env, ctx, cf: request.cf });
-          return await handler(buildRewrittenRequest(request, rewritten, hostname), context);
-        }
-
-        const assetUrl = new URL(`${url.pathname}${url.search}`, `https://${APP_DOMAIN}`);
-        const headers = new Headers(request.headers);
-        headers.delete("host");
-        return await fetch(
-          new Request(assetUrl.toString(), { method: request.method, headers, redirect: "manual" }),
-        );
-      }
-
-      return new Response("Domain Not Configured", {
-        status: 404,
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-      });
-    }
+    // TODO: re-enable once local DB connection is resolved (neon WebSocket fails on localhost)
+    // const isAppDomain = hostname === APP_DOMAIN || hostname.endsWith(`.${APP_DOMAIN}`);
+    // if (!isAppDomain) {
+    //   const kv = (env as unknown as { CMS_KV?: KVNamespace }).CMS_KV;
+    //   const orgSlug = await resolveCustomDomain(hostname, kv);
+    //   if (orgSlug) {
+    //     const rewritten = new URL(`/${orgSlug}${url.pathname}`, url);
+    //     rewritten.search = url.search;
+    //     const context = new RouterContextProvider();
+    //     context.set(CloudflareContext, { env, ctx, cf: request.cf });
+    //     return await handler(buildRewrittenRequest(request, rewritten, hostname), context);
+    //   }
+    //
+    //   if (request.method === "GET" || request.method === "HEAD") {
+    //     if (isHtmlRequest(request)) {
+    //       const rewritten = new URL(`/domain-not-configured`, url);
+    //       const context = new RouterContextProvider();
+    //       context.set(CloudflareContext, { env, ctx, cf: request.cf });
+    //       return await handler(buildRewrittenRequest(request, rewritten, hostname), context);
+    //     }
+    //
+    //     const assetUrl = new URL(`${url.pathname}${url.search}`, `https://${APP_DOMAIN}`);
+    //     const headers = new Headers(request.headers);
+    //     headers.delete("host");
+    //     return await fetch(
+    //       new Request(assetUrl.toString(), { method: request.method, headers, redirect: "manual" }),
+    //     );
+    //   }
+    //
+    //   return new Response("Domain Not Configured", {
+    //     status: 404,
+    //     headers: { "Content-Type": "text/plain;charset=utf-8" },
+    //   });
+    // }
 
     // ── 3. Normal app request ────────────────────────────────────────────────
     const context = new RouterContextProvider();

@@ -8,5 +8,10 @@ startTransition(() => {
     <StrictMode>
       <HydratedRouter />
     </StrictMode>,
+    {
+      onRecoverableError(error, errorInfo) {
+        console.error("[hydration]", error, errorInfo.componentStack);
+      },
+    },
   );
 });

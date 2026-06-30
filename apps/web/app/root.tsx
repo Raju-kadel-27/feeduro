@@ -3,7 +3,6 @@ import { createI18nInstance, detectLocale } from "@lib/i18n";
 import { AppConfigProvider } from "@providers/app-config-provider";
 import { ThemeProvider } from "@providers/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { getEnv } from "@utils/get-env";
 import { useEffect, useState } from "react";
 import { I18nextProvider } from "react-i18next";
@@ -67,7 +66,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Toaster richColors position="top-right" />
           <ScrollRestoration />
           <Scripts />
-          <ReactQueryDevtools initialIsOpen={false} />
         </body>
       </html>
     </QueryClientProvider>

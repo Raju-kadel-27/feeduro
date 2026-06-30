@@ -47,9 +47,6 @@ export default defineConfig({
     include: [
       "react",
       "react-dom",
-      "@blocknote/react",
-      "@blocknote/core",
-      "@blocknote/shadcn",
       "@radix-ui/react-dialog",
       "@radix-ui/react-label",
       "@radix-ui/react-popover",

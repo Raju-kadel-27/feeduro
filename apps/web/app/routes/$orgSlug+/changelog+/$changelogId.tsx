@@ -14,6 +14,20 @@ import { changelogs, organization } from "@/db/schema";
 
 import type { Route } from "./+types/$changelogId";
 
+function tryExtractText(raw: string): string {
+  try {
+    const blocks = JSON.parse(raw) as Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
+    if (!Array.isArray(blocks)) return raw;
+    return blocks
+      .flatMap((b) => (Array.isArray(b.content) ? b.content : []))
+      .filter((c) => c.type === "text" && c.text)
+      .map((c) => c.text)
+      .join("\n");
+  } catch {
+    return raw;
+  }
+}
+
 export function meta({ params }: Route.MetaArgs) {
   return [
     {
@@ -42,20 +56,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { user: session.user, changelog: entry ?? null, emailSubscriptionsEnabled };
 }
 
-type ChangelogEntry = {
-  id: string;
-  title: string;
-  slug: string;
-  body: string;
-  status: "draft" | "published";
-  publishedAt: Date | null;
-};
-
-type EditorComponent = React.ComponentType<{
-  initialContent: string;
-  onChange: (content: string) => void;
-}>;
-
 export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
   const { orgSlug, changelogId } = useParams<{
     orgSlug: string;
@@ -65,13 +65,13 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
   const qc = useQueryClient();
   const isNew = changelogId === "new";
 
+  const rawBody = loaderData.changelog?.body ?? "";
   const [title, setTitle] = useState(loaderData.changelog?.title ?? "");
-  const [body, setBody] = useState(loaderData.changelog?.body ?? "[]");
+  const [body, setBody] = useState(() => tryExtractText(rawBody));
   const [status, setStatus] = useState<"draft" | "published">(
     (loaderData.changelog?.status as "draft" | "published") ?? "draft",
   );
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
-  const [EditorComponent, setEditorComponent] = useState<EditorComponent | null>(null);
   const bodyRef = useRef(body);
   const isFirstRenderRef = useRef(true);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,13 +79,6 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
   useEffect(() => {
     bodyRef.current = body;
   }, [body]);
-
-  // Dynamically import the editor only on the client to avoid SSR issues
-  useEffect(() => {
-    import("@features/changelog/components/internal/changelog-editor").then((m) => {
-      setEditorComponent(() => m.default as EditorComponent);
-    });
-  }, []);
 
   function handleBodyChange(content: string) {
     setBody(content);
@@ -148,7 +141,7 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
       if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, saveContent]);
+  }, [title, body, saveContent]);
 
   const { mutate: publish, isPending: publishing } = useMutation({
     mutationFn: async (notifySubscribers: boolean) => {
@@ -305,14 +298,12 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
               className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 resize-none"
             />
 
-            {EditorComponent ? (
-              <EditorComponent initialContent={body} onChange={handleBodyChange} />
-            ) : (
-              <div className="flex items-center justify-center h-40 text-sm text-muted-foreground gap-2">
-                <Spinner />
-                Loading editor…
-              </div>
-            )}
+            <textarea
+              value={body}
+              onChange={(e) => handleBodyChange(e.target.value)}
+              placeholder="Write your changelog…"
+              className="w-full min-h-[400px] bg-transparent border-none outline-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground/50"
+            />
           </div>
         </main>
     </>

@@ -63,21 +63,6 @@ export function PublicBoardPage({ loaderData }: Props) {
     };
   }, [branding.theme]);
 
-  // Fire-and-forget: record portal visit per tab/board change for analytics
-  useEffect(() => {
-    const type =
-      currentTab === "roadmap" ? "roadmap_view"
-      : currentTab === "updates" ? "updates_view"
-      : "board_view";
-    const payload: Record<string, string> = { orgId: org.id, type };
-    if (type === "board_view" && selectedBoardId) payload.resourceId = selectedBoardId;
-    fetch("/api/portal-event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
-  }, [org.id, currentTab, selectedBoardId]);
-
   const safeVotedIds = votedPostIds ?? [];
 
   const postCounts = posts.reduce<Record<string, number>>((acc, p) => {
@@ -102,6 +87,21 @@ export function PublicBoardPage({ loaderData }: Props) {
     handleSubmitted,
     openFeedbackOrAuth,
   } = usePublicBoard({ posts, boards, sessionUser });
+
+  // Fire-and-forget: record portal visit per tab/board change for analytics
+  useEffect(() => {
+    const type =
+      currentTab === "roadmap" ? "roadmap_view"
+      : currentTab === "updates" ? "updates_view"
+      : "board_view";
+    const payload: Record<string, string> = { orgId: org.id, type };
+    if (type === "board_view" && selectedBoardId) payload.resourceId = selectedBoardId;
+    fetch("/api/portal-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  }, [org.id, currentTab, selectedBoardId]);
 
   return (
     <div

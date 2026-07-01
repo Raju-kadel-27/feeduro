@@ -77,14 +77,4 @@ export default defineConfig({
       "zod",
     ],
   },
-  environments: {
-    // The Cloudflare workerd environment (named "ssr" above) runs its own dep
-    // optimizer; top-level optimizeDeps only applies to the client, so the same
-    // React-singleton list must be repeated here.
-    ssr: {
-      optimizeDeps: {
-        include: reactSingletonDeps,
-      },
-    },
-  },
 });

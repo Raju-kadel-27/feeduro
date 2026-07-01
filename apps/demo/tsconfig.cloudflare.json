@@ -24,7 +24,7 @@
     "noUnusedParameters": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "types": ["@cloudflare/workers-types", "vite/client"],
+    "types": ["vite/client"],
     "rootDirs": [".", "./.react-router/types"],
     "paths": {
       "@/*": ["./app/*"],

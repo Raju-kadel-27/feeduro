@@ -4,7 +4,6 @@ import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import babel from "vite-plugin-babel";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { tunnelPlugin } from "./scripts/vite-tunnel-plugin";
 
 export default defineConfig({
@@ -21,16 +20,16 @@ export default defineConfig({
     process.env.TUNNEL === "true" && tunnelPlugin(3000),
     tailwindcss(),
     reactRouter(),
-    tsconfigPaths(),
     babel({
-      filter: /\.[jt]sx?$/,
+      include: /\.[jt]sx?$/,
       exclude: /node_modules/,
       babelConfig: {
+        presets: [["@babel/preset-typescript", { allExtensions: true, isTSX: true }]],
         plugins: [["babel-plugin-react-compiler", {}]],
       },
     }),
   ],
-  resolve: { dedupe: ["react", "react-dom"] },
+  resolve: { dedupe: ["react", "react-dom"], tsconfigPaths: true },
   optimizeDeps: {
     // @dnd-kit packages are ESM — pre-bundling them causes rolldown to create
     // a separate react chunk (react-DdGvS63P.js), producing a duplicate React

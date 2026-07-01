@@ -6,10 +6,32 @@ import { defineConfig } from "vite";
 import babel from "vite-plugin-babel";
 import { tunnelPlugin } from "./scripts/vite-tunnel-plugin";
 
+// Pre-bundled in every environment so Rolldown produces a single shared React
+// chunk per environment. Deps discovered mid-session get a separate optimize
+// pass with their own React copy, breaking hook dispatchers (null useMemo /
+// useMemoCache). react/compiler-runtime is injected by babel-plugin-react-compiler
+// into every compiled component, so it must be here too.
+const reactSingletonDeps = [
+  "react",
+  "react-dom",
+  "react/compiler-runtime",
+  "@radix-ui/react-alert-dialog",
+  "@radix-ui/react-dialog",
+  "@radix-ui/react-dropdown-menu",
+  "@radix-ui/react-label",
+  "@radix-ui/react-popover",
+  "@radix-ui/react-select",
+  "@radix-ui/react-separator",
+  "@radix-ui/react-slot",
+  "@radix-ui/react-switch",
+  "@radix-ui/react-tabs",
+  "@radix-ui/react-tooltip",
+  "input-otp",
+];
+
 export default defineConfig({
   server: {
     port: 3000,
-    hmr: false,
     https: {
       key: readFileSync("./local_certificates/localhost.key"),
       cert: readFileSync("./local_certificates/localhost.crt"),
@@ -42,19 +64,17 @@ export default defineConfig({
       "@dnd-kit/abstract",
       "@dnd-kit/helpers",
     ],
-    // Explicitly pre-bundle react/react-dom so Rolldown produces a single
-    // shared React chunk. Without this, packages like @radix-ui that ship CJS
-    // can grab a separate React instance, breaking hook dispatchers.
     include: [
-      "react",
-      "react-dom",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-label",
-      "@radix-ui/react-popover",
-      "@radix-ui/react-separator",
-      "@radix-ui/react-slot",
-      "@radix-ui/react-tabs",
-      "input-otp",
+      ...reactSingletonDeps,
+      // Deps reached only via React.lazy routes — the entry scan misses them,
+      // so without this they're discovered mid-session, forcing a
+      // re-optimization that bumps chunk hashes and duplicates React.
+      "@hookform/resolvers/zod",
+      "papaparse",
+      "react-hook-form",
+      "recharts",
+      "unique-names-generator",
+      "zod",
     ],
   },
 });

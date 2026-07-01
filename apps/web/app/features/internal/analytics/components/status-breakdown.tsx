@@ -30,15 +30,15 @@ const chartConfig = {
 
 const RADIAN = Math.PI / 180;
 
-function SliceLabel({
-  cx, cy, midAngle, outerRadius, payload,
-}: {
+interface SliceLabelProps {
   cx: number;
   cy: number;
   midAngle: number;
   outerRadius: number;
   payload: { status: string; pct: number };
-}) {
+}
+
+function SliceLabel({ cx, cy, midAngle, outerRadius, payload }: SliceLabelProps) {
   if (payload.pct < 5) return null;
   const radius = outerRadius + 24;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -92,7 +92,11 @@ export function StatusBreakdownBar({ breakdown }: StatusBreakdownProps) {
             paddingAngle={2}
             strokeWidth={0}
             labelLine={{ stroke: "var(--muted-foreground)", strokeWidth: 1 }}
-            label={SliceLabel}
+            // Recharts invokes `label` as a plain function inside its own class
+            // render — passing the component directly breaks the Rules of Hooks
+            // once the React Compiler instruments it. Return an element instead
+            // so SliceLabel mounts as a real component.
+            label={(props: SliceLabelProps) => <SliceLabel {...props} />}
           />
         </PieChart>
       </ChartContainer>

@@ -1,5 +1,27 @@
 packages:
   - "apps/*"
   - "packages/*"
-patchedDependencies:
-  '@remix-run/node-fetch-server@0.13.0': patches/@remix-run__node-fetch-server@0.13.0.patch
+catalog:
+  # React core
+  react: "^19.2.4"
+  react-dom: "^19.2.4"
+  # React Router
+  react-router: "8.0.0"
+  "@react-router/dev": "8.0.0"
+  "@react-router/remix-routes-option-adapter": "^7.8.2"
+  remix-flat-routes: "^0.8.5"
+  # Cloudflare
+  "@cloudflare/vite-plugin": "^1.42.4"
+  wrangler: "^4.106.0"
+  # Build tools
+  vite: "^8.0.3"
+  typescript: "^5.9.3"
+  # Tailwind
+  tailwindcss: "^4.2.2"
+  "@tailwindcss/vite": "^4.2.2"
+  # Types
+  "@types/react": "^19.2.14"
+  "@types/react-dom": "^19.2.3"
+  # Shared runtime
+  isbot: "^5.1.39"
+  zod: "^4.4.3"

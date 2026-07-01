@@ -13,7 +13,7 @@
     "composite": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["@total-typescript/ts-reset", "@cloudflare/workers-types", "vite/client"],
+    "types": ["@total-typescript/ts-reset", "vite/client"],
     "rootDirs": [".", "./.react-router/types"],
     "paths": {
       "@/*": ["./*"],

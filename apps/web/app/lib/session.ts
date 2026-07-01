@@ -2,11 +2,20 @@ import { auth } from "@lib/auth/server";
 import { redirect } from "react-router";
 
 export async function requireSession(request: Request) {
-  const session = await auth.api.getSession({ headers: request.headers });
+  let session: Awaited<ReturnType<typeof auth.api.getSession>>;
+  try {
+    session = await auth.api.getSession({ headers: request.headers });
+  } catch {
+    throw redirect("/sign-in");
+  }
   if (!session) throw redirect("/sign-in");
   return session;
 }
 
 export async function getSession(request: Request) {
-  return auth.api.getSession({ headers: request.headers });
+  try {
+    return await auth.api.getSession({ headers: request.headers });
+  } catch {
+    return null;
+  }
 }

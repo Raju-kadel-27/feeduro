@@ -39,6 +39,6 @@ fresh: docker_up
 
 docker_up:
 	@echo "Starting Docker services (db, smtp)..."
-	docker compose -f ../../docker/docker-compose.yml --env-file .env up db smtp -d
+	docker compose -f ../../docker/docker-compose.yml --env-file .dev.vars up db smtp -d
 
 .PHONY: dev dev-local fresh docker_up

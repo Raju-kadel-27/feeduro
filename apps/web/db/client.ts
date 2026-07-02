@@ -20,15 +20,16 @@ function getDatabaseUrl(): string {
 // neonConfig is a module-level singleton; apply local-dev overrides exactly once.
 let driverConfigured = false;
 
-function configureDriver(url: string): void {
+function configureDriver(): void {
   if (driverConfigured) return;
   driverConfigured = true;
 
   // In production the driver connects directly to Neon over WSS — nothing to configure.
-  // Locally, a plain Postgres container does not speak WebSocket, so we point the
-  // driver at the wsproxy sidecar (docker-compose neon-proxy on :5433) which
+  // In development, a plain Postgres container does not speak WebSocket, so we point
+  // the driver at the wsproxy sidecar (docker-compose neon-proxy on :5433) which
   // translates WS → TCP. This keeps dev and prod on the same driver code path.
-  if (url.includes("localhost") || url.includes("127.0.0.1")) {
+  // @ts-expect-error — populated at runtime by nodejs_compat_populate_process_env
+  if (process.env.ENVIRONMENT === "development") {
     neonConfig.useSecureWebSocket = false;
     neonConfig.pipelineConnect = false;
     neonConfig.wsProxy = (host) => `${host}:5433/v1`;
@@ -37,7 +38,7 @@ function configureDriver(url: string): void {
 
 export function createPool(): Pool {
   const url = getDatabaseUrl();
-  configureDriver(url);
+  configureDriver();
   return new Pool({
     connectionString: url,
     max: POOL_MAX,

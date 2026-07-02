@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { createDb, createPool } from "./client";
 import type { Pool } from "@neondatabase/serverless";
 import type { Db } from "./client";
-import { createDb, createPool } from "./client";
 
 interface RequestStore {
   db?: Db;

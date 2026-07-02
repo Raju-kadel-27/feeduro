@@ -11,7 +11,6 @@ const POOL_MAX = 5;
 const POOL_CONNECT_TIMEOUT_MS = 5000;
 
 function getDatabaseUrl(): string {
-  // @ts-expect-error — populated at runtime by nodejs_compat_populate_process_env
   const url: string | undefined = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
   return url;
@@ -28,7 +27,7 @@ function configureDriver(): void {
   // In development, a plain Postgres container does not speak WebSocket, so we point
   // the driver at the wsproxy sidecar (docker-compose neon-proxy on :5433) which
   // translates WS → TCP. This keeps dev and prod on the same driver code path.
-  // @ts-expect-error — populated at runtime by nodejs_compat_populate_process_env
+  // populated at runtime by nodejs_compat_populate_process_env
   if (process.env.ENVIRONMENT === "development") {
     neonConfig.useSecureWebSocket = false;
     neonConfig.pipelineConnect = false;

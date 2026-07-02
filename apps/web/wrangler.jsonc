@@ -14,12 +14,10 @@
       "name": "nextgen-email-dev"
     },
     "staging": {
-      "name": "feediyo-staging",
-      "services": [{ "binding": "OG_WORKER", "service": "feeduro-og" }]
+      "name": "feediyo-staging"
     },
     "production": {
-      "name": "feediyo",
-      "services": [{ "binding": "OG_WORKER", "service": "feeduro-og" }]
+      "name": "feediyo"
     }
   }
 }

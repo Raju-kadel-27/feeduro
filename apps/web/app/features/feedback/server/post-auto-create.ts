@@ -10,36 +10,38 @@ import { autoCreateTrelloCard } from "@features/internal/integrations/trello/ser
 
 type PostRef = { id: string; title: string; description: string | null };
 
-export function fireAutoCreateIntegrations(
+export async function fireAutoCreateIntegrations(
   organizationId: string,
   post: PostRef,
   userId: string,
-): void {
-  autoCreateGithubIssue(organizationId, post, userId).catch((err) =>
-    console.error("[github-auto-create]", err),
-  );
-  autoCreateJiraIssue(organizationId, post, userId).catch((err) =>
-    console.error("[jira-auto-create]", err),
-  );
-  autoCreateAsanaTask(organizationId, post, userId).catch((err) =>
-    console.error("[asana-auto-create]", err),
-  );
-  autoCreateShortcutStory(organizationId, post, userId).catch((err) =>
-    console.error("[shortcut-auto-create]", err),
-  );
-  autoCreateTrelloCard(organizationId, post, userId).catch((err) =>
-    console.error("[trello-auto-create]", err),
-  );
-  autoCreateNotionPage(organizationId, post, userId).catch((err) =>
-    console.error("[notion-auto-create]", err),
-  );
-  autoCreateLinearIssue(organizationId, post, userId).catch((err) =>
-    console.error("[linear-auto-create]", err),
-  );
-  autoCreateMondayItem(organizationId, post, userId).catch((err) =>
-    console.error("[monday-auto-create]", err),
-  );
-  autoCreateClickupTask(organizationId, post, userId).catch((err) =>
-    console.error("[clickup-auto-create]", err),
-  );
+): Promise<void> {
+  await Promise.allSettled([
+    autoCreateGithubIssue(organizationId, post, userId).catch((err) =>
+      console.error("[github-auto-create]", err),
+    ),
+    autoCreateJiraIssue(organizationId, post, userId).catch((err) =>
+      console.error("[jira-auto-create]", err),
+    ),
+    autoCreateAsanaTask(organizationId, post, userId).catch((err) =>
+      console.error("[asana-auto-create]", err),
+    ),
+    autoCreateShortcutStory(organizationId, post, userId).catch((err) =>
+      console.error("[shortcut-auto-create]", err),
+    ),
+    autoCreateTrelloCard(organizationId, post, userId).catch((err) =>
+      console.error("[trello-auto-create]", err),
+    ),
+    autoCreateNotionPage(organizationId, post, userId).catch((err) =>
+      console.error("[notion-auto-create]", err),
+    ),
+    autoCreateLinearIssue(organizationId, post, userId).catch((err) =>
+      console.error("[linear-auto-create]", err),
+    ),
+    autoCreateMondayItem(organizationId, post, userId).catch((err) =>
+      console.error("[monday-auto-create]", err),
+    ),
+    autoCreateClickupTask(organizationId, post, userId).catch((err) =>
+      console.error("[clickup-auto-create]", err),
+    ),
+  ]);
 }

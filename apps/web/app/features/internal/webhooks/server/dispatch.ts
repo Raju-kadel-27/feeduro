@@ -3,10 +3,10 @@ import { deliverToN8nWebhook } from "@features/internal/integrations/n8n/server/
 import { deliverToSlack } from "@features/internal/integrations/slack/server/service";
 import { deliverToZapierCatchHook } from "@features/internal/integrations/zapier/server/service";
 import { hmacHex } from "@lib/crypto";
-import { waitUntil } from "@middleware/cloudflare.server";
+import { getExecutionContext, waitUntil } from "@middleware/cloudflare.server";
 import { and, eq } from "drizzle-orm";
 import type { RouterContextProvider } from "react-router";
-import { getDb } from "@/db";
+import { getDb, withRequestDb } from "@/db";
 import { integrations, webhookEndpoints } from "@/db/schema";
 
 export type WebhookEvent =
@@ -175,5 +175,12 @@ export function dispatchWebhook(
   event: WebhookEvent,
   eventData: Record<string, unknown>,
 ) {
-  waitUntil(context, deliverWebhookBackground(organizationId, event, eventData));
+  const ctx = getExecutionContext(context);
+  waitUntil(
+    context,
+    withRequestDb(
+      (p) => ctx.waitUntil(p),
+      () => deliverWebhookBackground(organizationId, event, eventData),
+    ),
+  );
 }

@@ -6,30 +6,32 @@ import { syncStatusToMonday } from "@features/internal/integrations/monday/serve
 import { syncStatusToShortcut } from "@features/internal/integrations/shortcut/server/sync-status";
 import { syncStatusToTrello } from "@features/internal/integrations/trello/server/sync-status";
 
-export function fireStatusSyncIntegrations(
+export async function fireStatusSyncIntegrations(
   organizationId: string,
   postId: string,
   newStatus: string,
-): void {
-  syncStatusToClickup(organizationId, postId, newStatus).catch((err) =>
-    console.error("[clickup-sync-status]", err),
-  );
-  syncStatusToLinear(organizationId, postId, newStatus).catch((err) =>
-    console.error("[linear-sync-status]", err),
-  );
-  syncStatusToJira(organizationId, postId, newStatus).catch((err) =>
-    console.error("[jira-sync-status]", err),
-  );
-  syncStatusToAsana(organizationId, postId, newStatus).catch((err) =>
-    console.error("[asana-sync-status]", err),
-  );
-  syncStatusToMonday(organizationId, postId, newStatus).catch((err) =>
-    console.error("[monday-sync-status]", err),
-  );
-  syncStatusToShortcut(organizationId, postId, newStatus).catch((err) =>
-    console.error("[shortcut-sync-status]", err),
-  );
-  syncStatusToTrello(organizationId, postId, newStatus).catch((err) =>
-    console.error("[trello-sync-status]", err),
-  );
+): Promise<void> {
+  await Promise.allSettled([
+    syncStatusToClickup(organizationId, postId, newStatus).catch((err) =>
+      console.error("[clickup-sync-status]", err),
+    ),
+    syncStatusToLinear(organizationId, postId, newStatus).catch((err) =>
+      console.error("[linear-sync-status]", err),
+    ),
+    syncStatusToJira(organizationId, postId, newStatus).catch((err) =>
+      console.error("[jira-sync-status]", err),
+    ),
+    syncStatusToAsana(organizationId, postId, newStatus).catch((err) =>
+      console.error("[asana-sync-status]", err),
+    ),
+    syncStatusToMonday(organizationId, postId, newStatus).catch((err) =>
+      console.error("[monday-sync-status]", err),
+    ),
+    syncStatusToShortcut(organizationId, postId, newStatus).catch((err) =>
+      console.error("[shortcut-sync-status]", err),
+    ),
+    syncStatusToTrello(organizationId, postId, newStatus).catch((err) =>
+      console.error("[trello-sync-status]", err),
+    ),
+  ]);
 }

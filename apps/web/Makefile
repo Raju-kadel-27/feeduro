@@ -38,7 +38,8 @@ fresh: docker_up
 	@echo "Done. Run 'make dev' to start the server."
 
 docker_up:
-	@echo "Starting Docker services (db, smtp)..."
-	docker compose -f ../../docker/docker-compose.yml --env-file .dev.vars up db smtp -d
+	@echo "Starting Docker services (db, neon-proxy, smtp)..."
+	docker compose -f ../../docker/docker-compose.yml --env-file .dev.vars up db neon-proxy smtp -d --wait
+	@echo "Postgres is healthy; neon-proxy is up on :5433."
 
 .PHONY: dev dev-local fresh docker_up

@@ -5,8 +5,9 @@ import { and, eq } from "drizzle-orm";
 import type { AppLoadContext } from "react-router";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
+import { getDb, withRequestDb } from "@/db";
 import { feedbackPosts, postActivities } from "@/db/schema";
+import { getExecutionContext, waitUntil } from "@/middleware/cloudflare.server";
 
 type SessionActor = { user: { id: string; name: string | null; email: string | null } };
 
@@ -71,17 +72,32 @@ export async function handleUpdateStatus(
     changedBy: session.user.id,
   });
 
-  notifyStatusChanged({
-    postId: id,
-    postTitle: existing.title,
-    oldStatus: existing.status,
-    newStatus,
-    actorId: session.user.id,
-    organizationId,
-    actorName: session.user.name ?? session.user.email ?? "Someone",
-  }).catch((err) => console.error("[update-status] notify error", err));
+  // Notifications are fast (DB inserts only) — await so they complete before
+  // the pool is closed, but don't let a failure affect the response.
+  try {
+    await notifyStatusChanged({
+      postId: id,
+      postTitle: existing.title,
+      oldStatus: existing.status,
+      newStatus,
+      actorId: session.user.id,
+      organizationId,
+      actorName: session.user.name ?? session.user.email ?? "Someone",
+    });
+  } catch (err) {
+    console.error("[update-status] notify error", err);
+  }
 
-  fireStatusSyncIntegrations(organizationId, id, newStatus);
+  // Integration syncs hit external APIs — run in background with a fresh DB
+  // pool so they don't block the response or share the request's ended pool.
+  const ctx = getExecutionContext(context);
+  waitUntil(
+    context,
+    withRequestDb(
+      (p) => ctx.waitUntil(p),
+      () => fireStatusSyncIntegrations(organizationId, id, newStatus),
+    ),
+  );
 
   return data({ success: true });
 }

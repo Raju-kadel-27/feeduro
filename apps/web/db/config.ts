@@ -5,9 +5,13 @@ const rawUrl =
   process.env.DATABASE_URL ??
   "postgresql://postgres:postgres@localhost:5432/feeduro";
 
-const isLocal = rawUrl.includes("localhost") || rawUrl.includes("127.0.0.1");
+const isDevelopment = process.env.ENVIRONMENT === "development";
 
-const url = isLocal ? rawUrl.replace(/([?&])sslmode=[^&]*/g, "$1").replace(/[?&]$/, "") : rawUrl;
+// Strip sslmode query param when connecting to a local Postgres container
+// that does not have SSL configured.
+const url = isDevelopment
+  ? rawUrl.replace(/([?&])sslmode=[^&]*/g, "$1").replace(/[?&]$/, "")
+  : rawUrl;
 
 export default defineConfig({
   out: "./db/migrations",
@@ -15,6 +19,6 @@ export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
     url,
-    ssl: isLocal ? false : { rejectUnauthorized: false },
+    ssl: isDevelopment ? false : { rejectUnauthorized: false },
   },
 });

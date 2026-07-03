@@ -1,7 +1,6 @@
 import { defineConfig } from "drizzle-kit";
 
 const rawUrl =
-  process.env.DIRECT_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://postgres:postgres@localhost:5432/feeduro";
 

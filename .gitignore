@@ -25,8 +25,8 @@
 .dev.vars.*
 apps/web/worker-configuration.d.ts
 
-# Drizzle generated files (run db:generate manually)
-apps/web/db/migrations/*.sql
+# Drizzle: generate migrations manually with db:generate, but COMMIT the output —
+# CI (.github/workflows/deploy.yml) applies these .sql files to Neon on deploy.
 apps/web/db/meta/
 
 # pnpm

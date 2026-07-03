@@ -1,0 +1,67 @@
+name: Deploy
+
+# staging branch -> Neon "staging" branch + feeduro-staging worker
+# main branch    -> Neon "main" branch    + feeduro-production worker
+#
+# GitHub Actions owns the full sequence so migrate ALWAYS lands before deploy.
+# Cloudflare Workers Builds git integration must be turned OFF (see repo docs),
+# otherwise pushes would deploy twice.
+on:
+  push:
+    branches: [staging, main]
+
+# Never let two runs of the same branch overlap.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      # Fail fast (before install/build) if this branch has no Neon DB URL secret.
+      - name: Verify Neon secret is set
+        run: |
+          if [ -z "${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_DATABASE_URL || secrets.STAGING_DATABASE_URL }}" ]; then
+            echo "::error::No Neon DB URL secret set for ${{ github.ref_name }} (expected STAGING_DATABASE_URL / PRODUCTION_DATABASE_URL)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 1. Build first — a broken build fails the run before we touch the DB.
+      - name: Build (${{ env.TARGET }})
+        working-directory: apps/web
+        run: pnpm run build:${{ env.TARGET }}
+
+      # 2. Apply migrations to the matching Neon branch, BEFORE deploying new code.
+      #    Point DATABASE_URL at the Neon DIRECT (non-pooled) URL for this branch —
+      #    pooled/pgbouncer chokes on DDL + advisory locks.
+      - name: Apply migrations (${{ env.TARGET }})
+        working-directory: apps/web
+        env:
+          DATABASE_URL: ${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_DATABASE_URL || secrets.STAGING_DATABASE_URL }}
+        run: pnpm run db:migrate:deploy
+
+      # 3. Deploy the already-built worker.
+      - name: Deploy worker (${{ env.TARGET }})
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm run deploy:${{ env.TARGET }}

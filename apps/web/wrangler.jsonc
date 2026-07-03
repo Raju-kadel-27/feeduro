@@ -14,10 +14,10 @@
       "name": "nextgen-email-dev"
     },
     "staging": {
-      "name": "feediyo-staging"
+      "name": "feeduro-staging"
     },
     "production": {
-      "name": "feediyo"
+      "name": "feeduro-production"
     }
   }
 }

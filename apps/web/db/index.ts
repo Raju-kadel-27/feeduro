@@ -1,4 +1,19 @@
 import { createHttpDb, createTxDb, createTxPool, type Db, type TxDb } from "./client";
+import { configureDevDriver } from "./driver.dev";
+import { configureProdDriver } from "./driver.prod";
+
+// Configure the neon driver for the current environment exactly once. Lazy on
+// purpose: process.env is populated per-request, so this can't run at module load.
+let configured = false;
+function ensureDriverConfigured(): void {
+  if (configured) return;
+  configured = true;
+  if (process.env.ENVIRONMENT === "development") {
+    configureDevDriver();
+  } else {
+    configureProdDriver();
+  }
+}
 
 // Non-transactional queries share one stateless HTTP client. Each query is an
 // independent fetch, so there is no per-request pool and no connection lifecycle
@@ -9,6 +24,7 @@ export function getDb(): Db {
   if (typeof window !== "undefined") {
     throw new Error("getDb() cannot be called on the client — use an API route instead");
   }
+  ensureDriverConfigured();
   httpDb ??= createHttpDb();
   return httpDb;
 }
@@ -25,6 +41,7 @@ type Tx = Parameters<Parameters<TxDb["transaction"]>[0]>[0];
  * (getDb() runs over HTTP, outside this transaction, breaking atomicity).
  */
 export async function withTransaction<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
+  ensureDriverConfigured();
   const pool = createTxPool();
   try {
     return await createTxDb(pool).transaction(fn);

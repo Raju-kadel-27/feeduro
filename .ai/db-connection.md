@@ -35,8 +35,14 @@ transport provides — so transactions get their own short-lived connection.
 
 | File | Responsibility |
 |---|---|
-| [`db/client.ts`](../apps/web/db/client.ts) | Builds the HTTP client and the WS transaction pool; dev proxy config. |
-| [`db/index.ts`](../apps/web/db/index.ts) | `getDb()` (HTTP singleton) and `withTransaction()` (WS). |
+| [`db/index.ts`](../apps/web/db/index.ts) | Public API — `getDb()`, `withTransaction()` — and the per-environment driver selection. |
+| [`db/client.ts`](../apps/web/db/client.ts) | Env-agnostic factories: HTTP client and WS transaction pool. |
+| [`db/driver.dev.ts`](../apps/web/db/driver.dev.ts) | Dev-only driver config (points transports at the local proxies). |
+| [`db/driver.prod.ts`](../apps/web/db/driver.prod.ts) | Prod driver config (no overrides — Neon cloud defaults). |
+
+`index.ts` picks the config by `ENVIRONMENT` (lazily, since `process.env` is only
+populated per-request), then `client.ts` builds clients without caring which env
+it's in.
 
 ### `getDb()` — non-transactional queries
 

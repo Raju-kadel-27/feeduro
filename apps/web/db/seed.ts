@@ -11,12 +11,15 @@ import {
   changelogs,
   changelogTags,
   comments,
+  companies,
+  companyMembers,
   feedbackBoards,
   feedbackCategories,
   feedbackPosts,
   feedbackTags,
   feedbackViews,
   integrations,
+  plans,
   portalEvents,
   postActivities,
   postExternalLinks,
@@ -149,6 +152,10 @@ async function seed() {
   await db.delete(integrations).where(eq(integrations.organizationId, orgId));
   await db.delete(widgetConfigs).where(eq(widgetConfigs.organizationId, orgId));
   await db.delete(segments).where(eq(segments.organizationId, orgId));
+  // company_members cascades from companies/userProfiles, but delete explicitly for clarity + order.
+  await db.delete(companyMembers).where(eq(companyMembers.organizationId, orgId));
+  await db.delete(companies).where(eq(companies.organizationId, orgId));
+  await db.delete(plans).where(eq(plans.organizationId, orgId));
   await db.delete(userProfiles).where(eq(userProfiles.organizationId, orgId));
   await db.delete(portalEvents).where(eq(portalEvents.organizationId, orgId));
 
@@ -1812,9 +1819,29 @@ async function seed() {
     },
   ];
 
+  // Explicit per-user MRR overrides (whole $/mo). Profiles without an entry fall back to their
+  // plan's catalog price at read time. Used for the self-serve path + MRR-range segment demo.
+  const mrrByEmail: Record<string, number> = {
+    "johndoe@gmail.com": 99,
+    "alice@acmecorp.dev": 120,
+    "chen@bigcorp.cn": 2000,
+    "carlos@enterprise.mx": 5000,
+    "tom@bigretail.com": 1500,
+    "yuki@finwise.jp": 290,
+    "claire@saashq.co": 450,
+    "ravi@logismart.in": 220,
+    "nina@logistix.de": 180,
+    "alex@cloudbuild.io": 60,
+  };
+
+  // email → profile id, so companies can link members below.
+  const profileIdsByEmail: Record<string, string> = {};
+
   for (const p of profileDefs) {
+    const id = createId();
+    profileIdsByEmail[p.email] = id;
     await db.insert(userProfiles).values({
-      id: createId(),
+      id,
       organizationId: orgId,
       userId: p.userId ?? null,
       externalId: p.externalId,
@@ -1825,10 +1852,87 @@ async function seed() {
       industry: p.industry,
       location: p.location,
       companySize: p.companySize,
+      mrr: mrrByEmail[p.email] ?? null,
     });
   }
 
   console.log(`✅ Created ${profileDefs.length} user profiles`);
+
+  // ── 15.5. Plan catalog ─────────────────────────────────────────────────────
+  // Resolves a profile's/company's MRR from its plan name when no explicit value is set.
+
+  const planDefs = [
+    { name: "free", monthlyPrice: 0 },
+    { name: "trial", monthlyPrice: 0 },
+    { name: "paying", monthlyPrice: 99 },
+    { name: "churned", monthlyPrice: 0 },
+  ];
+
+  for (const pl of planDefs) {
+    await db.insert(plans).values({
+      id: createId(),
+      organizationId: orgId,
+      name: pl.name,
+      monthlyPrice: pl.monthlyPrice,
+    });
+  }
+
+  console.log(`✅ Created ${planDefs.length} plans (catalog)`);
+
+  // ── 15.7. Companies + memberships (Canny-style, account-level MRR) ──────────
+  // The first two group seeded users (who cast the votes) so post panels show deduped company MRR;
+  // the rest group external profiles to populate the settings list.
+
+  const companyDefs = [
+    {
+      externalId: "acme-corp",
+      name: "Acme Corp",
+      monthlySpend: 4800,
+      plan: "paying",
+      members: ["johndoe@gmail.com", "alice@acmecorp.dev", "bob@acmecorp.dev"],
+    },
+    {
+      externalId: "globex",
+      name: "Globex Inc",
+      monthlySpend: 2200,
+      plan: "paying",
+      members: ["sara@acmecorp.dev", "dave@acmecorp.dev"],
+    },
+    { externalId: "bigcorp", name: "BigCorp", monthlySpend: 2000, plan: "paying", members: ["chen@bigcorp.cn"] },
+    {
+      externalId: "enterprise-mx",
+      name: "Enterprise MX",
+      monthlySpend: 5000,
+      plan: "paying",
+      members: ["carlos@enterprise.mx"],
+    },
+    { externalId: "bigretail", name: "BigRetail", monthlySpend: 1500, plan: "paying", members: ["tom@bigretail.com"] },
+    { externalId: "finwise", name: "FinWise", monthlySpend: 290, plan: "paying", members: ["yuki@finwise.jp"] },
+  ];
+
+  let companyMemberCount = 0;
+  for (const c of companyDefs) {
+    const companyId = createId();
+    await db.insert(companies).values({
+      id: companyId,
+      organizationId: orgId,
+      externalId: c.externalId,
+      name: c.name,
+      monthlySpend: c.monthlySpend,
+      plan: c.plan,
+    });
+    for (const email of c.members) {
+      const profileId = profileIdsByEmail[email];
+      if (!profileId) continue;
+      await db
+        .insert(companyMembers)
+        .values({ companyId, userProfileId: profileId, organizationId: orgId })
+        .onConflictDoNothing();
+      companyMemberCount++;
+    }
+  }
+
+  console.log(`✅ Created ${companyDefs.length} companies (${companyMemberCount} memberships)`);
 
   // ── 16. Segments ─────────────────────────────────────────────────────────
 
@@ -1862,6 +1966,11 @@ async function seed() {
       name: "Enterprise (20+ employees)",
       color: "#8b5cf6",
       filters: { minCompanySize: 20 },
+    },
+    {
+      name: "High-value ($200+/mo)",
+      color: "#eab308",
+      filters: { minMrr: 200 },
     },
   ];
 
@@ -1980,6 +2089,7 @@ async function seed() {
   Taxonomy:  ${categoryDefs.length} categories  |  ${tagDefs.length} feedback tags  |  ${changelogTagDefs.length} changelog tags
   Views:     ${viewDefs.length} feedback views (5 system + 1 custom)
   Segments:  ${segmentDefs.length} segments  |  ${profileDefs.length} user profiles (5 linked + 20 external)
+  Revenue:   ${planDefs.length} plans  |  ${companyDefs.length} companies (${companyMemberCount} memberships, deduped MRR)
   Dev data:  2 webhook endpoints  |  3 GitHub external links  |  1 GitHub integration
   Traffic:   ${portalEventRows.length} portal events across last 7 days (board/roadmap/updates/changelog)
 `);

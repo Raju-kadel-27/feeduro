@@ -2,9 +2,22 @@ import { readFileSync } from "node:fs";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
+import { createLogger, defineConfig } from "vite";
 import babel from "vite-plugin-babel";
 import { tunnelPlugin } from "./scripts/vite-tunnel-plugin";
+
+// @dnd-kit's published files reference `//# sourceMappingURL=*.js.map` files
+// that were never shipped in the package. Because these deps are excluded from
+// dep-optimization (see optimizeDeps.exclude below), Vite serves them raw and
+// logs a harmless "Failed to load source map" warning on every read. We filter
+// just that message from the logger — we must NOT transform these files or
+// force them through optimization, as that duplicates React (useMemoCache null).
+const logger = createLogger();
+const originalWarn = logger.warn;
+logger.warn = (msg, options) => {
+  if (msg.includes("Failed to load source map") && msg.includes("@dnd-kit")) return;
+  originalWarn(msg, options);
+};
 
 // Pre-bundled in every environment so Rolldown produces a single shared React
 // chunk per environment. Deps discovered mid-session get a separate optimize
@@ -37,6 +50,7 @@ export default defineConfig({
       cert: readFileSync("./local_certificates/localhost.crt"),
     },
   },
+  customLogger: logger,
   plugins: [
     cloudflare({ viteEnvironment: { name: "ssr" } }),
     process.env.TUNNEL === "true" && tunnelPlugin(3000),

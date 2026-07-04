@@ -1,9 +1,14 @@
 import { timeAgo } from "@features/feedback/utils";
 import { cn } from "@lib/utils";
-import { formatMrr } from "@utils/format-mrr";
-import { Building2, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import type { Voter } from "../hooks/use-voter-data";
+
+function formatMrr(amount: number): string {
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;
+  return `$${amount}`;
+}
 
 const AVATAR_COLORS = [
   "bg-blue-500", "bg-violet-500", "bg-emerald-500",
@@ -32,15 +37,6 @@ function PlanBadge({ plan }: { plan: string }) {
 function VoterRow({ voter }: { voter: Voter }) {
   const display = voter.name ?? voter.email;
   const secondary = [voter.role, voter.location].filter(Boolean).join(" · ");
-  // Company voters show company MRR (what actually drives the impact total).
-  // Accountless voters show their individual profile MRR.
-  const mrrBadge =
-    voter.companyMrr != null && voter.companyMrr > 0
-      ? voter.companyMrr
-      : voter.companyName == null && voter.mrr != null && voter.mrr > 0
-        ? voter.mrr
-        : null;
-
   return (
     <div className="flex items-center gap-2.5 py-1.5">
       <VoterAvatar name={voter.name} email={voter.email} />
@@ -49,22 +45,14 @@ function VoterRow({ voter }: { voter: Voter }) {
           <span className="text-xs font-medium text-foreground truncate">{display}</span>
           {voter.plan && <PlanBadge plan={voter.plan} />}
         </div>
-        {voter.companyName ? (
-          <p className="text-[11px] text-muted-foreground truncate mt-0.5 flex items-center gap-0.5">
-            <Building2 className="inline h-2.5 w-2.5 shrink-0" />
-            <span className="truncate">
-              {voter.companyName}
-              {secondary ? ` · ${secondary}` : ""}
-            </span>
-          </p>
-        ) : secondary ? (
+        {secondary && (
           <p className="text-[11px] text-muted-foreground truncate mt-0.5">{secondary}</p>
-        ) : null}
+        )}
       </div>
       <div className="flex flex-col items-end gap-0.5 shrink-0">
-        {mrrBadge != null && (
+        {voter.mrr != null && voter.mrr > 0 && (
           <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-            {formatMrr(mrrBadge)}/mo
+            {formatMrr(voter.mrr)}/mo
           </span>
         )}
         <span className="text-[10px] text-muted-foreground tabular-nums">

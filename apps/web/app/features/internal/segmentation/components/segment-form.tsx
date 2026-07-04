@@ -1,9 +1,10 @@
 import { cn } from "@lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronUp, Loader2, Users, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Segment, SegmentFilters } from "../types";
 
+const PLAN_OPTIONS = ["free", "trial", "paying", "churned"];
 const COLOR_OPTIONS = [
   "#6366f1",
   "#8b5cf6",
@@ -24,8 +25,6 @@ export interface SegmentFormState {
   location: string;
   minCompanySize: string;
   maxCompanySize: string;
-  minMrr: string;
-  maxMrr: string;
 }
 
 export const defaultForm = (): SegmentFormState => ({
@@ -37,8 +36,6 @@ export const defaultForm = (): SegmentFormState => ({
   location: "",
   minCompanySize: "",
   maxCompanySize: "",
-  minMrr: "",
-  maxMrr: "",
 });
 
 export function formFromSegment(seg: Segment): SegmentFormState {
@@ -51,8 +48,6 @@ export function formFromSegment(seg: Segment): SegmentFormState {
     location: seg.filters.location?.[0] ?? "",
     minCompanySize: seg.filters.minCompanySize?.toString() ?? "",
     maxCompanySize: seg.filters.maxCompanySize?.toString() ?? "",
-    minMrr: seg.filters.minMrr?.toString() ?? "",
-    maxMrr: seg.filters.maxMrr?.toString() ?? "",
   };
 }
 
@@ -66,10 +61,6 @@ export function filtersFromForm(form: SegmentFormState): SegmentFilters {
   const max = Number.parseInt(form.maxCompanySize, 10);
   if (!Number.isNaN(min) && min > 0) filters.minCompanySize = min;
   if (!Number.isNaN(max) && max > 0) filters.maxCompanySize = max;
-  const minMrr = Number.parseInt(form.minMrr, 10);
-  const maxMrr = Number.parseInt(form.maxMrr, 10);
-  if (!Number.isNaN(minMrr) && minMrr >= 0) filters.minMrr = minMrr;
-  if (!Number.isNaN(maxMrr) && maxMrr >= 0) filters.maxMrr = maxMrr;
   return filters;
 }
 
@@ -77,33 +68,14 @@ export function SegmentForm({
   initial,
   onSave,
   onCancel,
-  planOptions = [],
 }: {
   initial: SegmentFormState;
   onSave: (form: SegmentFormState) => void;
   onCancel: () => void;
-  /** Plan names from the org's plan catalog. */
-  planOptions?: string[];
 }) {
   const [form, setForm] = useState<SegmentFormState>(initial);
-
-  // Catalog plans plus any already-selected plans not (or no longer) in the catalog,
-  // so editing an existing segment never silently drops a filter value.
-  const planChoices = useMemo(
-    () => Array.from(new Set([...planOptions, ...form.plan])),
-    [planOptions, form.plan],
-  );
   const [showAdvanced, setShowAdvanced] = useState(
-    () =>
-      !!(
-        initial.role ||
-        initial.industry ||
-        initial.location ||
-        initial.minCompanySize ||
-        initial.maxCompanySize ||
-        initial.minMrr ||
-        initial.maxMrr
-      ),
+    () => !!(initial.role || initial.industry || initial.location || initial.minCompanySize || initial.maxCompanySize),
   );
 
   const [debouncedFilters, setDebouncedFilters] = useState<SegmentFilters>(() => filtersFromForm(initial));
@@ -166,31 +138,24 @@ export function SegmentForm({
 
       <div>
         <p className="text-xs text-muted-foreground font-medium mb-1.5">Customer plan</p>
-        {planChoices.length === 0 ? (
-          <p className="text-[12px] text-muted-foreground">
-            Define plans in <span className="font-medium">Plans &amp; pricing</span> above to filter
-            by plan.
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-1.5">
-            {planChoices.map((p) => (
-              <button
-                key={p}
-                type="button"
-                aria-pressed={form.plan.includes(p)}
-                onClick={() => togglePlan(p)}
-                className={cn(
-                  "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
-                  form.plan.includes(p)
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                )}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-1.5">
+          {PLAN_OPTIONS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              aria-pressed={form.plan.includes(p)}
+              onClick={() => togglePlan(p)}
+              className={cn(
+                "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
+                form.plan.includes(p)
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+              )}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
       </div>
 
       <button
@@ -199,7 +164,7 @@ export function SegmentForm({
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        {showAdvanced ? "Hide advanced filters" : "More filters (role, industry, location, size, MRR)"}
+        {showAdvanced ? "Hide advanced filters" : "More filters (role, industry, location, size)"}
       </button>
 
       {showAdvanced && (
@@ -239,29 +204,6 @@ export function SegmentForm({
                 placeholder="Max"
                 value={form.maxCompanySize}
                 onChange={(e) => setForm((f) => ({ ...f, maxCompanySize: e.target.value }))}
-                className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground font-medium mb-1.5">MRR ($/month)</p>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={0}
-                placeholder="Min"
-                value={form.minMrr}
-                onChange={(e) => setForm((f) => ({ ...f, minMrr: e.target.value }))}
-                className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <span className="text-xs text-muted-foreground shrink-0">to</span>
-              <input
-                type="number"
-                min={0}
-                placeholder="Max"
-                value={form.maxMrr}
-                onChange={(e) => setForm((f) => ({ ...f, maxMrr: e.target.value }))}
                 className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>

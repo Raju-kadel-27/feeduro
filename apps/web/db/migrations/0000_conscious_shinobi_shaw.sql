@@ -329,26 +329,6 @@ CREATE TABLE "comments" (
 	CONSTRAINT "commenter_actor_check" CHECK (user_id IS NOT NULL OR commenter_profile_id IS NOT NULL)
 );
 --> statement-breakpoint
-CREATE TABLE "companies" (
-	"id" varchar(128) PRIMARY KEY NOT NULL,
-	"organization_id" varchar(36) NOT NULL,
-	"external_id" varchar(255) NOT NULL,
-	"name" varchar(255),
-	"monthly_spend" integer,
-	"plan" varchar(100),
-	"custom_attributes" text,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "company_members" (
-	"company_id" varchar(128) NOT NULL,
-	"user_profile_id" varchar(128) NOT NULL,
-	"organization_id" varchar(36) NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "company_members_company_id_user_profile_id_pk" PRIMARY KEY("company_id","user_profile_id")
-);
---> statement-breakpoint
 CREATE TABLE "custom_domains" (
 	"id" varchar(128) PRIMARY KEY NOT NULL,
 	"organization_id" varchar(36) NOT NULL,
@@ -485,16 +465,6 @@ CREATE TABLE "notifications" (
 	"metadata" text,
 	"read_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "plans" (
-	"id" varchar(128) PRIMARY KEY NOT NULL,
-	"organization_id" varchar(36) NOT NULL,
-	"name" varchar(100) NOT NULL,
-	"monthly_price" integer DEFAULT 0 NOT NULL,
-	"interval" varchar(20) DEFAULT 'monthly' NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "portal_events" (
@@ -674,10 +644,6 @@ ALTER TABLE "comments" ADD CONSTRAINT "comments_organization_id_organization_id_
 ALTER TABLE "comments" ADD CONSTRAINT "comments_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_parent_id_comments_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."comments"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_commenter_profile_id_user_profiles_id_fk" FOREIGN KEY ("commenter_profile_id") REFERENCES "public"."user_profiles"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "companies" ADD CONSTRAINT "companies_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "company_members" ADD CONSTRAINT "company_members_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "company_members" ADD CONSTRAINT "company_members_user_profile_id_user_profiles_id_fk" FOREIGN KEY ("user_profile_id") REFERENCES "public"."user_profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "company_members" ADD CONSTRAINT "company_members_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "custom_domains" ADD CONSTRAINT "custom_domains_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "feedback_boards" ADD CONSTRAINT "feedback_boards_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "feedback_boards" ADD CONSTRAINT "feedback_boards_created_by_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -700,7 +666,6 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_organization_id_organi
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_post_id_feedback_posts_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."feedback_posts"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_actor_id_user_id_fk" FOREIGN KEY ("actor_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "plans" ADD CONSTRAINT "plans_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "portal_events" ADD CONSTRAINT "portal_events_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "post_activities" ADD CONSTRAINT "post_activities_post_id_feedback_posts_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."feedback_posts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "post_activities" ADD CONSTRAINT "post_activities_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -780,12 +745,6 @@ CREATE INDEX "comments_post_created_at_idx" ON "comments" USING btree ("post_id"
 CREATE INDEX "comments_org_created_at_idx" ON "comments" USING btree ("organization_id","created_at");--> statement-breakpoint
 CREATE INDEX "comments_commenter_profile_id_idx" ON "comments" USING btree ("commenter_profile_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "comment_import_dedup_idx" ON "comments" USING btree ("organization_id","import_source","external_id") WHERE import_source IS NOT NULL;--> statement-breakpoint
-CREATE INDEX "company_org_id_idx" ON "companies" USING btree ("organization_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "company_org_external_id_unique_idx" ON "companies" USING btree ("organization_id","external_id");--> statement-breakpoint
-CREATE INDEX "company_org_spend_idx" ON "companies" USING btree ("organization_id","monthly_spend");--> statement-breakpoint
-CREATE INDEX "company_org_plan_idx" ON "companies" USING btree ("organization_id","plan");--> statement-breakpoint
-CREATE INDEX "company_member_profile_idx" ON "company_members" USING btree ("user_profile_id");--> statement-breakpoint
-CREATE INDEX "company_member_org_idx" ON "company_members" USING btree ("organization_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "custom_domain_unique_idx" ON "custom_domains" USING btree ("domain");--> statement-breakpoint
 CREATE UNIQUE INDEX "custom_domain_org_unique_idx" ON "custom_domains" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "cd_org_status_idx" ON "custom_domains" USING btree ("organization_id","status");--> statement-breakpoint
@@ -824,8 +783,6 @@ CREATE INDEX "notif_post_id_idx" ON "notifications" USING btree ("post_id");--> 
 CREATE INDEX "notif_org_user_created_idx" ON "notifications" USING btree ("organization_id","user_id","created_at");--> statement-breakpoint
 CREATE INDEX "notif_user_unread_idx" ON "notifications" USING btree ("user_id","read_at");--> statement-breakpoint
 CREATE INDEX "notif_created_at_idx" ON "notifications" USING btree ("created_at");--> statement-breakpoint
-CREATE INDEX "plan_org_id_idx" ON "plans" USING btree ("organization_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "plan_org_name_unique_idx" ON "plans" USING btree ("organization_id","name");--> statement-breakpoint
 CREATE INDEX "pe_org_type_created_at_idx" ON "portal_events" USING btree ("organization_id","type","created_at");--> statement-breakpoint
 CREATE INDEX "pe_org_resource_created_at_idx" ON "portal_events" USING btree ("organization_id","resource_id","created_at");--> statement-breakpoint
 CREATE INDEX "pe_org_visitor_idx" ON "portal_events" USING btree ("organization_id","visitor_hash");--> statement-breakpoint

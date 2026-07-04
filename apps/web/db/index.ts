@@ -1,70 +1,34 @@
-import { AsyncLocalStorage } from "node:async_hooks";
-import { createDb, createPool } from "./client";
-import type { Pool } from "@neondatabase/serverless";
-import type { Db } from "./client";
+import { createHttpDb, createTxDb, createTxPool, type Db, type TxDb } from "./client";
 
-interface RequestStore {
-  db?: Db;
-  pool?: Pool;
-}
-
-// Each request gets its own Pool. Workers pin sockets to the request that opened
-// them, so connections cannot be shared across requests.
-const requestStorage = new AsyncLocalStorage<RequestStore>();
-
-// Module-scope fallback for schema introspection only (e.g. better-auth's
-// drizzleAdapter reads db._ during module init, before the first request). No
-// application queries go through this — they always use the per-request instance.
-let introspectionDb: Db | undefined;
-
-function resolveDb(): Db {
-  const store = requestStorage.getStore();
-  if (store) {
-    if (!store.db) {
-      store.pool = createPool();
-      store.db = createDb(store.pool);
-    }
-    return store.db;
-  }
-  introspectionDb ??= createDb(createPool());
-  return introspectionDb;
-}
-
-// Stable module-scope reference. Workers create a new Db per request, but
-// callers import once and hold this proxy for the lifetime of the module.
-// The proxy resolves the actual Db at call time, so it always hits the
-// correct per-request instance.
-const dbProxy = new Proxy({} as Db, {
-  get(_target, prop) {
-    const db = resolveDb();
-    const value = Reflect.get(db as object, prop, db);
-    return typeof value === "function" ? value.bind(db) : value;
-  },
-});
+// Non-transactional queries share one stateless HTTP client. Each query is an
+// independent fetch, so there is no per-request pool and no connection lifecycle
+// to manage — the client is created once and reused for the life of the isolate.
+let httpDb: Db | undefined;
 
 export function getDb(): Db {
   if (typeof window !== "undefined") {
     throw new Error("getDb() cannot be called on the client — use an API route instead");
   }
-  return dbProxy;
+  httpDb ??= createHttpDb();
+  return httpDb;
 }
 
+// The `tx` handle passed to a transaction callback.
+type Tx = Parameters<Parameters<TxDb["transaction"]>[0]>[0];
+
 /**
- * Runs `fn` inside a dedicated request-scoped Pool. All getDb() calls within
- * `fn` share one pool that is closed after `fn` settles. Pass `ctx.waitUntil`
- * as `scheduleCleanup` so pool teardown happens after the response is sent
- * without blocking it.
+ * Runs `fn` inside a real interactive transaction over a short-lived WebSocket
+ * connection, which is closed afterwards. Use this for any multi-statement
+ * atomic write; use getDb() for everything else.
+ *
+ * Keep the body pure DB work — do NOT call external APIs or getDb() inside it
+ * (getDb() runs over HTTP, outside this transaction, breaking atomicity).
  */
-export async function withRequestDb<T>(
-  scheduleCleanup: (p: Promise<unknown>) => void,
-  fn: () => Promise<T>,
-): Promise<T> {
-  const store: RequestStore = {};
+export async function withTransaction<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
+  const pool = createTxPool();
   try {
-    return await requestStorage.run(store, fn);
+    return await createTxDb(pool).transaction(fn);
   } finally {
-    if (store.pool) {
-      scheduleCleanup(store.pool.end().catch(() => {}));
-    }
+    await pool.end().catch(() => {});
   }
 }

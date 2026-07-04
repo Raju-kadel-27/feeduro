@@ -23,7 +23,6 @@ function configureDriver(): void {
   if (driverConfigured) return;
   driverConfigured = true;
 
-  // In production the driver connects directly to Neon over WSS — nothing to configure.
   // In development, a plain Postgres container does not speak WebSocket, so we point
   // the driver at the wsproxy sidecar (docker-compose neon-proxy on :5433) which
   // translates WS → TCP. This keeps dev and prod on the same driver code path.
@@ -32,7 +31,19 @@ function configureDriver(): void {
     neonConfig.useSecureWebSocket = false;
     neonConfig.pipelineConnect = false;
     neonConfig.wsProxy = (host) => `${host}:5433/v1`;
+    return;
   }
+
+  // In production the driver connects directly to Neon. Route single-statement
+  // pool.query() calls over Neon's HTTP (fetch) transport instead of WebSocket.
+  // The WS transport is only needed for interactive transactions (pool.connect /
+  // db.transaction), which our app code still uses and which are unaffected by
+  // this flag. Non-transactional queries — all of better-auth's, whose Drizzle
+  // adapter runs sequentially with no real transaction — over a stalled WS
+  // upgrade have no timeout and hang the entire Worker request (e.g. the
+  // /api/auth/sign-up/email hang). Fetch is bounded and robust in the Workers
+  // runtime, so this removes that failure mode for auth and other single queries.
+  neonConfig.poolQueryViaFetch = true;
 }
 
 export function createPool(): Pool {

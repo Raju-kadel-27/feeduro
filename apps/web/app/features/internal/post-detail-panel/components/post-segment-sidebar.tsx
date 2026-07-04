@@ -1,14 +1,17 @@
 import type { DetailData, PostDetail } from "@features/feedback/schemas/admin";
-import type { Segment } from "@features/internal/segmentation/types";
+import type { CompanyVoter, Segment } from "@features/internal/segmentation/types";
+import { formatMrr } from "@utils/format-mrr";
+import { TrendingUp } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import { Cell, Pie, PieChart, Tooltip } from "recharts";
 import type { useIntegrationLinks } from "../hooks/use-integration-links";
+import { PostCompanyList } from "./post-company-list";
 import { IntegrationSections } from "./post-integration-sidebar";
 
 type Integrations = ReturnType<typeof useIntegrationLinks>;
 
-type Slice = { name: string; color: string; count: number; pct: number };
+type Slice = { name: string; color: string; count: number; pct: number; mrr: number };
 
 function DonutChart({ slices }: { slices: Slice[] }) {
   return (
@@ -25,6 +28,11 @@ function DonutChart({ slices }: { slices: Slice[] }) {
                   <span className="font-medium">{d.name}</span>
                   <span className="ml-1 tabular-nums text-muted-foreground">{d.count} ({d.pct}%)</span>
                 </div>
+                {d.mrr > 0 && (
+                  <div className="mt-0.5 pl-3.5 tabular-nums text-emerald-600 dark:text-emerald-400">
+                    {formatMrr(d.mrr)}/mo
+                  </div>
+                )}
               </div>
             );
           }}
@@ -37,10 +45,15 @@ function DonutChart({ slices }: { slices: Slice[] }) {
       </PieChart>
 
       <div className="w-full space-y-2.5">
-        {slices.map(({ name, color, count, pct }) => (
+        {slices.map(({ name, color, count, pct, mrr }) => (
           <div key={name} className="flex items-center gap-2 text-xs min-w-0">
             <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: color }} />
             <span className="flex-1 text-muted-foreground truncate">{name}</span>
+            {mrr > 0 && (
+              <span className="tabular-nums text-[11px] text-emerald-600 dark:text-emerald-400">
+                {formatMrr(mrr)}
+              </span>
+            )}
             <span className="tabular-nums font-medium">{count}</span>
             <span className="text-[10px] text-muted-foreground">({pct}%)</span>
           </div>
@@ -71,6 +84,10 @@ export function PostSegmentSidebar({
   segmentCounts,
   otherCount,
   profiledCount,
+  mrrBySegment,
+  otherMrr,
+  totalMrr,
+  companies,
   voteCount,
   segments,
   isLoading,
@@ -82,6 +99,10 @@ export function PostSegmentSidebar({
   segmentCounts: Record<string, number>;
   otherCount: number;
   profiledCount: number;
+  mrrBySegment: Record<string, number>;
+  otherMrr: number;
+  totalMrr: number;
+  companies: CompanyVoter[];
   voteCount: number;
   segments: Segment[];
   isLoading: boolean;
@@ -105,18 +126,18 @@ export function PostSegmentSidebar({
     for (const seg of segments) {
       const count = segmentCounts[seg.id] ?? 0;
       if (count > 0) {
-        result.push({ name: seg.name, color: seg.color, count, pct: Math.round((count / total) * 100) });
+        result.push({ name: seg.name, color: seg.color, count, pct: Math.round((count / total) * 100), mrr: mrrBySegment[seg.id] ?? 0 });
       }
     }
     if (otherCount > 0) {
-      result.push({ name: "Other", color: "hsl(215 14% 65%)", count: otherCount, pct: Math.round((otherCount / total) * 100) });
+      result.push({ name: "Other", color: "hsl(215 14% 65%)", count: otherCount, pct: Math.round((otherCount / total) * 100), mrr: otherMrr });
     }
     if (anonymousCount > 0) {
-      result.push({ name: "Anonymous", color: "hsl(215 14% 83%)", count: anonymousCount, pct: Math.round((anonymousCount / total) * 100) });
+      result.push({ name: "Anonymous", color: "hsl(215 14% 83%)", count: anonymousCount, pct: Math.round((anonymousCount / total) * 100), mrr: 0 });
     }
 
     return result;
-  }, [segmentCounts, otherCount, profiledCount, voteCount, segments]);
+  }, [segmentCounts, otherCount, profiledCount, voteCount, segments, mrrBySegment, otherMrr]);
 
   return (
     <aside className="w-[400px] shrink-0 border-l overflow-y-auto">
@@ -130,6 +151,20 @@ export function PostSegmentSidebar({
         <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
           Segment Breakdown
         </h3>
+
+        {!isLoading && totalMrr > 0 && (
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/15 px-3 py-2.5">
+            <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/70 dark:text-emerald-400/70">
+                MRR impact
+              </p>
+              <p className="text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+                {formatMrr(totalMrr)}/mo
+              </p>
+            </div>
+          </div>
+        )}
 
         {isLoading ? (
           <SkeletonDonut />
@@ -150,6 +185,8 @@ export function PostSegmentSidebar({
           <DonutChart slices={slices} />
         )}
       </div>
+
+      <PostCompanyList companies={companies} isLoading={isLoading} />
     </aside>
   );
 }

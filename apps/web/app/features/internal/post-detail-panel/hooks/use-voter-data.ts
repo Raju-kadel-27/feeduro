@@ -10,6 +10,9 @@ export type Voter = {
   location: string | null;
   mrr: number | null;
   votedAt: string;
+  companyId: string | null;
+  companyName: string | null;
+  companyMrr: number | null;
 };
 
 export function useVoterData(postId: string, enabled = true) {

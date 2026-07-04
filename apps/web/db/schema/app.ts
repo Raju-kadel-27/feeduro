@@ -926,6 +926,95 @@ export const segments = pgTable(
   }),
 );
 
+// ============ Plan Catalog (pricing tiers for MRR resolution) ============
+
+// One row per pricing tier an org offers to *their* customers. `name` matches
+// userProfiles.plan within the org so a voter's MRR can be resolved from their plan.
+// monthlyPrice is normalized monthly revenue in whole dollars (same unit as userProfiles.mrr).
+export const plans = pgTable(
+  "plans",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 100 }).notNull(),
+    monthlyPrice: integer("monthly_price").notNull().default(0),
+    // The cadence the price was quoted at — metadata only; monthlyPrice is always normalized to /mo.
+    interval: varchar("interval", { length: 20 }).notNull().default("monthly"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
+  },
+  (t) => ({
+    orgIdIdx: index("plan_org_id_idx").on(t.organizationId),
+    orgNameUniqueIdx: uniqueIndex("plan_org_name_unique_idx").on(t.organizationId, t.name),
+  }),
+);
+
+// ============ Companies (account-level MRR, Canny-style) ============
+
+// One row per company an org sells to. Named "companies" (not "accounts") to avoid confusion with
+// better-auth's oauth `account` table, and to match Canny's terminology. `monthlySpend` is the
+// company's MRR in whole dollars; when null it falls back to the plan catalog price for `plan`.
+export const companies = pgTable(
+  "companies",
+  {
+    id: varchar("id", { length: 128 })
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    // The org's own identifier for this company (from identify()/CSV). Unique per org.
+    externalId: varchar("external_id", { length: 255 }).notNull(),
+    name: varchar("name", { length: 255 }),
+    monthlySpend: integer("monthly_spend"),
+    plan: varchar("plan", { length: 100 }),
+    customAttributes: text("custom_attributes"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
+  },
+  (t) => ({
+    orgIdIdx: index("company_org_id_idx").on(t.organizationId),
+    orgExternalIdUniqueIdx: uniqueIndex("company_org_external_id_unique_idx").on(
+      t.organizationId,
+      t.externalId,
+    ),
+    orgSpendIdx: index("company_org_spend_idx").on(t.organizationId, t.monthlySpend),
+    orgPlanIdx: index("company_org_plan_idx").on(t.organizationId, t.plan),
+  }),
+);
+
+// Junction: a user profile belongs to one or more companies (Canny-style many-to-many).
+export const companyMembers = pgTable(
+  "company_members",
+  {
+    companyId: varchar("company_id", { length: 128 })
+      .notNull()
+      .references(() => companies.id, { onDelete: "cascade" }),
+    userProfileId: varchar("user_profile_id", { length: 128 })
+      .notNull()
+      .references(() => userProfiles.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.companyId, t.userProfileId] }),
+    profileIdx: index("company_member_profile_idx").on(t.userProfileId),
+    orgIdx: index("company_member_org_idx").on(t.organizationId),
+  }),
+);
+
 // ============ Post Tags (junction) ============
 
 export const postTags = pgTable(

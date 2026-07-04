@@ -37,16 +37,7 @@ export function PostDetailBody({
   onClose: () => void; onOpenPost?: (id: string) => void;
 }) {
   const { voters, isLoading: votersLoading } = useVoterData(postId, isAdmin);
-  const {
-    segmentCounts,
-    otherCount,
-    profiledCount,
-    mrrBySegment,
-    otherMrr,
-    totalMrr,
-    companies,
-    isLoading: countsLoading,
-  } = useSegmentCounts(postId, isAdmin);
+  const { segmentCounts, otherCount, profiledCount, isLoading: countsLoading } = useSegmentCounts(postId, isAdmin);
 
   type MergedActivity = Extract<FeedItem, { kind: "activity" }>;
   const mergedPosts = useMemo(
@@ -236,10 +227,6 @@ export function PostDetailBody({
         segmentCounts={segmentCounts}
         otherCount={otherCount}
         profiledCount={profiledCount}
-        mrrBySegment={mrrBySegment}
-        otherMrr={otherMrr}
-        totalMrr={totalMrr}
-        companies={companies}
         voteCount={vote.voteCount}
         segments={segments}
         isLoading={countsLoading}

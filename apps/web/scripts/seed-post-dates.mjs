@@ -7,7 +7,7 @@
  *   node scripts/seed-post-dates.mjs --dry-run   # preview only, no writes
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,9 +15,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function loadEnv() {
-  // The project's env lives in .dev.vars (also used by db:seed + docker).
-  const envPath = resolve(__dirname, "../.dev.vars");
-  if (!existsSync(envPath)) return;
+  const envPath = resolve(__dirname, "../.env");
   const raw = readFileSync(envPath, "utf8");
   for (const line of raw.split("\n")) {
     const trimmed = line.trim();

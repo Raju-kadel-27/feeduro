@@ -7,8 +7,6 @@ export const SegmentFiltersSchema = z.object({
   location: z.array(z.string()).optional(),
   minCompanySize: z.number().int().positive().optional(),
   maxCompanySize: z.number().int().positive().optional(),
-  minMrr: z.number().int().nonnegative().optional(),
-  maxMrr: z.number().int().nonnegative().optional(),
 });
 
 export const CreateSegmentSchema = z.object({

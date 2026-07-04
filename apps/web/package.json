@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "make": "make",
-    "dev": "dotenv -e .dev.vars -- vite dev",
-    "dev:tunnel": "TUNNEL=true dotenv -e .dev.vars -- vite dev",
+    "dev": "dotenv -e .env -- vite dev",
+    "dev:tunnel": "TUNNEL=true dotenv -e .env -- vite dev",
     "build": "react-router build",
     "start": "vite preview",
     "deploy": "pnpm run build && wrangler deploy --env=\"\"",

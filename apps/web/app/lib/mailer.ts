@@ -1,17 +1,17 @@
 import { createTransport } from "nodemailer";
 
-let _transport: ReturnType<typeof createTransport> | null = null;
-
-function getTransport() {
-  if (_transport) return _transport;
-  const server = process.env.EMAIL_SERVER;
-  if (!server) throw new Error("EMAIL_SERVER env var is not set");
-  _transport = createTransport(server);
-  return _transport;
-}
+// TODO: replace with env vars before going to production
+const _transport = createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "3b4ebb487b5d37",
+    pass: "b77d416b6aab07",
+  },
+});
 
 function getFrom() {
-  return process.env.EMAIL_FROM ?? "Feeduro <noreply@feeduro.com>";
+  return "Feeduro <noreply@feeduro.com>";
 }
 
 interface SendEmailOptions {
@@ -21,6 +21,5 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
-  const transport = getTransport();
-  await transport.sendMail({ from: getFrom(), to, subject, html });
+  await _transport.sendMail({ from: getFrom(), to, subject, html });
 }

@@ -15,9 +15,45 @@ export interface UserProfile {
   plan: string | null;
   role: string | null;
   companySize: number | null;
+  /** Explicit MRR override in whole dollars. When null, MRR is derived from the plan catalog. */
+  mrr: number | null;
   industry: string | null;
   location: string | null;
   customAttributes: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A company an org sells to (Canny-style). Users link via companyMembers (many-to-many). */
+export interface Company {
+  id: string;
+  organizationId: string;
+  externalId: string;
+  name: string | null;
+  /** MRR in whole dollars. When null, falls back to the plan catalog price for `plan`. */
+  monthlySpend: number | null;
+  plan: string | null;
+  customAttributes: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A company that voted on a post, with its effective MRR and how many of its members voted. */
+export interface CompanyVoter {
+  companyId: string;
+  name: string | null;
+  mrr: number;
+  voterCount: number;
+}
+
+/** A pricing tier an org offers to their customers. `name` matches UserProfile.plan. */
+export interface PlanCatalogEntry {
+  id: string;
+  organizationId: string;
+  name: string;
+  /** Normalized monthly price in whole dollars. */
+  monthlyPrice: number;
+  interval: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,6 +65,8 @@ export interface SegmentFilters {
   location?: string[];
   minCompanySize?: number;
   maxCompanySize?: number;
+  minMrr?: number;
+  maxMrr?: number;
 }
 
 export interface Segment {
@@ -52,5 +90,8 @@ export function userMatchesSegment(profile: UserProfile, filters: SegmentFilters
     return false;
   if (filters.maxCompanySize != null && (profile.companySize ?? 0) > filters.maxCompanySize)
     return false;
+  // profile.mrr must already be the effective MRR (catalog-resolved) when MRR filters are used.
+  if (filters.minMrr != null && (profile.mrr ?? 0) < filters.minMrr) return false;
+  if (filters.maxMrr != null && (profile.mrr ?? 0) > filters.maxMrr) return false;
   return true;
 }

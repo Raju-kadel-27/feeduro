@@ -6,6 +6,7 @@ const CHIP_CLASS: Record<string, string> = {
   industry: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
   location: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
   size: "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20",
+  mrr: "bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/20",
 };
 
 export function FilterChips({ filters }: { filters: SegmentFilters }) {
@@ -22,6 +23,14 @@ export function FilterChips({ filters }: { filters: SegmentFilters }) {
     chips.push({ key: "size", label: `≥${filters.minCompanySize} employees` });
   } else if (filters.maxCompanySize != null) {
     chips.push({ key: "size", label: `≤${filters.maxCompanySize} employees` });
+  }
+
+  if (filters.minMrr != null && filters.maxMrr != null) {
+    chips.push({ key: "mrr", label: `$${filters.minMrr}–$${filters.maxMrr}/mo` });
+  } else if (filters.minMrr != null) {
+    chips.push({ key: "mrr", label: `≥$${filters.minMrr}/mo` });
+  } else if (filters.maxMrr != null) {
+    chips.push({ key: "mrr", label: `≤$${filters.maxMrr}/mo` });
   }
 
   if (chips.length === 0) {

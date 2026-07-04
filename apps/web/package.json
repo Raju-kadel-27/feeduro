@@ -82,6 +82,7 @@
     "input-otp": "^1.4.2",
     "isbot": "catalog:",
     "lucide-react": "^1.11.0",
+    "mailtrap": "^4.6.1",
     "nodemailer": "^8.0.6",
     "papaparse": "^5.5.3",
     "qrcode": "^1.5.4",

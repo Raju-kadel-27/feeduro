@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { autopilotSuggestions, feedbackPosts, postActivities } from "@/db/schema";
 import type { SuggestionStatus } from "../types";
 
@@ -63,7 +63,7 @@ export async function resolveSuggestion(params: {
     if (sourcePost.mergedIntoPostId) return { error: "Source post is already merged" };
     if (targetPost.mergedIntoPostId) return { error: "Target post is already merged" };
 
-    await db.transaction(async (tx) => {
+    await withTransaction(async (tx) => {
       await tx
         .update(feedbackPosts)
         .set({

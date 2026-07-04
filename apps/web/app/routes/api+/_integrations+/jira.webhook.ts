@@ -1,7 +1,7 @@
 import type { JiraSettings } from "@features/internal/integrations/jira/server/schemas";
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import type { Route } from "./+types/jira.webhook";
 
@@ -157,7 +157,7 @@ export async function action({ request }: Route.ActionArgs) {
     `${LOG} syncing issue=${issue.id} → postId=${link.postId} status="${newStatusName ?? "unchanged"}" category="${categoryKey ?? "unknown"}" resolvedTo=${newStatus ?? "none"}`,
   );
 
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({

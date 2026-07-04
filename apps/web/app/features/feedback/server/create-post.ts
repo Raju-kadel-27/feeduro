@@ -3,13 +3,13 @@ import { triggerSmartReply } from "@features/feedback/server/smart-replies";
 import { runDuplicateDetection } from "@features/internal/autopilot/server/service";
 import { notifyNewPost } from "@features/internal/notifications/server/service";
 import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
+import { waitUntil } from "@middleware/cloudflare.server";
 import { getEnv } from "@utils/get-env";
 import type { AppLoadContext } from "react-router";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb, withRequestDb } from "@/db";
+import { getDb } from "@/db";
 import { feedbackPosts } from "@/db/schema";
-import { getExecutionContext, waitUntil } from "@middleware/cloudflare.server";
 
 type SessionActor = { user: { id: string; name: string | null; email: string | null } };
 
@@ -73,39 +73,35 @@ export async function handleCreatePost(
     console.error("[create-post] notify error", err);
   }
 
-  // AI features and integration auto-creates hit external APIs — run in
-  // background with a fresh DB pool so they don't block the response.
-  const ctx = getExecutionContext(context);
+  // AI features and integration auto-creates hit external APIs — run in the
+  // background so they don't block the response.
   waitUntil(
     context,
-    withRequestDb(
-      (p) => ctx.waitUntil(p),
-      async () => {
-        const { GROQ_API_KEY } = getEnv();
-        if (GROQ_API_KEY) {
-          const postData = {
-            id: post.id,
-            title: post.title,
-            description: description ?? null,
-            boardId: post.boardId,
-            organizationId,
-          };
-          await Promise.allSettled([
-            triggerSmartReply(db, postData, GROQ_API_KEY).catch((err) =>
-              console.error("[smart-reply]", err),
-            ),
-            runDuplicateDetection(postData, GROQ_API_KEY).catch((err) =>
-              console.error("[duplicate-detection]", err),
-            ),
-          ]);
-        }
-        await fireAutoCreateIntegrations(
+    (async () => {
+      const { GROQ_API_KEY } = getEnv();
+      if (GROQ_API_KEY) {
+        const postData = {
+          id: post.id,
+          title: post.title,
+          description: description ?? null,
+          boardId: post.boardId,
           organizationId,
-          { id: post.id, title: post.title, description: description ?? null },
-          session.user.id,
-        );
-      },
-    ),
+        };
+        await Promise.allSettled([
+          triggerSmartReply(db, postData, GROQ_API_KEY).catch((err) =>
+            console.error("[smart-reply]", err),
+          ),
+          runDuplicateDetection(postData, GROQ_API_KEY).catch((err) =>
+            console.error("[duplicate-detection]", err),
+          ),
+        ]);
+      }
+      await fireAutoCreateIntegrations(
+        organizationId,
+        { id: post.id, title: post.title, description: description ?? null },
+        session.user.id,
+      );
+    })(),
   );
 
   return data({ success: true, id: post.id });

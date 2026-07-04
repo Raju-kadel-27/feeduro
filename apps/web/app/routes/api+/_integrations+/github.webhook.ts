@@ -3,7 +3,7 @@ import type { GithubSettings } from "@features/internal/integrations/github/serv
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { insertNotification } from "@features/internal/notifications/server/mutations";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 
 import type { Route } from "./+types/github.webhook";
@@ -120,7 +120,7 @@ export async function action({ request }: Route.ActionArgs) {
   const newStatus =
     issueAction === "closed" ? "completed" : issueAction === "reopened" ? "open" : null;
 
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({ externalStatus: issue.state, externalTitle: issue.title, lastSyncedAt: new Date() })

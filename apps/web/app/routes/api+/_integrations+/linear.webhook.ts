@@ -2,7 +2,7 @@ import { verifyLinearWebhookSignature } from "@features/internal/integrations/li
 import type { LinearSettings } from "@features/internal/integrations/linear/server/schemas";
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import type { Route } from "./+types/linear.webhook";
 
@@ -127,7 +127,7 @@ export async function action({ request }: Route.ActionArgs) {
     `${LOG} syncing issue=${linearIssueId} → postId=${link.postId} newStatus=${newStatus ?? "none"}`,
   );
 
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({

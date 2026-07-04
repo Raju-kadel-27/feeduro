@@ -3,7 +3,7 @@ import { notifyPostMerged } from "@features/internal/notifications/server/servic
 import { and, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, member, postActivities, votes } from "@/db/schema";
 
 import type { Route } from "./+types/merge";
@@ -115,7 +115,7 @@ export async function action({ request }: Route.ActionArgs) {
       );
     }
 
-    await db.transaction(async (tx) => {
+    await withTransaction(async (tx) => {
       await tx
         .update(feedbackPosts)
         .set({
@@ -192,7 +192,7 @@ export async function action({ request }: Route.ActionArgs) {
       );
     }
 
-    await db.transaction(async (tx) => {
+    await withTransaction(async (tx) => {
       await tx
         .update(feedbackPosts)
         .set({ mergedIntoPostId: null, mergedAt: null, mergedByUserId: null })

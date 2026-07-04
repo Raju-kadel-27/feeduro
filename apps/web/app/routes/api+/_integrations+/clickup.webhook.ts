@@ -2,7 +2,7 @@ import { verifyClickupWebhookSignature } from "@features/internal/integrations/c
 import type { ClickupSettings } from "@features/internal/integrations/clickup/server/schemas";
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import type { Route } from "./+types/clickup.webhook";
 
@@ -99,7 +99,7 @@ export async function action({ request }: Route.ActionArgs) {
   const newStatus = resolveStatus(after.status, after.type ?? "", settings?.statusMappings);
   console.log(`${LOG} syncing taskId=${payload.task_id} → postId=${link.postId} feeduroStatus=${newStatus ?? "none"}`);
 
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({ externalStatus: after.status, lastSyncedAt: new Date() })

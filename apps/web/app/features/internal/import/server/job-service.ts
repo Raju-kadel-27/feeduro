@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, importJobs } from "@/db/schema";
 
 export async function createImportJob(
@@ -41,8 +41,7 @@ export async function failImportJob(jobId: string, errorMessage: string): Promis
 }
 
 export async function rollbackImportJob(jobId: string): Promise<void> {
-  const db = getDb();
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     // Delete posts first — cascades to votes and comments via their existing FKs
     await tx.delete(feedbackPosts).where(eq(feedbackPosts.importJobId, jobId));
     await tx

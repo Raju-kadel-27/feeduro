@@ -12,6 +12,8 @@ const db = getDb()
 
 Do NOT import `db` as a module-level constant into service files — always call `getDb()` inside the function so the connection is resolved at runtime, not module load time.
 
+> Use `withTransaction(async (tx) => …)` from `@/db` for interactive transactions — `getDb()` runs over HTTP and cannot do them. The HTTP/WebSocket connection architecture is documented in [db-connection.md](./db-connection.md).
+
 ## Schema Conventions
 
 ```ts

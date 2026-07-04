@@ -2,7 +2,7 @@ import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/s
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, user, votes } from "@/db/schema";
 
 export const CreateVoteSchema = z.object({
@@ -42,7 +42,7 @@ export async function createVote(
   const id = createId();
   const createdAt = new Date();
 
-  const { voteCount } = await db.transaction(async (tx) => {
+  const { voteCount } = await withTransaction(async (tx) => {
     await tx.insert(votes).values({ id, postId: input.postId, userId: input.userId, organizationId });
     const [updated] = await tx
       .update(feedbackPosts)
@@ -62,8 +62,7 @@ export async function createVote(
 }
 
 export async function deleteVote(organizationId: string, voteId: string): Promise<boolean> {
-  const db = getDb();
-  return await db.transaction(async (tx) => {
+  return await withTransaction(async (tx) => {
     const [deleted] = await tx
       .delete(votes)
       .where(and(eq(votes.id, voteId), eq(votes.organizationId, organizationId)))

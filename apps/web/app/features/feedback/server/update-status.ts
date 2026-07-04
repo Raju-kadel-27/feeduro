@@ -1,13 +1,13 @@
 import { fireStatusSyncIntegrations } from "@features/feedback/server/status-sync";
 import { notifyStatusChanged } from "@features/internal/notifications/server/service";
 import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
+import { waitUntil } from "@middleware/cloudflare.server";
 import { and, eq } from "drizzle-orm";
 import type { AppLoadContext } from "react-router";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb, withRequestDb } from "@/db";
+import { getDb } from "@/db";
 import { feedbackPosts, postActivities } from "@/db/schema";
-import { getExecutionContext, waitUntil } from "@middleware/cloudflare.server";
 
 type SessionActor = { user: { id: string; name: string | null; email: string | null } };
 
@@ -88,16 +88,9 @@ export async function handleUpdateStatus(
     console.error("[update-status] notify error", err);
   }
 
-  // Integration syncs hit external APIs — run in background with a fresh DB
-  // pool so they don't block the response or share the request's ended pool.
-  const ctx = getExecutionContext(context);
-  waitUntil(
-    context,
-    withRequestDb(
-      (p) => ctx.waitUntil(p),
-      () => fireStatusSyncIntegrations(organizationId, id, newStatus),
-    ),
-  );
+  // Integration syncs hit external APIs — run in the background so they don't
+  // block the response.
+  waitUntil(context, fireStatusSyncIntegrations(organizationId, id, newStatus));
 
   return data({ success: true });
 }

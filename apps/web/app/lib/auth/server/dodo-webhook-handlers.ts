@@ -1,6 +1,6 @@
 import { getEnv } from "@utils/get-env";
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import * as schema from "@/db/schema";
 import type { DodoSub } from "./dodo-client";
 import { resolveDodoInterval, resolveDodoPlan } from "./dodo-resolvers";
@@ -23,11 +23,10 @@ export async function onSubscriptionActive(payload: unknown) {
 
   if (!referenceId) return;
 
-  const db = getDb();
   const plan = resolveDodoPlan(env, sub.product_id);
   const billingInterval = resolveDodoInterval(env, sub.product_id);
 
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     const [claimed] = await tx
       .insert(schema.dodoWebhookEvents)
       .values({
@@ -71,9 +70,7 @@ export async function onSubscriptionActive(payload: unknown) {
 export async function onSubscriptionRenewed(payload: unknown) {
   const sub = extractSub(payload);
   if (!sub.subscription_id) return;
-  const db = getDb();
-
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     const [claimed] = await tx
       .insert(schema.dodoWebhookEvents)
       .values({
@@ -101,9 +98,7 @@ export async function onSubscriptionRenewed(payload: unknown) {
 export async function onSubscriptionCancelled(payload: unknown) {
   const sub = extractSub(payload);
   if (!sub.subscription_id) return;
-  const db = getDb();
-
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     const [claimed] = await tx
       .insert(schema.dodoWebhookEvents)
       .values({
@@ -128,9 +123,7 @@ export async function onSubscriptionCancelled(payload: unknown) {
 export async function onSubscriptionExpired(payload: unknown) {
   const sub = extractSub(payload);
   if (!sub.subscription_id) return;
-  const db = getDb();
-
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     const [claimed] = await tx
       .insert(schema.dodoWebhookEvents)
       .values({

@@ -4,7 +4,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { type RouterContextProvider } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { comments, feedbackPosts, user } from "@/db/schema";
 
 export const CreateCommentSchema = z.object({
@@ -86,7 +86,7 @@ export async function deleteComment(organizationId: string, commentId: string): 
   });
   if (!comment) return false;
 
-  await db.transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     await tx.delete(comments).where(eq(comments.parentId, commentId));
     await tx.delete(comments).where(and(eq(comments.id, commentId), eq(comments.organizationId, organizationId)));
   });

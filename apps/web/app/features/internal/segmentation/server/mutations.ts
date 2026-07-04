@@ -1,5 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, withTransaction } from "@/db";
 import { companies, companyMembers, plans, segments, userProfiles } from "@/db/schema";
 import type { IdentifyCompanyInput, IdentifyUserInput } from "../schemas/identify";
 import type { SegmentFilters } from "../types";
@@ -73,8 +73,7 @@ export async function upsertUserProfile(
   organizationId: string,
   input: IdentifyUserInput,
 ): Promise<string> {
-  const db = getDb();
-  return db.transaction(async (tx) => {
+  return withTransaction(async (tx) => {
     const existing = await tx.query.userProfiles.findFirst({
       where: and(
         eq(userProfiles.organizationId, organizationId),
@@ -105,13 +104,12 @@ export async function bulkUpsertUserProfiles(
   inputs: IdentifyUserInput[],
 ): Promise<{ imported: number; updated: number }> {
   if (inputs.length === 0) return { imported: 0, updated: 0 };
-  const db = getDb();
 
   // Last row wins when the same email appears multiple times in the batch
   const deduped = [...new Map(inputs.map((i) => [i.email, i])).values()];
   const emails = deduped.map((i) => i.email);
 
-  return db.transaction(async (tx) => {
+  return withTransaction(async (tx) => {
     const existing = await tx
       .select({ id: userProfiles.id, email: userProfiles.email })
       .from(userProfiles)

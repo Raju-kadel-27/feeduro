@@ -8,6 +8,13 @@
       "when": 1782935805257,
       "tag": "0000_conscious_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783155313912,
+      "tag": "0001_outstanding_thor",
+      "breakpoints": true
     }
   ]
 }

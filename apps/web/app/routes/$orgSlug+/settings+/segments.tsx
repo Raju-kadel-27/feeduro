@@ -1,8 +1,10 @@
 import { PageHeader } from "@components/common/page-header";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { CompaniesManager } from "@features/internal/segmentation/components/companies-manager";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
 import { FilterChips } from "@features/internal/segmentation/components/filter-chips";
+import { PlanCatalogManager } from "@features/internal/segmentation/components/plan-catalog-manager";
 import type { SegmentFormState } from "@features/internal/segmentation/components/segment-form";
 import {
   defaultForm,
@@ -10,8 +12,12 @@ import {
   formFromSegment,
   SegmentForm,
 } from "@features/internal/segmentation/components/segment-form";
-import { getOrgSegments } from "@features/internal/segmentation/server/service";
-import type { Segment } from "@features/internal/segmentation/types";
+import {
+  getOrgCompanies,
+  getOrgPlans,
+  getOrgSegments,
+} from "@features/internal/segmentation/server/service";
+import type { PlanCatalogEntry, Segment } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
@@ -32,17 +38,21 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
   const db = getDb();
 
-  const [memberRecord, segmentList] = await Promise.all([
+  const [memberRecord, segmentList, planList, companyList] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
     }),
     getOrgSegments(organizationId),
+    getOrgPlans(organizationId),
+    getOrgCompanies(organizationId),
   ]);
 
   return {
     isAdmin: memberRecord?.role === "admin",
     segments: segmentList,
+    plans: planList,
+    companies: companyList,
   };
 }
 
@@ -64,6 +74,18 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
     staleTime: 30_000,
   });
   const segments = data?.segments ?? [];
+
+  // Shares the cache key PlanCatalogManager invalidates, so newly added plans appear here at once.
+  const { data: plansData } = useQuery({
+    queryKey: ["plans", orgSlug],
+    queryFn: async () => {
+      const res = await fetch("/api/plans");
+      return res.json() as Promise<{ plans: PlanCatalogEntry[] }>;
+    },
+    initialData: { plans: loaderData.plans },
+    staleTime: 30_000,
+  });
+  const planOptions = (plansData?.plans ?? []).map((p) => p.name);
 
   const { mutate } = useMutation({
     mutationFn: async (body: object) => {
@@ -152,6 +174,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
                 initial={defaultForm()}
                 onSave={handleCreate}
                 onCancel={() => setCreating(false)}
+                planOptions={planOptions}
               />
             </div>
           )}
@@ -187,6 +210,18 @@ Authorization: Bearer <your-api-key>
 }`}</pre>
             </div>
           </details>
+
+          <PlanCatalogManager
+            initialPlans={loaderData.plans}
+            isAdmin={loaderData.isAdmin}
+            orgSlug={orgSlug ?? ""}
+          />
+
+          <CompaniesManager
+            initialCompanies={loaderData.companies}
+            isAdmin={loaderData.isAdmin}
+            orgSlug={orgSlug ?? ""}
+          />
 
           {segments.length === 0 && !creating ? (
             <Empty className="border border-border">
@@ -257,6 +292,7 @@ Authorization: Bearer <your-api-key>
                         initial={formFromSegment(editingSegment)}
                         onSave={(form) => handleUpdate(seg.id, form)}
                         onCancel={() => setEditingSegment(null)}
+                        planOptions={planOptions}
                       />
                     </div>
                   )}

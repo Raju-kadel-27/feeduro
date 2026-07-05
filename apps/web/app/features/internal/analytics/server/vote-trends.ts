@@ -1,11 +1,10 @@
 import { and, eq, gte, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, votes } from "@/db/schema";
 import { VoteTrendsSchema } from "../schemas/analytics";
 import { TopPostsSchema } from "../schemas/reports";
 
-export async function getVoteTrends(organizationId: string, postId: string, days = 30) {
-  const db = getDb();
+export async function getVoteTrends(db: Db, organizationId: string, postId: string, days = 30) {
   const since = new Date();
   since.setDate(since.getDate() - days);
 
@@ -42,13 +41,12 @@ export async function getVoteTrends(organizationId: string, postId: string, days
 }
 
 export async function getTopPostsByVotes(
+  db: Db,
   organizationId: string,
   boardId?: string,
   limit = 10,
   since?: Date,
 ) {
-  const db = getDb();
-
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
   // Filter votes by the selected period so voteCount and uniqueCompanies
   // reflect activity within the chosen date range, not all-time totals.

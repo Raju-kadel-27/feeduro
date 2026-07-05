@@ -1,12 +1,10 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { BacklogAgingSchema } from "../schemas/health-metrics";
 
 // Age-bucket distribution of open (non-completed, non-closed) posts.
 // Uses fp_org_status_idx (organization_id, status) for the scan.
-export async function getBacklogAging(organizationId: string, boardId?: string) {
-  const db = getDb();
-
+export async function getBacklogAging(db: Db, organizationId: string, boardId?: string) {
   const boardFilter = boardId ? sql`AND board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`

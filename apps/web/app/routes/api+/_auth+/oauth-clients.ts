@@ -1,10 +1,10 @@
 import { requireOrganization } from "@features/auth/server/guards";
+import { getAuth } from "@lib/auth/server";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
-import { auth } from "@/app/lib/auth/server";
-import { getDb } from "@/db";
 import { oauthClient } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/oauth-clients";
 
@@ -42,8 +42,9 @@ const RevealSecretSchema = z.object({
   clientId: z.string().min(1),
 });
 
-export async function action({ request }: Route.ActionArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   let raw: unknown;
   try {
@@ -71,7 +72,7 @@ export async function action({ request }: Route.ActionArgs) {
       return data({ error: "At least one redirect URI is required" }, { status: 400 });
 
     try {
-      const result = await auth.api.createOAuthClient({
+      const result = await getAuth(db).api.createOAuthClient({
         headers: request.headers,
         body: {
           client_name: name,
@@ -84,7 +85,6 @@ export async function action({ request }: Route.ActionArgs) {
       // Persist extra metadata not supported by BetterAuth's createOAuthClient API
       const clientId = (result as { client_id?: string } | null)?.client_id;
       if (clientId && (developerName || developerUrl || description)) {
-        const db = getDb();
         await db
           .update(oauthClient)
           .set({
@@ -110,7 +110,6 @@ export async function action({ request }: Route.ActionArgs) {
       return data({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
 
     const { clientId, name, redirectUris, developerName, developerUrl, description } = parsed.data;
-    const db = getDb();
 
     // Scope update to the requesting organization's clients only
     const existing = await db.query.oauthClient.findFirst({
@@ -139,7 +138,7 @@ export async function action({ request }: Route.ActionArgs) {
     const parsed = DeleteClientSchema.safeParse(raw);
     if (!parsed.success) return data({ error: "Invalid input" }, { status: 400 });
     try {
-      await auth.api.deleteOAuthClient({
+      await getAuth(db).api.deleteOAuthClient({
         headers: request.headers,
         body: { client_id: parsed.data.clientId },
       });
@@ -154,7 +153,7 @@ export async function action({ request }: Route.ActionArgs) {
     const parsed = RotateSecretSchema.safeParse(raw);
     if (!parsed.success) return data({ error: "Invalid input" }, { status: 400 });
     try {
-      const result = await auth.api.rotateClientSecret({
+      const result = await getAuth(db).api.rotateClientSecret({
         headers: request.headers,
         body: { client_id: parsed.data.clientId },
       });
@@ -169,7 +168,6 @@ export async function action({ request }: Route.ActionArgs) {
     const parsed = RevealSecretSchema.safeParse(raw);
     if (!parsed.success) return data({ error: "Invalid input" }, { status: 400 });
 
-    const db = getDb();
     const row = await db.query.oauthClient.findFirst({
       where: eq(oauthClient.clientId, parsed.data.clientId),
       columns: { clientSecret: true, referenceId: true },

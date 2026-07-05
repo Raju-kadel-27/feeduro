@@ -1,8 +1,9 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { logOrgActivity } from "@features/internal/audit/server/log-org-activity";
+import { getAuth } from "@lib/auth/server";
 import { data } from "react-router";
 import { z } from "zod";
-import { auth } from "@/app/lib/auth/server";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/invitations";
 
@@ -21,8 +22,9 @@ const InvitationsActionSchema = z.discriminatedUnion("intent", [
   }),
 ]);
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   let rawBody: unknown;
   try {
@@ -40,9 +42,9 @@ export async function action({ request }: Route.ActionArgs) {
   const body = parsed.data;
 
   if (body.intent === "invite") {
-    await requirePermission(organizationId, session.user.id, { invitation: ["create"] });
+    await requirePermission(db, organizationId, session.user.id, { invitation: ["create"] });
 
-    const result = await auth.api.createInvitation({
+    const result = await getAuth(db).api.createInvitation({
       headers: request.headers,
       body: { email: body.email, role: "member", organizationId },
     });
@@ -58,9 +60,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "cancel") {
-    await requirePermission(organizationId, session.user.id, { invitation: ["cancel"] });
+    await requirePermission(db, organizationId, session.user.id, { invitation: ["cancel"] });
 
-    await auth.api.cancelInvitation({
+    await getAuth(db).api.cancelInvitation({
       headers: request.headers,
       body: { invitationId: body.invitationId },
     });
@@ -75,9 +77,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   // remove_member
-  await requirePermission(organizationId, session.user.id, { member: ["delete"] });
+  await requirePermission(db, organizationId, session.user.id, { member: ["delete"] });
 
-  await auth.api.removeMember({
+  await getAuth(db).api.removeMember({
     headers: request.headers,
     body: { memberIdOrEmail: body.memberId },
   });
@@ -91,10 +93,11 @@ export async function action({ request }: Route.ActionArgs) {
   return data({ success: true });
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
-  const result = await auth.api.getFullOrganization({
+  const result = await getAuth(db).api.getFullOrganization({
     headers: request.headers,
     query: { organizationId },
   });

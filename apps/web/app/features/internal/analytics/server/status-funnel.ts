@@ -1,14 +1,13 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { StatusFunnelSchema } from "../schemas/analytics";
 
 export async function getStatusFunnel(
+  db: Db,
   organizationId: string,
   boardId?: string,
   since?: Date,
 ) {
-  const db = getDb();
-
   const boardFilter = boardId
     ? sql`AND pa.post_id IN (
         SELECT id FROM feedback_posts

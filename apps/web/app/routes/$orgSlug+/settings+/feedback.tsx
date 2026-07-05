@@ -7,17 +7,17 @@ import { getOrgTags } from "@features/feedback/server/tags";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { MessageSquare } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts, member, organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/feedback";
 
 export function meta() {
   return [{ title: "Feedback Settings — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [boards, memberRecord, countRows, org] = await Promise.all([
     db.query.feedbackBoards.findMany({
@@ -44,8 +44,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   let categories: { id: string; name: string; color: string }[] = [];
   try {
     [tags, categories] = await Promise.all([
-      getOrgTags(organizationId),
-      getOrgCategories(organizationId),
+      getOrgTags(db, organizationId),
+      getOrgCategories(db, organizationId),
     ]);
   } catch {
     /* tables may not exist yet — run pnpm db:push */

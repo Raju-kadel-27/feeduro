@@ -2,8 +2,8 @@ import { requireOrganization } from "@features/auth/server/guards";
 import type { FeedbackSettingsMeta } from "@features/feedback/server/feedback-settings";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/feedback-settings";
 
@@ -12,9 +12,9 @@ const DEFAULTS: FeedbackSettingsMeta = {
   weeklyDigest: false,
 };
 
-export async function action({ request }: Route.ActionArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const body = (await request.json()) as Partial<FeedbackSettingsMeta>;
 

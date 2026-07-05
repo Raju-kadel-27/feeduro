@@ -3,13 +3,15 @@ import { deleteWebhook, updateWebhook } from "@features/internal/webhooks/server
 import { getWebhook } from "@features/internal/webhooks/server/queries";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/webhooks.$id";
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const organizationId = await requireApiKey(request);
-  const ep = await getWebhook(organizationId, params.id);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
+  const ep = await getWebhook(db, organizationId, params.id);
   if (!ep) {
     const err = apiError("not_found");
     return data(err.body, err.init);
@@ -17,11 +19,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return data({ data: ep });
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const organizationId = await requireApiKey(request);
+export async function action({ request, params, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
 
   if (request.method === "DELETE") {
-    const deleted = await deleteWebhook(organizationId, params.id);
+    const deleted = await deleteWebhook(db, organizationId, params.id);
     if (!deleted) {
       const err = apiError("not_found");
       return data(err.body, err.init);

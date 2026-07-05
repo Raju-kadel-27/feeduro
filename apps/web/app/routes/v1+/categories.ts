@@ -5,13 +5,15 @@ import {
 } from "@features/feedback/server/api-categories";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/categories";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const organizationId = await requireApiKey(request);
-  const categories = await listCategories(organizationId);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
+  const categories = await listCategories(db, organizationId);
   return data({ data: categories });
 }
 
@@ -21,7 +23,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const organizationId = await requireApiKey(request);
+  const organizationId = await requireApiKey(db, request);
 
   let body: unknown;
   try {

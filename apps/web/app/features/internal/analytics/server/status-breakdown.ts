@@ -1,11 +1,9 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 import { StatusBreakdownSchema } from "../schemas/analytics";
 
-export async function getStatusBreakdown(organizationId: string, boardId?: string) {
-  const db = getDb();
-
+export async function getStatusBreakdown(db: Db, organizationId: string, boardId?: string) {
   const rows = await db
     .select({
       status: feedbackPosts.status,

@@ -1,13 +1,8 @@
 import { checkout, dodopayments, portal, webhooks } from "@dodopayments/better-auth";
 import { getEnv } from "@utils/get-env";
+import type { Db } from "@/db";
 import { dodoClient } from "./dodo-client";
-import {
-  onSubscriptionActive,
-  onSubscriptionCancelled,
-  onSubscriptionExpired,
-  onSubscriptionRenewed,
-  onSubscriptionUpdated,
-} from "./dodo-webhook-handlers";
+import { buildDodoWebhookHandlers } from "./dodo-webhook-handlers";
 
 const env = getEnv();
 
@@ -32,7 +27,7 @@ function buildCheckoutProducts() {
   ].filter(Boolean) as { productId: string; slug: string }[];
 }
 
-export function buildDodoPlugin() {
+export function buildDodoPlugin(db: Db) {
   if (!dodoClient) return [];
   return [
     dodopayments({
@@ -49,11 +44,7 @@ export function buildDodoPlugin() {
           ? [
               webhooks({
                 webhookKey: env.DODO_PAYMENTS_WEBHOOK_SECRET,
-                onSubscriptionActive,
-                onSubscriptionRenewed,
-                onSubscriptionCancelled,
-                onSubscriptionExpired,
-                onSubscriptionUpdated,
+                ...buildDodoWebhookHandlers(db),
               }),
             ]
           : []),

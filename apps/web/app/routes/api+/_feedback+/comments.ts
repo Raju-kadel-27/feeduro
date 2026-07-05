@@ -5,19 +5,18 @@ import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { createId } from "@paralleldrive/cuid2";
 import { and, asc, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { comments, feedbackPosts, user } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/comments";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const url = new URL(request.url);
   const postId = url.searchParams.get("postId");
   if (!postId) return data({ error: "postId required" }, { status: 400 });
-
-  const db = getDb();
 
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
@@ -59,8 +58,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
   const body = (await request.json()) as { intent: string; [k: string]: unknown };
 
   if (body.intent === "create" || body.intent === "reply") {
@@ -111,7 +110,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     if (!isInternal) {
       const actorName = session.user.name ?? session.user.email ?? "Someone";
-      notifyCustomerReplyByEmail({
+      notifyCustomerReplyByEmail(db, {
         postId,
         organizationId,
         actorId: session.user.id,
@@ -119,7 +118,7 @@ export async function action({ request, context }: Route.ActionArgs) {
         commentBody,
       }).catch((err) => console.error("[notifications] customer reply email failed", err));
       await Promise.all([
-        notifyNewComment({
+        notifyNewComment(db, {
           postId,
           commentBody,
           actorId: session.user.id,
@@ -127,7 +126,7 @@ export async function action({ request, context }: Route.ActionArgs) {
           postTitle: post.title,
           actorName,
         }),
-        notifyMentions({
+        notifyMentions(db, {
           postId,
           commentBody,
           actorId: session.user.id,
@@ -149,7 +148,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
     if (!comment) return data({ error: "Comment not found" }, { status: 404 });
 
-    const canDelete = await canDo(organizationId, session.user.id, { feedback: ["delete"] });
+    const canDelete = await canDo(db, organizationId, session.user.id, { feedback: ["delete"] });
 
     if (comment.userId !== session.user.id && !canDelete) {
       return data({ error: "Not authorized" }, { status: 403 });

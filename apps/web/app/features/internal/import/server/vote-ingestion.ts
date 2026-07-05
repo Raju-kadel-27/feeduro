@@ -1,4 +1,4 @@
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { votes } from "@/db/schema";
 import type { CannyVote } from "../schemas/canny";
 
@@ -9,6 +9,7 @@ const BATCH = 100;
 // ON CONFLICT DO NOTHING targets profile_vote_unique_idx (postId, userProfileId).
 // Returns count of newly inserted rows.
 export async function insertVotes(
+  db: Db,
   organizationId: string,
   cannyVotes: CannyVote[],
   postMap: Map<string, string>,
@@ -29,7 +30,6 @@ export async function insertVotes(
     }));
 
   if (values.length === 0) return 0;
-  const db = getDb();
 
   let inserted = 0;
   for (let i = 0; i < values.length; i += BATCH) {

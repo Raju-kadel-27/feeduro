@@ -18,8 +18,8 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
 import { feedbackPosts, integrations, member, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/notion";
 
 const CALLBACK_PATH = "/api/notion";
@@ -30,7 +30,8 @@ function callbackUrl() {
 
 // GET /api/notion?intent=connect → initiates OAuth
 // GET /api/notion?code=...&state=... → OAuth callback from Notion
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -38,7 +39,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const env = getEnv();
     if (!env.NOTION_CLIENT_ID || !env.NOTION_CLIENT_SECRET) {
       throw new Response("Notion OAuth not configured", { status: 501 });
@@ -64,7 +65,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         callbackUrl(),
       );
 
-      const existing = await getIntegration(parsed.orgId, "notion");
+      const existing = await getIntegration(db, parsed.orgId, "notion");
       const existingSettings = parseSettings<NotionSettings>(existing?.settings ?? null);
 
       const settings: NotionSettings = {
@@ -75,7 +76,6 @@ export async function loader({ request }: Route.LoaderArgs) {
         autoCreatePages: existingSettings?.autoCreatePages ?? false,
       };
 
-      const db = getDb();
       await db
         .insert(integrations)
         .values({
@@ -92,7 +92,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       /* Redirect even on error — UI shows "not connected" */
     }
 
-    const orgSlug = await getOrgSlugFromId(parsed.orgId);
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/notion` : "/");
   }
 
@@ -117,20 +117,20 @@ const actionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("unlink_page"), postId: z.string().min(1) }),
 ]);
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const parsed = actionSchema.safeParse(await request.json());
   if (!parsed.success)
     return data({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
 
   const body = parsed.data;
-  const db = getDb();
 
   if (body.intent === "list_databases") {
-    const integration = await getIntegration(organizationId, "notion");
+    const integration = await getIntegration(db, organizationId, "notion");
     if (!integration?.accessToken) return data({ error: "Notion not connected" }, { status: 400 });
     try {
       const databases = await getNotionDatabases(integration.accessToken);
@@ -144,7 +144,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update_settings") {
-    const integration = await getIntegration(organizationId, "notion");
+    const integration = await getIntegration(db, organizationId, "notion");
     if (!integration) return data({ error: "No Notion integration found" }, { status: 400 });
     const settings = parseSettings<NotionSettings>(integration.settings) ?? ({} as NotionSettings);
     const updated: NotionSettings = {
@@ -174,7 +174,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (body.intent === "create_page") {
     const { postId } = body;
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "notion"),
+      getIntegration(db, organizationId, "notion"),
       db.query.feedbackPosts.findFirst({
         where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
         columns: { id: true, title: true, description: true },
@@ -231,7 +231,7 @@ export async function action({ request }: Route.ActionArgs) {
     const pageId = parseNotionPageInput(pageInput);
 
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "notion"),
+      getIntegration(db, organizationId, "notion"),
       db.query.feedbackPosts.findFirst({
         where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
         columns: { id: true },

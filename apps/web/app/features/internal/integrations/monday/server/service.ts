@@ -12,7 +12,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import {
   createMondayItem,
@@ -34,15 +34,15 @@ function callbackUrl() {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
 }
 
-async function withToken<T>(organizationId: string, fn: (token: string) => Promise<T>): Promise<T> {
-  const integration = await getIntegration(organizationId, "monday");
+async function withToken<T>(db: Db, organizationId: string, fn: (token: string) => Promise<T>): Promise<T> {
+  const integration = await getIntegration(db, organizationId, "monday");
   if (!integration?.accessToken) throw new Error("Monday.com not connected");
   return fn(integration.accessToken);
 }
 
 // GET /api/monday?intent=connect → initiates OAuth
 // GET /api/monday?code=...&state=... → OAuth callback from Monday.com
-export async function handleMondayLoader(request: Request) {
+export async function handleMondayLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -50,7 +50,7 @@ export async function handleMondayLoader(request: Request) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const env = getEnv();
     if (!env.MONDAY_CLIENT_ID || !env.MONDAY_CLIENT_SECRET) {
       throw new Response("Monday.com OAuth not configured", { status: 501 });
@@ -84,8 +84,7 @@ export async function handleMondayLoader(request: Request) {
       const me = await getMondayMe(accessToken);
       console.log(`${LOG} token exchanged accountId=${me.account.id} name="${me.account.name}"`);
 
-      const db = getDb();
-      const existing = await getIntegration(parsed.orgId, "monday");
+      const existing = await getIntegration(db, parsed.orgId, "monday");
       const existingSettings = parseSettings<MondaySettings>(existing?.settings ?? null);
 
       if (existing?.accessToken && existingSettings?.webhookIds?.length) {
@@ -132,23 +131,23 @@ export async function handleMondayLoader(request: Request) {
       );
     }
 
-    const orgSlug = await getOrgSlugFromId(parsed.orgId);
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/monday` : "/");
   }
 
   return data({});
 }
 
-export async function handleMondayAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function handleMondayAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "list_boards") {
     try {
-      const boards = await withToken(organizationId, (token) => getMondayBoards(token));
+      const boards = await withToken(db, organizationId, (token) => getMondayBoards(token));
       return data({ boards });
     } catch (err) {
       return data(
@@ -162,7 +161,7 @@ export async function handleMondayAction(request: Request) {
     const boardId = body.boardId as string;
     if (!boardId) return data({ error: "boardId is required" }, { status: 400 });
     try {
-      const groups = await withToken(organizationId, (token) => getMondayGroups(token, boardId));
+      const groups = await withToken(db, organizationId, (token) => getMondayGroups(token, boardId));
       return data({ groups });
     } catch (err) {
       return data(
@@ -173,8 +172,7 @@ export async function handleMondayAction(request: Request) {
   }
 
   if (body.intent === "update_settings") {
-    const db = getDb();
-    const integration = await getIntegration(organizationId, "monday");
+    const integration = await getIntegration(db, organizationId, "monday");
     if (!integration) return data({ error: "No Monday.com integration found" }, { status: 400 });
     const settings = parseSettings<MondaySettings>(integration.settings) ?? ({} as MondaySettings);
 
@@ -249,8 +247,7 @@ export async function handleMondayAction(request: Request) {
 
   if (body.intent === "disconnect") {
     console.log(`${LOG} disconnect orgId=${organizationId}`);
-    const db = getDb();
-    const integration = await getIntegration(organizationId, "monday");
+    const integration = await getIntegration(db, organizationId, "monday");
     if (integration?.accessToken) {
       const settings = parseSettings<MondaySettings>(integration.settings);
       if (settings?.webhookIds?.length) {
@@ -277,9 +274,8 @@ export async function handleMondayAction(request: Request) {
     const postId = body.postId as string;
     if (!postId) return data({ error: "postId is required" }, { status: 400 });
 
-    const db = getDb();
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "monday"),
+      getIntegration(db, organizationId, "monday"),
       db.query.feedbackPosts.findFirst({
         where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
         columns: { id: true, title: true, description: true },
@@ -340,10 +336,9 @@ export async function handleMondayAction(request: Request) {
       return data({ error: "postId and itemInput are required" }, { status: 400 });
 
     const itemId = parseMondayItemInput(rawInput);
-    const db = getDb();
 
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "monday"),
+      getIntegration(db, organizationId, "monday"),
       db.query.feedbackPosts.findFirst({
         where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
         columns: { id: true },
@@ -396,7 +391,6 @@ export async function handleMondayAction(request: Request) {
   if (body.intent === "unlink_item") {
     const postId = body.postId as string;
     if (!postId) return data({ error: "postId is required" }, { status: 400 });
-    const db = getDb();
     await db
       .delete(postExternalLinks)
       .where(

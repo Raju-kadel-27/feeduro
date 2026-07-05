@@ -7,8 +7,8 @@ import { ArrowLeft } from "lucide-react";
 import { isRouteErrorResponse, Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { oauthClient } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/$clientId.edit";
 
@@ -36,10 +36,10 @@ function parseUris(raw: string): string[] {
     .filter(Boolean);
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
-  const db = getDb();
   const row = await db.query.oauthClient.findFirst({
     where: and(
       eq(oauthClient.clientId, params.clientId),

@@ -1,15 +1,16 @@
 import { apiError } from "@feeduro/errors";
+import { getAuth } from "@lib/auth/server";
 import { data } from "react-router";
-import { auth } from "@/app/lib/auth/server";
+import type { Db } from "@/db";
 
-export async function requireApiKey(request: Request): Promise<string> {
+export async function requireApiKey(db: Db, request: Request): Promise<string> {
   const token = request.headers.get("x-api-key");
   if (!token) {
     const err = apiError("missing_api_key");
     throw data(err.body, err.init);
   }
 
-  const result = await auth.api.verifyApiKey({
+  const result = await getAuth(db).api.verifyApiKey({
     body: { key: token },
     headers: request.headers,
   });

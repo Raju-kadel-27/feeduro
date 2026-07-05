@@ -3,6 +3,7 @@ import { authClient } from "@lib/auth/client";
 import { getSession } from "@lib/session";
 import { GalleryVerticalEnd } from "lucide-react";
 import { useEffect, useState } from "react";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/sign-in";
 
@@ -10,9 +11,10 @@ export function meta() {
   return [{ title: "Sign In — Feeduro" }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   try {
-    const session = await getSession(request);
+    const session = await getSession(db, request);
     if (session) {
       const orgId = session.session.activeOrganizationId;
       throw new Response(null, {

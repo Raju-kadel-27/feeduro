@@ -1,8 +1,8 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/privacy-settings";
 
@@ -28,10 +28,10 @@ export function parsePrivacySettings(metadata: string | null): PrivacySettings {
   }
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const body = (await request.json()) as Partial<PrivacySettings>;
 

@@ -15,14 +15,14 @@ import {
 } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { InviteMemberDialog } from "@features/internal/workspace/components/invite-member-dialog";
-import { auth } from "@lib/auth/server";
+import { getAuth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Crown, Mail, Plus, UserMinus, Users, X } from "lucide-react";
 import { useState } from "react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { invitation } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/team";
 
@@ -30,15 +30,16 @@ export function meta() {
   return [{ title: "Team Settings — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [membersResult, pendingInvitations] = await Promise.all([
-    auth.api.listMembers({
+    getAuth(db).api.listMembers({
       headers: request.headers,
       query: { organizationId },
     }),
-    getDb().query.invitation.findMany({
+    db.query.invitation.findMany({
       where: and(eq(invitation.organizationId, organizationId), eq(invitation.status, "pending")),
     }),
   ]);

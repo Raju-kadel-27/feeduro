@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, feedbackViews } from "@/db/schema";
 import { type Post, postMatchesFilters, type Sort, type View, type ViewFilters } from "../types";
 
@@ -24,8 +24,7 @@ function rowToView(row: typeof feedbackViews.$inferSelect): Omit<View, "count"> 
   };
 }
 
-export async function getOrgViews(organizationId: string): Promise<Omit<View, "count">[]> {
-  const db = getDb();
+export async function getOrgViews(db: Db, organizationId: string): Promise<Omit<View, "count">[]> {
   const rows = await db.query.feedbackViews.findMany({
     where: eq(feedbackViews.organizationId, organizationId),
     orderBy: [asc(feedbackViews.order), asc(feedbackViews.createdAt)],
@@ -34,10 +33,9 @@ export async function getOrgViews(organizationId: string): Promise<Omit<View, "c
   return rows.map(rowToView);
 }
 
-export async function getOrgViewsWithCounts(organizationId: string): Promise<View[]> {
-  const db = getDb();
+export async function getOrgViewsWithCounts(db: Db, organizationId: string): Promise<View[]> {
   const [views, posts] = await Promise.all([
-    getOrgViews(organizationId),
+    getOrgViews(db, organizationId),
     db
       .select({
         id: feedbackPosts.id,
@@ -71,10 +69,10 @@ export async function getOrgViewsWithCounts(organizationId: string): Promise<Vie
 
 
 export async function createView(
+  db: Db,
   organizationId: string,
   data: { name: string; emoji: string; filters: ViewFilters; sort: Sort },
 ): Promise<Omit<View, "count">> {
-  const db = getDb();
   const existing = await db.query.feedbackViews.findMany({
     where: eq(feedbackViews.organizationId, organizationId),
     columns: { order: true },
@@ -96,11 +94,11 @@ export async function createView(
 }
 
 export async function updateView(
+  db: Db,
   organizationId: string,
   viewId: string,
   data: Partial<{ name: string; emoji: string; filters: ViewFilters; sort: Sort }>,
 ): Promise<void> {
-  const db = getDb();
   await db
     .update(feedbackViews)
     .set({
@@ -112,8 +110,7 @@ export async function updateView(
     .where(and(eq(feedbackViews.id, viewId), eq(feedbackViews.organizationId, organizationId)));
 }
 
-export async function deleteView(organizationId: string, viewId: string): Promise<void> {
-  const db = getDb();
+export async function deleteView(db: Db, organizationId: string, viewId: string): Promise<void> {
   const view = await db.query.feedbackViews.findFirst({
     where: and(eq(feedbackViews.id, viewId), eq(feedbackViews.organizationId, organizationId)),
     columns: { isSystem: true },

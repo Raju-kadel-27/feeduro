@@ -1,4 +1,4 @@
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import type { auditActionEnum } from "@/db/schema";
 import { auditLogs } from "@/db/schema";
 
@@ -18,16 +18,18 @@ function extractIp(request: Request): string | null {
   );
 }
 
-export async function logOrgActivity(params: {
-  orgId: string;
-  actor: AuditActor;
-  action: AuditAction;
-  target?: { type: string; id?: string };
-  metadata?: Record<string, unknown>;
-  request?: Request;
-}): Promise<void> {
+export async function logOrgActivity(
+  db: Db,
+  params: {
+    orgId: string;
+    actor: AuditActor;
+    action: AuditAction;
+    target?: { type: string; id?: string };
+    metadata?: Record<string, unknown>;
+    request?: Request;
+  },
+): Promise<void> {
   try {
-    const db = getDb();
     await db.insert(auditLogs).values({
       organizationId: params.orgId,
       actorId: params.actor.id,

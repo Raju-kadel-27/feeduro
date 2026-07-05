@@ -1,15 +1,14 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { StatusChangeFeedSchema } from "../schemas/analytics";
 
 export async function getStatusChangeFeed(
+  db: Db,
   organizationId: string,
   since?: Date,
   boardId?: string,
   limit = 25,
 ) {
-  const db = getDb();
-
   const sinceFilter = since ? sql`AND pa.created_at >= ${since}` : sql``;
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 

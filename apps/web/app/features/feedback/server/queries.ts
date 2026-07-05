@@ -2,15 +2,13 @@ import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits"
 import { getVoterTraitCountsByPost } from "@features/internal/segmentation/server/service";
 import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, postExternalLinks, votes } from "@/db/schema";
 import { getPostTagsBatch } from "./tags";
 
 const EMPTY_TRAITS: VoterTraitCounts = { plan: {}, role: {}, industry: {}, location: {} };
 
-export async function getEnrichedPosts(organizationId: string, userId: string) {
-  const db = getDb();
-
+export async function getEnrichedPosts(db: Db, organizationId: string, userId: string) {
   const posts = await db.query.feedbackPosts.findMany({
     where: and(
       eq(feedbackPosts.organizationId, organizationId),
@@ -58,7 +56,7 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
           .groupBy(comments.postId)
       : Promise.resolve([]),
     postIds.length > 0
-      ? getVoterTraitCountsByPost(organizationId, postIds)
+      ? getVoterTraitCountsByPost(db, organizationId, postIds)
       : Promise.resolve({} as Record<string, VoterTraitCounts>),
     postIds.length > 0
       ? db
@@ -75,7 +73,7 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
             ),
           )
       : Promise.resolve([]),
-    postIds.length > 0 ? getPostTagsBatch(postIds) : Promise.resolve([]),
+    postIds.length > 0 ? getPostTagsBatch(db, postIds) : Promise.resolve([]),
   ]);
 
   const commentCountMap = Object.fromEntries(commentCountRows.map((r) => [r.postId, r.count]));
@@ -103,15 +101,13 @@ export async function getEnrichedPosts(organizationId: string, userId: string) {
   });
 }
 
-export async function getBoards(organizationId: string) {
-  const db = getDb();
-
+export async function getBoards(db: Db, organizationId: string) {
   const [boards, planLimits, counts, statusRows] = await Promise.all([
     db.query.feedbackBoards.findMany({
       where: eq(feedbackBoards.organizationId, organizationId),
       orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
     }),
-    getOrgPlanLimits(organizationId),
+    getOrgPlanLimits(db, organizationId),
     db
       .select({
         boardId: feedbackPosts.boardId,

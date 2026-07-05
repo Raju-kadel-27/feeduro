@@ -2,12 +2,13 @@ import { SubscribeSchema } from "@features/changelog/schemas/subscribers";
 import { subscribeEmail } from "@features/changelog/server/subscribers";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/changelog-subscribe";
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   if (request.method !== "POST") {
     return data({ error: "Method not allowed" }, { status: 405 });
   }
@@ -19,7 +20,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const { email, orgSlug } = parsed.data;
-  const db = getDb();
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, orgSlug),
@@ -40,7 +40,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: "Subscriptions are not enabled" }, { status: 403 });
   }
 
-  const { alreadySubscribed } = await subscribeEmail(org.id, email);
+  const { alreadySubscribed } = await subscribeEmail(db, org.id, email);
 
   return data({ success: true, alreadySubscribed });
 }

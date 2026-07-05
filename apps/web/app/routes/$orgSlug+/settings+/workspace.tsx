@@ -9,6 +9,7 @@ import {
 } from "@components/ui/dialog";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { isAdmin } from "@features/internal/roles/server/queries";
+import { getDb } from "~/middleware/cloudflare.server";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, Settings } from "lucide-react";
 import { useState } from "react";
@@ -21,9 +22,10 @@ export function meta() {
   return [{ title: "Workspace Settings — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { org, session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const admin = await isAdmin(organizationId, session.user.id);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { org, session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  const admin = await isAdmin(db, organizationId, session.user.id);
   return { orgName: org.name, orgSlug: org.slug, organizationId, isAdmin: admin };
 }
 

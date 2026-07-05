@@ -2,8 +2,9 @@ import { getAsanaTaskByGid } from "@features/internal/integrations/asana/server/
 import type { AsanaSettings } from "@features/internal/integrations/asana/server/schemas";
 import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/asana.webhook";
 
 type AsanaEvent = {
@@ -20,7 +21,8 @@ type AsanaEvent = {
 
 // POST /api/asana/webhook?orgId=<feeduro-org-id>
 // Handles both the initial handshake (X-Hook-Secret) and ongoing events (X-Hook-Signature).
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
 
@@ -29,8 +31,7 @@ export async function action({ request }: Route.ActionArgs) {
   const hookSecret = request.headers.get("X-Hook-Secret");
   if (hookSecret) {
     if (orgId) {
-      const db = getDb();
-      const integration = await getIntegration(orgId, "asana");
+      const integration = await getIntegration(db, orgId, "asana");
       if (integration) {
         const settings =
           parseSettings<AsanaSettings>(integration.settings) ?? ({} as AsanaSettings);
@@ -51,8 +52,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!orgId) return new Response("Missing orgId", { status: 400 });
 
-  const db = getDb();
-  const integration = await getIntegration(orgId, "asana");
+  const integration = await getIntegration(db, orgId, "asana");
   if (!integration) return new Response("Integration not found", { status: 404 });
 
   const settings = parseSettings<AsanaSettings>(integration.settings);
@@ -96,7 +96,7 @@ async function verifyHmac(secret: string, body: string, signature: string): Prom
 }
 
 async function processEvents(
-  db: ReturnType<typeof getDb>,
+  db: Db,
   orgId: string,
   accessToken: string,
   settings: AsanaSettings | null,

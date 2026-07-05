@@ -1,3 +1,4 @@
+import type { Db } from "@/db";
 import { type AutoCreatePost, isAlreadyLinked } from "../../server/auto-create";
 import { insertPostExternalLink } from "../../server/mutations";
 import { getIntegration, parseSettings } from "../../server/queries";
@@ -7,11 +8,12 @@ import type { LinearSettings } from "./schemas";
 const LOG = "[linear-auto-create]";
 
 export async function autoCreateLinearIssue(
+  db: Db,
   organizationId: string,
   post: AutoCreatePost,
   userId?: string,
 ): Promise<void> {
-  const integration = await getIntegration(organizationId, "linear");
+  const integration = await getIntegration(db, organizationId, "linear");
   if (!integration?.accessToken) {
     console.log(`${LOG} skipped — no integration or token orgId=${organizationId}`);
     return;
@@ -52,7 +54,7 @@ export async function autoCreateLinearIssue(
       `${LOG} issue created issueId=${issue.id} identifier=${issue.identifier} postId=${post.id}`,
     );
 
-    await insertPostExternalLink({
+    await insertPostExternalLink(db, {
       postId: post.id,
       organizationId,
       provider: "linear",

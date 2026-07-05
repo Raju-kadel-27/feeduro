@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { BoardVisitorsSchema } from "../schemas/analytics";
 
 const SummarySchema = z.object({
@@ -12,10 +12,10 @@ const SummarySchema = z.object({
 export type BoardVisitors7d = z.infer<typeof SummarySchema>;
 
 export async function getBoardVisitorsLast7Days(
+  db: Db,
   organizationId: string,
   boardId?: string,
 ): Promise<BoardVisitors7d> {
-  const db = getDb();
   const boardFilter = boardId
     ? sql`AND resource_id = ${boardId}`
     : sql`AND type = 'board_view'`;

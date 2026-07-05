@@ -8,7 +8,7 @@ import { getEnv } from "@utils/get-env";
 import type { AppLoadContext } from "react-router";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 
 type SessionActor = { user: { id: string; name: string | null; email: string | null } };
@@ -22,6 +22,7 @@ const CreatePostSchema = z.object({
 });
 
 export async function handleCreatePost(
+  db: Db,
   organizationId: string,
   session: SessionActor,
   role: string,
@@ -36,7 +37,6 @@ export async function handleCreatePost(
   }
   const { title, description, boardId, categoryId } = parsed.data;
 
-  const db = getDb();
   const [post] = await db
     .insert(feedbackPosts)
     .values({ organizationId, boardId, title, description, categoryId, createdBy: session.user.id })

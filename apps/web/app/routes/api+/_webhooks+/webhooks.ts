@@ -9,6 +9,7 @@ import {
   updateWebhook,
 } from "@features/internal/webhooks/server/api-webhooks";
 import { getWebhookSecret, listWebhooks } from "@features/internal/webhooks/server/queries";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 import { z } from "zod";
 
@@ -19,16 +20,18 @@ const IntentSchema = z.object({
 });
 const IdSchema = z.object({ id: z.string().min(1) });
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const { data: endpoints } = await listWebhooks(organizationId);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
+  const { data: endpoints } = await listWebhooks(db, organizationId);
   return data({ endpoints, supportedEvents: SUPPORTED_EVENTS.map((e) => e.value) });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  if (!(await isAdmin(organizationId, session.user.id))) {
+  if (!(await isAdmin(db, organizationId, session.user.id))) {
     return data({ error: "Only admins can manage webhooks" }, { status: 403 });
   }
 
@@ -74,19 +77,19 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === "rotate_secret") {
-    const secret = await rotateWebhookSecret(organizationId, id);
+    const secret = await rotateWebhookSecret(db, organizationId, id);
     if (!secret) return data({ error: "Webhook endpoint not found" }, { status: 404 });
     return data({ success: true, secret });
   }
 
   if (intent === "reveal_secret") {
-    const secret = await getWebhookSecret(organizationId, id);
+    const secret = await getWebhookSecret(db, organizationId, id);
     if (!secret) return data({ error: "Webhook endpoint not found" }, { status: 404 });
     return data({ success: true, secret });
   }
 
   // intent === "delete"
-  const ok = await deleteWebhook(organizationId, id);
+  const ok = await deleteWebhook(db, organizationId, id);
   if (!ok) return data({ error: "Webhook endpoint not found" }, { status: 404 });
   return data({ success: true });
 }

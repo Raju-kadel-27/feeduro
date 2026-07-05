@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";
 import { transitionJiraIssue } from "./client";
@@ -8,11 +8,11 @@ import type { JiraSettings } from "./schemas";
 const LOG = "[jira-sync-status]";
 
 export async function syncStatusToJira(
+  db: Db,
   organizationId: string,
   postId: string,
   newFeeduroStatus: string,
 ): Promise<void> {
-  const db = getDb();
   const [link, integration] = await Promise.all([
     db.query.postExternalLinks.findFirst({
       where: and(
@@ -22,7 +22,7 @@ export async function syncStatusToJira(
       ),
       columns: { externalId: true },
     }),
-    getIntegration(organizationId, "jira"),
+    getIntegration(db, organizationId, "jira"),
   ]);
 
   if (!link) { console.log(`${LOG} no linked issue postId=${postId}`); return; }

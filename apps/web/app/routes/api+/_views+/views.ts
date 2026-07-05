@@ -6,17 +6,20 @@ import {
   updateView,
 } from "@features/internal/dashboard/server/views";
 import type { Sort, ViewFilters } from "@features/internal/dashboard/types";
+import { getDb } from "@middleware/cloudflare.server";
 import { data } from "react-router";
 import type { Route } from "./+types/views";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const views = await getOrgViewsWithCounts(organizationId);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
+  const views = await getOrgViewsWithCounts(db, organizationId);
   return data({ views });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "create") {
@@ -45,7 +48,7 @@ export async function action({ request }: Route.ActionArgs) {
     const viewId = body.viewId as string;
     if (!viewId) return data({ error: "viewId required" }, { status: 400 });
     try {
-      await deleteView(organizationId, viewId);
+      await deleteView(db, organizationId, viewId);
       return data({ success: true });
     } catch (err) {
       return data({ error: (err as Error).message }, { status: 403 });

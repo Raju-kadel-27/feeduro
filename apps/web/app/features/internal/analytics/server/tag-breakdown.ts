@@ -1,15 +1,14 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { TagBreakdownSchema } from "../schemas/analytics";
 
 export async function getTagBreakdown(
+  db: Db,
   organizationId: string,
   since?: Date,
   limit = 12,
   boardId?: string,
 ) {
-  const db = getDb();
-
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
   // Filter votes by the selected period so totalVotes reflects period activity.
   // postCount covers all posts carrying this tag, not just recently created ones.

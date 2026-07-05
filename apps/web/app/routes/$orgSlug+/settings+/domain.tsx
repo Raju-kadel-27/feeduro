@@ -7,8 +7,8 @@ import { AlertCircle, Check, CheckCircle2, Clock, Copy, Globe, RefreshCw, Trash2
 import { useEffect, useState } from "react";
 import { useRevalidator } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { customDomains, member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/domain";
 
@@ -16,9 +16,9 @@ export function meta() {
   return [{ title: "Domain Settings — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [domain, memberRecord] = await Promise.all([
     db.query.customDomains.findFirst({

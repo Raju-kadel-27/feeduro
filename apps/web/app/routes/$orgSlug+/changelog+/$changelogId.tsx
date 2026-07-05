@@ -9,8 +9,8 @@ import { ArrowLeft, Check, Clock, Globe } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { getDb } from "@/db";
 import { changelogs, organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/$changelogId";
 
@@ -36,9 +36,9 @@ export function meta({ params }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, org } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [orgRow, entry] = await Promise.all([
     db.query.organization.findFirst({

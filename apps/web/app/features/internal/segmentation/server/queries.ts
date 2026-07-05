@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { companies, companyMembers, plans, segments, user, userProfiles, votes } from "@/db/schema";
 import type {
   Company,
@@ -26,8 +26,7 @@ export interface VoterProfileRow {
   companyMrr: number | null;
 }
 
-export async function getOrgSegments(organizationId: string): Promise<Segment[]> {
-  const db = getDb();
+export async function getOrgSegments(db: Db, organizationId: string): Promise<Segment[]> {
   const rows = await db.query.segments.findMany({
     where: eq(segments.organizationId, organizationId),
     columns: {
@@ -48,8 +47,7 @@ export async function getOrgSegments(organizationId: string): Promise<Segment[]>
   }));
 }
 
-export async function getOrgPlans(organizationId: string): Promise<PlanCatalogEntry[]> {
-  const db = getDb();
+export async function getOrgPlans(db: Db, organizationId: string): Promise<PlanCatalogEntry[]> {
   const rows = await db.query.plans.findMany({
     where: eq(plans.organizationId, organizationId),
     columns: {
@@ -72,8 +70,7 @@ export async function getOrgPlans(organizationId: string): Promise<PlanCatalogEn
 
 // A voter's effective MRR is their explicit override, else their plan's catalog price, else 0.
 // The catalog is small (a handful of tiers per org) so we resolve in JS off a single fetch.
-async function getPlanPriceMap(organizationId: string): Promise<Map<string, number>> {
-  const db = getDb();
+async function getPlanPriceMap(db: Db, organizationId: string): Promise<Map<string, number>> {
   try {
     const rows = await db
       .select({ name: plans.name, monthlyPrice: plans.monthlyPrice })
@@ -97,8 +94,7 @@ function resolveMrr(
   return 0;
 }
 
-export async function getOrgCompanies(organizationId: string): Promise<Company[]> {
-  const db = getDb();
+export async function getOrgCompanies(db: Db, organizationId: string): Promise<Company[]> {
   const rows = await db.query.companies.findMany({
     where: eq(companies.organizationId, organizationId),
     columns: {
@@ -131,13 +127,13 @@ interface CompanyRef {
 
 // profileId → the companies it belongs to, each with effective MRR (monthlySpend, else plan price).
 async function getCompanyMembershipMap(
+  db: Db,
   organizationId: string,
   profileIds: string[],
   priceMap: Map<string, number>,
 ): Promise<Map<string, CompanyRef[]>> {
   const map = new Map<string, CompanyRef[]>();
   if (profileIds.length === 0) return map;
-  const db = getDb();
   let rows: Array<{
     profileId: string;
     companyId: string;
@@ -188,11 +184,11 @@ function voterProfileAliases() {
 }
 
 export async function getVoterTraitCountsByPost(
+  db: Db,
   organizationId: string,
   postIds: string[],
 ): Promise<Record<string, VoterTraitCounts>> {
   if (postIds.length === 0) return {};
-  const db = getDb();
   const { nativeProfile, importedProfile } = voterProfileAliases();
 
   const rows = await db
@@ -245,11 +241,11 @@ export async function getVoterTraitCountsByPost(
 }
 
 export async function getSegmentMemberCounts(
+  db: Db,
   organizationId: string,
   segmentList: Array<{ id: string; filters: SegmentFilters }>,
 ): Promise<Record<string, number>> {
   if (segmentList.length === 0) return {};
-  const db = getDb();
 
   // Effective MRR = explicit override, else the plan's catalog price. `plans.name` is unique per
   // org, so the LEFT JOIN matches at most one row and never inflates count(*).
@@ -284,11 +280,11 @@ export async function getSegmentMemberCounts(
 }
 
 export async function getVoterProfilesByPost(
+  db: Db,
   organizationId: string,
   postId: string,
   limit = 50,
 ): Promise<VoterProfileRow[]> {
-  const db = getDb();
   const { nativeProfile, importedProfile } = voterProfileAliases();
 
   const rows = await db
@@ -337,7 +333,7 @@ export async function getVoterProfilesByPost(
   const primaryCompany = new Map<string, { id: string; name: string | null; mrr: number }>();
   if (profileIds.length > 0) {
     try {
-      const priceMap = await getPlanPriceMap(organizationId);
+      const priceMap = await getPlanPriceMap(db, organizationId);
       const memRows = await db
         .select({
           profileId: companyMembers.userProfileId,
@@ -391,6 +387,7 @@ export interface SegmentCountsResult {
 }
 
 export async function getSegmentCountsByPost(
+  db: Db,
   organizationId: string,
   postId: string,
   segmentList: Array<{ id: string; filters: SegmentFilters }>,
@@ -405,11 +402,10 @@ export async function getSegmentCountsByPost(
   };
   if (segmentList.length === 0) return empty;
 
-  const db = getDb();
   const { nativeProfile, importedProfile } = voterProfileAliases();
 
   const [priceMap, rows] = await Promise.all([
-    getPlanPriceMap(organizationId),
+    getPlanPriceMap(db, organizationId),
     db
       .select({
         profileId: sql<string | null>`coalesce(${nativeProfile.id}, ${importedProfile.id})`,
@@ -445,7 +441,7 @@ export async function getSegmentCountsByPost(
   const profileIds = [
     ...new Set(rows.map((r) => r.profileId).filter((x): x is string => x != null)),
   ];
-  const membershipMap = await getCompanyMembershipMap(organizationId, profileIds, priceMap);
+  const membershipMap = await getCompanyMembershipMap(db, organizationId, profileIds, priceMap);
 
   const segmentCounts: Record<string, number> = {};
   const mrrBySegment: Record<string, number> = {};
@@ -520,15 +516,15 @@ export async function getSegmentCountsByPost(
 // counts once per post no matter how many members voted (Canny-style); accountless voters
 // contribute their per-user effective MRR. Includes merged child posts via allRelevantIds.
 export async function getMrrImpactByPost(
+  db: Db,
   organizationId: string,
   postIds: string[],
 ): Promise<Record<string, number>> {
   if (postIds.length === 0) return {};
-  const db = getDb();
   const { nativeProfile, importedProfile } = voterProfileAliases();
 
   const [priceMap, rows] = await Promise.all([
-    getPlanPriceMap(organizationId),
+    getPlanPriceMap(db, organizationId),
     db
       .select({
         postId: votes.postId,
@@ -555,7 +551,7 @@ export async function getMrrImpactByPost(
   const profileIds = [
     ...new Set(rows.map((r) => r.profileId).filter((x): x is string => x != null)),
   ];
-  const membershipMap = await getCompanyMembershipMap(organizationId, profileIds, priceMap);
+  const membershipMap = await getCompanyMembershipMap(db, organizationId, profileIds, priceMap);
 
   const result: Record<string, number> = {};
   const seenByPost = new Map<string, Set<string>>();
@@ -584,10 +580,10 @@ export async function getMrrImpactByPost(
 // Distinct companies whose members voted on a post — each with effective MRR and voter count.
 // Powers the "Companies" list in the post panel. Sorted by MRR desc, then voter count.
 export async function getCompanyVotersByPost(
+  db: Db,
   organizationId: string,
   postId: string,
 ): Promise<CompanyVoter[]> {
-  const db = getDb();
   const { nativeProfile, importedProfile } = voterProfileAliases();
 
   const voterRows = await db
@@ -621,7 +617,7 @@ export async function getCompanyVotersByPost(
   if (profileIds.length === 0) return [];
 
   const [priceMap, memRows] = await Promise.all([
-    getPlanPriceMap(organizationId),
+    getPlanPriceMap(db, organizationId),
     db
       .select({
         profileId: companyMembers.userProfileId,

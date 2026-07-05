@@ -1,11 +1,11 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { getDb, withTransaction } from "@/db";
+import type { Db } from "@/db";
 import { companies, companyMembers, plans, segments, userProfiles } from "@/db/schema";
 import type { IdentifyCompanyInput, IdentifyUserInput } from "../schemas/identify";
 import type { SegmentFilters } from "../types";
 
 // Drizzle transaction handle, derived so helpers can accept it without importing internal types.
-type Tx = Parameters<Parameters<ReturnType<typeof getDb>["transaction"]>[0]>[0];
+type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 function buildProfileValues(organizationId: string, input: IdentifyUserInput) {
   const { email, externalId, name, traits } = input;
@@ -70,10 +70,11 @@ async function linkProfileToCompanies(
 }
 
 export async function upsertUserProfile(
+  db: Db,
   organizationId: string,
   input: IdentifyUserInput,
 ): Promise<string> {
-  return withTransaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const existing = await tx.query.userProfiles.findFirst({
       where: and(
         eq(userProfiles.organizationId, organizationId),
@@ -100,6 +101,7 @@ export async function upsertUserProfile(
 }
 
 export async function bulkUpsertUserProfiles(
+  db: Db,
   organizationId: string,
   inputs: IdentifyUserInput[],
 ): Promise<{ imported: number; updated: number }> {
@@ -109,7 +111,7 @@ export async function bulkUpsertUserProfiles(
   const deduped = [...new Map(inputs.map((i) => [i.email, i])).values()];
   const emails = deduped.map((i) => i.email);
 
-  return withTransaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const existing = await tx
       .select({ id: userProfiles.id, email: userProfiles.email })
       .from(userProfiles)
@@ -148,12 +150,12 @@ export async function bulkUpsertUserProfiles(
 }
 
 export async function createSegment(
+  db: Db,
   organizationId: string,
   name: string,
   color: string,
   filters: SegmentFilters,
 ): Promise<string> {
-  const db = getDb();
   const [row] = await db
     .insert(segments)
     .values({ organizationId, name, color, filters: JSON.stringify(filters) })
@@ -162,11 +164,11 @@ export async function createSegment(
 }
 
 export async function updateSegment(
+  db: Db,
   organizationId: string,
   id: string,
   data: { name?: string; color?: string; filters?: SegmentFilters },
 ): Promise<void> {
-  const db = getDb();
   await db
     .update(segments)
     .set({
@@ -177,8 +179,7 @@ export async function updateSegment(
     .where(and(eq(segments.id, id), eq(segments.organizationId, organizationId)));
 }
 
-export async function deleteSegment(organizationId: string, id: string): Promise<void> {
-  const db = getDb();
+export async function deleteSegment(db: Db, organizationId: string, id: string): Promise<void> {
   await db
     .delete(segments)
     .where(and(eq(segments.id, id), eq(segments.organizationId, organizationId)));
@@ -188,10 +189,10 @@ export async function deleteSegment(organizationId: string, id: string): Promise
 // `name` is unique per org (matches userProfiles.plan); inserting a duplicate throws.
 
 export async function createPlan(
+  db: Db,
   organizationId: string,
   data: { name: string; monthlyPrice: number; interval?: string },
 ): Promise<string> {
-  const db = getDb();
   const [row] = await db
     .insert(plans)
     .values({
@@ -205,11 +206,11 @@ export async function createPlan(
 }
 
 export async function updatePlan(
+  db: Db,
   organizationId: string,
   id: string,
   data: { name?: string; monthlyPrice?: number; interval?: string },
 ): Promise<void> {
-  const db = getDb();
   await db
     .update(plans)
     .set({
@@ -220,8 +221,7 @@ export async function updatePlan(
     .where(and(eq(plans.id, id), eq(plans.organizationId, organizationId)));
 }
 
-export async function deletePlan(organizationId: string, id: string): Promise<void> {
-  const db = getDb();
+export async function deletePlan(db: Db, organizationId: string, id: string): Promise<void> {
   await db.delete(plans).where(and(eq(plans.id, id), eq(plans.organizationId, organizationId)));
 }
 
@@ -229,11 +229,11 @@ export async function deletePlan(organizationId: string, id: string): Promise<vo
 // Created via identify()/CSV; these support manual correction + removal from the settings UI.
 
 export async function updateCompany(
+  db: Db,
   organizationId: string,
   id: string,
   data: { name?: string; monthlySpend?: number; plan?: string },
 ): Promise<void> {
-  const db = getDb();
   await db
     .update(companies)
     .set({
@@ -244,8 +244,7 @@ export async function updateCompany(
     .where(and(eq(companies.id, id), eq(companies.organizationId, organizationId)));
 }
 
-export async function deleteCompany(organizationId: string, id: string): Promise<void> {
-  const db = getDb();
+export async function deleteCompany(db: Db, organizationId: string, id: string): Promise<void> {
   // company_members rows cascade-delete via the FK.
   await db
     .delete(companies)

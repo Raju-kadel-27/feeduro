@@ -1,15 +1,14 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { CompletedPostsSchema } from "../schemas/analytics";
 
 export async function getCompletedInPeriod(
+  db: Db,
   organizationId: string,
   since?: Date,
   limit = 10,
   boardId?: string,
 ) {
-  const db = getDb();
-
   const sinceFilter = since ? sql`AND pa.created_at >= ${since}` : sql``;
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 

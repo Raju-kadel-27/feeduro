@@ -1,17 +1,15 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { getDb } from "@/db";
-import { feedbackTags, member, postTags } from "@/db/schema";
+import type { Db } from "@/db";
+import { feedbackTags, postTags } from "@/db/schema";
 
-export async function getOrgTags(organizationId: string) {
-  const db = getDb();
+export async function getOrgTags(db: Db, organizationId: string) {
   return db.query.feedbackTags.findMany({
     where: eq(feedbackTags.organizationId, organizationId),
     columns: { id: true, name: true, color: true },
   });
 }
 
-export async function getPostTags(postId: string) {
-  const db = getDb();
+export async function getPostTags(db: Db, postId: string) {
   const rows = await db
     .select({
       id: feedbackTags.id,
@@ -24,9 +22,8 @@ export async function getPostTags(postId: string) {
   return rows;
 }
 
-export async function getPostTagsBatch(postIds: string[]) {
+export async function getPostTagsBatch(db: Db, postIds: string[]) {
   if (postIds.length === 0) return [];
-  const db = getDb();
   return db
     .select({
       postId: postTags.postId,
@@ -39,8 +36,7 @@ export async function getPostTagsBatch(postIds: string[]) {
     .where(inArray(postTags.postId, postIds));
 }
 
-export async function createTag(organizationId: string, name: string, color: string) {
-  const db = getDb();
+export async function createTag(db: Db, organizationId: string, name: string, color: string) {
   const [tag] = await db
     .insert(feedbackTags)
     .values({ organizationId, name: name.trim(), color })
@@ -48,21 +44,19 @@ export async function createTag(organizationId: string, name: string, color: str
   return tag;
 }
 
-export async function deleteTag(organizationId: string, tagId: string) {
-  const db = getDb();
+export async function deleteTag(db: Db, organizationId: string, tagId: string) {
   await db
     .delete(feedbackTags)
     .where(and(eq(feedbackTags.id, tagId), eq(feedbackTags.organizationId, organizationId)));
 }
 
 export async function addTagToPost(
+  db: Db,
   postId: string,
   tagId: string,
   userId: string,
   organizationId: string,
 ) {
-  const db = getDb();
-  // Verify the tag belongs to the org
   const tag = await db.query.feedbackTags.findFirst({
     where: and(eq(feedbackTags.id, tagId), eq(feedbackTags.organizationId, organizationId)),
     columns: { id: true },
@@ -72,7 +66,6 @@ export async function addTagToPost(
   await db.insert(postTags).values({ postId, tagId, addedByUserId: userId }).onConflictDoNothing();
 }
 
-export async function removeTagFromPost(postId: string, tagId: string) {
-  const db = getDb();
+export async function removeTagFromPost(db: Db, postId: string, tagId: string) {
   await db.delete(postTags).where(and(eq(postTags.postId, postId), eq(postTags.tagId, tagId)));
 }

@@ -4,8 +4,8 @@ import type { WebhookEvent } from "@features/internal/webhooks/server/dispatch";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
 import { integrations, member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/n8n";
 
 const SUPPORTED_EVENTS: WebhookEvent[] = [
@@ -29,9 +29,9 @@ const bodySchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("disconnect") }),
 ]);
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "n8n")),
     columns: { accessToken: true, settings: true },
@@ -42,18 +42,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const raw = await request.json();
   const parsed = bodySchema.safeParse(raw);
   if (!parsed.success) {
     return data({ error: parsed.error.issues[0].message }, { status: 400 });
   }
-
-  const db = getDb();
 
   if (parsed.data.intent === "save") {
     const { webhookUrl, events } = parsed.data;

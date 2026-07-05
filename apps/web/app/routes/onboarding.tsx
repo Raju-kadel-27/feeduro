@@ -1,10 +1,10 @@
 import { CreateWorkspaceForm } from "@features/internal/workspace/components/create-workspace-form";
+import { getAuth } from "@lib/auth/server";
 import { requireSession } from "@lib/session";
 import { eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
-import { auth } from "@/app/lib/auth/server";
-import { getDb } from "@/db";
 import { member, organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/onboarding";
 
@@ -12,12 +12,12 @@ export function meta() {
   return [{ title: "Create your workspace — Feeduro" }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireSession(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const session = await requireSession(db, request);
 
   // Already has an active org
   if (session.session.activeOrganizationId) {
-    const db = getDb();
     const org = await db.query.organization.findFirst({
       where: eq(organization.id, session.session.activeOrganizationId),
     });
@@ -25,7 +25,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   // Has orgs but none active (e.g. after sign-in) — set first one active
-  const db = getDb();
   const memberships = await db.query.member.findMany({
     where: eq(member.userId, session.user.id),
   });
@@ -33,7 +32,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (memberships.length > 0 && memberships[0]) {
     const firstOrgId = memberships[0].organizationId;
     const [setActiveResponse, org] = await Promise.all([
-      auth.api.setActiveOrganization({
+      getAuth(db).api.setActiveOrganization({
         body: { organizationId: firstOrgId },
         headers: request.headers,
         asResponse: true,

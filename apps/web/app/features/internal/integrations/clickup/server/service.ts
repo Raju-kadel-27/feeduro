@@ -4,7 +4,7 @@ import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { data, redirect } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { integrations } from "@/db/schema";
 import { requireAdminRole } from "../../server/permissions";
 import { getIntegration, getOrgSlugFromId, parseSettings } from "../../server/queries";
@@ -24,7 +24,7 @@ function requireClickupEnv() {
   return { clientId: env.CLICKUP_CLIENT_ID, clientSecret: env.CLICKUP_CLIENT_SECRET };
 }
 
-export async function handleClickupLoader(request: Request) {
+export async function handleClickupLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -32,7 +32,7 @@ export async function handleClickupLoader(request: Request) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const { clientId } = requireClickupEnv();
     const oauthState = buildOAuthState(organizationId);
     return redirect(buildAuthUrl(clickupOAuth, clientId, `${getBaseUrl()}${CALLBACK_PATH}`, oauthState));
@@ -51,8 +51,7 @@ export async function handleClickupLoader(request: Request) {
 
     try {
       const accessToken = await exchangeClickupCode(code, clientId, clientSecret);
-      const db = getDb();
-      const existing = await getIntegration(parsed.orgId, "clickup");
+      const existing = await getIntegration(db, parsed.orgId, "clickup");
       const prev = parseSettings<ClickupSettings>(existing?.settings ?? null);
       const settings: ClickupSettings = {
         workspaceId: prev?.workspaceId,
@@ -78,7 +77,7 @@ export async function handleClickupLoader(request: Request) {
       console.error(`${LOG} OAuth callback failed:`, err instanceof Error ? err.message : err);
     }
 
-    const orgSlug = await getOrgSlugFromId(parsed.orgId);
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/clickup` : "/");
   }
 
@@ -94,9 +93,9 @@ const CONFIG_INTENTS = new Set([
   "disconnect",
 ]);
 
-export async function handleClickupAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requireAdminRole(organizationId, session.user.id);
+export async function handleClickupAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requireAdminRole(db, organizationId, session.user.id);
 
   const body = await request.json();
   const parsed = ClickupActionSchema.safeParse(body);
@@ -105,7 +104,7 @@ export async function handleClickupAction(request: Request) {
   }
 
   if (CONFIG_INTENTS.has(parsed.data.intent)) {
-    return handleClickupConfigAction(parsed.data, organizationId, session.user.id);
+    return handleClickupConfigAction(db, parsed.data, organizationId, session.user.id);
   }
-  return handleClickupTaskAction(parsed.data, organizationId, session.user.id);
+  return handleClickupTaskAction(db, parsed.data, organizationId, session.user.id);
 }

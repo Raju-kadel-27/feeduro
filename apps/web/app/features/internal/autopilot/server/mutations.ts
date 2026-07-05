@@ -1,16 +1,18 @@
 import { and, eq } from "drizzle-orm";
-import { getDb, withTransaction } from "@/db";
+import type { Db } from "@/db";
 import { autopilotSuggestions, feedbackPosts, postActivities } from "@/db/schema";
 import type { SuggestionStatus } from "../types";
 
-export async function createDuplicateSuggestion(params: {
-  organizationId: string;
-  sourcePostId: string;
-  targetPostId: string;
-  confidence: "low" | "medium" | "high";
-  reason: string;
-}) {
-  const db = getDb();
+export async function createDuplicateSuggestion(
+  db: Db,
+  params: {
+    organizationId: string;
+    sourcePostId: string;
+    targetPostId: string;
+    confidence: "low" | "medium" | "high";
+    reason: string;
+  },
+) {
   await db.insert(autopilotSuggestions).values({
     organizationId: params.organizationId,
     type: "duplicate",
@@ -22,14 +24,15 @@ export async function createDuplicateSuggestion(params: {
   });
 }
 
-export async function resolveSuggestion(params: {
-  suggestionId: string;
-  organizationId: string;
-  resolvedByUserId: string;
-  status: Extract<SuggestionStatus, "approved" | "dismissed">;
-}) {
-  const db = getDb();
-
+export async function resolveSuggestion(
+  db: Db,
+  params: {
+    suggestionId: string;
+    organizationId: string;
+    resolvedByUserId: string;
+    status: Extract<SuggestionStatus, "approved" | "dismissed">;
+  },
+) {
   const suggestion = await db.query.autopilotSuggestions.findFirst({
     where: and(
       eq(autopilotSuggestions.id, params.suggestionId),
@@ -63,7 +66,7 @@ export async function resolveSuggestion(params: {
     if (sourcePost.mergedIntoPostId) return { error: "Source post is already merged" };
     if (targetPost.mergedIntoPostId) return { error: "Target post is already merged" };
 
-    await withTransaction(async (tx) => {
+    await db.transaction(async (tx) => {
       await tx
         .update(feedbackPosts)
         .set({

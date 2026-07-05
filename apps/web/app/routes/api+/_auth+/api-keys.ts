@@ -1,17 +1,17 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { logOrgActivity } from "@features/internal/audit/server/log-org-activity";
+import { getAuth } from "@lib/auth/server";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
-import { auth } from "@/app/lib/auth/server";
-import { getDb } from "@/db";
 import { apikey } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/api-keys";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const keys = await db.query.apikey.findMany({
     where: eq(apikey.referenceId, organizationId),
@@ -44,10 +44,11 @@ const DeleteKeySchema = z.object({
 
 const BodySchema = z.discriminatedUnion("intent", [CreateKeySchema, DeleteKeySchema]);
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   let rawBody: unknown;
   try {
@@ -66,7 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (body.intent === "create") {
     try {
-      const result = await auth.api.createApiKey({
+      const result = await getAuth(db).api.createApiKey({
         body: {
           name: body.name,
           organizationId,
@@ -90,7 +91,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   // Verify the key belongs to this org before deleting
-  const db = getDb();
   const existing = await db.query.apikey.findFirst({
     where: and(eq(apikey.id, body.keyId), eq(apikey.referenceId, organizationId)),
     columns: { id: true },
@@ -100,7 +100,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
-    await auth.api.deleteApiKey({
+    await getAuth(db).api.deleteApiKey({
       body: { keyId: body.keyId },
       headers: request.headers,
     });

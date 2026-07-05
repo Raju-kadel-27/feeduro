@@ -4,6 +4,7 @@ import { BoardFilter } from "@features/internal/analytics/components/board-filte
 import { DateRangePicker } from "@features/internal/analytics/components/date-range-picker";
 import { loadAnalyticsOverview } from "@features/internal/analytics/server/overview";
 import { lazy, Suspense } from "react";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/analytics";
 
@@ -18,7 +19,8 @@ export function meta() {
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
-  return loadAnalyticsOverview(request, params.orgSlug, context);
+  const db = getDb(context);
+  return loadAnalyticsOverview(db, request, params.orgSlug, context);
 }
 
 export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {

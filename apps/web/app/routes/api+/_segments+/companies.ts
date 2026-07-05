@@ -7,20 +7,21 @@ import {
 } from "@features/internal/segmentation/server/service";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/companies";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const companies = await getOrgCompanies(organizationId);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
+  const companies = await getOrgCompanies(db, organizationId);
   return data({ companies });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const memberRecord = await db.query.member.findFirst({
     where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
@@ -45,7 +46,7 @@ export async function action({ request }: Route.ActionArgs) {
   const action = parsed.data;
 
   if (action.intent === "update") {
-    await updateCompany(organizationId, action.id, {
+    await updateCompany(db, organizationId, action.id, {
       name: action.name,
       monthlySpend: action.monthlySpend,
       plan: action.plan,
@@ -53,6 +54,6 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ success: true });
   }
 
-  await deleteCompany(organizationId, action.id);
+  await deleteCompany(db, organizationId, action.id);
   return data({ success: true });
 }

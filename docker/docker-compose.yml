@@ -18,36 +18,6 @@ services:
       timeout: 3s
       retries: 15
 
-  # WebSocket proxy for the neon-serverless driver — used by withTransaction()
-  # for interactive transactions. The app connects to ws://localhost:5433/v1
-  # (see db/client.ts dev config); APPEND_PORT points it at the `db` service.
-  neon-proxy:
-    image: ghcr.io/neondatabase/wsproxy:latest
-    restart: always
-    ports:
-      - "5433:80"
-    environment:
-      APPEND_PORT: "db:5432"
-      ALLOW_ADDR_REGEX: ".*"
-      LOG_TRAFFIC: "true"
-    depends_on:
-      db:
-        condition: service_healthy
-
-  # HTTP proxy for the neon-http driver — used by getDb() for all
-  # non-transactional queries. Serves Neon's /sql endpoint on :4444 in front of
-  # the local `db` (see neonConfig.fetchEndpoint in db/client.ts dev config).
-  neon-http-proxy:
-    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
-    restart: always
-    ports:
-      - "4444:4444"
-    environment:
-      PG_CONNECTION_STRING: "postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-feeduro}"
-    depends_on:
-      db:
-        condition: service_healthy
-
   smtp:
     image: axllent/mailpit
     container_name: feeduro-smtp

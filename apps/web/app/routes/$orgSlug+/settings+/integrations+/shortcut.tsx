@@ -21,8 +21,8 @@ import {
 import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/shortcut";
 
@@ -30,12 +30,12 @@ export function meta() {
   return [{ title: "Shortcut Integration — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [integration, memberRecord] = await Promise.all([
-    getIntegration(organizationId, "shortcut"),
+    getIntegration(db, organizationId, "shortcut"),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },

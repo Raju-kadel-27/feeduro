@@ -9,7 +9,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import {
   createTrelloCard,
@@ -30,26 +30,27 @@ function callbackUrl(orgId: string) {
 }
 
 async function withToken<T>(
+  db: Db,
   organizationId: string,
   fn: (apiKey: string, token: string) => Promise<T>,
 ): Promise<T> {
   const env = getEnv();
   if (!env.TRELLO_API_KEY) throw new Error("Trello not configured");
-  const integration = await getIntegration(organizationId, "trello");
+  const integration = await getIntegration(db, organizationId, "trello");
   if (!integration?.accessToken) throw new Error("Trello not connected");
   return fn(env.TRELLO_API_KEY, integration.accessToken);
 }
 
 // GET /api/trello?intent=connect → initiates OAuth (redirects to Trello authorize page)
 // GET /api/trello?orgId=...&token=... → OAuth callback — token returned directly by Trello
-export async function handleTrelloLoader(request: Request) {
+export async function handleTrelloLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const token = url.searchParams.get("token");
   const orgId = url.searchParams.get("orgId");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const env = getEnv();
     if (!env.TRELLO_API_KEY) {
       throw new Response("Trello not configured", { status: 501 });
@@ -65,8 +66,7 @@ export async function handleTrelloLoader(request: Request) {
     try {
       const me = await getTrelloMe(env.TRELLO_API_KEY, token);
 
-      const db = getDb();
-      const existing = await getIntegration(orgId, "trello");
+      const existing = await getIntegration(db, orgId, "trello");
       const existingSettings = parseSettings<TrelloSettings>(existing?.settings ?? null);
 
       if (existing?.accessToken && existingSettings?.webhookId) {
@@ -105,23 +105,23 @@ export async function handleTrelloLoader(request: Request) {
       // Redirect even on error — UI will show "not connected"
     }
 
-    const orgSlug = await getOrgSlugFromId(orgId);
+    const orgSlug = await getOrgSlugFromId(db, orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/trello` : "/");
   }
 
   return data({});
 }
 
-export async function handleTrelloAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function handleTrelloAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "list_boards") {
     try {
-      const boards = await withToken(organizationId, (key, tok) => getTrelloBoards(key, tok));
+      const boards = await withToken(db, organizationId, (key, tok) => getTrelloBoards(key, tok));
       return data({ boards });
     } catch (err) {
       return data(
@@ -135,7 +135,7 @@ export async function handleTrelloAction(request: Request) {
     const boardId = body.boardId as string;
     if (!boardId) return data({ error: "boardId is required" }, { status: 400 });
     try {
-      const lists = await withToken(organizationId, (key, tok) =>
+      const lists = await withToken(db, organizationId, (key, tok) =>
         getTrelloLists(key, tok, boardId),
       );
       return data({ lists });
@@ -148,8 +148,7 @@ export async function handleTrelloAction(request: Request) {
   }
 
   if (body.intent === "update_settings") {
-    const db = getDb();
-    const integration = await getIntegration(organizationId, "trello");
+    const integration = await getIntegration(db, organizationId, "trello");
     if (!integration) return data({ error: "No Trello integration found" }, { status: 400 });
     const settings = parseSettings<TrelloSettings>(integration.settings) ?? ({} as TrelloSettings);
 
@@ -215,8 +214,7 @@ export async function handleTrelloAction(request: Request) {
   }
 
   if (body.intent === "disconnect") {
-    const db = getDb();
-    const integration = await getIntegration(organizationId, "trello");
+    const integration = await getIntegration(db, organizationId, "trello");
     if (integration?.accessToken) {
       const settings = parseSettings<TrelloSettings>(integration.settings);
       const env = getEnv();
@@ -240,9 +238,8 @@ export async function handleTrelloAction(request: Request) {
     const postId = body.postId as string;
     if (!postId) return data({ error: "postId is required" }, { status: 400 });
 
-    const db = getDb();
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "trello"),
+      getIntegration(db, organizationId, "trello"),
       db.query.feedbackPosts.findFirst({
         where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
         columns: { id: true, title: true, description: true },
@@ -310,10 +307,9 @@ export async function handleTrelloAction(request: Request) {
       return data({ error: "postId and cardInput are required" }, { status: 400 });
 
     const cardId = parseTrelloCardInput(rawInput);
-    const db = getDb();
 
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "trello"),
+      getIntegration(db, organizationId, "trello"),
       db.query.feedbackPosts.findFirst({
         where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
         columns: { id: true },
@@ -368,7 +364,6 @@ export async function handleTrelloAction(request: Request) {
   if (body.intent === "unlink_card") {
     const postId = body.postId as string;
     if (!postId) return data({ error: "postId is required" }, { status: 400 });
-    const db = getDb();
     await db
       .delete(postExternalLinks)
       .where(

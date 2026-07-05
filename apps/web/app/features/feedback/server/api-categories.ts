@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackCategories } from "@/db/schema";
 import { createCategory, deleteCategory, getOrgCategories } from "./categories";
 
@@ -12,11 +12,12 @@ export const CreateCategorySchema = z.object({
     .default("#6366f1"),
 });
 
-export async function listCategories(organizationId: string) {
-  return getOrgCategories(organizationId);
+export async function listCategories(db: Db, organizationId: string) {
+  return getOrgCategories(db, organizationId);
 }
 
 export async function createOrgCategory(
+  db: Db,
   organizationId: string,
   input: z.infer<typeof CreateCategorySchema>,
 ): Promise<
@@ -24,7 +25,7 @@ export async function createOrgCategory(
   | { error: "category_name_exists" }
 > {
   try {
-    const category = await createCategory(organizationId, input.name, input.color);
+    const category = await createCategory(db, organizationId, input.name, input.color);
     return { data: category };
   } catch {
     return { error: "category_name_exists" };
@@ -32,10 +33,10 @@ export async function createOrgCategory(
 }
 
 export async function deleteOrgCategory(
+  db: Db,
   organizationId: string,
   categoryId: string,
 ): Promise<boolean> {
-  const db = getDb();
   const category = await db.query.feedbackCategories.findFirst({
     where: and(
       eq(feedbackCategories.id, categoryId),
@@ -44,6 +45,6 @@ export async function deleteOrgCategory(
     columns: { id: true },
   });
   if (!category) return false;
-  await deleteCategory(organizationId, categoryId);
+  await deleteCategory(db, organizationId, categoryId);
   return true;
 }

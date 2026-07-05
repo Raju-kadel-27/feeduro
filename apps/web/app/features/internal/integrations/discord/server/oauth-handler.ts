@@ -4,6 +4,7 @@ import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { data, redirect } from "react-router";
+import type { Db } from "@/db";
 import { getOrgSlugFromId, upsertNotificationSettings } from "../../server/queries";
 
 const DISCORD_AUTHORIZE_URL = "https://discord.com/api/oauth2/authorize";
@@ -49,8 +50,8 @@ async function exchangeDiscordCode(
 }
 
 // GET /api/discord?intent=connect
-export async function handleDiscordConnect(request: Request) {
-  const { organizationId } = await requireOrganization(request);
+export async function handleDiscordConnect(db: Db, request: Request) {
+  const { organizationId } = await requireOrganization(db, request);
   const { clientId } = requireEnv();
   const oauthState = buildOAuthState(organizationId);
   return redirect(
@@ -69,7 +70,7 @@ export async function handleDiscordConnect(request: Request) {
 }
 
 // GET /api/oauth2/discord/callback?code=...&state=...
-export async function handleDiscordCallback(request: Request) {
+export async function handleDiscordCallback(db: Db, request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -84,7 +85,7 @@ export async function handleDiscordCallback(request: Request) {
   try {
     const result = await exchangeDiscordCode(code, clientId, clientSecret, callbackUrl());
     if (result) {
-      await upsertNotificationSettings(parsed.orgId, {
+      await upsertNotificationSettings(db, parsed.orgId, {
         discordWebhookUrl: result.webhookUrl,
         discordChannelId: result.channelId,
       });
@@ -93,17 +94,17 @@ export async function handleDiscordCallback(request: Request) {
     // ignore — UI will show disconnected
   }
 
-  const orgSlug = await getOrgSlugFromId(parsed.orgId);
+  const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
   return redirect(orgSlug ? `/${orgSlug}/settings/integrations` : "/");
 }
 
 // POST /api/discord  intent=disconnect
-export async function handleDiscordAction(request: Request) {
-  const { organizationId } = await requireOrganization(request);
+export async function handleDiscordAction(db: Db, request: Request) {
+  const { organizationId } = await requireOrganization(db, request);
   const form = Object.fromEntries(await request.formData());
 
   if (form.intent === "disconnect") {
-    await upsertNotificationSettings(organizationId, {
+    await upsertNotificationSettings(db, organizationId, {
       discordWebhookUrl: null,
       discordChannelId: null,
     });

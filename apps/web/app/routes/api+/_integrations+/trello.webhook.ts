@@ -3,8 +3,8 @@ import { verifyTrelloWebhook } from "@features/internal/integrations/trello/serv
 import type { TrelloSettings } from "@features/internal/integrations/trello/server/schemas";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
 import { feedbackPosts, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/trello.webhook";
 
 type TrelloAction =
@@ -33,15 +33,15 @@ export async function loader() {
 }
 
 // POST /api/trello/webhook?orgId=<feeduro-org-id>
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
   if (!orgId) return new Response("Missing orgId", { status: 400 });
 
   const body = await request.text();
 
-  const db = getDb();
-  const integration = await getIntegration(orgId, "trello");
+  const integration = await getIntegration(db, orgId, "trello");
   if (!integration) return new Response("Integration not found", { status: 404 });
 
   // Verify HMAC-SHA1 signature using the Trello API secret

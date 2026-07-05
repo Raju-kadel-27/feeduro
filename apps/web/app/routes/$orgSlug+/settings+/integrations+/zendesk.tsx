@@ -11,25 +11,25 @@ import { ExternalLink, Unplug } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/zendesk";
 
 export function meta() {
   return [{ title: "Zendesk Integration — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
   const env = getEnv();
-  const db = getDb();
 
   const [memberRecord, integration] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
     }),
-    getIntegration(organizationId, "zendesk"),
+    getIntegration(db, organizationId, "zendesk"),
   ]);
 
   const settings = parseSettings<ZendeskSettings>(integration?.settings ?? null);

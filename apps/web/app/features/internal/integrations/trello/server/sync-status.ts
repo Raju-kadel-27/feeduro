@@ -1,6 +1,6 @@
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";
 import { moveTrelloCardToList } from "./client";
@@ -9,11 +9,11 @@ import type { TrelloSettings } from "./schemas";
 const LOG = "[trello-sync-status]";
 
 export async function syncStatusToTrello(
+  db: Db,
   organizationId: string,
   postId: string,
   newFeeduroStatus: string,
 ): Promise<void> {
-  const db = getDb();
   const [link, integration] = await Promise.all([
     db.query.postExternalLinks.findFirst({
       where: and(
@@ -23,7 +23,7 @@ export async function syncStatusToTrello(
       ),
       columns: { externalId: true },
     }),
-    getIntegration(organizationId, "trello"),
+    getIntegration(db, organizationId, "trello"),
   ]);
 
   if (!link) { console.log(`${LOG} no linked card postId=${postId}`); return; }

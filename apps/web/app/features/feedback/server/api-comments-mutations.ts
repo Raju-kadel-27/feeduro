@@ -4,7 +4,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { type RouterContextProvider } from "react-router";
 import { z } from "zod";
-import { getDb, withTransaction } from "@/db";
+import type { Db } from "@/db";
 import { comments, feedbackPosts, user } from "@/db/schema";
 
 export const CreateCommentSchema = z.object({
@@ -19,12 +19,11 @@ type CreateCommentResult =
   | { error: "post_not_found" | "user_not_found" | "parent_not_found" | "cannot_reply_to_reply" };
 
 export async function createComment(
+  db: Db,
   organizationId: string,
   input: z.infer<typeof CreateCommentSchema>,
   context: Readonly<RouterContextProvider>,
 ): Promise<CreateCommentResult> {
-  const db = getDb();
-
   const [post, authorRows] = await Promise.all([
     db.query.feedbackPosts.findFirst({
       where: and(eq(feedbackPosts.organizationId, organizationId), eq(feedbackPosts.id, input.postId)),
@@ -77,16 +76,14 @@ export async function createComment(
   return { data: { id, postId: input.postId, userId: input.userId, parentId: input.parentId ?? null, body: input.body, createdAt } };
 }
 
-export async function deleteComment(organizationId: string, commentId: string): Promise<boolean> {
-  const db = getDb();
-
+export async function deleteComment(db: Db, organizationId: string, commentId: string): Promise<boolean> {
   const comment = await db.query.comments.findFirst({
     where: and(eq(comments.id, commentId), eq(comments.organizationId, organizationId)),
     columns: { id: true },
   });
   if (!comment) return false;
 
-  await withTransaction(async (tx) => {
+  await db.transaction(async (tx) => {
     await tx.delete(comments).where(eq(comments.parentId, commentId));
     await tx.delete(comments).where(and(eq(comments.id, commentId), eq(comments.organizationId, organizationId)));
   });

@@ -5,7 +5,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import {
   deleteIntegration,
@@ -52,7 +52,7 @@ function requireLinearEnv() {
 
 // ─── Loader ──────────────────────────────────────────────────────────────────
 
-export async function handleLinearLoader(request: Request) {
+export async function handleLinearLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -60,7 +60,7 @@ export async function handleLinearLoader(request: Request) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const { clientId } = requireLinearEnv();
     const oauthState = buildOAuthState(organizationId);
     return redirect(buildAuthUrl(linearOAuth, clientId, callbackUrl(), oauthState));
@@ -89,7 +89,7 @@ export async function handleLinearLoader(request: Request) {
       const workspace = await getLinearWorkspace(accessToken);
       console.log(`${LOG} token exchanged workspaceId=${workspace.id} name="${workspace.name}"`);
 
-      const existing = await getIntegration(parsed.orgId, "linear");
+      const existing = await getIntegration(db, parsed.orgId, "linear");
       const existingSettings = parseSettings<LinearSettings>(existing?.settings ?? null);
 
       // Webhook registration requires a teamId (non-admin accounts cannot use allPublicTeams).
@@ -113,7 +113,6 @@ export async function handleLinearLoader(request: Request) {
         `${LOG} saving integration orgId=${parsed.orgId} hasWebhook=${!!settings.webhookId}`,
       );
 
-      const db = getDb();
       await db
         .insert(integrations)
         .values({
@@ -135,7 +134,7 @@ export async function handleLinearLoader(request: Request) {
       );
     }
 
-    const orgSlug = await getOrgSlugFromId(parsed.orgId);
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/linear` : "/");
   }
 
@@ -144,9 +143,9 @@ export async function handleLinearLoader(request: Request) {
 
 // ─── Action ──────────────────────────────────────────────────────────────────
 
-export async function handleLinearAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requireAdminRole(organizationId, session.user.id);
+export async function handleLinearAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requireAdminRole(db, organizationId, session.user.id);
 
   const body = await request.json();
   const parsed = LinearActionSchema.safeParse(body);
@@ -154,10 +153,9 @@ export async function handleLinearAction(request: Request) {
     return data({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
   }
   const input = parsed.data;
-  const db = getDb();
 
   if (input.intent === "list_teams") {
-    const accessToken = await getIntegrationToken(organizationId, "linear");
+    const accessToken = await getIntegrationToken(db, organizationId, "linear");
     if (!accessToken) return data({ error: "Linear not connected" }, { status: 400 });
     try {
       const teams = await getLinearTeams(accessToken);
@@ -174,7 +172,7 @@ export async function handleLinearAction(request: Request) {
     console.log(
       `${LOG} update_settings orgId=${organizationId} autoCreate=${input.autoCreateIssues} teamId=${input.defaultTeamId ?? "none"}`,
     );
-    const integration = await getIntegration(organizationId, "linear");
+    const integration = await getIntegration(db, organizationId, "linear");
     if (!integration?.accessToken) return data({ error: "No Linear integration found" }, { status: 400 });
     const settings = parseSettings<LinearSettings>(integration.settings) ?? ({} as LinearSettings);
 
@@ -212,6 +210,7 @@ export async function handleLinearAction(request: Request) {
     }
 
     await updateIntegrationSettings(
+      db,
       organizationId,
       "linear",
       {
@@ -230,7 +229,7 @@ export async function handleLinearAction(request: Request) {
 
   if (input.intent === "disconnect") {
     console.log(`${LOG} disconnect orgId=${organizationId}`);
-    const integration = await getIntegration(organizationId, "linear");
+    const integration = await getIntegration(db, organizationId, "linear");
     if (integration?.accessToken) {
       const settings = parseSettings<LinearSettings>(integration.settings);
       if (settings?.webhookId) {
@@ -242,13 +241,13 @@ export async function handleLinearAction(request: Request) {
         console.warn(`${LOG} disconnect — no webhookId in settings, webhook may still exist in Linear`);
       }
     }
-    await deleteIntegration(organizationId, "linear");
+    await deleteIntegration(db, organizationId, "linear");
     console.log(`${LOG} disconnect done orgId=${organizationId}`);
     return data({ success: true });
   }
 
   if (input.intent === "list_team_states") {
-    const accessToken = await getIntegrationToken(organizationId, "linear");
+    const accessToken = await getIntegrationToken(db, organizationId, "linear");
     if (!accessToken) return data({ error: "Linear not connected" }, { status: 400 });
     try {
       const states = await getLinearTeamStates(accessToken, input.teamId);
@@ -263,7 +262,7 @@ export async function handleLinearAction(request: Request) {
 
   if (input.intent === "create_issue") {
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "linear"),
+      getIntegration(db, organizationId, "linear"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -320,7 +319,7 @@ export async function handleLinearAction(request: Request) {
       console.log(
         `${LOG} create_issue done issueId=${issue.id} identifier=${issue.identifier} postId=${input.postId}`,
       );
-      await insertPostExternalLink({
+      await insertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "linear",
@@ -346,7 +345,7 @@ export async function handleLinearAction(request: Request) {
 
   if (input.intent === "link_issue") {
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "linear"),
+      getIntegration(db, organizationId, "linear"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -370,7 +369,7 @@ export async function handleLinearAction(request: Request) {
     );
     try {
       const issue = await getLinearIssueById(integration.accessToken, parseLinearInput(input.issueId));
-      await upsertPostExternalLink({
+      await upsertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "linear",
@@ -399,13 +398,13 @@ export async function handleLinearAction(request: Request) {
 
   if (input.intent === "unlink_issue") {
     console.log(`${LOG} unlink_issue postId=${input.postId} orgId=${organizationId}`);
-    await deletePostExternalLink(input.postId, "linear", organizationId);
+    await deletePostExternalLink(db, input.postId, "linear", organizationId);
     return data({ success: true });
   }
 
   if (input.intent === "search_issues") {
     try {
-      const integration = await getIntegration(organizationId, "linear");
+      const integration = await getIntegration(db, organizationId, "linear");
       if (!integration?.accessToken) return data({ error: "Linear not connected" }, { status: 400 });
       const settings = parseSettings<LinearSettings>(integration.settings);
       const issues = await searchLinearIssues(

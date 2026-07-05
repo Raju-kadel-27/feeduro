@@ -1,6 +1,7 @@
 import { resolveApiOrganizationId } from "@features/auth/server/guards";
 import { IdentifyUserSchema } from "@features/internal/segmentation/schemas/identify";
 import { bulkUpsertUserProfiles } from "@features/internal/segmentation/server/service";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 import { z } from "zod";
 
@@ -10,12 +11,13 @@ const BulkImportSchema = z.object({
   profiles: z.array(IdentifyUserSchema).min(1).max(5000),
 });
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   if (request.method !== "POST") {
     return data({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const organizationId = await resolveApiOrganizationId(request);
+  const organizationId = await resolveApiOrganizationId(db, request);
   if (!organizationId) return data({ error: "Unauthorized" }, { status: 401 });
 
   let body: unknown;

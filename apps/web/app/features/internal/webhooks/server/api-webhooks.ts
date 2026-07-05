@@ -6,7 +6,7 @@ import {
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import type { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { webhookEndpoints } from "@/db/schema";
 
 export { CreateWebhookSchema, UpdateWebhookSchema } from "@features/internal/webhooks/schemas/endpoint";
@@ -20,10 +20,10 @@ function generateSecret(): string {
 }
 
 export async function createWebhook(
+  db: Db,
   organizationId: string,
   input: z.infer<typeof CreateWebhookSchema>,
 ) {
-  const db = getDb();
   const count = await db.$count(
     webhookEndpoints,
     eq(webhookEndpoints.organizationId, organizationId),
@@ -57,11 +57,11 @@ export async function createWebhook(
 }
 
 export async function updateWebhook(
+  db: Db,
   organizationId: string,
   id: string,
   input: z.infer<typeof UpdateWebhookSchema>,
 ) {
-  const db = getDb();
   const existing = await db.query.webhookEndpoints.findFirst({
     where: and(eq(webhookEndpoints.id, id), eq(webhookEndpoints.organizationId, organizationId)),
     columns: { id: true },
@@ -82,8 +82,7 @@ export async function updateWebhook(
   return true;
 }
 
-export async function deleteWebhook(organizationId: string, id: string) {
-  const db = getDb();
+export async function deleteWebhook(db: Db, organizationId: string, id: string) {
   const existing = await db.query.webhookEndpoints.findFirst({
     where: and(eq(webhookEndpoints.id, id), eq(webhookEndpoints.organizationId, organizationId)),
     columns: { id: true },
@@ -96,8 +95,7 @@ export async function deleteWebhook(organizationId: string, id: string) {
   return true;
 }
 
-export async function rotateWebhookSecret(organizationId: string, id: string) {
-  const db = getDb();
+export async function rotateWebhookSecret(db: Db, organizationId: string, id: string) {
   const existing = await db.query.webhookEndpoints.findFirst({
     where: and(eq(webhookEndpoints.id, id), eq(webhookEndpoints.organizationId, organizationId)),
     columns: { id: true },

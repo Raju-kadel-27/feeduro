@@ -5,6 +5,7 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./*"],
+      "~/*": ["./app/*"],
       "@components/*": ["./app/components/*"],
       "@providers/*": ["./app/providers/*"],
       "@hooks/*": ["./app/hooks/*"],

@@ -1,10 +1,8 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { ContributorRankSchema } from "../schemas/analytics";
 
-export async function getTopContributors(organizationId: string, limit = 10) {
-  const db = getDb();
-
+export async function getTopContributors(db: Db, organizationId: string, limit = 10) {
   // Drive from org-scoped activity aggregates so we never touch the global
   // user table beyond the rows that actually have activity in this org.
   const rows = await db.execute(sql`

@@ -6,9 +6,10 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { auth } from "@lib/auth/server";
+import { getAuth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Crown, UserMinus } from "lucide-react";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/members";
 
@@ -16,9 +17,11 @@ export function meta() {
   return [{ title: "Members — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
+  const auth = getAuth(db);
   const [membersResult, org] = await Promise.all([
     auth.api.listMembers({
       headers: request.headers,

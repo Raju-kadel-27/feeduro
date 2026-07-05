@@ -1,11 +1,9 @@
 import { and, eq, gte, isNull, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
 import { BoardSummarySchema } from "../schemas/analytics";
 
-export async function getBoardSummaries(organizationId: string, since?: Date) {
-  const db = getDb();
-
+export async function getBoardSummaries(db: Db, organizationId: string, since?: Date) {
   const joinConditions = [
     eq(feedbackPosts.boardId, feedbackBoards.id),
     eq(feedbackPosts.organizationId, organizationId),

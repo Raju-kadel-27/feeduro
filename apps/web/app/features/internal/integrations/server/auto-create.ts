@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import type { IntegrationProvider } from "./queries";
 
@@ -12,10 +12,10 @@ export function buildPostDescription(post: AutoCreatePost): string {
 }
 
 export async function isAlreadyLinked(
+  db: Db,
   postId: string,
   provider: IntegrationProvider,
 ): Promise<boolean> {
-  const db = getDb();
   const existing = await db.query.postExternalLinks.findFirst({
     where: and(eq(postExternalLinks.postId, postId), eq(postExternalLinks.provider, provider)),
     columns: { id: true },

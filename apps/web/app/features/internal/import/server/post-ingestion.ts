@@ -1,5 +1,5 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 import type { CannyPost } from "../schemas/canny";
 import { mapCannyStatus } from "./canny-adapter";
@@ -9,13 +9,13 @@ const BATCH = 100;
 // Insert posts with ON CONFLICT DO NOTHING (dedup via fp_import_dedup_idx).
 // Returns Map<cannyPostId, ourPostId> — includes both newly inserted and pre-existing rows.
 export async function insertPosts(
+  db: Db,
   organizationId: string,
   jobId: string,
   posts: CannyPost[],
   boardMap: Map<string, string>,
 ): Promise<Map<string, string>> {
   if (posts.length === 0) return new Map();
-  const db = getDb();
 
   const values = posts
     .filter((p) => boardMap.has(p.board.id))
@@ -65,9 +65,8 @@ export async function insertPosts(
 
 // Reconcile cached voteCount for a set of posts by counting real vote rows.
 // Called after bulk vote insertion so the count is accurate.
-export async function reconcileVoteCounts(postIds: string[]): Promise<void> {
+export async function reconcileVoteCounts(db: Db, postIds: string[]): Promise<void> {
   if (postIds.length === 0) return;
-  const db = getDb();
 
   for (let i = 0; i < postIds.length; i += BATCH) {
     const batch = postIds.slice(i, i + BATCH);

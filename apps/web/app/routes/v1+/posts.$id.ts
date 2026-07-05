@@ -2,12 +2,14 @@ import { getPost, UpdatePostSchema } from "@features/feedback/server/api-posts";
 import { deletePost, updatePost } from "@features/feedback/server/api-posts-mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/posts.$id";
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const organizationId = await requireApiKey(request);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
   const post = await getPost(organizationId, params.id);
   if (!post) {
     const err = apiError("not_found");
@@ -16,8 +18,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return data({ data: post });
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const organizationId = await requireApiKey(request);
+export async function action({ request, params, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
 
   if (request.method === "DELETE") {
     const deleted = await deletePost(organizationId, params.id);

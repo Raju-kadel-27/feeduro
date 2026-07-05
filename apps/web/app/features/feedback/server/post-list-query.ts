@@ -3,7 +3,7 @@ import { getMrrImpactByPost, getVoterTraitCountsByPost } from "@features/interna
 import type { VoterTraitCounts } from "@features/internal/segmentation/types";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { comments, feedbackPosts, user, votes } from "@/db/schema";
 
 const EMPTY_TRAITS: VoterTraitCounts = { plan: {}, role: {}, industry: {}, location: {} };
@@ -11,12 +11,11 @@ const EMPTY_TRAITS: VoterTraitCounts = { plan: {}, role: {}, industry: {}, locat
 type PostListFilters = { boardId: string | null; status: string | null };
 
 export async function handleGetPostList(
+  db: Db,
   organizationId: string,
   userId: string,
   filters: PostListFilters,
 ) {
-  const db = getDb();
-
   const conditions = [
     eq(feedbackPosts.organizationId, organizationId),
     isNull(feedbackPosts.mergedIntoPostId),
@@ -75,12 +74,12 @@ export async function handleGetPostList(
             .groupBy(comments.postId)
         : Promise.resolve([]),
       postIds.length > 0
-        ? getVoterTraitCountsByPost(organizationId, postIds)
+        ? getVoterTraitCountsByPost(db, organizationId, postIds)
         : Promise.resolve({} as Record<string, VoterTraitCounts>),
       allRelevantIds.length > 0
-        ? getMrrImpactByPost(organizationId, allRelevantIds)
+        ? getMrrImpactByPost(db, organizationId, allRelevantIds)
         : Promise.resolve({} as Record<string, number>),
-      postIds.length > 0 ? getPostTagsBatch(postIds) : Promise.resolve([]),
+      postIds.length > 0 ? getPostTagsBatch(db, postIds) : Promise.resolve([]),
       authorIds.length > 0
         ? db
             .select({ id: user.id, name: user.name, image: user.image })

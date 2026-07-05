@@ -1,9 +1,12 @@
 import { PublicBoardPage } from "@features/feedback/components/public/public-board-page";
 import { publicPageLoader } from "@features/feedback/server/public-loader";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/$orgSlug";
 
-export const loader = publicPageLoader;
+export function loader({ request, params, context }: Route.LoaderArgs) {
+  return publicPageLoader(getDb(context), { request, params });
+}
 
 export function meta({ data: loaderData, location }: Route.MetaArgs) {
   if (!loaderData) return [{ title: "Feedback Board" }];

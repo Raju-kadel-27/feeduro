@@ -1,16 +1,18 @@
 import { resolveApiOrganizationId } from "@features/auth/server/guards";
 import { IdentifyUserSchema } from "@features/internal/segmentation/schemas/identify";
 import { upsertUserProfile } from "@features/internal/segmentation/server/service";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/user-profiles";
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   if (request.method !== "POST") {
     return data({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const organizationId = await resolveApiOrganizationId(request);
+  const organizationId = await resolveApiOrganizationId(db, request);
   if (!organizationId) return data({ error: "Unauthorized" }, { status: 401 });
 
   let body: unknown;

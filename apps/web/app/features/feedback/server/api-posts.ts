@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, lt } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, feedbackTags, postTags } from "@/db/schema";
 
 export const ListPostsSchema = z.object({
@@ -44,9 +44,8 @@ export function decodeCursor(cursor: string): Date | null {
   }
 }
 
-export async function getTagsForPosts(postIds: string[]) {
+export async function getTagsForPosts(db: Db, postIds: string[]) {
   if (postIds.length === 0) return {} as Record<string, { id: string; name: string; color: string }[]>;
-  const db = getDb();
   const rows = await db
     .select({ postId: postTags.postId, id: feedbackTags.id, name: feedbackTags.name, color: feedbackTags.color })
     .from(postTags)
@@ -61,8 +60,7 @@ export async function getTagsForPosts(postIds: string[]) {
   return map;
 }
 
-export async function listPosts(organizationId: string, params: z.infer<typeof ListPostsSchema>) {
-  const db = getDb();
+export async function listPosts(db: Db, organizationId: string, params: z.infer<typeof ListPostsSchema>) {
   const { boardId, status, limit, cursor } = params;
   const cursorDate = cursor ? decodeCursor(cursor) : null;
 
@@ -82,18 +80,17 @@ export async function listPosts(organizationId: string, params: z.infer<typeof L
   const hasMore = posts.length > limit;
   const items = hasMore ? posts.slice(0, limit) : posts;
   const nextCursor = hasMore ? encodeCursor(items[items.length - 1].createdAt) : undefined;
-  const tagMap = await getTagsForPosts(items.map((p) => p.id));
+  const tagMap = await getTagsForPosts(db, items.map((p) => p.id));
 
   return { data: items.map((p) => ({ ...p, tags: tagMap[p.id] ?? [] })), hasMore, cursor: nextCursor };
 }
 
-export async function getPost(organizationId: string, postId: string) {
-  const db = getDb();
+export async function getPost(db: Db, organizationId: string, postId: string) {
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.organizationId, organizationId), eq(feedbackPosts.id, postId)),
     columns: POST_COLS,
   });
   if (!post) return null;
-  const tagMap = await getTagsForPosts([postId]);
+  const tagMap = await getTagsForPosts(db, [postId]);
   return { ...post, tags: tagMap[postId] ?? [] };
 }

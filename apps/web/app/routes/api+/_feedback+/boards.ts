@@ -3,8 +3,8 @@ import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits"
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/boards";
 
@@ -16,16 +16,16 @@ function slugify(name: string): string {
     .substring(0, 80);
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const [boards, planLimits, counts, statusRows] = await Promise.all([
     db.query.feedbackBoards.findMany({
       where: eq(feedbackBoards.organizationId, organizationId),
       orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
     }),
-    getOrgPlanLimits(organizationId),
+    getOrgPlanLimits(db, organizationId),
     db
       .select({
         boardId: feedbackPosts.boardId,
@@ -54,9 +54,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const body = (await request.json()) as {
     intent: string;
@@ -64,7 +64,7 @@ export async function action({ request }: Route.ActionArgs) {
   };
 
   if (body.intent === "create") {
-    await requirePermission(organizationId, session.user.id, { board: ["create"] });
+    await requirePermission(db, organizationId, session.user.id, { board: ["create"] });
 
     const name = (body.name as string)?.trim();
     if (!name) return data({ error: "Name is required" }, { status: 400 });
@@ -74,7 +74,7 @@ export async function action({ request }: Route.ActionArgs) {
         where: eq(feedbackBoards.organizationId, organizationId),
         columns: { id: true },
       }),
-      getOrgPlanLimits(organizationId),
+      getOrgPlanLimits(db, organizationId),
     ]);
 
     const { boards: boardLimit } = planLimits;
@@ -113,7 +113,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update") {
-    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+    await requirePermission(db, organizationId, session.user.id, { board: ["update"] });
 
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
@@ -134,7 +134,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update-visibility") {
-    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+    await requirePermission(db, organizationId, session.user.id, { board: ["update"] });
 
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
@@ -150,7 +150,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "delete") {
-    await requirePermission(organizationId, session.user.id, { board: ["delete"] });
+    await requirePermission(db, organizationId, session.user.id, { board: ["delete"] });
 
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
@@ -186,7 +186,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update-smart-replies") {
-    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+    await requirePermission(db, organizationId, session.user.id, { board: ["update"] });
 
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });
@@ -203,7 +203,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update-anonymize-users") {
-    await requirePermission(organizationId, session.user.id, { board: ["update"] });
+    await requirePermission(db, organizationId, session.user.id, { board: ["update"] });
 
     const id = body.id as string;
     if (!id) return data({ error: "ID is required" }, { status: 400 });

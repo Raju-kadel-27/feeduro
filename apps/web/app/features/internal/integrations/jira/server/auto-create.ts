@@ -1,7 +1,7 @@
 import { refreshAccessToken } from "@services/oauth/flow.server";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { integrations } from "@/db/schema";
 import {
   type AutoCreatePost,
@@ -15,11 +15,12 @@ import { jiraOAuth } from "./oauth";
 import type { JiraSettings } from "./schemas";
 
 export async function autoCreateJiraIssue(
+  db: Db,
   organizationId: string,
   post: AutoCreatePost,
   userId?: string,
 ): Promise<void> {
-  const integration = await getIntegration(organizationId, "jira");
+  const integration = await getIntegration(db, organizationId, "jira");
   if (!integration?.accessToken) return;
 
   const settings = parseSettings<JiraSettings>(integration.settings);
@@ -31,7 +32,7 @@ export async function autoCreateJiraIssue(
   )
     return;
 
-  if (await isAlreadyLinked(post.id, "jira")) return;
+  if (await isAlreadyLinked(db, post.id, "jira")) return;
 
   const { cloudId, cloudUrl, defaultProjectKey } = settings;
   const description = buildPostDescription(post);
@@ -60,7 +61,6 @@ export async function autoCreateJiraIssue(
       env.JIRA_CLIENT_ID,
       env.JIRA_CLIENT_SECRET,
     );
-    const db = getDb();
     await db
       .update(integrations)
       .set({
@@ -82,7 +82,7 @@ export async function autoCreateJiraIssue(
     );
   }
 
-  await insertPostExternalLink({
+  await insertPostExternalLink(db, {
     postId: post.id,
     organizationId,
     provider: "jira",

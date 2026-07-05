@@ -1,13 +1,11 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { UnrespondedPostsSchema } from "../schemas/analytics";
 
 // Posts still 'open' after this many days are considered unresponded
 const THRESHOLD_DAYS = 30;
 
-export async function getUnrespondedPosts(organizationId: string, boardId?: string) {
-  const db = getDb();
-
+export async function getUnrespondedPosts(db: Db, organizationId: string, boardId?: string) {
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   // Uses fp_org_status_idx (organization_id, status) to filter efficiently;

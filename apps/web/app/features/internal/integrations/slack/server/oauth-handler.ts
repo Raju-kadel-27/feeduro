@@ -3,6 +3,7 @@ import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { data, redirect } from "react-router";
+import type { Db } from "@/db";
 import { getOrgSlugFromId, upsertNotificationSettings } from "../../server/queries";
 
 const SLACK_AUTHORIZE_URL = "https://slack.com/oauth/v2/authorize";
@@ -55,15 +56,15 @@ async function exchangeSlackCode(
 }
 
 // GET /api/slack?intent=connect
-export async function handleSlackConnect(request: Request) {
-  const { organizationId } = await requireOrganization(request);
+export async function handleSlackConnect(db: Db, request: Request) {
+  const { organizationId } = await requireOrganization(db, request);
   const { clientId } = requireEnv();
   const oauthState = buildOAuthState(organizationId);
   return redirect(buildSlackAuthUrl(clientId, callbackUrl(), oauthState));
 }
 
 // GET /api/oauth2/slack/callback?code=...&state=...
-export async function handleSlackCallback(request: Request) {
+export async function handleSlackCallback(db: Db, request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -78,7 +79,7 @@ export async function handleSlackCallback(request: Request) {
   try {
     const result = await exchangeSlackCode(code, clientId, clientSecret, callbackUrl());
     if (result) {
-      await upsertNotificationSettings(parsed.orgId, {
+      await upsertNotificationSettings(db, parsed.orgId, {
         slackWebhookUrl: result.webhookUrl,
         slackChannel: result.channel,
       });
@@ -87,17 +88,17 @@ export async function handleSlackCallback(request: Request) {
     // ignore — UI will show disconnected
   }
 
-  const orgSlug = await getOrgSlugFromId(parsed.orgId);
+  const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
   return redirect(orgSlug ? `/${orgSlug}/settings/integrations` : "/");
 }
 
 // POST /api/slack  intent=disconnect
-export async function handleSlackAction(request: Request) {
-  const { organizationId } = await requireOrganization(request);
+export async function handleSlackAction(db: Db, request: Request) {
+  const { organizationId } = await requireOrganization(db, request);
   const form = Object.fromEntries(await request.formData());
 
   if (form.intent === "disconnect") {
-    await upsertNotificationSettings(organizationId, {
+    await upsertNotificationSettings(db, organizationId, {
       slackWebhookUrl: null,
       slackChannel: null,
     });

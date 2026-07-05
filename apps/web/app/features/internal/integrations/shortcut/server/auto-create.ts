@@ -1,3 +1,4 @@
+import type { Db } from "@/db";
 import { type AutoCreatePost, isAlreadyLinked } from "../../server/auto-create";
 import { insertPostExternalLink } from "../../server/mutations";
 import { getIntegration, parseSettings } from "../../server/queries";
@@ -5,11 +6,12 @@ import { createShortcutStory } from "./client";
 import type { ShortcutSettings } from "./schemas";
 
 export async function autoCreateShortcutStory(
+  db: Db,
   organizationId: string,
   post: AutoCreatePost,
   userId?: string,
 ): Promise<void> {
-  const integration = await getIntegration(organizationId, "shortcut");
+  const integration = await getIntegration(db, organizationId, "shortcut");
   if (!integration?.accessToken) return;
 
   const settings = parseSettings<ShortcutSettings>(integration.settings);
@@ -28,7 +30,7 @@ export async function autoCreateShortcutStory(
     description,
   );
 
-  await insertPostExternalLink({
+  await insertPostExternalLink(db, {
     postId: post.id,
     organizationId,
     provider: "shortcut",

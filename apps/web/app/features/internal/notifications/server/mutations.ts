@@ -1,5 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { notifications } from "@/db/schema";
 import type { NotificationMetadata, NotificationType } from "../schemas/notification";
 
@@ -12,8 +12,7 @@ export interface NewNotification {
   metadata?: NotificationMetadata | null;
 }
 
-export async function insertNotification(data: NewNotification): Promise<void> {
-  const db = getDb();
+export async function insertNotification(db: Db, data: NewNotification): Promise<void> {
   await db.insert(notifications).values({
     organizationId: data.organizationId,
     userId: data.userId,
@@ -24,9 +23,8 @@ export async function insertNotification(data: NewNotification): Promise<void> {
   });
 }
 
-export async function insertNotifications(data: NewNotification[]): Promise<void> {
+export async function insertNotifications(db: Db, data: NewNotification[]): Promise<void> {
   if (data.length === 0) return;
-  const db = getDb();
   await db.insert(notifications).values(
     data.map((d) => ({
       organizationId: d.organizationId,
@@ -39,8 +37,7 @@ export async function insertNotifications(data: NewNotification[]): Promise<void
   );
 }
 
-export async function markNotificationRead(notificationId: string, userId: string): Promise<void> {
-  const db = getDb();
+export async function markNotificationRead(db: Db, notificationId: string, userId: string): Promise<void> {
   await db
     .update(notifications)
     .set({ readAt: new Date() })
@@ -48,10 +45,10 @@ export async function markNotificationRead(notificationId: string, userId: strin
 }
 
 export async function markAllNotificationsRead(
+  db: Db,
   userId: string,
   organizationId: string,
 ): Promise<void> {
-  const db = getDb();
   await db
     .update(notifications)
     .set({ readAt: new Date() })

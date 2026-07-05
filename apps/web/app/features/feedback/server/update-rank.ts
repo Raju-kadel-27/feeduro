@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 
 const UpdateRankSchema = z.object({
@@ -10,12 +10,11 @@ const UpdateRankSchema = z.object({
   orderedIds: z.array(z.string().min(1)).min(1).max(500),
 });
 
-export async function handleUpdateRank(organizationId: string, rawBody: unknown) {
+export async function handleUpdateRank(db: Db, organizationId: string, rawBody: unknown) {
   const parsed = UpdateRankSchema.safeParse(rawBody);
   if (!parsed.success) return data({ error: "Invalid payload" }, { status: 400 });
   const { orderedIds } = parsed.data;
 
-  const db = getDb();
   await Promise.all(
     orderedIds.map((id, rank) =>
       db

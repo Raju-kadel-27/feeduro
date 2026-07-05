@@ -2,7 +2,7 @@ import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { changelogs } from "@/db/schema";
 
 export const ListChangelogSchema = z.object({
@@ -36,10 +36,10 @@ function slugify(title: string): string {
 }
 
 export async function listChangelogs(
+  db: Db,
   organizationId: string,
   params: z.infer<typeof ListChangelogSchema>,
 ) {
-  const db = getDb();
   const { status, limit, cursor } = params;
   const cursorDate = cursor ? decodeCursor(cursor) : null;
 
@@ -61,8 +61,7 @@ export async function listChangelogs(
   return { data: items, hasMore, cursor: nextCursor };
 }
 
-export async function getChangelog(organizationId: string, changelogId: string) {
-  const db = getDb();
+export async function getChangelog(db: Db, organizationId: string, changelogId: string) {
   return db.query.changelogs.findFirst({
     where: and(eq(changelogs.id, changelogId), eq(changelogs.organizationId, organizationId)),
     columns: {
@@ -79,11 +78,10 @@ export async function getChangelog(organizationId: string, changelogId: string) 
 }
 
 export async function createChangelog(
+  db: Db,
   organizationId: string,
   input: z.infer<typeof CreateChangelogSchema>,
 ) {
-  const db = getDb();
-
   const baseSlug = slugify(input.title) || createId().substring(0, 16);
   const existing = await db.query.changelogs.findFirst({
     where: and(eq(changelogs.organizationId, organizationId), eq(changelogs.slug, baseSlug)),

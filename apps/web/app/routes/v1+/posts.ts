@@ -2,12 +2,14 @@ import { CreatePostSchema, ListPostsSchema, listPosts } from "@features/feedback
 import { createPost } from "@features/feedback/server/api-posts-mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/posts";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const organizationId = await requireApiKey(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
   const url = new URL(request.url);
 
   const parsed = ListPostsSchema.safeParse({
@@ -22,17 +24,18 @@ export async function loader({ request }: Route.LoaderArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await listPosts(organizationId, parsed.data);
+  const result = await listPosts(db, organizationId, parsed.data);
   return data(result);
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
   if (request.method !== "POST") {
     const err = apiError("method_not_allowed");
     return data(err.body, err.init);
   }
 
-  const organizationId = await requireApiKey(request);
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
 
   let body: unknown;
   try {
@@ -48,7 +51,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const post = await createPost(organizationId, parsed.data);
+  const post = await createPost(db, organizationId, parsed.data);
   if (!post) {
     const err = apiError("not_found");
     return data(err.body, err.init);

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -65,7 +66,11 @@ export default defineConfig({
       },
     }),
   ],
-  resolve: { dedupe: ["react", "react-dom"], tsconfigPaths: true },
+  resolve: {
+    alias: { "~": resolve(__dirname, "app") },
+    dedupe: ["react", "react-dom"],
+    tsconfigPaths: true,
+  },
   optimizeDeps: {
     // @dnd-kit packages are ESM — pre-bundling them causes rolldown to create
     // a separate react chunk (react-DdGvS63P.js), producing a duplicate React
@@ -84,9 +89,14 @@ export default defineConfig({
       // so without this they're discovered mid-session, forcing a
       // re-optimization that bumps chunk hashes and duplicates React.
       "@hookform/resolvers/zod",
+      "@tanstack/react-query",
+      "i18next",
+      "lucide-react",
       "papaparse",
       "react-hook-form",
+      "react-i18next",
       "recharts",
+      "sonner",
       "unique-names-generator",
       "zod",
     ],

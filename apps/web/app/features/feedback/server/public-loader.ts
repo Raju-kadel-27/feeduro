@@ -5,7 +5,7 @@ import { getSession } from "@lib/session";
 import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { data } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import {
   changelogLikes,
   changelogSubscribers,
@@ -22,8 +22,7 @@ import {
 import type { PublicBoard, PublicChangelog, PublicPost, SessionUser } from "../schemas/public";
 import { generateUserAlias, toStatusKey } from "../utils";
 
-export async function publicPageLoader({ request, params }: LoaderFunctionArgs) {
-  const db = getDb();
+export async function publicPageLoader(db: Db, { request, params }: LoaderFunctionArgs) {
   const orgSlug = params.orgSlug as string;
 
   const org = await db.query.organization.findFirst({
@@ -36,7 +35,7 @@ export async function publicPageLoader({ request, params }: LoaderFunctionArgs) 
 
   const customDomain = request.headers.get("x-custom-domain") ?? null;
 
-  const session = await getSession(request);
+  const session = await getSession(db, request);
   const sessionUser: SessionUser | null = session
     ? {
         id: session.user.id,

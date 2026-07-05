@@ -1,14 +1,14 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { notifications, user } from "@/db/schema";
 import { type Notification, NotificationMetadataSchema } from "../schemas/notification";
 
 export async function getNotificationsForUser(
+  db: Db,
   userId: string,
   organizationId: string,
   options?: { unreadOnly?: boolean; limit?: number },
 ): Promise<Notification[]> {
-  const db = getDb();
   const limit = options?.limit ?? 50;
 
   const conditions = [
@@ -48,8 +48,7 @@ export async function getNotificationsForUser(
   });
 }
 
-export async function getUnreadCount(userId: string, organizationId: string): Promise<number> {
-  const db = getDb();
+export async function getUnreadCount(db: Db, userId: string, organizationId: string): Promise<number> {
   const rows = await db
     .select({ id: notifications.id })
     .from(notifications)

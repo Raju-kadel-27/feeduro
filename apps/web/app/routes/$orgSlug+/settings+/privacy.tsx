@@ -8,8 +8,8 @@ import { EyeOff, Lock, Shield, ShieldCheck, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import {
   type PrivacySettings,
   parsePrivacySettings,
@@ -20,13 +20,13 @@ export function meta() {
   return [{ title: "Privacy & Access — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [org, planLimits] = await Promise.all([
     db.query.organization.findFirst({ where: eq(organization.id, organizationId) }),
-    getOrgPlanLimits(organizationId),
+    getOrgPlanLimits(db, organizationId),
   ]);
 
   return {

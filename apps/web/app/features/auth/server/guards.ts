@@ -1,20 +1,19 @@
+import { getAuth } from "@lib/auth/server";
 import { ac, adminRole, memberRole, viewerRole } from "@lib/auth/server/permissions";
 import { requireSession } from "@lib/session";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "react-router";
-import { auth } from "@/app/lib/auth/server";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { apikey, member, organization, organizationRole } from "@/db/schema";
 
-export async function requireOrganization(request: Request) {
-  const session = await requireSession(request);
+export async function requireOrganization(db: Db, request: Request) {
+  const session = await requireSession(db, request);
   const organizationId = session.session.activeOrganizationId;
   if (!organizationId) throw redirect("/onboarding");
   return { session, organizationId };
 }
 
-export async function requireAdmin(organizationId: string, userId: string): Promise<void> {
-  const db = getDb();
+export async function requireAdmin(db: Db, organizationId: string, userId: string): Promise<void> {
   const membership = await db.query.member.findFirst({
     where: and(eq(member.organizationId, organizationId), eq(member.userId, userId)),
     columns: { role: true },
@@ -24,9 +23,8 @@ export async function requireAdmin(organizationId: string, userId: string): Prom
   }
 }
 
-export async function requireOrgBySlug(request: Request, slug: string) {
-  const session = await requireSession(request);
-  const db = getDb();
+export async function requireOrgBySlug(db: Db, request: Request, slug: string) {
+  const session = await requireSession(db, request);
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, slug),
@@ -46,14 +44,13 @@ export async function requireOrgBySlug(request: Request, slug: string) {
 }
 
 /** Resolves org from a session cookie OR a Bearer API key. Returns null if unauthenticated. */
-export async function resolveApiOrganizationId(request: Request): Promise<string | null> {
-  const session = await auth.api.getSession({ headers: request.headers });
+export async function resolveApiOrganizationId(db: Db, request: Request): Promise<string | null> {
+  const session = await getAuth(db).api.getSession({ headers: request.headers });
   if (session?.session.activeOrganizationId) return session.session.activeOrganizationId;
 
   const bearer = request.headers.get("Authorization");
   if (bearer?.startsWith("Bearer ")) {
     const token = bearer.slice(7);
-    const db = getDb();
     const key = await db.query.apikey.findFirst({
       where: and(eq(apikey.key, token), eq(apikey.enabled, true)),
       columns: { referenceId: true, expiresAt: true },
@@ -76,15 +73,11 @@ const BUILT_IN_ROLES: Record<string, AcRole> = {
   viewer: viewerRole,
 };
 
-/**
- * Resolves the effective AC role for a user in an org.
- * For built-in roles (admin/member/viewer) this is instant — no extra DB query.
- * For custom roles the permission JSON is loaded from the organizationRole table.
- * Both the member record and custom role rows are fetched in a single Promise.all.
- */
-async function resolveAcRole(organizationId: string, userId: string): Promise<AcRole | null> {
-  const db = getDb();
-
+async function resolveAcRole(
+  db: Db,
+  organizationId: string,
+  userId: string,
+): Promise<AcRole | null> {
   const [membership, customRoles] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, userId)),
@@ -114,38 +107,28 @@ async function resolveAcRole(organizationId: string, userId: string): Promise<Ac
     return null;
   }
 
-  // ac.newRole() is typed for statically-known keys; dynamic JSON requires the cast.
   return ac.newRole(parsed as never);
 }
 
-/**
- * Throws a 403 Response if the user does not have all the specified permissions.
- *
- * Usage:
- *   await requirePermission(organizationId, session.user.id, { board: ["create"] });
- *   await requirePermission(organizationId, session.user.id, { changelog: ["publish"] });
- */
 export async function requirePermission(
+  db: Db,
   organizationId: string,
   userId: string,
   permissions: Record<string, string[]>,
 ): Promise<void> {
-  const role = await resolveAcRole(organizationId, userId);
+  const role = await resolveAcRole(db, organizationId, userId);
   if (!role || !role.authorize(permissions as never).success) {
     throw new Response("Forbidden", { status: 403 });
   }
 }
 
-/**
- * Returns true if the user has all the specified permissions — does not throw.
- * Use this for conditional branching (e.g. "can this user delete someone else's comment?").
- */
 export async function canDo(
+  db: Db,
   organizationId: string,
   userId: string,
   permissions: Record<string, string[]>,
 ): Promise<boolean> {
-  const role = await resolveAcRole(organizationId, userId);
+  const role = await resolveAcRole(db, organizationId, userId);
   if (!role) return false;
   return role.authorize(permissions as never).success;
 }

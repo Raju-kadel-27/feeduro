@@ -2,19 +2,18 @@ import { requireOrganization } from "@features/auth/server/guards";
 import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/server/service";
 import { and, count, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { votes } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/votes";
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const body = (await request.json()) as { postId: string };
   const { postId } = body;
   if (!postId) return data({ error: "postId required" }, { status: 400 });
-
-  const db = getDb();
 
   const existing = await db.query.votes.findFirst({
     where: and(eq(votes.postId, postId), eq(votes.userId, session.user.id)),
@@ -34,7 +33,7 @@ export async function action({ request }: Route.ActionArgs) {
   const [row] = await db.select({ count: count() }).from(votes).where(eq(votes.postId, postId));
   const newVoteCount = row?.count ?? 0;
 
-  notifyVoteMilestoneIfReached({ postId, organizationId, newVoteCount }).catch(() => {});
+  notifyVoteMilestoneIfReached(db, { postId, organizationId, newVoteCount }).catch(() => {});
 
   return data({ voted: true });
 }

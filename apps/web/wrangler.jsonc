@@ -9,15 +9,38 @@
   "observability": { "enabled": true },
   "assets": { "directory": "./build/client" },
   "workers_dev": true,
+  // Postgres over Hyperdrive. In local dev (vite / miniflare) the binding uses
+  // `localConnectionString` and connects straight to the docker Postgres; in
+  // deployed environments it uses the Hyperdrive config identified by `id`.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "d414e3297a424d73b365dc59d7b859ea",
+      "localConnectionString": "postgresql://postgres:postgres@localhost:5432/feeduro"
+    }
+  ],
   "env": {
     "dev": {
-      "name": "nextgen-email-dev"
+      "name": "nextgen-email-dev",
+      "hyperdrive": [
+        { "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }
+      ]
     },
+    // Wrangler does NOT inherit top-level bindings into named environments, so
+    // each deployed env needs its own Hyperdrive entry. Reusing the same id here
+    // points every env at the same database — create separate Hyperdrive configs
+    // (one per environment DB) and swap the ids in when you split staging/prod.
     "staging": {
-      "name": "feeduro-staging"
+      "name": "feeduro-staging-neon",
+      "hyperdrive": [
+        { "binding": "HYPERDRIVE", "id": "470e373c2cc7463f8ec871d0ebafb42d" }
+      ]
     },
     "production": {
-      "name": "feeduro-production"
+      "name": "feeduro-production-neon",
+      "hyperdrive": [
+        { "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }
+      ]
     }
   }
 }

@@ -3,6 +3,7 @@ import { runCannyImport } from "@features/internal/import/server/import-service"
 import { rollbackImportJob } from "@features/internal/import/server/job-service";
 import { data } from "react-router";
 import { z } from "zod";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/canny";
 
 const ImportSchema = z.object({
@@ -13,9 +14,10 @@ const RollbackSchema = z.object({
   jobId: z.string().min(1, "jobId is required"),
 });
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requireAdmin(organizationId, session.user.id);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requireAdmin(db, organizationId, session.user.id);
 
   let body: unknown;
   try {

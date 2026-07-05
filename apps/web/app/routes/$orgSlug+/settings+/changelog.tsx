@@ -10,17 +10,17 @@ import { FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { changelogTags, organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/changelog";
 
 export function meta() {
   return [{ title: "Changelog Settings — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [org, tags, subscriberCount] = await Promise.all([
     db.query.organization.findFirst({ where: eq(organization.id, organizationId) }),
@@ -28,7 +28,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       where: eq(changelogTags.organizationId, organizationId),
       orderBy: (t, { asc }) => [asc(t.createdAt)],
     }),
-    getSubscriberCount(organizationId),
+    getSubscriberCount(db, organizationId),
   ]);
 
   return { ...parseChangelogSettings(org?.metadata ?? null), tags, subscriberCount };

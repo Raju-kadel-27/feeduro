@@ -1,5 +1,5 @@
 import { requireSession } from "@lib/session";
-import { getBindings } from "@middleware/cloudflare.server";
+import { getBindings, getDb } from "@middleware/cloudflare.server";
 import type { Route } from "./+types/media.upload";
 
 const ALLOWED_IMAGE: Record<string, string> = {
@@ -19,7 +19,8 @@ const MAX_VIDEO = 50 * 1024 * 1024; // 50 MB
 
 export async function action({ request, context }: Route.ActionArgs) {
   try {
-    const session = await requireSession(request);
+    const db = getDb(context);
+    const session = await requireSession(db, request);
     const env = getBindings(context);
 
     if (!env.AVATARS_BUCKET) {

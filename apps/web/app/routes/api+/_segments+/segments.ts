@@ -9,13 +9,14 @@ import {
 } from "@features/internal/segmentation/server/service";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/segments";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
   const url = new URL(request.url);
   const filtersParam = url.searchParams.get("filters");
 
@@ -28,19 +29,19 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
     const parsed = SegmentFiltersSchema.safeParse(raw);
     if (!parsed.success) return data({ count: 0 });
-    const counts = await getSegmentMemberCounts(organizationId, [{ id: "preview", filters: parsed.data }]);
+    const counts = await getSegmentMemberCounts(db, organizationId, [{ id: "preview", filters: parsed.data }]);
     return data({ count: counts.preview ?? 0 });
   }
 
-  const segmentList = await getOrgSegments(organizationId);
-  const memberCounts = await getSegmentMemberCounts(organizationId, segmentList);
+  const segmentList = await getOrgSegments(db, organizationId);
+  const memberCounts = await getSegmentMemberCounts(db, organizationId, segmentList);
   const segments = segmentList.map((s) => ({ ...s, memberCount: memberCounts[s.id] ?? 0 }));
   return data({ segments });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const memberRecord = await db.query.member.findFirst({
     where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
@@ -66,19 +67,20 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (action.intent === "create") {
     const id = await createSegment(
+      db,
       organizationId,
       action.name,
       action.color ?? "#6366f1",
       action.filters,
     );
-    const [segment] = await getOrgSegments(organizationId).then((s) =>
+    const [segment] = await getOrgSegments(db, organizationId).then((s) =>
       s.filter((x) => x.id === id),
     );
     return data({ success: true, segment });
   }
 
   if (action.intent === "update") {
-    await updateSegment(organizationId, action.id, {
+    await updateSegment(db, organizationId, action.id, {
       name: action.name,
       color: action.color,
       filters: action.filters,
@@ -87,7 +89,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (action.intent === "delete") {
-    await deleteSegment(organizationId, action.id);
+    await deleteSegment(db, organizationId, action.id);
     return data({ success: true });
   }
 

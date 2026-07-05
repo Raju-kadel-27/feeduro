@@ -24,8 +24,8 @@ import { Clock, FileText, Globe, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useOutlet, useParams } from "react-router";
 import { toast } from "sonner";
-import { getDb } from "@/db";
 import { changelogs as changelogsTable } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/index";
 
@@ -33,9 +33,9 @@ export function meta() {
   return [{ title: "Changelog – Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, org } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const entries = await db.query.changelogs.findMany({
     where: eq(changelogsTable.organizationId, org.id),

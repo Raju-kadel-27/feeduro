@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";
 import { updateClickupTaskStatus } from "./client";
@@ -24,12 +24,11 @@ function resolveClickupStatus(
  * Fire-and-forget — never throws, only logs on failure.
  */
 export async function syncStatusToClickup(
+  db: Db,
   organizationId: string,
   postId: string,
   newFeeduroStatus: string,
 ): Promise<void> {
-  const db = getDb();
-
   const [link, integration] = await Promise.all([
     db.query.postExternalLinks.findFirst({
       where: and(
@@ -39,7 +38,7 @@ export async function syncStatusToClickup(
       ),
       columns: { externalId: true },
     }),
-    getIntegration(organizationId, "clickup"),
+    getIntegration(db, organizationId, "clickup"),
   ]);
 
   if (!link) {

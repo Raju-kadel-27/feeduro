@@ -10,7 +10,6 @@ import { autoCreateTrelloCard } from "@features/internal/integrations/trello/ser
 import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import {
   comments,
   feedbackBoards,
@@ -19,6 +18,7 @@ import {
   votes,
   widgetConfigs,
 } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 async function verifyHmacSignature(
   userId: string,
@@ -43,12 +43,11 @@ async function verifyHmacSignature(
 
 import type { Route } from "./+types/public-feedback";
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgSlug = url.searchParams.get("orgSlug");
   if (!orgSlug) return data({ error: "orgSlug is required" }, { status: 400 });
-
-  const db = getDb();
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, orgSlug),
@@ -140,7 +139,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const db = getDb();
+  const db = getDb(context);
 
   const body = (await request.json()) as {
     widgetToken?: string;

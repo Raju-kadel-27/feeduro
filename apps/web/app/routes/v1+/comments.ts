@@ -2,12 +2,14 @@ import { ListCommentsSchema, listComments } from "@features/feedback/server/api-
 import { CreateCommentSchema, createComment } from "@features/feedback/server/api-comments-mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/comments";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const organizationId = await requireApiKey(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
   const url = new URL(request.url);
 
   const parsed = ListCommentsSchema.safeParse({
@@ -21,7 +23,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await listComments(organizationId, parsed.data);
+  const result = await listComments(db, organizationId, parsed.data);
   if (!result) {
     const err = apiError("not_found");
     return data(err.body, err.init);
@@ -35,7 +37,8 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const organizationId = await requireApiKey(request);
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
 
   let body: unknown;
   try {

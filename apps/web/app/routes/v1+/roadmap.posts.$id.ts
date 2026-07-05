@@ -1,17 +1,19 @@
 import { UpdateRoadmapPostSchema, updateRoadmapPost } from "@features/roadmap/server/api-roadmap";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/roadmap.posts.$id";
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request, params, context }: Route.ActionArgs) {
   if (request.method !== "PATCH") {
     const err = apiError("method_not_allowed");
     return data(err.body, err.init);
   }
 
-  const organizationId = await requireApiKey(request);
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
 
   let body: unknown;
   try {

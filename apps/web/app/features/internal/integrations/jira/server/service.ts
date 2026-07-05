@@ -5,7 +5,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import {
   deleteIntegration,
@@ -50,11 +50,11 @@ function requireJiraEnv() {
 const RECONNECT_MSG = "Jira session expired — please reconnect Jira in Settings → Integrations";
 
 async function withTokenRefresh<T>(
+  db: Db,
   organizationId: string,
   fn: (token: string) => Promise<T>,
 ): Promise<T> {
-  const db = getDb();
-  const integration = await getIntegration(organizationId, "jira");
+  const integration = await getIntegration(db, organizationId, "jira");
   if (!integration?.accessToken) throw new Error("Jira not connected");
 
   try {
@@ -93,7 +93,7 @@ async function withTokenRefresh<T>(
 
 // ─── Loader ──────────────────────────────────────────────────────────────────
 
-export async function handleJiraLoader(request: Request) {
+export async function handleJiraLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -101,7 +101,7 @@ export async function handleJiraLoader(request: Request) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const { clientId } = requireJiraEnv();
     const oauthState = buildOAuthState(organizationId);
     return redirect(buildAuthUrl(jiraOAuth, clientId, callbackUrl(), oauthState));
@@ -126,7 +126,7 @@ export async function handleJiraLoader(request: Request) {
       const cloudResources = await getJiraCloudResources(accessToken);
       if (!cloudResources.length) throw new Error("No accessible Jira Cloud instances");
 
-      const existing = await getIntegration(parsed.orgId, "jira");
+      const existing = await getIntegration(db, parsed.orgId, "jira");
       const existingSettings = parseSettings<JiraSettings>(existing?.settings ?? null);
 
       const primaryCloud = cloudResources[0];
@@ -188,7 +188,6 @@ export async function handleJiraLoader(request: Request) {
         webhookExpiresAt,
       };
 
-      const db = getDb();
       await db
         .insert(integrations)
         .values({
@@ -211,7 +210,7 @@ export async function handleJiraLoader(request: Request) {
       /* Redirect even on error — UI will show "not connected" */
     }
 
-    const orgSlug = await getOrgSlugFromId(parsed.orgId);
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/jira` : "/");
   }
 
@@ -220,9 +219,9 @@ export async function handleJiraLoader(request: Request) {
 
 // ─── Action ──────────────────────────────────────────────────────────────────
 
-export async function handleJiraAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requireAdminRole(organizationId, session.user.id);
+export async function handleJiraAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requireAdminRole(db, organizationId, session.user.id);
 
   const body = await request.json();
   const parsed = JiraActionSchema.safeParse(body);
@@ -230,10 +229,9 @@ export async function handleJiraAction(request: Request) {
     return data({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
   }
   const input = parsed.data;
-  const db = getDb();
 
   if (input.intent === "select_cloud") {
-    const integration = await getIntegration(organizationId, "jira");
+    const integration = await getIntegration(db, organizationId, "jira");
     if (!integration) return data({ error: "Jira not connected" }, { status: 400 });
     const settings = parseSettings<JiraSettings>(integration.settings) ?? ({} as JiraSettings);
     const cloud = settings.cloudResources?.find((r) => r.id === input.cloudId);
@@ -292,11 +290,11 @@ export async function handleJiraAction(request: Request) {
 
   if (input.intent === "list_projects") {
     try {
-      const integration = await getIntegration(organizationId, "jira");
+      const integration = await getIntegration(db, organizationId, "jira");
       const settings = parseSettings<JiraSettings>(integration?.settings ?? null);
       if (!settings?.cloudId) return data({ error: "No Jira Cloud selected" }, { status: 400 });
       const cloudId = settings.cloudId;
-      const projects = await withTokenRefresh(organizationId, (token) =>
+      const projects = await withTokenRefresh(db, organizationId, (token) =>
         getJiraProjects(token, cloudId),
       );
       return data({ projects });
@@ -310,11 +308,11 @@ export async function handleJiraAction(request: Request) {
 
   if (input.intent === "list_project_statuses") {
     try {
-      const integration = await getIntegration(organizationId, "jira");
+      const integration = await getIntegration(db, organizationId, "jira");
       const settings = parseSettings<JiraSettings>(integration?.settings ?? null);
       if (!settings?.cloudId) return data({ error: "No Jira Cloud selected" }, { status: 400 });
       const cloudId = settings.cloudId;
-      const statuses = await withTokenRefresh(organizationId, (token) =>
+      const statuses = await withTokenRefresh(db, organizationId, (token) =>
         getJiraProjectStatuses(token, cloudId, input.projectKey),
       );
       return data({ statuses });
@@ -330,7 +328,7 @@ export async function handleJiraAction(request: Request) {
     console.log(
       `${LOG} update_settings orgId=${organizationId} project=${input.defaultProjectKey ?? "none"} autoCreate=${input.autoCreateIssues}`,
     );
-    const integration = await getIntegration(organizationId, "jira");
+    const integration = await getIntegration(db, organizationId, "jira");
     if (!integration?.accessToken) return data({ error: "No Jira integration found" }, { status: 400 });
     const settings = parseSettings<JiraSettings>(integration.settings) ?? ({} as JiraSettings);
 
@@ -372,6 +370,7 @@ export async function handleJiraAction(request: Request) {
     }
 
     await updateIntegrationSettings(
+      db,
       organizationId,
       "jira",
       {
@@ -391,7 +390,7 @@ export async function handleJiraAction(request: Request) {
 
   if (input.intent === "disconnect") {
     console.log(`${LOG} disconnect orgId=${organizationId}`);
-    const integration = await getIntegration(organizationId, "jira");
+    const integration = await getIntegration(db, organizationId, "jira");
     if (integration?.accessToken) {
       const settings = parseSettings<JiraSettings>(integration.settings);
       if (settings?.cloudId && settings.webhookIds?.length) {
@@ -405,14 +404,14 @@ export async function handleJiraAction(request: Request) {
         console.warn(`${LOG} disconnect — no webhookIds, webhooks may still exist in Jira`);
       }
     }
-    await deleteIntegration(organizationId, "jira");
+    await deleteIntegration(db, organizationId, "jira");
     console.log(`${LOG} disconnect done orgId=${organizationId}`);
     return data({ success: true });
   }
 
   if (input.intent === "create_issue") {
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "jira"),
+      getIntegration(db, organizationId, "jira"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -450,10 +449,10 @@ export async function handleJiraAction(request: Request) {
         ? `${post.description}\n\nCreated from Feeduro feedback #${post.id}`
         : `Created from Feeduro feedback #${post.id}`);
       const { cloudId, cloudUrl } = settings;
-      const issue = await withTokenRefresh(organizationId, (token) =>
+      const issue = await withTokenRefresh(db, organizationId, (token) =>
         createJiraIssue(token, cloudId, cloudUrl, projectKey, baseSummary, baseDescription),
       );
-      await insertPostExternalLink({
+      await insertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "jira",
@@ -475,7 +474,7 @@ export async function handleJiraAction(request: Request) {
 
   if (input.intent === "link_issue") {
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "jira"),
+      getIntegration(db, organizationId, "jira"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -493,10 +492,10 @@ export async function handleJiraAction(request: Request) {
 
     try {
       const { cloudId, cloudUrl } = settings;
-      const issue = await withTokenRefresh(organizationId, (token) =>
+      const issue = await withTokenRefresh(db, organizationId, (token) =>
         getJiraIssueByKey(token, cloudId, cloudUrl, parseJiraInput(input.issueKeyOrId)),
       );
-      await upsertPostExternalLink({
+      await upsertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "jira",
@@ -517,18 +516,18 @@ export async function handleJiraAction(request: Request) {
   }
 
   if (input.intent === "unlink_issue") {
-    await deletePostExternalLink(input.postId, "jira", organizationId);
+    await deletePostExternalLink(db, input.postId, "jira", organizationId);
     return data({ success: true });
   }
 
   if (input.intent === "search_issues") {
     try {
-      const integration = await getIntegration(organizationId, "jira");
+      const integration = await getIntegration(db, organizationId, "jira");
       const settings = parseSettings<JiraSettings>(integration?.settings ?? null);
       if (!settings?.cloudId || !settings.cloudUrl)
         return data({ error: "No Jira Cloud selected" }, { status: 400 });
       const { cloudId, cloudUrl } = settings;
-      const issues = await withTokenRefresh(organizationId, (token) =>
+      const issues = await withTokenRefresh(db, organizationId, (token) =>
         searchJiraIssues(token, cloudId, cloudUrl, input.query),
       );
       return data({ results: issues.map((i) => ({ id: i.key, identifier: i.key, title: i.summary, status: i.statusName, url: i.url })) });

@@ -2,8 +2,8 @@ import { parseSettings } from "@features/internal/integrations/server/queries";
 import { verifyShortcutWebhookSignature } from "@features/internal/integrations/shortcut/server/client";
 import type { ShortcutSettings } from "@features/internal/integrations/shortcut/server/schemas";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/shortcut.webhook";
 
 type ShortcutWebhookPayload = {
@@ -26,7 +26,8 @@ type ShortcutWebhookPayload = {
 };
 
 // POST /api/shortcut/webhook?orgId=<feeduro-org-id>
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
 
@@ -34,8 +35,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   const rawBody = await request.text();
   const signature = request.headers.get("Shortcut-Signature") ?? "";
-
-  const db = getDb();
 
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, orgId), eq(integrations.provider, "shortcut")),

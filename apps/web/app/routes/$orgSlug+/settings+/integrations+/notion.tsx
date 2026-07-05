@@ -10,24 +10,24 @@ import { ChevronDown, ExternalLink, Unplug } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/notion";
 
 export function meta() {
   return [{ title: "Notion Integration — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [memberRecord, integration] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
     }),
-    getIntegration(organizationId, "notion"),
+    getIntegration(db, organizationId, "notion"),
   ]);
 
   const settings = parseSettings<NotionSettings>(integration?.settings ?? null);

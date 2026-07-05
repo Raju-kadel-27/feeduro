@@ -12,20 +12,23 @@ import {
 import { getWidgetSettings } from "@features/widget/server/settings-queries";
 import { data } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/widget";
 
 export function meta() {
   return [{ title: "Widget Settings — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { org } = await requireOrgBySlug(request, params.orgSlug);
-  const { config, boards } = await getWidgetSettings(org.id);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { org } = await requireOrgBySlug(db, request, params.orgSlug);
+  const { config, boards } = await getWidgetSettings(db, org.id);
   return data({ orgSlug: org.slug ?? "", config, boards });
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const { org, session } = await requireOrgBySlug(request, params.orgSlug);
+export async function action({ request, params, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { org, session } = await requireOrgBySlug(db, request, params.orgSlug);
   const form = await request.formData();
   const parsed = SettingsActionSchema.safeParse(Object.fromEntries(form));
 

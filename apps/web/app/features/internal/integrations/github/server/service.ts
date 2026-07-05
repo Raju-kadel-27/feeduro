@@ -5,7 +5,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, postExternalLinks } from "@/db/schema";
 import {
   deleteIntegration,
@@ -49,7 +49,7 @@ function requireGithubEnv() {
 
 // ─── Loader ──────────────────────────────────────────────────────────────────
 
-export async function handleGithubLoader(request: Request) {
+export async function handleGithubLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -57,7 +57,7 @@ export async function handleGithubLoader(request: Request) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const { clientId } = requireGithubEnv();
     const oauthState = buildOAuthState(organizationId);
     return redirect(buildAuthUrl(githubOAuth, clientId, callbackUrl(), oauthState));
@@ -85,6 +85,7 @@ export async function handleGithubLoader(request: Request) {
         autoCreateIssues: false,
       };
       await upsertIntegrationToken(
+        db,
         parsed.orgId,
         "github",
         accessToken,
@@ -94,13 +95,13 @@ export async function handleGithubLoader(request: Request) {
       // Redirect even on error — the UI will show "not connected"
     }
 
-    const orgSlug = await getOrgSlugFromId(parsed.orgId);
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/github` : "/");
   }
 
   // Normal data load (settings page)
-  const { organizationId } = await requireOrganization(request);
-  const integration = await getIntegration(organizationId, "github");
+  const { organizationId } = await requireOrganization(db, request);
+  const integration = await getIntegration(db, organizationId, "github");
   const settings = parseSettings<GithubSettings>(integration?.settings ?? null);
 
   return data({
@@ -117,9 +118,9 @@ export async function handleGithubLoader(request: Request) {
 
 // ─── Action ──────────────────────────────────────────────────────────────────
 
-export async function handleGithubAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requireAdminRole(organizationId, session.user.id);
+export async function handleGithubAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requireAdminRole(db, organizationId, session.user.id);
 
   const body = await request.json();
   const parsed = GithubActionSchema.safeParse(body);
@@ -130,7 +131,7 @@ export async function handleGithubAction(request: Request) {
   const input = parsed.data;
 
   if (input.intent === "list_repos") {
-    const accessToken = await getIntegrationToken(organizationId, "github");
+    const accessToken = await getIntegrationToken(db, organizationId, "github");
     if (!accessToken) return data({ error: "GitHub account not connected" }, { status: 400 });
     try {
       const repos = await listGithubRepos(accessToken);
@@ -144,7 +145,7 @@ export async function handleGithubAction(request: Request) {
   }
 
   if (input.intent === "save_repo") {
-    const integration = await getIntegration(organizationId, "github");
+    const integration = await getIntegration(db, organizationId, "github");
     if (!integration?.accessToken) return data({ error: "Connect GitHub first" }, { status: 400 });
 
     const existing = parseSettings<GithubSettings>(integration.settings);
@@ -189,15 +190,15 @@ export async function handleGithubAction(request: Request) {
       webhookId,
       webhookSecret,
     };
-    await updateIntegrationSettings(organizationId, "github", settings, session.user.id);
+    await updateIntegrationSettings(db, organizationId, "github", settings, session.user.id);
     return data({ success: true });
   }
 
   if (input.intent === "toggle_auto_create") {
-    const integration = await getIntegration(organizationId, "github");
+    const integration = await getIntegration(db, organizationId, "github");
     if (!integration) return data({ error: "No GitHub integration found" }, { status: 400 });
     const existing = parseSettings<GithubSettings>(integration.settings) ?? ({} as GithubSettings);
-    await updateIntegrationSettings(organizationId, "github", {
+    await updateIntegrationSettings(db, organizationId, "github", {
       ...existing,
       autoCreateIssues: input.enabled,
     });
@@ -205,7 +206,7 @@ export async function handleGithubAction(request: Request) {
   }
 
   if (input.intent === "disconnect") {
-    const integration = await getIntegration(organizationId, "github");
+    const integration = await getIntegration(db, organizationId, "github");
     const existing = parseSettings<GithubSettings>(integration?.settings ?? null);
     if (
       integration?.accessToken &&
@@ -220,14 +221,13 @@ export async function handleGithubAction(request: Request) {
         existing.webhookId,
       ).catch(() => {});
     }
-    await deleteIntegration(organizationId, "github");
+    await deleteIntegration(db, organizationId, "github");
     return data({ success: true });
   }
 
   if (input.intent === "create_issue") {
-    const db = getDb();
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "github"),
+      getIntegration(db, organizationId, "github"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -267,7 +267,7 @@ export async function handleGithubAction(request: Request) {
         post.title,
         bodyText,
       );
-      await insertPostExternalLink({
+      await insertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "github",
@@ -289,9 +289,8 @@ export async function handleGithubAction(request: Request) {
   }
 
   if (input.intent === "link_issue") {
-    const db = getDb();
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "github"),
+      getIntegration(db, organizationId, "github"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -306,7 +305,7 @@ export async function handleGithubAction(request: Request) {
 
     try {
       const issue = await getGithubIssueByUrl(integration.accessToken, input.issueUrl);
-      await upsertPostExternalLink({
+      await upsertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "github",
@@ -328,7 +327,7 @@ export async function handleGithubAction(request: Request) {
   }
 
   if (input.intent === "unlink_issue") {
-    await deletePostExternalLink(input.postId, "github", organizationId);
+    await deletePostExternalLink(db, input.postId, "github", organizationId);
     return data({ success: true });
   }
 

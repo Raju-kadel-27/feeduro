@@ -1,7 +1,7 @@
 import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { userProfiles } from "@/db/schema";
 
 export const ListUsersSchema = z.object({
@@ -43,8 +43,7 @@ function formatProfile(p: {
   return { ...rest, customAttributes: parseCustomAttributes(customAttributes) };
 }
 
-export async function listUsers(organizationId: string, params: z.infer<typeof ListUsersSchema>) {
-  const db = getDb();
+export async function listUsers(db: Db, organizationId: string, params: z.infer<typeof ListUsersSchema>) {
   const { limit, cursor } = params;
   const cursorDate = cursor ? decodeCursor(cursor) : null;
 
@@ -65,8 +64,7 @@ export async function listUsers(organizationId: string, params: z.infer<typeof L
   return { data: items.map(formatProfile), hasMore, cursor: nextCursor };
 }
 
-export async function getUser(organizationId: string, profileId: string) {
-  const db = getDb();
+export async function getUser(db: Db, organizationId: string, profileId: string) {
   const profile = await db.query.userProfiles.findFirst({
     where: and(eq(userProfiles.id, profileId), eq(userProfiles.organizationId, organizationId)),
     columns: USER_COLS,
@@ -74,8 +72,7 @@ export async function getUser(organizationId: string, profileId: string) {
   return profile ? formatProfile(profile) : null;
 }
 
-export async function deleteUser(organizationId: string, profileId: string): Promise<boolean> {
-  const db = getDb();
+export async function deleteUser(db: Db, organizationId: string, profileId: string): Promise<boolean> {
   const result = await db
     .delete(userProfiles)
     .where(and(eq(userProfiles.id, profileId), eq(userProfiles.organizationId, organizationId)))

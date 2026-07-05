@@ -2,8 +2,8 @@ import { verifyLinearWebhookSignature } from "@features/internal/integrations/li
 import type { LinearSettings } from "@features/internal/integrations/linear/server/schemas";
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/linear.webhook";
 
 const LOG = "[linear-webhook]";
@@ -53,7 +53,8 @@ function resolveStatus(
 }
 
 // POST /api/linear/webhook?orgId=<feeduro-org-id>
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
 
@@ -64,7 +65,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   const rawBody = await request.text();
   const signature = request.headers.get("Linear-Signature") ?? "";
-  const db = getDb();
 
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, orgId), eq(integrations.provider, "linear")),
@@ -127,7 +127,7 @@ export async function action({ request }: Route.ActionArgs) {
     `${LOG} syncing issue=${linearIssueId} → postId=${link.postId} newStatus=${newStatus ?? "none"}`,
   );
 
-  await withTransaction(async (tx) => {
+  await db.transaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({

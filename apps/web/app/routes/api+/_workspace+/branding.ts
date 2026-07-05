@@ -4,14 +4,14 @@ import { DEFAULT_BRANDING, parseBranding } from "@features/branding/server/parse
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/branding";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.id, organizationId),
@@ -26,10 +26,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const body = (await request.json()) as {
     logo?: string;
@@ -45,7 +45,7 @@ export async function action({ request }: Route.ActionArgs) {
       where: eq(organization.id, organizationId),
       columns: { metadata: true, logo: true, name: true },
     }),
-    getOrgPlanLimits(organizationId),
+    getOrgPlanLimits(db, organizationId),
   ]);
 
   if (!org) return data({ error: "Organization not found" }, { status: 404 });

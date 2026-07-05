@@ -1,11 +1,11 @@
 import { parseBranding } from "@features/branding/server/parse-branding";
-import { getBindings } from "@middleware/cloudflare.server";
+import { getBindings, getDb } from "@middleware/cloudflare.server";
 import { eq } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
-import { getDb } from "@/db";
 import { feedbackPosts, organization } from "@/db/schema";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgSlug = url.searchParams.get("orgSlug");
   const postId = url.searchParams.get("postId");
@@ -13,8 +13,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!orgSlug) {
     return new Response("Missing orgSlug", { status: 400 });
   }
-
-  const db = getDb();
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, orgSlug),

@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, organization, votes } from "@/db/schema";
 import type { WidgetLoaderData, WidgetPost } from "../types";
 import { toStatusKey } from "./queries";
@@ -9,11 +9,10 @@ import { toStatusKey } from "./queries";
  * Returns null if no matching public board is found — caller falls back to org token.
  */
 export async function getBoardWidgetData(
+  db: Db,
   embedToken: string,
   theme: string,
 ): Promise<WidgetLoaderData | null> {
-  const db = getDb();
-
   const board = await db.query.feedbackBoards.findFirst({
     where: and(eq(feedbackBoards.embedToken, embedToken), eq(feedbackBoards.visibility, "public")),
     columns: {

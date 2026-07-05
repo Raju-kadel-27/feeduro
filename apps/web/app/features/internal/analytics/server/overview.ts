@@ -1,5 +1,6 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { type RouterContextProvider } from "react-router";
+import type { Db } from "@/db";
 import type { DateRange } from "../schemas/analytics";
 import { DATE_RANGE_OPTIONS } from "../schemas/analytics";
 import { getActivityOverTime } from "./activity-over-time";
@@ -8,7 +9,6 @@ import { getAnalyticsCache } from "./analytics-cache";
 import { getBacklogAging } from "./backlog-aging";
 import { getBoardSummaries } from "./board-summary";
 import { getBoardVisitorsLast7Days } from "./board-visitors";
-import { getRoadmapVisitorsLast7Days } from "./roadmap-visitors";
 import { getChangelogEngagement } from "./changelog-engagement";
 import { getCommentsAnalytics } from "./comments-analytics";
 import { getCompanyEngagement } from "./company-engagement";
@@ -16,6 +16,7 @@ import { getCompletedInPeriod } from "./completed-posts";
 import { getPeriodDeltas } from "./previous-period";
 import { getResolutionTime } from "./resolution-time";
 import { getResponseRate } from "./response-rate";
+import { getRoadmapVisitorsLast7Days } from "./roadmap-visitors";
 import { getStatusBreakdown } from "./status-breakdown";
 import { getSubscriberMetrics } from "./subscriber-metrics";
 import { getTagBreakdown } from "./tag-breakdown";
@@ -33,6 +34,7 @@ function parseSince(range: string): Date | undefined {
 }
 
 async function fetchAll(
+  db: Db,
   organizationId: string,
   range: DateRange,
   since: Date | undefined,
@@ -50,26 +52,26 @@ async function fetchAll(
     boardVisitors, roadmapVisitors, commentsAnalytics, unrespondedPosts, deltas,
     resolutionTime, responseRate, backlogAging, subscriberMetrics,
   ] = await Promise.all([
-    getBoardSummaries(organizationId, since),
-    getTopPostsByVotes(organizationId, boardId, 8, since),
-    getStatusBreakdown(organizationId, boardId),
-    getActivityOverTime(organizationId, range, since, boardId),
-    getVotesOverTime(organizationId, range, since, boardId),
-    getCompletedInPeriod(organizationId, since, 10, boardId),
-    getTagBreakdown(organizationId, since, 12, boardId),
-    getTrendingPosts(organizationId, 8, boardId),
-    getChangelogEngagement(organizationId),
-    getAdminActivity(organizationId, since, 20, boardId),
-    getCompanyEngagement(organizationId, since, 20, boardId),
-    getBoardVisitorsLast7Days(organizationId, boardId),
-    getRoadmapVisitorsLast7Days(organizationId),
-    getCommentsAnalytics(organizationId, since, boardId),
-    getUnrespondedPosts(organizationId, boardId),
-    since ? getPeriodDeltas(organizationId, since, boardId) : Promise.resolve(null),
-    getResolutionTime(organizationId, since, boardId),
-    getResponseRate(organizationId, since, boardId),
-    getBacklogAging(organizationId, boardId),
-    getSubscriberMetrics(organizationId, since),
+    getBoardSummaries(db, organizationId, since),
+    getTopPostsByVotes(db, organizationId, boardId, 8, since),
+    getStatusBreakdown(db, organizationId, boardId),
+    getActivityOverTime(db, organizationId, range, since, boardId),
+    getVotesOverTime(db, organizationId, range, since, boardId),
+    getCompletedInPeriod(db, organizationId, since, 10, boardId),
+    getTagBreakdown(db, organizationId, since, 12, boardId),
+    getTrendingPosts(db, organizationId, 8, boardId),
+    getChangelogEngagement(db, organizationId),
+    getAdminActivity(db, organizationId, since, 20, boardId),
+    getCompanyEngagement(db, organizationId, since, 20, boardId),
+    getBoardVisitorsLast7Days(db, organizationId, boardId),
+    getRoadmapVisitorsLast7Days(db, organizationId),
+    getCommentsAnalytics(db, organizationId, since, boardId),
+    getUnrespondedPosts(db, organizationId, boardId),
+    since ? getPeriodDeltas(db, organizationId, since, boardId) : Promise.resolve(null),
+    getResolutionTime(db, organizationId, since, boardId),
+    getResponseRate(db, organizationId, since, boardId),
+    getBacklogAging(db, organizationId, boardId),
+    getSubscriberMetrics(db, organizationId, since),
   ]);
 
   const relevantBoards = boardId ? boards.filter((b) => b.boardId === boardId) : boards;
@@ -109,11 +111,12 @@ async function fetchAll(
 type OverviewData = Awaited<ReturnType<typeof fetchAll>>;
 
 export async function loadAnalyticsOverview(
+  db: Db,
   request: Request,
   orgSlug: string,
   context?: Readonly<RouterContextProvider>,
 ) {
-  const { session, org } = await requireOrgBySlug(request, orgSlug);
+  const { session, org } = await requireOrgBySlug(db, request, orgSlug);
   const organizationId = org.id;
 
   const url = new URL(request.url);
@@ -131,7 +134,7 @@ export async function loadAnalyticsOverview(
   const hit = cache?.get<OverviewData>(cacheKey);
   if (hit) return { user: session.user, ...hit };
 
-  const overviewData = await fetchAll(organizationId, range, since, boardId);
+  const overviewData = await fetchAll(db, organizationId, range, since, boardId);
   cache?.set(cacheKey, overviewData);
   return { user: session.user, ...overviewData };
 }

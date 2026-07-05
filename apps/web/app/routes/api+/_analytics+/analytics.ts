@@ -4,6 +4,7 @@ import { getTopContributors } from "@features/internal/analytics/server/contribu
 import { getSegmentDemand } from "@features/internal/analytics/server/segment-demand";
 import { getStatusFunnel } from "@features/internal/analytics/server/status-funnel";
 import { getTopPostsByVotes, getVoteTrends } from "@features/internal/analytics/server/vote-trends";
+import { getDb } from "@middleware/cloudflare.server";
 import { data } from "react-router";
 import { z } from "zod";
 
@@ -31,13 +32,14 @@ const IntentSchema = z.discriminatedUnion("intent", [
   }),
 ]);
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
 
   if (intent === "board_summary") {
-    const summaries = await getBoardSummaries(organizationId);
+    const summaries = await getBoardSummaries(db, organizationId);
     return data({ summaries });
   }
 
@@ -56,7 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (intent === "contributors") {
     const limit = url.searchParams.get("limit");
-    const contributors = await getTopContributors(organizationId, limit ? Number(limit) : 10);
+    const contributors = await getTopContributors(db, organizationId, limit ? Number(limit) : 10);
     return data({ contributors });
   }
 
@@ -64,7 +66,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     const postId = url.searchParams.get("postId");
     if (!postId) return data({ error: "postId required" }, { status: 400 });
     const days = url.searchParams.get("days");
-    const trends = await getVoteTrends(organizationId, postId, days ? Number(days) : 30);
+    const trends = await getVoteTrends(db, organizationId, postId, days ? Number(days) : 30);
     if (!trends) return data({ error: "Post not found" }, { status: 404 });
     return data({ trends });
   }
@@ -72,8 +74,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   return data({ error: "Unknown intent" }, { status: 400 });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const raw = await request.json();
   const parsed = IntentSchema.safeParse(raw);

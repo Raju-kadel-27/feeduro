@@ -4,6 +4,7 @@ import {
   markNotificationRead,
 } from "@features/internal/notifications/server/mutations";
 import { getNotificationsForUser, getUnreadCount } from "@features/internal/notifications/server/queries";
+import { getDb } from "@middleware/cloudflare.server";
 import { data } from "react-router";
 import { z } from "zod";
 
@@ -14,8 +15,9 @@ const MarkReadSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("mark_all_read") }),
 ]);
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
   const userId = session.user.id;
 
   const url = new URL(request.url);
@@ -24,14 +26,15 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const [notifs, unreadCount] = await Promise.all([
     getNotificationsForUser(userId, organizationId, { unreadOnly, limit }),
-    getUnreadCount(userId, organizationId),
+    getUnreadCount(db, userId, organizationId),
   ]);
 
   return data({ notifications: notifs, unreadCount });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
   const userId = session.user.id;
 
   const raw = await request.json();
@@ -39,7 +42,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (!parsed.success) return data({ error: "Invalid request" }, { status: 400 });
 
   if (parsed.data.intent === "mark_read") {
-    await markNotificationRead(parsed.data.notificationId, userId);
+    await markNotificationRead(db, parsed.data.notificationId, userId);
     return data({ success: true });
   }
 

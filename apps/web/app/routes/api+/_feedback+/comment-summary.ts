@@ -3,13 +3,15 @@ import { generateCommentSummary } from "@features/internal/autopilot/server/comm
 import { getEnv } from "@utils/get-env";
 import { data } from "react-router";
 import { z } from "zod";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/comment-summary";
 
 const BodySchema = z.object({ postId: z.string().min(1) });
 
-export async function action({ request }: Route.ActionArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const body = BodySchema.safeParse(await request.json());
   if (!body.success) return data({ error: "postId required" }, { status: 400 });

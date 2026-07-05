@@ -1,15 +1,15 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { integrations, postExternalLinks } from "@/db/schema";
 import type { IntegrationProvider } from "./queries";
 
 export async function upsertIntegrationToken(
+  db: Db,
   organizationId: string,
   provider: IntegrationProvider,
   accessToken: string,
   defaultSettings: string,
 ): Promise<void> {
-  const db = getDb();
   const existing = await db.query.integrations.findFirst({
     where: and(
       eq(integrations.organizationId, organizationId),
@@ -32,12 +32,12 @@ export async function upsertIntegrationToken(
 }
 
 export async function updateIntegrationSettings(
+  db: Db,
   organizationId: string,
   provider: IntegrationProvider,
   settings: Record<string, unknown>,
   connectedByUserId?: string,
 ): Promise<void> {
-  const db = getDb();
   await db
     .update(integrations)
     .set({
@@ -50,10 +50,10 @@ export async function updateIntegrationSettings(
 }
 
 export async function deleteIntegration(
+  db: Db,
   organizationId: string,
   provider: IntegrationProvider,
 ): Promise<void> {
-  const db = getDb();
   await db
     .delete(integrations)
     .where(
@@ -74,13 +74,11 @@ export type PostExternalLinkInput = {
   metadata?: string;
 };
 
-export async function insertPostExternalLink(input: PostExternalLinkInput): Promise<void> {
-  const db = getDb();
+export async function insertPostExternalLink(db: Db, input: PostExternalLinkInput): Promise<void> {
   await db.insert(postExternalLinks).values({ ...input, lastSyncedAt: new Date() });
 }
 
-export async function upsertPostExternalLink(input: PostExternalLinkInput): Promise<void> {
-  const db = getDb();
+export async function upsertPostExternalLink(db: Db, input: PostExternalLinkInput): Promise<void> {
   const { postId, provider, ...rest } = input;
   await db
     .insert(postExternalLinks)
@@ -100,11 +98,11 @@ export async function upsertPostExternalLink(input: PostExternalLinkInput): Prom
 }
 
 export async function deletePostExternalLink(
+  db: Db,
   postId: string,
   provider: string,
   organizationId: string,
 ): Promise<void> {
-  const db = getDb();
   await db
     .delete(postExternalLinks)
     .where(

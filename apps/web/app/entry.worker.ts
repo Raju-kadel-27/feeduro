@@ -12,11 +12,9 @@ const APP_DOMAIN = "feeduro.com";
 
 export default {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
-    const { db, client } = createDb(env.HYPERDRIVE.connectionString);
+    const { db, close } = createDb(env.HYPERDRIVE.connectionString);
 
     const run = async (): Promise<Response> => {
-      await client.connect();
-
       const url = new URL(request.url);
       const hostname = url.hostname;
 
@@ -39,7 +37,7 @@ export default {
     try {
       return await run();
     } finally {
-      ctx.waitUntil(client.end().catch(() => {}));
+      ctx.waitUntil(close().catch(() => {}));
     }
   },
 };

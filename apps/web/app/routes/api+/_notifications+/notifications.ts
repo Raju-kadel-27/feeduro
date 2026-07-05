@@ -25,7 +25,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const limit = Number(url.searchParams.get("limit") ?? "50");
 
   const [notifs, unreadCount] = await Promise.all([
-    getNotificationsForUser(userId, organizationId, { unreadOnly, limit }),
+    getNotificationsForUser(db, userId, organizationId, { unreadOnly, limit }),
     getUnreadCount(db, userId, organizationId),
   ]);
 

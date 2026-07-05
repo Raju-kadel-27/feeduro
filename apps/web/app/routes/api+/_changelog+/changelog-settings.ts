@@ -7,13 +7,14 @@ import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { changelogTags, organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/changelog-settings";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const [org, tags, subscriberCount] = await Promise.all([
     db.query.organization.findFirst({ where: eq(organization.id, organizationId) }),
@@ -21,7 +22,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       where: eq(changelogTags.organizationId, organizationId),
       orderBy: (t, { asc }) => [asc(t.createdAt)],
     }),
-    getSubscriberCount(organizationId),
+    getSubscriberCount(db, organizationId),
   ]);
 
   if (tags.length === 0) {
@@ -37,10 +38,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 async function updateChangelogSettings(
+  db: Db,
   organizationId: string,
   updates: Record<string, unknown>,
 ) {
-  const db = getDb();
   const org = await db.query.organization.findFirst({
     where: eq(organization.id, organizationId),
     columns: { id: true, metadata: true },
@@ -61,20 +62,20 @@ async function updateChangelogSettings(
   return true;
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 
   if (body.intent === "toggle") {
-    const ok = await updateChangelogSettings(organizationId, { enabled: body.enabled });
+    const ok = await updateChangelogSettings(db, organizationId, { enabled: body.enabled });
     if (!ok) return data({ error: "Not found" }, { status: 404 });
     return data({ success: true });
   }
 
   if (body.intent === "toggle-subscriptions") {
-    const ok = await updateChangelogSettings(organizationId, {
+    const ok = await updateChangelogSettings(db, organizationId, {
       emailSubscriptionsEnabled: body.enabled,
     });
     if (!ok) return data({ error: "Not found" }, { status: 404 });

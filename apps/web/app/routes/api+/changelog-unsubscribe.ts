@@ -1,7 +1,9 @@
 import { unsubscribeByToken } from "@features/changelog/server/subscribers";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/changelog-unsubscribe";
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
 
@@ -9,7 +11,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     return new Response("Missing token", { status: 400 });
   }
 
-  const success = await unsubscribeByToken(token);
+  const success = await unsubscribeByToken(db, token);
 
   if (!success) {
     return new Response(

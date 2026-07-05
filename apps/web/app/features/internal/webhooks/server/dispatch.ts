@@ -6,7 +6,7 @@ import { hmacHex } from "@lib/crypto";
 import { waitUntil } from "@middleware/cloudflare.server";
 import { and, eq } from "drizzle-orm";
 import type { RouterContextProvider } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { integrations, webhookEndpoints } from "@/db/schema";
 
 export type WebhookEvent =
@@ -49,12 +49,11 @@ async function deliverToEndpoint(
 }
 
 async function deliverWebhookBackground(
+  db: Db,
   organizationId: string,
   event: WebhookEvent,
   eventData: Record<string, unknown>,
 ) {
-  const db = getDb();
-
   const [endpoints, zapierIntegration, n8nIntegration, notificationsIntegration] = await Promise.all([
     db.query.webhookEndpoints.findMany({
       where: and(
@@ -170,10 +169,11 @@ async function deliverWebhookBackground(
 }
 
 export function dispatchWebhook(
+  db: Db,
   context: Readonly<RouterContextProvider>,
   organizationId: string,
   event: WebhookEvent,
   eventData: Record<string, unknown>,
 ) {
-  waitUntil(context, deliverWebhookBackground(organizationId, event, eventData));
+  waitUntil(context, deliverWebhookBackground(db, organizationId, event, eventData));
 }

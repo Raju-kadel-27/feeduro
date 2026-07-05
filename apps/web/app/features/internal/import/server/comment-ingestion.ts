@@ -1,4 +1,4 @@
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { comments } from "@/db/schema";
 import type { CannyComment } from "../schemas/canny";
 
@@ -33,10 +33,9 @@ function buildRows(
     }));
 }
 
-async function insertBatch(rows: CommentRow[]): Promise<Map<string, string>> {
+async function insertBatch(db: Db, rows: CommentRow[]): Promise<Map<string, string>> {
   const externalToOur = new Map<string, string>();
   if (rows.length === 0) return externalToOur;
-  const db = getDb();
 
   for (let i = 0; i < rows.length; i += BATCH) {
     const result = await db
@@ -55,6 +54,7 @@ async function insertBatch(rows: CommentRow[]): Promise<Map<string, string>> {
 // This ensures parentId can be resolved for nested comments.
 // Returns total count of inserted rows.
 export async function insertComments(
+  db: Db,
   organizationId: string,
   cannyComments: CannyComment[],
   postMap: Map<string, string>,
@@ -65,11 +65,11 @@ export async function insertComments(
 
   // Pass 1: top-level comments
   const topRows = buildRows(organizationId, topLevel, postMap, profileMap, new Map());
-  const parentMap = await insertBatch(topRows);
+  const parentMap = await insertBatch(db, topRows);
 
   // Pass 2: replies with resolved parentIds
   const replyRows = buildRows(organizationId, replies, postMap, profileMap, parentMap);
-  const replyMap = await insertBatch(replyRows);
+  const replyMap = await insertBatch(db, replyRows);
 
   return parentMap.size + replyMap.size;
 }

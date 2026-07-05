@@ -1,8 +1,8 @@
 import type { JiraSettings } from "@features/internal/integrations/jira/server/schemas";
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/jira.webhook";
 
 const LOG = "[jira-webhook]";
@@ -59,7 +59,8 @@ function resolveStatus(
 }
 
 // POST /api/jira/webhook?orgId=<feeduro-org-id>&secret=<webhook-secret>
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
   const secret = url.searchParams.get("secret");
@@ -68,8 +69,6 @@ export async function action({ request }: Route.ActionArgs) {
     console.error(`${LOG} rejected: missing orgId or secret`);
     return new Response("Missing orgId or secret", { status: 400 });
   }
-
-  const db = getDb();
 
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, orgId), eq(integrations.provider, "jira")),
@@ -157,7 +156,7 @@ export async function action({ request }: Route.ActionArgs) {
     `${LOG} syncing issue=${issue.id} → postId=${link.postId} status="${newStatusName ?? "unchanged"}" category="${categoryKey ?? "unknown"}" resolvedTo=${newStatus ?? "none"}`,
   );
 
-  await withTransaction(async (tx) => {
+  await db.transaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({

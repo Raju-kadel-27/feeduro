@@ -1,18 +1,17 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, userProfiles, votes } from "@/db/schema";
 import { SegmentDemandListSchema } from "../schemas/analytics";
 
 export type SegmentField = "plan" | "role" | "industry" | "companySize";
 
 export async function getSegmentDemand(
+  db: Db,
   organizationId: string,
   segmentField: SegmentField,
   segmentValue: string,
   limit = 10,
 ) {
-  const db = getDb();
-
   const column = {
     plan: userProfiles.plan,
     role: userProfiles.role,

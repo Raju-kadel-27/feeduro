@@ -1,8 +1,9 @@
 import type { MondaySettings } from "@features/internal/integrations/monday/server/schemas";
 import { getIntegration, parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/monday.webhook";
 
 const LOG = "[monday-webhook]";
@@ -31,7 +32,8 @@ type MondayWebhookPayload = {
 
 // POST /api/monday/webhook?orgId=<feeduro-org-id>&secret=<webhook-secret>
 // Handles Monday.com challenge verification and incoming events.
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
   const secret = url.searchParams.get("secret");
@@ -61,8 +63,7 @@ export async function action({ request }: Route.ActionArgs) {
     return new Response("Missing orgId", { status: 400 });
   }
 
-  const db = getDb();
-  const integration = await getIntegration(orgId, "monday");
+  const integration = await getIntegration(db, orgId, "monday");
   if (!integration) {
     console.error(`${LOG} integration not found orgId=${orgId}`);
     return new Response("Integration not found", { status: 404 });
@@ -87,7 +88,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 async function processEvent(
-  db: ReturnType<typeof getDb>,
+  db: Db,
   orgId: string,
   settings: MondaySettings | null,
   event: MondayEvent,

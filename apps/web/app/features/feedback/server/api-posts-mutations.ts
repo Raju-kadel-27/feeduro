@@ -1,13 +1,11 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
 import { CreatePostSchema, getPost, UpdatePostSchema } from "./api-posts";
 
-export async function createPost(organizationId: string, input: z.infer<typeof CreatePostSchema>) {
-  const db = getDb();
-
+export async function createPost(db: Db, organizationId: string, input: z.infer<typeof CreatePostSchema>) {
   const board = await db.query.feedbackBoards.findFirst({
     where: and(eq(feedbackBoards.organizationId, organizationId), eq(feedbackBoards.id, input.boardId)),
     columns: { id: true },
@@ -27,16 +25,15 @@ export async function createPost(organizationId: string, input: z.infer<typeof C
     })
     .returning({ id: feedbackPosts.id });
 
-  return getPost(organizationId, row.id);
+  return getPost(db, organizationId, row.id);
 }
 
 export async function updatePost(
+  db: Db,
   organizationId: string,
   postId: string,
   input: z.infer<typeof UpdatePostSchema>,
 ) {
-  const db = getDb();
-
   const existing = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.organizationId, organizationId), eq(feedbackPosts.id, postId)),
     columns: { id: true },
@@ -54,11 +51,10 @@ export async function updatePost(
     })
     .where(and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)));
 
-  return getPost(organizationId, postId);
+  return getPost(db, organizationId, postId);
 }
 
-export async function deletePost(organizationId: string, postId: string): Promise<boolean> {
-  const db = getDb();
+export async function deletePost(db: Db, organizationId: string, postId: string): Promise<boolean> {
   const result = await db
     .delete(feedbackPosts)
     .where(and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)))

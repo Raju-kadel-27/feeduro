@@ -3,22 +3,25 @@ import { createWebhook } from "@features/internal/webhooks/server/api-webhooks";
 import { listWebhooks } from "@features/internal/webhooks/server/queries";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 
 import type { Route } from "./+types/webhooks";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const organizationId = await requireApiKey(request);
-  return data(await listWebhooks(organizationId));
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
+  return data(await listWebhooks(db, organizationId));
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
   if (request.method !== "POST") {
     const err = apiError("method_not_allowed");
     return data(err.body, err.init);
   }
 
-  const organizationId = await requireApiKey(request);
+  const db = getDb(context);
+  const organizationId = await requireApiKey(db, request);
 
   let body: unknown;
   try {

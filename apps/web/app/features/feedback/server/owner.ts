@@ -1,23 +1,24 @@
 import { notifyOwnerAssigned } from "@features/internal/notifications/server/service";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, member, postActivities, user } from "@/db/schema";
 
-export async function assignPostOwner({
-  postId,
-  organizationId,
-  actorId,
-  actorName,
-  newOwnerId,
-}: {
-  postId: string;
-  organizationId: string;
-  actorId: string;
-  actorName: string;
-  newOwnerId: string | null;
-}): Promise<{ error?: string }> {
-  const db = getDb();
-
+export async function assignPostOwner(
+  db: Db,
+  {
+    postId,
+    organizationId,
+    actorId,
+    actorName,
+    newOwnerId,
+  }: {
+    postId: string;
+    organizationId: string;
+    actorId: string;
+    actorName: string;
+    newOwnerId: string | null;
+  },
+): Promise<{ error?: string }> {
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
     columns: { ownerId: true, title: true },

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 
 export const SearchResultSchema = z.object({
   id: z.string(),
@@ -24,14 +24,13 @@ function buildPrefixTsQuery(q: string): string {
 }
 
 export async function searchFeedbackPosts(
+  db: Db,
   organizationId: string,
   query: string,
   limit = 15,
 ): Promise<SearchResult[]> {
   const tsQuery = buildPrefixTsQuery(query);
   if (!tsQuery) return [];
-
-  const db = getDb();
 
   try {
     // CROSS JOIN LATERAL materialises to_tsquery once per query execution so

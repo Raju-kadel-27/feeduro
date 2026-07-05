@@ -1,30 +1,30 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { Palette } from "lucide-react";
 import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
+import { Palette } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/branding";
 
 export function meta() {
   return [{ title: "Branding — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [org, planLimits] = await Promise.all([
     db.query.organization.findFirst({
       where: eq(organization.id, organizationId),
       columns: { logo: true, name: true, metadata: true },
     }),
-    getOrgPlanLimits(organizationId),
+    getOrgPlanLimits(db, organizationId),
   ]);
 
   let brandingOverrides: Partial<BrandingFormValues> = {};

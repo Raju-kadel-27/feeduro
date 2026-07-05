@@ -3,15 +3,16 @@ import { getPostIntegrationLinks } from "@features/feedback/server/post-integrat
 import { getPostMergeInfo } from "@features/feedback/server/post-merge-info";
 import { inArray, sql } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { votes } from "@/db/schema";
 
 export async function handleGetPostDetail(
+  db: Db,
   organizationId: string,
   postId: string,
   userId: string,
 ) {
-  const coreData = await getPostCoreData(organizationId, postId, userId);
+  const coreData = await getPostCoreData(db, organizationId, postId, userId);
   if (!coreData) return data(null, { status: 404 });
 
   const {
@@ -28,13 +29,12 @@ export async function handleGetPostDetail(
   } = coreData;
 
   const [integrationLinks, mergeInfo] = await Promise.all([
-    getPostIntegrationLinks(organizationId, postId),
-    getPostMergeInfo(organizationId, postId, post.mergedIntoPostId ?? null),
+    getPostIntegrationLinks(db, organizationId, postId),
+    getPostMergeInfo(db, organizationId, postId, post.mergedIntoPostId ?? null),
   ]);
 
   let totalVoteCount = voteCountRow[0]?.count ?? 0;
   if (mergeInfo.mergedChildren.length > 0) {
-    const db = getDb();
     const childIds = mergeInfo.mergedChildren.map((c) => c.id);
     const [childVoteRow] = await db
       .select({ count: sql<number>`count(*)`.mapWith(Number) })

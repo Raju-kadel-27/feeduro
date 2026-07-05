@@ -1,10 +1,8 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { TrendingPostsSchema } from "../schemas/analytics";
 
-export async function getTrendingPosts(organizationId: string, limit = 8, boardId?: string) {
-  const db = getDb();
-
+export async function getTrendingPosts(db: Db, organizationId: string, limit = 8, boardId?: string) {
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 
   const result = await db.execute(sql`

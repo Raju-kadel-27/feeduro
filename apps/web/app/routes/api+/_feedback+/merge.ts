@@ -3,8 +3,8 @@ import { notifyPostMerged } from "@features/internal/notifications/server/servic
 import { and, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, member, postActivities, votes } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/merge";
 
@@ -13,9 +13,9 @@ import type { Route } from "./+types/merge";
 // Admin-only: prevents non-admins from enumerating post titles.
 // Vote counts are computed live via LEFT JOIN to avoid reading stale cached column.
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const memberRecord = await db.query.member.findFirst({
     where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
@@ -57,9 +57,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 const MergeBodySchema = z.object({ intent: z.string() }).passthrough();
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const memberRecord = await db.query.member.findFirst({
     where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
@@ -115,7 +115,7 @@ export async function action({ request }: Route.ActionArgs) {
       );
     }
 
-    await withTransaction(async (tx) => {
+    await db.transaction(async (tx) => {
       await tx
         .update(feedbackPosts)
         .set({
@@ -145,7 +145,7 @@ export async function action({ request }: Route.ActionArgs) {
       ]);
     });
 
-    notifyPostMerged({
+    notifyPostMerged(db, {
       sourcePostId,
       actorId: session.user.id,
       organizationId,
@@ -192,7 +192,7 @@ export async function action({ request }: Route.ActionArgs) {
       );
     }
 
-    await withTransaction(async (tx) => {
+    await db.transaction(async (tx) => {
       await tx
         .update(feedbackPosts)
         .set({ mergedIntoPostId: null, mergedAt: null, mergedByUserId: null })

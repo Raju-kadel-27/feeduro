@@ -1,10 +1,9 @@
 import { and, count, desc, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { autopilotSuggestions, feedbackBoards, feedbackPosts } from "@/db/schema";
 import type { SuggestionStatus, SuggestionWithPosts } from "../types";
 
-export async function getPendingSuggestionsCount(organizationId: string): Promise<number> {
-  const db = getDb();
+export async function getPendingSuggestionsCount(db: Db, organizationId: string): Promise<number> {
   const result = await db
     .select({ count: count() })
     .from(autopilotSuggestions)
@@ -18,17 +17,17 @@ export async function getPendingSuggestionsCount(organizationId: string): Promis
 }
 
 export async function getPendingSuggestions(
+  db: Db,
   organizationId: string,
 ): Promise<SuggestionWithPosts[]> {
-  return getSuggestionsByStatus(organizationId, "pending");
+  return getSuggestionsByStatus(db, organizationId, "pending");
 }
 
 export async function getSuggestionsByStatus(
+  db: Db,
   organizationId: string,
   status: SuggestionStatus,
 ): Promise<SuggestionWithPosts[]> {
-  const db = getDb();
-
   const rows = await db.query.autopilotSuggestions.findMany({
     where: and(
       eq(autopilotSuggestions.organizationId, organizationId),

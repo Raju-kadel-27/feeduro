@@ -1,11 +1,9 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackBoards, widgetConfigs } from "@/db/schema";
 import { generateSigningSecret } from "../utils/crypto";
 
-export async function getWidgetSettings(orgId: string) {
-  const db = getDb();
-
+export async function getWidgetSettings(db: Db, orgId: string) {
   const [existing, rawBoards] = await Promise.all([
     db.query.widgetConfigs.findFirst({
       where: eq(widgetConfigs.organizationId, orgId),
@@ -61,4 +59,3 @@ export async function getWidgetSettings(orgId: string) {
   const { signingSecret: _secret, ...config } = existing;
   return { config, boards };
 }
-

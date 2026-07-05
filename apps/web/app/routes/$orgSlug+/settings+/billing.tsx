@@ -18,8 +18,8 @@ import { useEffect, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { z } from "zod";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { subscription } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/billing";
 
@@ -76,9 +76,9 @@ type BillingInterval = "monthly" | "annual";
 
 // ─── Loader ───────────────────────────────────────────────────────────────────
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const activeSub = await db.query.subscription.findFirst({
     where: and(
@@ -110,10 +110,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 // ─── Action ───────────────────────────────────────────────────────────────────
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const { organizationId } = await requireOrgBySlug(request, params.orgSlug);
+export async function action({ request, params, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
   const env = getEnv();
-  const db = getDb();
   const formData = await request.formData();
   const intentResult = z
     .enum(["dodo-checkout", "dodo-change-plan", "dodo-cancel", "dodo-resume"])

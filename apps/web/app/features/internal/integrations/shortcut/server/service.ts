@@ -2,7 +2,7 @@ import { requireOrganization } from "@features/auth/server/guards";
 import { getBaseUrl } from "@utils/base-url";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import {
   deleteIntegration,
@@ -25,9 +25,9 @@ import { ShortcutActionSchema, type ShortcutSettings } from "./schemas";
 
 // ─── Action (Shortcut uses API-token auth — no OAuth loader) ─────────────────
 
-export async function handleShortcutAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requireAdminRole(organizationId, session.user.id);
+export async function handleShortcutAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requireAdminRole(db, organizationId, session.user.id);
 
   const body = await request.json();
   const parsed = ShortcutActionSchema.safeParse(body);
@@ -35,7 +35,6 @@ export async function handleShortcutAction(request: Request) {
     return data({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
   }
   const input = parsed.data;
-  const db = getDb();
 
   if (input.intent === "connect") {
     try {
@@ -44,7 +43,7 @@ export async function handleShortcutAction(request: Request) {
       const webhookUrl = `${getBaseUrl()}/api/shortcut/webhook?orgId=${organizationId}`;
       const isLocal = webhookUrl.includes("localhost") || webhookUrl.includes("127.0.0.1");
 
-      const existing = await getIntegration(organizationId, "shortcut");
+      const existing = await getIntegration(db, organizationId, "shortcut");
       const existingSettings = parseSettings<ShortcutSettings>(existing?.settings ?? null);
 
       let webhookId = existingSettings?.webhookId;
@@ -103,7 +102,7 @@ export async function handleShortcutAction(request: Request) {
   }
 
   if (input.intent === "list_workflows") {
-    const accessToken = (await getIntegration(organizationId, "shortcut"))?.accessToken;
+    const accessToken = (await getIntegration(db, organizationId, "shortcut"))?.accessToken;
     if (!accessToken) return data({ error: "Shortcut not connected" }, { status: 400 });
     try {
       const workflows = await getShortcutWorkflows(accessToken);
@@ -117,11 +116,12 @@ export async function handleShortcutAction(request: Request) {
   }
 
   if (input.intent === "update_settings") {
-    const integration = await getIntegration(organizationId, "shortcut");
+    const integration = await getIntegration(db, organizationId, "shortcut");
     if (!integration) return data({ error: "No Shortcut integration found" }, { status: 400 });
     const settings =
       parseSettings<ShortcutSettings>(integration.settings) ?? ({} as ShortcutSettings);
     await updateIntegrationSettings(
+      db,
       organizationId,
       "shortcut",
       {
@@ -138,20 +138,20 @@ export async function handleShortcutAction(request: Request) {
   }
 
   if (input.intent === "disconnect") {
-    const integration = await getIntegration(organizationId, "shortcut");
+    const integration = await getIntegration(db, organizationId, "shortcut");
     if (integration?.accessToken) {
       const settings = parseSettings<ShortcutSettings>(integration.settings);
       if (settings?.webhookId) {
         await deleteShortcutWebhook(integration.accessToken, settings.webhookId).catch(() => {});
       }
     }
-    await deleteIntegration(organizationId, "shortcut");
+    await deleteIntegration(db, organizationId, "shortcut");
     return data({ success: true });
   }
 
   if (input.intent === "create_story") {
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "shortcut"),
+      getIntegration(db, organizationId, "shortcut"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -194,7 +194,7 @@ export async function handleShortcutAction(request: Request) {
         post.title,
         description,
       );
-      await insertPostExternalLink({
+      await insertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "shortcut",
@@ -223,7 +223,7 @@ export async function handleShortcutAction(request: Request) {
     }
 
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "shortcut"),
+      getIntegration(db, organizationId, "shortcut"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -239,7 +239,7 @@ export async function handleShortcutAction(request: Request) {
 
     try {
       const story = await getShortcutStory(integration.accessToken, numericId);
-      await upsertPostExternalLink({
+      await upsertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "shortcut",
@@ -259,7 +259,7 @@ export async function handleShortcutAction(request: Request) {
   }
 
   if (input.intent === "unlink_story") {
-    await deletePostExternalLink(input.postId, "shortcut", organizationId);
+    await deletePostExternalLink(db, input.postId, "shortcut", organizationId);
     return data({ success: true });
   }
 

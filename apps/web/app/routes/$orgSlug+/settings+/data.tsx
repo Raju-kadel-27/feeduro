@@ -1,6 +1,7 @@
 import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getDb } from "~/middleware/cloudflare.server";
 import { Database, DownloadIcon, FileSpreadsheetIcon, UploadIcon } from "lucide-react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -12,8 +13,9 @@ export function meta() {
   return [{ title: "Data & Import — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { org } = await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { org } = await requireOrgBySlug(db, request, params.orgSlug);
   return {};
 }
 

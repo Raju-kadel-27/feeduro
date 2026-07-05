@@ -14,8 +14,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { redirect } from "react-router";
-import { getDb } from "@/db";
 import { oauthClient } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/consent";
 
@@ -53,8 +53,9 @@ const SCOPE_DEFS: Record<
   },
 };
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireSession(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const session = await requireSession(db, request);
 
   const url = new URL(request.url);
   const clientId = url.searchParams.get("client_id");
@@ -62,7 +63,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (!clientId) throw redirect("/");
 
-  const db = getDb();
   const client = await db.query.oauthClient.findFirst({
     where: eq(oauthClient.clientId, clientId),
     columns: {

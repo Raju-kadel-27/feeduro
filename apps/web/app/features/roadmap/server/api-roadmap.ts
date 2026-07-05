@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 
 const STATUS_VALUES = ["open", "reviewing", "planned", "in-progress", "completed", "closed"] as const;
@@ -32,9 +32,7 @@ const ROADMAP_COLS = {
   updatedAt: true,
 } as const;
 
-export async function listRoadmap(organizationId: string, status?: StatusValue) {
-  const db = getDb();
-
+export async function listRoadmap(db: Db, organizationId: string, status?: StatusValue) {
   const rows = await db
     .select(ROADMAP_COLS)
     .from(feedbackPosts)
@@ -62,12 +60,11 @@ export async function listRoadmap(organizationId: string, status?: StatusValue) 
 }
 
 export async function updateRoadmapPost(
+  db: Db,
   organizationId: string,
   postId: string,
   input: z.infer<typeof UpdateRoadmapPostSchema>,
 ) {
-  const db = getDb();
-
   const existing = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
     columns: { id: true },

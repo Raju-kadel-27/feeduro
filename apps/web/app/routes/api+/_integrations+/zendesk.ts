@@ -13,8 +13,8 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
 import { integrations, member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/zendesk";
 
 const CALLBACK_PATH = "/api/zendesk";
@@ -44,7 +44,8 @@ function parseZendeskState(state: string): { orgId: string; subdomain: string } 
 
 // GET /api/zendesk?intent=connect&subdomain=xyz  → OAuth redirect
 // GET /api/zendesk?code=...&state=...            → OAuth callback
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -55,7 +56,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     const subdomain = url.searchParams.get("subdomain")?.trim().toLowerCase();
     if (!subdomain) throw new Response("subdomain is required", { status: 400 });
 
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const env = getEnv();
     if (!env.ZENDESK_CLIENT_ID || !env.ZENDESK_CLIENT_SECRET) {
       throw new Response("Zendesk OAuth not configured", { status: 501 });
@@ -89,8 +90,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
       const user = await getZendeskCurrentUser(accessToken, subdomain);
 
-      const db = getDb();
-      const existing = await getIntegration(orgId, "zendesk");
+      const existing = await getIntegration(db, orgId, "zendesk");
       const existingSettings = parseSettings<ZendeskSettings>(existing?.settings ?? null);
 
       const settings: ZendeskSettings = {
@@ -115,7 +115,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       // Redirect even on error — UI will show "not connected"
     }
 
-    const orgSlug = await getOrgSlugFromId(orgId);
+    const orgSlug = await getOrgSlugFromId(db, orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/zendesk` : "/");
   }
 
@@ -130,10 +130,11 @@ const actionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("disconnect") }),
 ]);
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const raw = await request.json();
   const parsed = actionSchema.safeParse(raw);
@@ -141,10 +142,8 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const db = getDb();
-
   if (parsed.data.intent === "update_settings") {
-    const integration = await getIntegration(organizationId, "zendesk");
+    const integration = await getIntegration(db, organizationId, "zendesk");
     if (!integration?.accessToken) {
       return data({ error: "Zendesk not connected" }, { status: 400 });
     }

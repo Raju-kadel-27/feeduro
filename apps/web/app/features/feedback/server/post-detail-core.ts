@@ -1,10 +1,8 @@
 import { and, eq, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackBoards, feedbackPosts, member, reactions, user, votes } from "@/db/schema";
 
-export async function getPostCoreData(organizationId: string, postId: string, userId: string) {
-  const db = getDb();
-
+export async function getPostCoreData(db: Db, organizationId: string, postId: string, userId: string) {
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
   });

@@ -2,8 +2,8 @@ import { authClient } from "@lib/auth/client";
 import { getSession } from "@lib/session";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
-import { getDb } from "@/db";
 import { invitation, organization, user } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/accept-invitation";
 
@@ -11,20 +11,20 @@ export function meta() {
   return [{ title: "Accept Invitation — Feeduro" }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const invitationId = url.searchParams.get("invitationId");
   if (!invitationId) {
     throw new Response("Invalid invitation link", { status: 400 });
   }
 
-  const session = await getSession(request);
+  const session = await getSession(db, request);
   if (!session) {
     const returnTo = encodeURIComponent(`/accept-invitation?invitationId=${invitationId}`);
     throw redirect(`/sign-in?redirect=${returnTo}`);
   }
 
-  const db = getDb();
   const row = await db
     .select({
       id: invitation.id,

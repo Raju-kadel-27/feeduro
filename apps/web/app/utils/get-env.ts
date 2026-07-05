@@ -3,7 +3,10 @@ import z from "zod";
 const envSchema = z.object({
   ENVIRONMENT: z.enum(["development", "staging", "production"]),
   BASE_URL: z.string(),
-  DATABASE_URL: z.string(),
+  // Runtime DB access goes through the HYPERDRIVE binding, not this var. It stays
+  // optional so deployed envs need not set it; drizzle-kit / seed scripts read
+  // process.env.DATABASE_URL directly for migrations against a direct connection.
+  DATABASE_URL: z.string().optional(),
   BETTER_AUTH_SECRET: z.string().min(32).optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),

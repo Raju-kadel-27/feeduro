@@ -1,6 +1,7 @@
 import { WidgetPage } from "@features/widget/components/public/widget-page";
 import { getBoardWidgetData } from "@features/widget/server/board-queries";
 import { getWidgetLoaderData } from "@features/widget/server/queries";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/$widgetToken";
 
@@ -10,7 +11,8 @@ export function headers() {
   };
 }
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const theme = url.searchParams.get("theme") ?? "auto";
 
@@ -18,7 +20,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const boardData = await getBoardWidgetData(params.widgetToken, theme);
   if (boardData) return boardData;
 
-  return getWidgetLoaderData(params.widgetToken);
+  return getWidgetLoaderData(db, params.widgetToken);
 }
 
 export default WidgetPage;

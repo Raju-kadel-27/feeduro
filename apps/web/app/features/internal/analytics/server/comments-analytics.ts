@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { CommentsAnalyticsSchema } from "../schemas/analytics";
 
 const CountsSchema = z.object({
@@ -14,12 +14,11 @@ function pct(current: number, prev: number | null): number | null {
 }
 
 export async function getCommentsAnalytics(
+  db: Db,
   organizationId: string,
   since?: Date,
   boardId?: string,
 ) {
-  const db = getDb();
-
   const nowMs = Date.now();
   const prevSince = since ? new Date(since.getTime() - (nowMs - since.getTime())) : null;
 

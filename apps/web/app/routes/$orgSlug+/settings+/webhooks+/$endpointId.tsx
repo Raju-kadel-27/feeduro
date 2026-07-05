@@ -1,4 +1,5 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getDb } from "~/middleware/cloudflare.server";
 import { EndpointDetail } from "@features/internal/webhooks/components/endpoint-detail";
 import { getWebhookDetailLoaderData } from "@features/internal/webhooks/server/queries";
 import { data } from "react-router";
@@ -9,8 +10,9 @@ export function meta() {
   return [{ title: "Webhook — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
   const result = await getWebhookDetailLoaderData(
     session.user.id,
     organizationId,

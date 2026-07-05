@@ -1,10 +1,8 @@
 import { createId } from "@paralleldrive/cuid2";
 import { generateText } from "@services/groq/client";
 import { and, asc, eq } from "drizzle-orm";
-import type { getDb } from "@/db";
+import type { Db } from "@/db";
 import { comments, feedbackBoards, member, organization, user } from "@/db/schema";
-
-type Db = ReturnType<typeof getDb>;
 
 interface PostContext {
   id: string;

@@ -1,6 +1,6 @@
 import { bulkUpsertUserProfiles } from "@features/internal/segmentation/server/mutations";
 import { and, eq, inArray } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { userProfiles } from "@/db/schema";
 import type { CannyComment, CannyPost, CannyVote } from "../schemas/canny";
 import { syncBoards } from "./board-sync";
@@ -28,11 +28,12 @@ export interface CannyImportResult {
 }
 
 export async function runCannyImport(
+  db: Db,
   organizationId: string,
   apiKey: string,
   createdBy: string,
 ): Promise<CannyImportResult> {
-  const jobId = await createImportJob(organizationId, "canny", createdBy);
+  const jobId = await createImportJob(db, organizationId, "canny", createdBy);
 
   try {
     // 1. Fetch boards once; posts/votes/comments fetched per-board sequentially
@@ -55,7 +56,7 @@ export async function runCannyImport(
     }
 
     // 2. Resolve / create our boards
-    const boardMap = await syncBoards(organizationId, cannyBoards, createdBy);
+    const boardMap = await syncBoards(db, organizationId, cannyBoards, createdBy);
 
     // 3. Upsert all unique users (with email) into userProfiles
     const uniqueUsers = collectUniqueUsers(allPosts, allVotes, allComments);
@@ -63,7 +64,7 @@ export async function runCannyImport(
     await bulkUpsertUserProfiles(organizationId, usersWithEmail.map(toIdentifyInput));
 
     // Build email → profileId map for vote and comment attribution
-    const profileRows = await getDb()
+    const profileRows = await db
       .select({ id: userProfiles.id, email: userProfiles.email })
       .from(userProfiles)
       .where(
@@ -78,13 +79,14 @@ export async function runCannyImport(
     const profileMap = new Map(profileRows.map((r) => [r.email, r.id]));
 
     // 4. Insert posts → get cannyPostId → ourPostId map
-    const postMap = await insertPosts(organizationId, jobId, allPosts, boardMap);
+    const postMap = await insertPosts(db, organizationId, jobId, allPosts, boardMap);
 
     // 5. Insert votes (skip voters without email or unresolved posts)
-    const votesInserted = await insertVotes(organizationId, allVotes, postMap, profileMap);
+    const votesInserted = await insertVotes(db, organizationId, allVotes, postMap, profileMap);
 
     // 6. Insert comments (two-pass: top-level then replies)
     const commentsInserted = await insertComments(
+      db,
       organizationId,
       allComments,
       postMap,
@@ -92,11 +94,11 @@ export async function runCannyImport(
     );
 
     // 7. Reconcile cached voteCount — actual DB row count overwrites Canny's score
-    await reconcileVoteCounts([...postMap.values()]);
+    await reconcileVoteCounts(db, [...postMap.values()]);
 
     const total = allPosts.length + allVotes.length + allComments.length;
     const imported = postMap.size + votesInserted + commentsInserted;
-    await completeImportJob(jobId, { total, imported, failed: total - imported });
+    await completeImportJob(db, jobId, { total, imported, failed: total - imported });
 
     return {
       jobId,
@@ -111,7 +113,7 @@ export async function runCannyImport(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[import] Canny import failed:", msg);
-    await failImportJob(jobId, msg);
+    await failImportJob(db, jobId, msg);
     throw err;
   }
 }

@@ -17,8 +17,8 @@ import { useMemo, useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { apikey, member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/api-tokens";
 
@@ -37,9 +37,9 @@ interface ApiKeyRow {
   enabled: boolean;
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [keys, memberRecord] = await Promise.all([
     db.query.apikey.findMany({

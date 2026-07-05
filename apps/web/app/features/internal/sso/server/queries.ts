@@ -2,7 +2,7 @@ import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getBaseUrl } from "@utils/base-url";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { member, ssoProvider } from "@/db/schema";
 
 export const SSOProviderSchema = z.object({
@@ -16,9 +16,8 @@ export const SSOProviderSchema = z.object({
 
 export type SSOProvider = z.infer<typeof SSOProviderSchema>;
 
-export async function loadSSOSettings(request: Request, orgSlug: string) {
-  const { session, organizationId } = await requireOrgBySlug(request, orgSlug);
-  const db = getDb();
+export async function loadSSOSettings(db: Db, request: Request, orgSlug: string) {
+  const { session, organizationId } = await requireOrgBySlug(db, request, orgSlug);
 
   const [providers, memberRecord] = await Promise.all([
     db.query.ssoProvider.findMany({

@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { auditLogs } from "@/db/schema";
 import type { AuditCategory } from "../constants";
 import { AUDIT_CATEGORIES, AUDIT_PAGE_SIZE } from "../constants";
@@ -15,8 +15,7 @@ export type AuditLogRow = {
   createdAt: Date;
 };
 
-export async function listAuditLogs(orgId: string, page: number, category?: AuditCategory) {
-  const db = getDb();
+export async function listAuditLogs(db: Db, orgId: string, page: number, category?: AuditCategory) {
   const offset = (page - 1) * AUDIT_PAGE_SIZE;
   const actions = category ? AUDIT_CATEGORIES[category] : null;
 

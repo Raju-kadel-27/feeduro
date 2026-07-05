@@ -1,10 +1,8 @@
 import { and, eq, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
 
-export async function listBoards(organizationId: string) {
-  const db = getDb();
-
+export async function listBoards(db: Db, organizationId: string) {
   const [boards, counts] = await Promise.all([
     db.query.feedbackBoards.findMany({
       where: eq(feedbackBoards.organizationId, organizationId),
@@ -35,9 +33,7 @@ export async function listBoards(organizationId: string) {
   return boards.map((b) => ({ ...b, postCount: countMap[b.id] ?? 0 }));
 }
 
-export async function getBoard(organizationId: string, boardId: string) {
-  const db = getDb();
-
+export async function getBoard(db: Db, organizationId: string, boardId: string) {
   const [board, countRow] = await Promise.all([
     db.query.feedbackBoards.findFirst({
       where: and(

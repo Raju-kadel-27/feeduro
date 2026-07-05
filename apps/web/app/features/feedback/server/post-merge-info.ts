@@ -1,14 +1,13 @@
 import { and, asc, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 
 export async function getPostMergeInfo(
+  db: Db,
   organizationId: string,
   postId: string,
   mergedIntoPostId: string | null,
 ) {
-  const db = getDb();
-
   let mergedIntoPost: { id: string; title: string } | null = null;
   let canUnmerge = false;
 

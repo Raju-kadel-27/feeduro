@@ -24,8 +24,8 @@ const PostDetailPanel = lazy(() =>
 );
 
 import { redirect, useParams } from "react-router";
-import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/dashboard";
 
 export function meta() {
@@ -38,9 +38,9 @@ export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate 
   return defaultShouldRevalidate;
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, org } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [memberRecord, orgMembers, posts, boardsData, views, segmentList, tagList, categoryList] =
     await Promise.all([
@@ -52,12 +52,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         .from(member)
         .innerJoin(userTable, eq(member.userId, userTable.id))
         .where(eq(member.organizationId, org.id)),
-      getEnrichedPosts(org.id, session.user.id),
-      getBoards(org.id),
-      getOrgViewsWithCounts(org.id).catch(() => [] as View[]),
-      getOrgSegments(org.id).catch(() => [] as Segment[]),
-      getOrgTags(org.id).catch(() => [] as Tag[]),
-      getOrgCategories(org.id).catch(() => [] as Category[]),
+      getEnrichedPosts(db, org.id, session.user.id),
+      getBoards(db, org.id),
+      getOrgViewsWithCounts(db, org.id).catch(() => [] as View[]),
+      getOrgSegments(db, org.id).catch(() => [] as Segment[]),
+      getOrgTags(db, org.id).catch(() => [] as Tag[]),
+      getOrgCategories(db, org.id).catch(() => [] as Category[]),
     ]);
 
   if (boardsData.boards.length === 0) {

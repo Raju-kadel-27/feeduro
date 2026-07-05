@@ -2,8 +2,8 @@ import { verifyClickupWebhookSignature } from "@features/internal/integrations/c
 import type { ClickupSettings } from "@features/internal/integrations/clickup/server/schemas";
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/clickup.webhook";
 
 const LOG = "[clickup-webhook]";
@@ -38,7 +38,8 @@ function resolveStatus(
 }
 
 // POST /api/clickup/webhook?orgId=<feeduro-org-id>
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
   if (!orgId) {
@@ -48,7 +49,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   const rawBody = await request.text();
   const signature = request.headers.get("x-signature") ?? "";
-  const db = getDb();
 
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, orgId), eq(integrations.provider, "clickup")),
@@ -99,7 +99,7 @@ export async function action({ request }: Route.ActionArgs) {
   const newStatus = resolveStatus(after.status, after.type ?? "", settings?.statusMappings);
   console.log(`${LOG} syncing taskId=${payload.task_id} → postId=${link.postId} feeduroStatus=${newStatus ?? "none"}`);
 
-  await withTransaction(async (tx) => {
+  await db.transaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({ externalStatus: after.status, lastSyncedAt: new Date() })

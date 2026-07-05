@@ -16,8 +16,8 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
 import { integrations, member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/salesforce";
 
 const CALLBACK_PATH = "/api/salesforce";
@@ -28,7 +28,8 @@ function callbackUrl() {
 
 // GET /api/salesforce?intent=connect  → OAuth redirect
 // GET /api/salesforce?code=...&state=... → OAuth callback
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -36,7 +37,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const env = getEnv();
     if (!env.SALESFORCE_CLIENT_ID || !env.SALESFORCE_CLIENT_SECRET) {
       throw new Response("Salesforce OAuth not configured", { status: 501 });
@@ -67,8 +68,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
       const userInfo = await getSalesforceUserInfo(tokenData.id, tokenData.access_token);
 
-      const db = getDb();
-      const existing = await getIntegration(orgId, "salesforce");
+      const existing = await getIntegration(db, orgId, "salesforce");
       const existingSettings = parseSettings<SalesforceSettings>(existing?.settings ?? null);
 
       const settings: SalesforceSettings = {
@@ -98,7 +98,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       // Redirect even on error — UI will show "not connected"
     }
 
-    const orgSlug = await getOrgSlugFromId(orgId);
+    const orgSlug = await getOrgSlugFromId(db, orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/salesforce` : "/");
   }
 
@@ -113,10 +113,11 @@ const actionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("disconnect") }),
 ]);
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const raw = await request.json();
   const parsed = actionSchema.safeParse(raw);
@@ -124,10 +125,8 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const db = getDb();
-
   if (parsed.data.intent === "update_settings") {
-    const integration = await getIntegration(organizationId, "salesforce");
+    const integration = await getIntegration(db, organizationId, "salesforce");
     if (!integration?.accessToken) {
       return data({ error: "Salesforce not connected" }, { status: 400 });
     }

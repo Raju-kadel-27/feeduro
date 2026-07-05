@@ -5,28 +5,29 @@ import { RoleFormDialog } from "@features/internal/roles/components/role-form-di
 import { RolesTable } from "@features/internal/roles/components/roles-table";
 import type { OrgRole } from "@features/internal/roles/types";
 import { authClient } from "@lib/auth/client";
-import { auth } from "@lib/auth/server";
+import { getAuth } from "@lib/auth/server";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Plus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/roles";
 
 export function meta() {
   return [{ title: "Roles — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const memberRecord = await getDb().query.member.findFirst({
+  const memberRecord = await db.query.member.findFirst({
     where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
   });
 
-  const rolesResult = await auth.api.listOrgRoles({
+  const rolesResult = await getAuth(db).api.listOrgRoles({
     headers: request.headers,
     query: { organizationId },
   });

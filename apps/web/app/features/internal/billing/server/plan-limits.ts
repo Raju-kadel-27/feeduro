@@ -1,5 +1,5 @@
 import { and, desc, eq, or } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { subscription } from "@/db/schema";
 
 export type PlanLimits = {
@@ -15,9 +15,7 @@ const PLAN_LIMITS: Record<string, PlanLimits> = {
   professional: { boards: -1, privateBoards: true, guestPosting: true, hidePoweredBy: true },
 };
 
-export async function getOrgPlanLimits(organizationId: string): Promise<PlanLimits> {
-  const db = getDb();
-
+export async function getOrgPlanLimits(db: Db, organizationId: string): Promise<PlanLimits> {
   const activeSub = await db.query.subscription.findFirst({
     where: and(
       eq(subscription.referenceId, organizationId),

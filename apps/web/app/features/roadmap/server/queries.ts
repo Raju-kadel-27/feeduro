@@ -1,15 +1,14 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getEnrichedPosts } from "@features/feedback/server/queries";
 import { and, eq, inArray } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackBoards, integrations, user } from "@/db/schema";
 
-export async function loadRoadmapData(request: Request, orgSlug: string) {
-  const { session, org } = await requireOrgBySlug(request, orgSlug);
-  const db = getDb();
+export async function loadRoadmapData(db: Db, request: Request, orgSlug: string) {
+  const { session, org } = await requireOrgBySlug(db, request, orgSlug);
 
   const [enrichedPosts, integration] = await Promise.all([
-    getEnrichedPosts(org.id, session.user.id),
+    getEnrichedPosts(db, org.id, session.user.id),
     db.query.integrations.findFirst({
       where: and(eq(integrations.organizationId, org.id), eq(integrations.provider, "github")),
       columns: { id: true },

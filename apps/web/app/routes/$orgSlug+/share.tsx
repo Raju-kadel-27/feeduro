@@ -47,6 +47,7 @@ import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { cn } from "@lib/utils";
 import { getEnv } from "@utils/get-env";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/share";
 
 export function meta({ data: d }: Route.MetaArgs) {
@@ -56,8 +57,9 @@ export function meta({ data: d }: Route.MetaArgs) {
 
 // ─── Loader ───────────────────────────────────────────────────────────────────
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, org } = await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
   const env = getEnv();
   const isDev = env.ENVIRONMENT === "development";
   const publicBoardUrl = isDev ? `${env.BASE_URL}/${org.slug}` : `https://${org.slug}.feeduro.com`;

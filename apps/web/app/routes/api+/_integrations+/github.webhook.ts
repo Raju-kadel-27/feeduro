@@ -3,8 +3,8 @@ import type { GithubSettings } from "@features/internal/integrations/github/serv
 import { parseSettings } from "@features/internal/integrations/server/queries";
 import { insertNotification } from "@features/internal/notifications/server/mutations";
 import { and, eq } from "drizzle-orm";
-import { getDb, withTransaction } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/github.webhook";
 
@@ -21,7 +21,8 @@ type GithubIssuePayload = {
 
 // POST /api/github/webhook?orgId=<feeduro-org-id>
 // Called by GitHub when an issue event fires in the connected repository.
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
   const event = request.headers.get("X-GitHub-Event");
   const rawBody = await request.text();
   const signature = request.headers.get("X-Hub-Signature-256") ?? "";
@@ -45,8 +46,6 @@ export async function action({ request }: Route.ActionArgs) {
     console.log(`${LOG} ignored event=${event}`);
     return new Response("OK", { status: 200 });
   }
-
-  const db = getDb();
 
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, orgId), eq(integrations.provider, "github")),
@@ -120,7 +119,7 @@ export async function action({ request }: Route.ActionArgs) {
   const newStatus =
     issueAction === "closed" ? "completed" : issueAction === "reopened" ? "open" : null;
 
-  await withTransaction(async (tx) => {
+  await db.transaction(async (tx) => {
     await tx
       .update(postExternalLinks)
       .set({ externalStatus: issue.state, externalTitle: issue.title, lastSyncedAt: new Date() })
@@ -135,7 +134,7 @@ export async function action({ request }: Route.ActionArgs) {
   });
 
   if (newStatus && post.createdBy) {
-    await insertNotification({
+    await insertNotification(db, {
       organizationId: orgId,
       userId: post.createdBy,
       type: "status_changed",

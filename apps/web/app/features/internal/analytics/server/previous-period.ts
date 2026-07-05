@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import type { StatsDelta } from "../schemas/analytics";
 
 const RawSchema = z.object({
@@ -18,12 +18,11 @@ function pct(current: number, prev: number): number | null {
 }
 
 export async function getPeriodDeltas(
+  db: Db,
   organizationId: string,
   since: Date,
   boardId?: string,
 ): Promise<StatsDelta> {
-  const db = getDb();
-
   // Previous window mirrors the current window shifted back by the same duration
   const nowMs = Date.now();
   const windowMs = nowMs - since.getTime();

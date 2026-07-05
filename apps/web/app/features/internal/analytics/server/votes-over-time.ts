@@ -1,5 +1,5 @@
 import { and, eq, gte, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, votes } from "@/db/schema";
 import type { DateRange } from "../schemas/analytics";
 import { VotesOverTimeSchema } from "../schemas/analytics";
@@ -11,13 +11,12 @@ function truncSql(range: DateRange) {
 }
 
 export async function getVotesOverTime(
+  db: Db,
   organizationId: string,
   range: DateRange,
   since?: Date,
   boardId?: string,
 ) {
-  const db = getDb();
-
   const effectiveSince =
     since ??
     (() => {

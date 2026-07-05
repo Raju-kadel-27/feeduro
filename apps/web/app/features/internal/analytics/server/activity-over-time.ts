@@ -1,5 +1,5 @@
 import { and, eq, gte, isNull, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 import type { DateRange } from "../schemas/analytics";
 import { ActivityOverTimeSchema } from "../schemas/analytics";
@@ -11,13 +11,12 @@ function truncSql(range: DateRange, col: typeof feedbackPosts.createdAt) {
 }
 
 export async function getActivityOverTime(
+  db: Db,
   organizationId: string,
   range: DateRange,
   since?: Date,
   boardId?: string,
 ) {
-  const db = getDb();
-
   // For "all time" cap at 12 months so the chart stays readable
   const effectiveSince =
     since ??

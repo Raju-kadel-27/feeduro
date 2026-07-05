@@ -1,14 +1,14 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { and, eq, sql } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { reactions } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/reactions";
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const body = (await request.json()) as { postId: string; type?: string };
   const { postId, type = "heart" } = body;

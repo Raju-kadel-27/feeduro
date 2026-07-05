@@ -7,15 +7,17 @@ import { listAuditLogs } from "@features/internal/audit/server/queries";
 import { ScrollText } from "lucide-react";
 import { data } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/audit-log";
 
 export function meta() {
   return [{ title: "Audit Log — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  await requireAdmin(organizationId, session.user.id);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  await requireAdmin(db, organizationId, session.user.id);
 
   const url = new URL(request.url);
 
@@ -28,7 +30,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       ? (rawCategory as AuditCategory)
       : undefined;
 
-  const { rows, total, pageCount } = await listAuditLogs(organizationId, page, category);
+  const { rows, total, pageCount } = await listAuditLogs(db, organizationId, page, category);
   return data({ rows, total, page, pageCount, category });
 }
 

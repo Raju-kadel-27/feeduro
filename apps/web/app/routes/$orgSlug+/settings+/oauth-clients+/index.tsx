@@ -14,9 +14,9 @@ import { useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { auth } from "@/app/lib/auth/server";
-import { getDb } from "@/db";
+import { getAuth } from "@/app/lib/auth/server";
 import { oauthAccessToken } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/index";
 
@@ -40,17 +40,17 @@ function toStringArray(value: unknown): string[] {
   return [value];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  await requireOrgBySlug(db, request, params.orgSlug);
 
   const appOrigin = new URL(request.url).origin;
-  const result = await auth.api.getOAuthClients({ headers: request.headers });
+  const result = await getAuth(db).api.getOAuthClients({ headers: request.headers });
   const raw = (result ?? []) as Omit<OAuthClientRow, "activeTokens">[];
   const clients = raw.map((c) => ({ ...c, redirect_uris: toStringArray(c.redirect_uris) }));
 
   if (clients.length === 0) return { clients: [] as OAuthClientRow[], appOrigin };
 
-  const db = getDb();
   const clientIds = clients.map((c) => c.client_id);
 
   const tokenCounts = await db

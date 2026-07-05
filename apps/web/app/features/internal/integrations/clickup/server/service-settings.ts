@@ -1,5 +1,6 @@
 import { getBaseUrl } from "@utils/base-url";
 import { data } from "react-router";
+import type { Db } from "@/db";
 import { deleteIntegration, updateIntegrationSettings } from "../../server/mutations";
 import { getIntegration, getIntegrationToken, parseSettings } from "../../server/queries";
 import {
@@ -15,12 +16,13 @@ import type { ClickupAction, ClickupSettings } from "./schemas";
 const LOG = "[clickup-settings]";
 
 export async function handleClickupConfigAction(
+  db: Db,
   input: ClickupAction,
   organizationId: string,
   userId: string,
 ) {
   if (input.intent === "list_workspaces") {
-    const accessToken = await getIntegrationToken(organizationId, "clickup");
+    const accessToken = await getIntegrationToken(db, organizationId, "clickup");
     if (!accessToken) return data({ error: "ClickUp not connected" }, { status: 400 });
     try {
       return data({ workspaces: await getClickupWorkspaces(accessToken) });
@@ -30,7 +32,7 @@ export async function handleClickupConfigAction(
   }
 
   if (input.intent === "list_spaces") {
-    const accessToken = await getIntegrationToken(organizationId, "clickup");
+    const accessToken = await getIntegrationToken(db, organizationId, "clickup");
     if (!accessToken) return data({ error: "ClickUp not connected" }, { status: 400 });
     try {
       return data({ spaces: await getClickupSpaces(accessToken, input.workspaceId) });
@@ -40,7 +42,7 @@ export async function handleClickupConfigAction(
   }
 
   if (input.intent === "list_lists") {
-    const accessToken = await getIntegrationToken(organizationId, "clickup");
+    const accessToken = await getIntegrationToken(db, organizationId, "clickup");
     if (!accessToken) return data({ error: "ClickUp not connected" }, { status: 400 });
     try {
       return data({ lists: await getClickupLists(accessToken, input.spaceId) });
@@ -50,7 +52,7 @@ export async function handleClickupConfigAction(
   }
 
   if (input.intent === "list_statuses") {
-    const accessToken = await getIntegrationToken(organizationId, "clickup");
+    const accessToken = await getIntegrationToken(db, organizationId, "clickup");
     if (!accessToken) return data({ error: "ClickUp not connected" }, { status: 400 });
     try {
       return data({ statuses: await getClickupListStatuses(accessToken, input.listId) });
@@ -60,7 +62,7 @@ export async function handleClickupConfigAction(
   }
 
   if (input.intent === "update_settings") {
-    const integration = await getIntegration(organizationId, "clickup");
+    const integration = await getIntegration(db, organizationId, "clickup");
     if (!integration?.accessToken) return data({ error: "ClickUp not connected" }, { status: 400 });
     const prev = parseSettings<ClickupSettings>(integration.settings) ?? ({} as ClickupSettings);
 
@@ -89,6 +91,7 @@ export async function handleClickupConfigAction(
     }
 
     await updateIntegrationSettings(
+      db,
       organizationId,
       "clickup",
       {
@@ -110,7 +113,7 @@ export async function handleClickupConfigAction(
   }
 
   if (input.intent === "disconnect") {
-    const integration = await getIntegration(organizationId, "clickup");
+    const integration = await getIntegration(db, organizationId, "clickup");
     if (integration?.accessToken) {
       const settings = parseSettings<ClickupSettings>(integration.settings);
       if (settings?.webhookId) {
@@ -119,7 +122,7 @@ export async function handleClickupConfigAction(
         );
       }
     }
-    await deleteIntegration(organizationId, "clickup");
+    await deleteIntegration(db, organizationId, "clickup");
     console.log(`${LOG} disconnected orgId=${organizationId}`);
     return data({ success: true });
   }

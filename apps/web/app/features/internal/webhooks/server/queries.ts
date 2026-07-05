@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { member, webhookEndpoints } from "@/db/schema";
 import type { EndpointRow } from "../types";
 
@@ -27,8 +27,7 @@ export function fmtEndpoint(ep: EpRow) {
   return { ...ep, events: JSON.parse(ep.events) as string[] };
 }
 
-export async function listWebhooks(organizationId: string) {
-  const db = getDb();
+export async function listWebhooks(db: Db, organizationId: string) {
   const rows = await db
     .select(EP_COLS)
     .from(webhookEndpoints)
@@ -37,8 +36,7 @@ export async function listWebhooks(organizationId: string) {
   return { data: rows.map(fmtEndpoint) };
 }
 
-export async function getWebhookSecret(organizationId: string, id: string) {
-  const db = getDb();
+export async function getWebhookSecret(db: Db, organizationId: string, id: string) {
   const ep = await db.query.webhookEndpoints.findFirst({
     where: and(eq(webhookEndpoints.id, id), eq(webhookEndpoints.organizationId, organizationId)),
     columns: { secret: true },
@@ -46,8 +44,7 @@ export async function getWebhookSecret(organizationId: string, id: string) {
   return ep?.secret ?? null;
 }
 
-export async function getWebhook(organizationId: string, id: string) {
-  const db = getDb();
+export async function getWebhook(db: Db, organizationId: string, id: string) {
   const ep = await db.query.webhookEndpoints.findFirst({
     where: and(eq(webhookEndpoints.id, id), eq(webhookEndpoints.organizationId, organizationId)),
     columns: EP_COLS,
@@ -56,11 +53,11 @@ export async function getWebhook(organizationId: string, id: string) {
 }
 
 export async function getWebhookDetailLoaderData(
+  db: Db,
   sessionUserId: string,
   organizationId: string,
   endpointId: string,
 ) {
-  const db = getDb();
   const [ep, memberRecord] = await Promise.all([
     db.query.webhookEndpoints.findFirst({
       where: and(
@@ -88,9 +85,7 @@ export async function getWebhookDetailLoaderData(
   return { endpoint: ep as EndpointRow, isAdmin: memberRecord?.role === "admin" };
 }
 
-export async function getWebhooksLoaderData(sessionUserId: string, organizationId: string) {
-  const db = getDb();
-
+export async function getWebhooksLoaderData(db: Db, sessionUserId: string, organizationId: string) {
   const [endpoints, memberRecord] = await Promise.all([
     db.query.webhookEndpoints.findMany({
       where: eq(webhookEndpoints.organizationId, organizationId),

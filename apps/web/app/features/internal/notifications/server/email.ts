@@ -1,23 +1,24 @@
 import { sendEmail } from "@lib/mailer";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, user } from "@/db/schema";
 
-export async function notifyCustomerReplyByEmail({
-  postId,
-  organizationId,
-  actorId,
-  actorName,
-  commentBody,
-}: {
-  postId: string;
-  organizationId: string;
-  actorId: string;
-  actorName: string;
-  commentBody: string;
-}): Promise<void> {
-  const db = getDb();
-
+export async function notifyCustomerReplyByEmail(
+  db: Db,
+  {
+    postId,
+    organizationId,
+    actorId,
+    actorName,
+    commentBody,
+  }: {
+    postId: string;
+    organizationId: string;
+    actorId: string;
+    actorName: string;
+    commentBody: string;
+  },
+): Promise<void> {
   const row = await db
     .select({
       createdBy: feedbackPosts.createdBy,

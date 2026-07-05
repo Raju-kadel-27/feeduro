@@ -1,7 +1,7 @@
 import { refreshAccessToken } from "@services/oauth/flow.server";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { integrations } from "@/db/schema";
 import {
   type AutoCreatePost,
@@ -15,17 +15,18 @@ import { asanaOAuth } from "./oauth";
 import type { AsanaSettings } from "./schemas";
 
 export async function autoCreateAsanaTask(
+  db: Db,
   organizationId: string,
   post: AutoCreatePost,
   userId?: string,
 ): Promise<void> {
-  const integration = await getIntegration(organizationId, "asana");
+  const integration = await getIntegration(db, organizationId, "asana");
   if (!integration?.accessToken) return;
 
   const settings = parseSettings<AsanaSettings>(integration.settings);
   if (!settings?.autoCreateIssues || !settings.workspaceGid || !settings.defaultProjectGid) return;
 
-  if (await isAlreadyLinked(post.id, "asana")) return;
+  if (await isAlreadyLinked(db, post.id, "asana")) return;
 
   const { workspaceGid, defaultProjectGid } = settings;
   const description = buildPostDescription(post);
@@ -53,7 +54,6 @@ export async function autoCreateAsanaTask(
       env.ASANA_CLIENT_ID,
       env.ASANA_CLIENT_SECRET,
     );
-    const db = getDb();
     await db
       .update(integrations)
       .set({
@@ -74,7 +74,7 @@ export async function autoCreateAsanaTask(
     );
   }
 
-  await insertPostExternalLink({
+  await insertPostExternalLink(db, {
     postId: post.id,
     organizationId,
     provider: "asana",

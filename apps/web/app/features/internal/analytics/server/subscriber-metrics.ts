@@ -1,12 +1,11 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { SubscriberMetricsSchema } from "../schemas/health-metrics";
 
 // Changelog subscriber counts: active, unsubscribed, and new in the last 30 days
 // (or the selected date range when `since` is provided).
 // Uses cls_org_id_idx.
-export async function getSubscriberMetrics(organizationId: string, since?: Date) {
-  const db = getDb();
+export async function getSubscriberMetrics(db: Db, organizationId: string, since?: Date) {
   const newSince = since ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   const result = await db.execute(sql`

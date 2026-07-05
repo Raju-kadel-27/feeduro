@@ -1,12 +1,11 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { VoteConversionSchema } from "../schemas/health-metrics";
 
 // Unique voters / unique board visitors in the period.
 // Directional signal — visitors are anonymous, voters are authenticated.
 // Uses bv_org_created_at_idx and votes_org_created_at_idx.
-export async function getVoteConversion(organizationId: string, since?: Date) {
-  const db = getDb();
+export async function getVoteConversion(db: Db, organizationId: string, since?: Date) {
   const sinceFilter = since ? sql`AND created_at >= ${since}` : sql``;
 
   const result = await db.execute(sql`

@@ -4,15 +4,14 @@ import { waitUntil } from "@middleware/cloudflare.server";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq, isNull } from "drizzle-orm";
 import type { RouterContextProvider } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { changelogSubscribers, organization } from "@/db/schema";
 
 export async function subscribeEmail(
+  db: Db,
   organizationId: string,
   email: string,
 ): Promise<{ alreadySubscribed: boolean }> {
-  const db = getDb();
-
   const existing = await db.query.changelogSubscribers.findFirst({
     where: and(
       eq(changelogSubscribers.organizationId, organizationId),
@@ -23,7 +22,6 @@ export async function subscribeEmail(
 
   if (existing) {
     if (existing.unsubscribedAt) {
-      // Re-subscribe: clear unsubscribedAt and issue a fresh token
       await db
         .update(changelogSubscribers)
         .set({ unsubscribedAt: null, unsubscribeToken: createId() })
@@ -42,9 +40,7 @@ export async function subscribeEmail(
   return { alreadySubscribed: false };
 }
 
-export async function unsubscribeByToken(token: string): Promise<boolean> {
-  const db = getDb();
-
+export async function unsubscribeByToken(db: Db, token: string): Promise<boolean> {
   const subscriber = await db.query.changelogSubscribers.findFirst({
     where: eq(changelogSubscribers.unsubscribeToken, token),
     columns: { id: true, unsubscribedAt: true },
@@ -60,8 +56,7 @@ export async function unsubscribeByToken(token: string): Promise<boolean> {
   return true;
 }
 
-export async function getSubscriberCount(organizationId: string): Promise<number> {
-  const db = getDb();
+export async function getSubscriberCount(db: Db, organizationId: string): Promise<number> {
   const rows = await db.query.changelogSubscribers.findMany({
     where: and(
       eq(changelogSubscribers.organizationId, organizationId),
@@ -73,6 +68,7 @@ export async function getSubscriberCount(organizationId: string): Promise<number
 }
 
 export function notifyChangelogSubscribers(
+  db: Db,
   context: Readonly<RouterContextProvider>,
   opts: {
     organizationId: string;
@@ -83,25 +79,25 @@ export function notifyChangelogSubscribers(
     baseUrl: string;
   },
 ) {
-  waitUntil(context, sendNotifications(opts));
+  waitUntil(context, sendNotifications(db, opts));
 }
 
-async function sendNotifications(opts: {
-  organizationId: string;
-  orgName: string;
-  changelogTitle: string;
-  excerpt: string;
-  changelogUrl: string;
-  baseUrl: string;
-}) {
-  const db = getDb();
-
+async function sendNotifications(
+  db: Db,
+  opts: {
+    organizationId: string;
+    orgName: string;
+    changelogTitle: string;
+    excerpt: string;
+    changelogUrl: string;
+    baseUrl: string;
+  },
+) {
   const org = await db.query.organization.findFirst({
     where: eq(organization.id, opts.organizationId),
     columns: { metadata: true },
   });
 
-  // Check subscriptions are enabled
   let subscriptionsEnabled = false;
   try {
     const meta = JSON.parse(org?.metadata ?? "{}") as Record<string, unknown>;

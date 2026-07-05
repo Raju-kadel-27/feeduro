@@ -8,20 +8,21 @@ import {
 } from "@features/internal/segmentation/server/service";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/plans";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const plans = await getOrgPlans(organizationId);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
+  const plans = await getOrgPlans(db, organizationId);
   return data({ plans });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const memberRecord = await db.query.member.findFirst({
     where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
@@ -47,7 +48,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   try {
     if (action.intent === "create") {
-      const id = await createPlan(organizationId, {
+      const id = await createPlan(db, organizationId, {
         name: action.name,
         monthlyPrice: action.monthlyPrice,
         interval: action.interval,
@@ -56,7 +57,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     if (action.intent === "update") {
-      await updatePlan(organizationId, action.id, {
+      await updatePlan(db, organizationId, action.id, {
         name: action.name,
         monthlyPrice: action.monthlyPrice,
         interval: action.interval,
@@ -64,7 +65,7 @@ export async function action({ request }: Route.ActionArgs) {
       return data({ success: true });
     }
 
-    await deletePlan(organizationId, action.id);
+    await deletePlan(db, organizationId, action.id);
     return data({ success: true });
   } catch {
     // Most likely a duplicate plan name (unique per org).

@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
 import { changelogs, organization, portalEvents } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 const EVENT_TYPES = ["board_view", "roadmap_view", "updates_view", "changelog_view"] as const;
 
@@ -13,7 +13,8 @@ const BodySchema = z.object({
   resourceId: z.string().optional(),
 });
 
-export async function action({ request }: { request: Request }) {
+export async function action({ request, context }: { request: Request; context: unknown }) {
+  const db = getDb(context);
   if (request.method !== "POST") {
     return data({ error: "Method not allowed" }, { status: 405 });
   }
@@ -22,7 +23,6 @@ export async function action({ request }: { request: Request }) {
   if (!body.success) return data({ error: "Invalid request" }, { status: 400 });
 
   const { orgId, type, resourceId } = body.data;
-  const db = getDb();
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.id, orgId),

@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, feedbackTags, postTags } from "@/db/schema";
 import { createTag, deleteTag, getOrgTags } from "./tags";
 
@@ -16,30 +16,30 @@ export const AddTagToPostSchema = z.object({
   tagId: z.string().min(1),
 });
 
-export async function listTags(organizationId: string) {
-  return getOrgTags(organizationId);
+export async function listTags(db: Db, organizationId: string) {
+  return getOrgTags(db, organizationId);
 }
 
 export async function createOrgTag(
+  db: Db,
   organizationId: string,
   input: z.infer<typeof CreateTagSchema>,
 ): Promise<{ data: { id: string; name: string; color: string } } | { error: "tag_name_exists" }> {
   try {
-    const tag = await createTag(organizationId, input.name, input.color);
+    const tag = await createTag(db, organizationId, input.name, input.color);
     return { data: tag };
   } catch {
     return { error: "tag_name_exists" };
   }
 }
 
-export async function deleteOrgTag(organizationId: string, tagId: string): Promise<boolean> {
-  const db = getDb();
+export async function deleteOrgTag(db: Db, organizationId: string, tagId: string): Promise<boolean> {
   const tag = await db.query.feedbackTags.findFirst({
     where: and(eq(feedbackTags.id, tagId), eq(feedbackTags.organizationId, organizationId)),
     columns: { id: true },
   });
   if (!tag) return false;
-  await deleteTag(organizationId, tagId);
+  await deleteTag(db, organizationId, tagId);
   return true;
 }
 
@@ -48,12 +48,11 @@ type PostTagResult =
   | { error: "post_not_found" | "tag_not_found" };
 
 export async function addPostTag(
+  db: Db,
   organizationId: string,
   postId: string,
   tagId: string,
 ): Promise<PostTagResult> {
-  const db = getDb();
-
   const [post, tag] = await Promise.all([
     db.query.feedbackPosts.findFirst({
       where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
@@ -77,12 +76,11 @@ export async function addPostTag(
 }
 
 export async function removePostTag(
+  db: Db,
   organizationId: string,
   postId: string,
   tagId: string,
 ): Promise<boolean> {
-  const db = getDb();
-
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
     columns: { id: true },

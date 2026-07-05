@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { integrations, postExternalLinks } from "@/db/schema";
 
 const LINK_COLUMNS = {
@@ -28,9 +28,7 @@ function shapeLink(row: LinkRow) {
   };
 }
 
-export async function getPostIntegrationLinks(organizationId: string, postId: string) {
-  const db = getDb();
-
+export async function getPostIntegrationLinks(db: Db, organizationId: string, postId: string) {
   const [
     linearLinkRow,
     linearIntegration,

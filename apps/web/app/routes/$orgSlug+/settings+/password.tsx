@@ -1,6 +1,7 @@
 import { PageHeader } from "@components/common/page-header";
 import { ChangePasswordForm } from "@features/auth/components/change-password-form";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getDb } from "~/middleware/cloudflare.server";
 import { Lock, LogOut, ShieldCheck } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
@@ -18,8 +19,9 @@ export function meta() {
   return [{ title: "Change Password — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  await requireOrgBySlug(db, request, params.orgSlug);
   return null;
 }
 

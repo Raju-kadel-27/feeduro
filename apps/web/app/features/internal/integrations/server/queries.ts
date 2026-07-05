@@ -1,5 +1,5 @@
 import { and, eq, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { integrations, organization } from "@/db/schema";
 
 export type IntegrationProvider =
@@ -28,8 +28,7 @@ export function parseSettings<T>(raw: string | null | undefined): T | null {
   }
 }
 
-export async function getIntegration(organizationId: string, provider: IntegrationProvider) {
-  const db = getDb();
+export async function getIntegration(db: Db, organizationId: string, provider: IntegrationProvider) {
   return db.query.integrations.findFirst({
     where: and(
       eq(integrations.organizationId, organizationId),
@@ -39,10 +38,10 @@ export async function getIntegration(organizationId: string, provider: Integrati
 }
 
 export async function getIntegrationToken(
+  db: Db,
   organizationId: string,
   provider: IntegrationProvider,
 ): Promise<string | null> {
-  const db = getDb();
   const row = await db.query.integrations.findFirst({
     where: and(
       eq(integrations.organizationId, organizationId),
@@ -62,9 +61,9 @@ export interface NotificationSettings {
 }
 
 export async function getNotificationSettings(
+  db: Db,
   organizationId: string,
 ): Promise<NotificationSettings> {
-  const db = getDb();
   const row = await db.query.integrations.findFirst({
     where: and(
       eq(integrations.organizationId, organizationId),
@@ -76,11 +75,11 @@ export async function getNotificationSettings(
 }
 
 export async function upsertNotificationSettings(
+  db: Db,
   organizationId: string,
   patch: Partial<NotificationSettings>,
 ): Promise<void> {
-  const db = getDb();
-  const current = await getNotificationSettings(organizationId);
+  const current = await getNotificationSettings(db, organizationId);
   const merged: Record<string, unknown> = { ...current };
   for (const [k, v] of Object.entries(patch)) {
     if (v === null || v === undefined) {
@@ -99,8 +98,7 @@ export async function upsertNotificationSettings(
     });
 }
 
-export async function getOrgSlugFromId(orgId: string): Promise<string | null> {
-  const db = getDb();
+export async function getOrgSlugFromId(db: Db, orgId: string): Promise<string | null> {
   const org = await db.query.organization.findFirst({
     where: eq(organization.id, orgId),
     columns: { slug: true },

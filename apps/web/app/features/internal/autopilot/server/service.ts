@@ -1,6 +1,6 @@
 import { notifyAutopilotDuplicate } from "@features/internal/notifications/server/service";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts } from "@/db/schema";
 import { detectDuplicate } from "./duplicate-detection";
 import { createDuplicateSuggestion } from "./mutations";
@@ -13,11 +13,7 @@ interface NewPost {
   organizationId: string;
 }
 
-export async function runDuplicateDetection(post: NewPost, apiKey: string): Promise<void> {
-  const db = getDb();
-
-  // Search org-wide (not just same board) — duplicates frequently land on different boards.
-  // Excludes completed/closed (not valid merge targets) and already-merged posts.
+export async function runDuplicateDetection(db: Db, post: NewPost, apiKey: string): Promise<void> {
   const existingPosts = await db.query.feedbackPosts.findMany({
     where: and(
       eq(feedbackPosts.organizationId, post.organizationId),
@@ -43,7 +39,7 @@ export async function runDuplicateDetection(post: NewPost, apiKey: string): Prom
   const matchedPost = candidates.find((p) => p.id === result.matchedPostId);
 
   await Promise.all([
-    createDuplicateSuggestion({
+    createDuplicateSuggestion(db, {
       organizationId: post.organizationId,
       sourcePostId: post.id,
       targetPostId: result.matchedPostId!,

@@ -1,5 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { comments, feedbackPosts, member, user } from "@/db/schema";
 import { isVoteMilestone } from "../schemas/notification";
 import { insertNotifications } from "./mutations";
@@ -8,23 +8,24 @@ import { insertNotifications } from "./mutations";
 // Notifies the post author + everyone who previously commented,
 // excluding the commenter themselves.
 
-export async function notifyNewComment({
-  postId,
-  commentBody,
-  actorId,
-  organizationId,
-  postTitle,
-  actorName,
-}: {
-  postId: string;
-  commentBody: string;
-  actorId: string;
-  organizationId: string;
-  postTitle: string;
-  actorName: string;
-}): Promise<void> {
-  const db = getDb();
-
+export async function notifyNewComment(
+  db: Db,
+  {
+    postId,
+    commentBody,
+    actorId,
+    organizationId,
+    postTitle,
+    actorName,
+  }: {
+    postId: string;
+    commentBody: string;
+    actorId: string;
+    organizationId: string;
+    postTitle: string;
+    actorName: string;
+  },
+): Promise<void> {
   const [post, prevCommenters] = await Promise.all([
     db.query.feedbackPosts.findFirst({
       where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
@@ -51,6 +52,7 @@ export async function notifyNewComment({
   };
 
   await insertNotifications(
+    db,
     [...recipientSet].map((userId) => ({
       organizationId,
       userId,
@@ -65,25 +67,26 @@ export async function notifyNewComment({
 // ─── mention ─────────────────────────────────────────────────────────────────
 // Parses @Name mentions from comment body and notifies matched org members.
 
-export async function notifyMentions({
-  postId,
-  commentBody,
-  actorId,
-  organizationId,
-  postTitle,
-  actorName,
-}: {
-  postId: string;
-  commentBody: string;
-  actorId: string;
-  organizationId: string;
-  postTitle: string;
-  actorName: string;
-}): Promise<void> {
+export async function notifyMentions(
+  db: Db,
+  {
+    postId,
+    commentBody,
+    actorId,
+    organizationId,
+    postTitle,
+    actorName,
+  }: {
+    postId: string;
+    commentBody: string;
+    actorId: string;
+    organizationId: string;
+    postTitle: string;
+    actorName: string;
+  },
+): Promise<void> {
   const mentionWords = extractMentions(commentBody);
   if (mentionWords.length === 0) return;
-
-  const db = getDb();
 
   const orgMembers = await db
     .select({ userId: member.userId, name: user.name, email: user.email })
@@ -104,6 +107,7 @@ export async function notifyMentions({
   if (mentioned.length === 0) return;
 
   await insertNotifications(
+    db,
     mentioned.map((m) => ({
       organizationId,
       userId: m.userId,
@@ -124,21 +128,22 @@ function extractMentions(text: string): string[] {
 // ─── new_post ─────────────────────────────────────────────────────────────────
 // Notifies all admin/member members of the org (excluding the creator).
 
-export async function notifyNewPost({
-  postId,
-  postTitle,
-  actorId,
-  organizationId,
-  actorName,
-}: {
-  postId: string;
-  postTitle: string;
-  actorId: string;
-  organizationId: string;
-  actorName: string;
-}): Promise<void> {
-  const db = getDb();
-
+export async function notifyNewPost(
+  db: Db,
+  {
+    postId,
+    postTitle,
+    actorId,
+    organizationId,
+    actorName,
+  }: {
+    postId: string;
+    postTitle: string;
+    actorId: string;
+    organizationId: string;
+    actorName: string;
+  },
+): Promise<void> {
   const orgMembers = await db.query.member.findMany({
     where: eq(member.organizationId, organizationId),
     columns: { userId: true, role: true },
@@ -149,6 +154,7 @@ export async function notifyNewPost({
     .map((m) => m.userId);
 
   await insertNotifications(
+    db,
     recipients.map((userId) => ({
       organizationId,
       userId,
@@ -163,25 +169,26 @@ export async function notifyNewPost({
 // ─── status_changed ───────────────────────────────────────────────────────────
 // Notifies the post author when status changes (unless they made the change).
 
-export async function notifyStatusChanged({
-  postId,
-  postTitle,
-  oldStatus,
-  newStatus,
-  actorId,
-  organizationId,
-  actorName,
-}: {
-  postId: string;
-  postTitle: string;
-  oldStatus: string;
-  newStatus: string;
-  actorId: string;
-  organizationId: string;
-  actorName: string;
-}): Promise<void> {
-  const db = getDb();
-
+export async function notifyStatusChanged(
+  db: Db,
+  {
+    postId,
+    postTitle,
+    oldStatus,
+    newStatus,
+    actorId,
+    organizationId,
+    actorName,
+  }: {
+    postId: string;
+    postTitle: string;
+    oldStatus: string;
+    newStatus: string;
+    actorId: string;
+    organizationId: string;
+    actorName: string;
+  },
+): Promise<void> {
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
     columns: { createdBy: true },
@@ -189,7 +196,7 @@ export async function notifyStatusChanged({
 
   if (!post?.createdBy || post.createdBy === actorId) return;
 
-  await insertNotifications([
+  await insertNotifications(db, [
     {
       organizationId,
       userId: post.createdBy,
@@ -204,19 +211,20 @@ export async function notifyStatusChanged({
 // ─── post_merged ─────────────────────────────────────────────────────────────
 // Notifies the source post author when their post is merged.
 
-export async function notifyPostMerged({
-  sourcePostId,
-  actorId,
-  organizationId,
-  actorName,
-}: {
-  sourcePostId: string;
-  actorId: string;
-  organizationId: string;
-  actorName: string;
-}): Promise<void> {
-  const db = getDb();
-
+export async function notifyPostMerged(
+  db: Db,
+  {
+    sourcePostId,
+    actorId,
+    organizationId,
+    actorName,
+  }: {
+    sourcePostId: string;
+    actorId: string;
+    organizationId: string;
+    actorName: string;
+  },
+): Promise<void> {
   const post = await db.query.feedbackPosts.findFirst({
     where: and(
       eq(feedbackPosts.id, sourcePostId),
@@ -227,7 +235,7 @@ export async function notifyPostMerged({
 
   if (!post?.createdBy || post.createdBy === actorId) return;
 
-  await insertNotifications([
+  await insertNotifications(db, [
     {
       organizationId,
       userId: post.createdBy,
@@ -242,21 +250,22 @@ export async function notifyPostMerged({
 // ─── autopilot_duplicate ──────────────────────────────────────────────────────
 // Notifies all org admins when autopilot flags a post as a potential duplicate.
 
-export async function notifyAutopilotDuplicate({
-  sourcePostId,
-  sourcePostTitle,
-  targetPostTitle,
-  confidence,
-  organizationId,
-}: {
-  sourcePostId: string;
-  sourcePostTitle: string;
-  targetPostTitle: string;
-  confidence: "low" | "medium" | "high";
-  organizationId: string;
-}): Promise<void> {
-  const db = getDb();
-
+export async function notifyAutopilotDuplicate(
+  db: Db,
+  {
+    sourcePostId,
+    sourcePostTitle,
+    targetPostTitle,
+    confidence,
+    organizationId,
+  }: {
+    sourcePostId: string;
+    sourcePostTitle: string;
+    targetPostTitle: string;
+    confidence: "low" | "medium" | "high";
+    organizationId: string;
+  },
+): Promise<void> {
   const admins = await db.query.member.findMany({
     where: and(eq(member.organizationId, organizationId), inArray(member.role, ["admin", "owner"])),
     columns: { userId: true },
@@ -265,6 +274,7 @@ export async function notifyAutopilotDuplicate({
   if (admins.length === 0) return;
 
   await insertNotifications(
+    db,
     admins.map((m) => ({
       organizationId,
       userId: m.userId,
@@ -279,22 +289,25 @@ export async function notifyAutopilotDuplicate({
 // ─── owner_assigned ───────────────────────────────────────────────────────────
 // Notifies the newly assigned owner when someone assigns them to a post.
 
-export async function notifyOwnerAssigned({
-  postId,
-  postTitle,
-  newOwnerId,
-  actorId,
-  organizationId,
-  actorName,
-}: {
-  postId: string;
-  postTitle: string;
-  newOwnerId: string;
-  actorId: string;
-  organizationId: string;
-  actorName: string;
-}): Promise<void> {
-  await insertNotifications([
+export async function notifyOwnerAssigned(
+  db: Db,
+  {
+    postId,
+    postTitle,
+    newOwnerId,
+    actorId,
+    organizationId,
+    actorName,
+  }: {
+    postId: string;
+    postTitle: string;
+    newOwnerId: string;
+    actorId: string;
+    organizationId: string;
+    actorName: string;
+  },
+): Promise<void> {
+  await insertNotifications(db, [
     {
       organizationId,
       userId: newOwnerId,
@@ -309,18 +322,19 @@ export async function notifyOwnerAssigned({
 // ─── vote_milestone ───────────────────────────────────────────────────────────
 // Notifies the post author when a vote milestone is reached.
 
-export async function notifyVoteMilestoneIfReached({
-  postId,
-  organizationId,
-  newVoteCount,
-}: {
-  postId: string;
-  organizationId: string;
-  newVoteCount: number;
-}): Promise<void> {
+export async function notifyVoteMilestoneIfReached(
+  db: Db,
+  {
+    postId,
+    organizationId,
+    newVoteCount,
+  }: {
+    postId: string;
+    organizationId: string;
+    newVoteCount: number;
+  },
+): Promise<void> {
   if (!isVoteMilestone(newVoteCount)) return;
-
-  const db = getDb();
 
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
@@ -329,7 +343,7 @@ export async function notifyVoteMilestoneIfReached({
 
   if (!post?.createdBy) return;
 
-  await insertNotifications([
+  await insertNotifications(db, [
     {
       organizationId,
       userId: post.createdBy,

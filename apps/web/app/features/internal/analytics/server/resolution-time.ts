@@ -1,15 +1,15 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { ResolutionTimeSchema } from "../schemas/health-metrics";
 
 // Avg + median days from post creation to first "completed" status change.
 // Uses pa_org_post_created_at_idx for the CTE scan.
 export async function getResolutionTime(
+  db: Db,
   organizationId: string,
   since?: Date,
   boardId?: string,
 ) {
-  const db = getDb();
   const sinceFilter = since ? sql`AND pa.created_at >= ${since}` : sql``;
   const boardFilter = boardId ? sql`AND fp.board_id = ${boardId}` : sql``;
 

@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm";
 import type { AppLoadContext } from "react-router";
 import { data } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, postActivities } from "@/db/schema";
 
 type SessionActor = { user: { id: string; name: string | null; email: string | null } };
@@ -27,6 +27,7 @@ const UpdateStatusSchema = z.object({
 });
 
 export async function handleUpdateStatus(
+  db: Db,
   organizationId: string,
   session: SessionActor,
   role: string,
@@ -39,7 +40,6 @@ export async function handleUpdateStatus(
   if (!parsed.success) return data({ error: "Invalid payload" }, { status: 400 });
   const { id, status: newStatus } = parsed.data;
 
-  const db = getDb();
   const existing = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, id), eq(feedbackPosts.organizationId, organizationId)),
     columns: { status: true, title: true },

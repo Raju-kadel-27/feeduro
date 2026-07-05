@@ -1,15 +1,14 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { CompanyEngagementSchema } from "../schemas/reports";
 
 export async function getCompanyEngagement(
+  db: Db,
   organizationId: string,
   since?: Date,
   limit = 20,
   boardId?: string,
 ) {
-  const db = getDb();
-
   const sincePostFilter = since ? sql`AND fp.created_at >= ${since}` : sql``;
   const sinceVoteFilter = since ? sql`AND v.created_at  >= ${since}` : sql``;
   const sinceCommentFilter = since ? sql`AND c.created_at >= ${since}` : sql``;

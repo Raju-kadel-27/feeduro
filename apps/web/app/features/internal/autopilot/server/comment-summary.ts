@@ -1,6 +1,6 @@
 import { generateText } from "@services/groq/client";
 import { and, asc, eq, inArray } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { comments, feedbackPosts, user } from "@/db/schema";
 
 function buildPrompt(params: {
@@ -29,12 +29,11 @@ Write 2–4 sentences. Be direct and human — no corporate language, no "users 
 }
 
 export async function generateCommentSummary(
+  db: Db,
   postId: string,
   organizationId: string,
   apiKey: string,
 ): Promise<string> {
-  const db = getDb();
-
   const [post, commentRows] = await Promise.all([
     db.query.feedbackPosts.findFirst({
       where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),

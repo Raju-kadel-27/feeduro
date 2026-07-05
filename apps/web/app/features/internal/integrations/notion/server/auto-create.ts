@@ -1,4 +1,4 @@
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import {
   type AutoCreatePost,
@@ -10,17 +10,18 @@ import { createNotionPage } from "./client";
 import type { NotionSettings } from "./schemas";
 
 export async function autoCreateNotionPage(
+  db: Db,
   organizationId: string,
   post: AutoCreatePost,
   userId?: string,
 ): Promise<void> {
-  const integration = await getIntegration(organizationId, "notion");
+  const integration = await getIntegration(db, organizationId, "notion");
   if (!integration?.accessToken) return;
 
   const settings = parseSettings<NotionSettings>(integration.settings);
   if (!settings?.autoCreatePages || !settings.defaultDatabaseId) return;
 
-  if (await isAlreadyLinked(post.id, "notion")) return;
+  if (await isAlreadyLinked(db, post.id, "notion")) return;
 
   const page = await createNotionPage(
     integration.accessToken,
@@ -29,7 +30,6 @@ export async function autoCreateNotionPage(
     buildPostDescription(post),
   );
 
-  const db = getDb();
   await db.insert(postExternalLinks).values({
     postId: post.id,
     organizationId,

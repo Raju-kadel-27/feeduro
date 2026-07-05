@@ -1,20 +1,19 @@
 import { getSession } from "@lib/session";
 import { and, count, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { changelogLikes, changelogs, organization } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/changelog-like";
 
-export async function action({ request }: Route.ActionArgs) {
-  const session = await getSession(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const session = await getSession(db, request);
   if (!session) return data({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await request.json()) as { changelogId: string; orgSlug: string };
   const { changelogId, orgSlug } = body;
   if (!changelogId || !orgSlug) return data({ error: "changelogId and orgSlug required" }, { status: 400 });
-
-  const db = getDb();
 
   const [org, changelog] = await Promise.all([
     db.query.organization.findFirst({

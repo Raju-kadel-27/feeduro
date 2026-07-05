@@ -1,10 +1,16 @@
 import { createContext, type RouterContextProvider } from "react-router";
+import type { Db } from "@/db";
 
 export const CloudflareContext = createContext<{
   env: Cloudflare.Env;
   ctx: ExecutionContext;
   cf?: RequestInitCfProperties;
+  db: Db;
 }>();
+
+export function getDb(context: Readonly<RouterContextProvider>): Db {
+  return context.get(CloudflareContext).db;
+}
 
 export function getBindings(context: Readonly<RouterContextProvider>) {
   return context.get(CloudflareContext).env;

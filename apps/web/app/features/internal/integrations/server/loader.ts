@@ -1,19 +1,17 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getIntegration } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { member } from "@/db/schema";
 import type { Route } from "../../../+types/root";
 import { parseSettings } from "../utils";
+import { getIntegration } from "./queries";
 
-export async function integrationsLoader({ request, params }: Route.LoaderArgs) {
+export async function integrationsLoader(db: Db, { request, params }: Route.LoaderArgs) {
   if (!params.orgSlug) {
     throw new Response("Organization slug is required", { status: 400 });
   }
 
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-
-  const db = getDb();
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [
     memberRecord,
@@ -37,21 +35,21 @@ export async function integrationsLoader({ request, params }: Route.LoaderArgs) 
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
     }),
 
-    getIntegration(organizationId, "github"),
-    getIntegration(organizationId, "linear"),
-    getIntegration(organizationId, "jira"),
-    getIntegration(organizationId, "asana"),
-    getIntegration(organizationId, "notion"),
-    getIntegration(organizationId, "monday"),
-    getIntegration(organizationId, "trello"),
-    getIntegration(organizationId, "shortcut"),
-    getIntegration(organizationId, "zapier"),
-    getIntegration(organizationId, "n8n"),
-    getIntegration(organizationId, "zendesk"),
-    getIntegration(organizationId, "hubspot"),
-    getIntegration(organizationId, "salesforce"),
-    getIntegration(organizationId, "clickup"),
-    getIntegration(organizationId, "notifications"),
+    getIntegration(db, organizationId, "github"),
+    getIntegration(db, organizationId, "linear"),
+    getIntegration(db, organizationId, "jira"),
+    getIntegration(db, organizationId, "asana"),
+    getIntegration(db, organizationId, "notion"),
+    getIntegration(db, organizationId, "monday"),
+    getIntegration(db, organizationId, "trello"),
+    getIntegration(db, organizationId, "shortcut"),
+    getIntegration(db, organizationId, "zapier"),
+    getIntegration(db, organizationId, "n8n"),
+    getIntegration(db, organizationId, "zendesk"),
+    getIntegration(db, organizationId, "hubspot"),
+    getIntegration(db, organizationId, "salesforce"),
+    getIntegration(db, organizationId, "clickup"),
+    getIntegration(db, organizationId, "notifications"),
   ]);
 
   const githubSettings = parseSettings<{

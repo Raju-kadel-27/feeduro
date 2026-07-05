@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackBoards } from "@/db/schema";
 import type { CannyBoard } from "../schemas/canny";
 import { slugifyBoardName } from "./canny-adapter";
@@ -7,11 +7,11 @@ import { slugifyBoardName } from "./canny-adapter";
 // Resolves or creates a feedbackBoard for each Canny board.
 // Returns Map<cannyBoardId, ourBoardId>.
 export async function syncBoards(
+  db: Db,
   organizationId: string,
   cannyBoards: CannyBoard[],
   createdBy: string,
 ): Promise<Map<string, string>> {
-  const db = getDb();
   const boardMap = new Map<string, string>();
 
   for (const cannyBoard of cannyBoards) {

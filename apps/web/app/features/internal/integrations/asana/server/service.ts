@@ -5,7 +5,7 @@ import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 import {
   deleteIntegration,
@@ -48,11 +48,11 @@ const RECONNECT_MSG = "Asana session expired — please reconnect Asana in Setti
 
 // Retries fn once after refreshing the access token on a 401 error.
 async function withTokenRefresh<T>(
+  db: Db,
   organizationId: string,
   fn: (token: string) => Promise<T>,
 ): Promise<T> {
-  const db = getDb();
-  const integration = await getIntegration(organizationId, "asana");
+  const integration = await getIntegration(db, organizationId, "asana");
   if (!integration?.accessToken) throw new Error("Asana not connected");
 
   try {
@@ -91,7 +91,7 @@ async function withTokenRefresh<T>(
 
 // ─── Loader ──────────────────────────────────────────────────────────────────
 
-export async function handleAsanaLoader(request: Request) {
+export async function handleAsanaLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -99,7 +99,7 @@ export async function handleAsanaLoader(request: Request) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const { clientId } = requireAsanaEnv();
     const oauthState = buildOAuthState(organizationId);
     return redirect(buildAuthUrl(asanaOAuth, clientId, callbackUrl(), oauthState));
@@ -124,7 +124,7 @@ export async function handleAsanaLoader(request: Request) {
       const workspaces = await getAsanaWorkspaces(accessToken);
       if (!workspaces.length) throw new Error("No accessible Asana workspaces");
 
-      const existing = await getIntegration(parsed.orgId, "asana");
+      const existing = await getIntegration(db, parsed.orgId, "asana");
       const existingSettings = parseSettings<AsanaSettings>(existing?.settings ?? null);
 
       const primaryWorkspace = workspaces[0];
@@ -158,7 +158,6 @@ export async function handleAsanaLoader(request: Request) {
         webhookSecret: existingSettings?.webhookSecret,
       };
 
-      const db = getDb();
       await db
         .insert(integrations)
         .values({
@@ -181,7 +180,7 @@ export async function handleAsanaLoader(request: Request) {
       /* Redirect even on error — UI will show "not connected" */
     }
 
-    const orgSlug = await getOrgSlugFromId(parsed.orgId);
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/asana` : "/");
   }
 
@@ -190,9 +189,9 @@ export async function handleAsanaLoader(request: Request) {
 
 // ─── Action ──────────────────────────────────────────────────────────────────
 
-export async function handleAsanaAction(request: Request) {
-  const { session, organizationId } = await requireOrganization(request);
-  await requireAdminRole(organizationId, session.user.id);
+export async function handleAsanaAction(db: Db, request: Request) {
+  const { session, organizationId } = await requireOrganization(db, request);
+  await requireAdminRole(db, organizationId, session.user.id);
 
   const body = await request.json();
   const parsed = AsanaActionSchema.safeParse(body);
@@ -200,15 +199,14 @@ export async function handleAsanaAction(request: Request) {
     return data({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
   }
   const input = parsed.data;
-  const db = getDb();
 
   if (input.intent === "list_projects") {
     try {
-      const integration = await getIntegration(organizationId, "asana");
+      const integration = await getIntegration(db, organizationId, "asana");
       const settings = parseSettings<AsanaSettings>(integration?.settings ?? null);
       if (!settings?.workspaceGid) return data({ error: "No Asana workspace" }, { status: 400 });
       const workspaceGid = settings.workspaceGid;
-      const projects = await withTokenRefresh(organizationId, (token) =>
+      const projects = await withTokenRefresh(db, organizationId, (token) =>
         getAsanaProjects(token, workspaceGid),
       );
       return data({ projects });
@@ -222,7 +220,7 @@ export async function handleAsanaAction(request: Request) {
 
   if (input.intent === "list_sections") {
     try {
-      const sections = await withTokenRefresh(organizationId, (token) =>
+      const sections = await withTokenRefresh(db, organizationId, (token) =>
         getAsanaSections(token, input.projectGid),
       );
       return data({ sections });
@@ -235,10 +233,11 @@ export async function handleAsanaAction(request: Request) {
   }
 
   if (input.intent === "update_settings") {
-    const integration = await getIntegration(organizationId, "asana");
+    const integration = await getIntegration(db, organizationId, "asana");
     if (!integration) return data({ error: "No Asana integration found" }, { status: 400 });
     const settings = parseSettings<AsanaSettings>(integration.settings) ?? ({} as AsanaSettings);
     await updateIntegrationSettings(
+      db,
       organizationId,
       "asana",
       {
@@ -254,20 +253,20 @@ export async function handleAsanaAction(request: Request) {
   }
 
   if (input.intent === "disconnect") {
-    const integration = await getIntegration(organizationId, "asana");
+    const integration = await getIntegration(db, organizationId, "asana");
     if (integration?.accessToken) {
       const settings = parseSettings<AsanaSettings>(integration.settings);
       if (settings?.webhookGid) {
         await deleteAsanaWebhook(integration.accessToken, settings.webhookGid).catch(() => {});
       }
     }
-    await deleteIntegration(organizationId, "asana");
+    await deleteIntegration(db, organizationId, "asana");
     return data({ success: true });
   }
 
   if (input.intent === "create_task") {
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "asana"),
+      getIntegration(db, organizationId, "asana"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -304,10 +303,10 @@ export async function handleAsanaAction(request: Request) {
       const notes = input.notes ?? (post.description
         ? `${post.description}\n\nCreated from Feeduro feedback #${post.id}`
         : `Created from Feeduro feedback #${post.id}`);
-      const task = await withTokenRefresh(organizationId, (token) =>
+      const task = await withTokenRefresh(db, organizationId, (token) =>
         createAsanaTask(token, workspaceGid, defaultProjectGid, baseName, notes),
       );
-      await insertPostExternalLink({
+      await insertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "asana",
@@ -331,7 +330,7 @@ export async function handleAsanaAction(request: Request) {
     const taskGid = parseAsanaTaskInput(input.taskInput);
 
     const [integration, post] = await Promise.all([
-      getIntegration(organizationId, "asana"),
+      getIntegration(db, organizationId, "asana"),
       db.query.feedbackPosts.findFirst({
         where: and(
           eq(feedbackPosts.id, input.postId),
@@ -347,10 +346,10 @@ export async function handleAsanaAction(request: Request) {
     if (!settings?.workspaceGid) return data({ error: "No Asana workspace" }, { status: 400 });
 
     try {
-      const task = await withTokenRefresh(organizationId, (token) =>
+      const task = await withTokenRefresh(db, organizationId, (token) =>
         getAsanaTaskByGid(token, settings.workspaceGid!, taskGid),
       );
-      await upsertPostExternalLink({
+      await upsertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
         provider: "asana",
@@ -371,17 +370,17 @@ export async function handleAsanaAction(request: Request) {
   }
 
   if (input.intent === "unlink_task") {
-    await deletePostExternalLink(input.postId, "asana", organizationId);
+    await deletePostExternalLink(db, input.postId, "asana", organizationId);
     return data({ success: true });
   }
 
   if (input.intent === "search_tasks") {
     try {
-      const integration = await getIntegration(organizationId, "asana");
+      const integration = await getIntegration(db, organizationId, "asana");
       const settings = parseSettings<AsanaSettings>(integration?.settings ?? null);
       if (!integration?.accessToken || !settings?.workspaceGid)
         return data({ error: "Asana not connected" }, { status: 400 });
-      const tasks = await withTokenRefresh(organizationId, (token) =>
+      const tasks = await withTokenRefresh(db, organizationId, (token) =>
         searchAsanaTasks(token, settings.workspaceGid!, input.query),
       );
       return data({ results: tasks.map((t) => ({ id: t.gid, identifier: t.gid, title: t.name, status: t.completed ? "Completed" : (t.sectionName ?? ""), url: t.url })) });

@@ -34,7 +34,6 @@ import {
 import { useState } from "react";
 import { Link, useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
-import { getDb } from "@/db";
 import {
   comments,
   feedbackBoards,
@@ -47,6 +46,7 @@ import {
   user,
   votes,
 } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/$postId";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -458,9 +458,9 @@ export function meta({ data }: Route.MetaArgs) {
 
 // ─── Loader ───────────────────────────────────────────────────────────────────
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const post = await db.query.feedbackPosts.findFirst({
     where: and(
@@ -578,10 +578,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   ]);
 
   const [voterTraitCountsMap, voterProfiles] = await Promise.all([
-    getVoterTraitCountsByPost(organizationId, [post.id]).catch(
+    getVoterTraitCountsByPost(db, organizationId, [post.id]).catch(
       () => ({}) as Record<string, VoterTraitCounts>,
     ),
-    getVoterProfilesByPost(organizationId, post.id, 50).catch(() => [] as VoterProfileRow[]),
+    getVoterProfilesByPost(db, organizationId, post.id, 50).catch(() => [] as VoterProfileRow[]),
   ]);
   const voterTraitCounts: VoterTraitCounts = voterTraitCountsMap[post.id] ?? {
     plan: {},
@@ -673,8 +673,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   let availableTagList: { id: string; name: string; color: string }[] = [];
   try {
     [postTagList, availableTagList] = await Promise.all([
-      getPostTags(post.id),
-      getOrgTags(organizationId),
+      getPostTags(db, post.id),
+      getOrgTags(db, organizationId),
     ]);
   } catch {
     /* no-op: run pnpm db:push to apply migration */

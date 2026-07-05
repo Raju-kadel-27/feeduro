@@ -1,3 +1,4 @@
+import { Button } from "@components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5,7 +6,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
-import { Button } from "@components/ui/button";
 import { cn } from "@lib/utils";
 import { FileDown, Key, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { AppAvatar } from "./app-avatar";

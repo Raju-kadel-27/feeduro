@@ -1,6 +1,7 @@
 import { UsersTable } from "@features/internal/admin/components/users-table";
 import { ADMIN_PAGE_SIZE, listUsers } from "@features/internal/admin/server/service";
 import { requireSession } from "@lib/session";
+import { getDb } from "@middleware/cloudflare.server";
 import { getEnv } from "@utils/get-env";
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/admin-users";
@@ -17,8 +18,9 @@ export function meta() {
   return [{ title: "Admin — Users — Feeduro" }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireSession(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const session = await requireSession(db, request);
   if (!isPlatformAdmin(session.user.id)) throw redirect("/");
 
   const url = new URL(request.url);
@@ -26,7 +28,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const page = Math.max(1, Number(url.searchParams.get("page") ?? 1));
   const offset = (page - 1) * ADMIN_PAGE_SIZE;
 
-  const { users, total } = await listUsers({ search, offset });
+  const { users, total } = await listUsers(db, { search, offset });
 
   return data({ users, total, currentPage: page });
 }

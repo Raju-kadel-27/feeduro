@@ -2,7 +2,7 @@ import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/s
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, withTransaction } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, user, votes } from "@/db/schema";
 
 export const CreateVoteSchema = z.object({
@@ -15,11 +15,10 @@ type CreateVoteResult =
   | { error: "post_not_found" | "user_not_found" | "already_voted" };
 
 export async function createVote(
+  db: Db,
   organizationId: string,
   input: z.infer<typeof CreateVoteSchema>,
 ): Promise<CreateVoteResult> {
-  const db = getDb();
-
   const [post, voter, existing] = await Promise.all([
     db.query.feedbackPosts.findFirst({
       where: and(
@@ -42,7 +41,7 @@ export async function createVote(
   const id = createId();
   const createdAt = new Date();
 
-  const { voteCount } = await withTransaction(async (tx) => {
+  const { voteCount } = await db.transaction(async (tx) => {
     await tx.insert(votes).values({ id, postId: input.postId, userId: input.userId, organizationId });
     const [updated] = await tx
       .update(feedbackPosts)
@@ -61,8 +60,8 @@ export async function createVote(
   return { data: { id, postId: input.postId, userId: input.userId, createdAt, voteCount } };
 }
 
-export async function deleteVote(organizationId: string, voteId: string): Promise<boolean> {
-  return await withTransaction(async (tx) => {
+export async function deleteVote(db: Db, organizationId: string, voteId: string): Promise<boolean> {
+  return await db.transaction(async (tx) => {
     const [deleted] = await tx
       .delete(votes)
       .where(and(eq(votes.id, voteId), eq(votes.organizationId, organizationId)))

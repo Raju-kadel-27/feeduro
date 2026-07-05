@@ -1,5 +1,5 @@
 import { getEnv } from "@utils/get-env";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import {
   type AutoCreatePost,
@@ -11,6 +11,7 @@ import { createTrelloCard } from "./client";
 import type { TrelloSettings } from "./schemas";
 
 export async function autoCreateTrelloCard(
+  db: Db,
   organizationId: string,
   post: AutoCreatePost,
   userId?: string,
@@ -18,13 +19,13 @@ export async function autoCreateTrelloCard(
   const env = getEnv();
   if (!env.TRELLO_API_KEY) return;
 
-  const integration = await getIntegration(organizationId, "trello");
+  const integration = await getIntegration(db, organizationId, "trello");
   if (!integration?.accessToken) return;
 
   const settings = parseSettings<TrelloSettings>(integration.settings);
   if (!settings?.autoCreateCards || !settings.defaultListId) return;
 
-  if (await isAlreadyLinked(post.id, "trello")) return;
+  if (await isAlreadyLinked(db, post.id, "trello")) return;
 
   const card = await createTrelloCard(
     env.TRELLO_API_KEY,
@@ -34,7 +35,6 @@ export async function autoCreateTrelloCard(
     buildPostDescription(post),
   );
 
-  const db = getDb();
   await db.insert(postExternalLinks).values({
     postId: post.id,
     organizationId,

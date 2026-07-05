@@ -1,16 +1,16 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { ResponseRateSchema } from "../schemas/health-metrics";
 
 // % of posts that received at least one public team-member comment,
 // and the average hours to first response.
 // "Team member" = any user who is a member of the org (member table).
 export async function getResponseRate(
+  db: Db,
   organizationId: string,
   since?: Date,
   boardId?: string,
 ) {
-  const db = getDb();
   const sinceFilter = since ? sql`AND fp.created_at >= ${since}` : sql``;
   // Push the period boundary into the CTE — posts in the period can only have
   // responses after `since`, so this is safe and avoids a full comments scan.

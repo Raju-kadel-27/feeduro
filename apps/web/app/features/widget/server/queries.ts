@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import {
   comments,
   feedbackBoards,
@@ -24,9 +24,7 @@ export function toStatusKey(dbStatus: string): StatusKey {
   return map[dbStatus] ?? "pending";
 }
 
-export async function getWidgetLoaderData(widgetToken: string) {
-  const db = getDb();
-
+export async function getWidgetLoaderData(db: Db, widgetToken: string) {
   const config = await db.query.widgetConfigs.findFirst({
     where: eq(widgetConfigs.token, widgetToken),
   });

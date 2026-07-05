@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";
 import { updateShortcutStoryState } from "./client";
@@ -8,11 +8,11 @@ import type { ShortcutSettings } from "./schemas";
 const LOG = "[shortcut-sync-status]";
 
 export async function syncStatusToShortcut(
+  db: Db,
   organizationId: string,
   postId: string,
   newFeeduroStatus: string,
 ): Promise<void> {
-  const db = getDb();
   const [link, integration] = await Promise.all([
     db.query.postExternalLinks.findFirst({
       where: and(
@@ -22,7 +22,7 @@ export async function syncStatusToShortcut(
       ),
       columns: { externalId: true },
     }),
-    getIntegration(organizationId, "shortcut"),
+    getIntegration(db, organizationId, "shortcut"),
   ]);
 
   if (!link) { console.log(`${LOG} no linked story postId=${postId}`); return; }

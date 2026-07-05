@@ -3,17 +3,20 @@ import { ResolveAutopilotSuggestionSchema } from "@features/internal/autopilot/s
 import { resolveSuggestion } from "@features/internal/autopilot/server/mutations";
 import { getPendingSuggestions } from "@features/internal/autopilot/server/queries";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/autopilot";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
   const suggestions = await getPendingSuggestions(organizationId);
   return data({ suggestions });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const body = ResolveAutopilotSuggestionSchema.safeParse(await request.json());
   if (!body.success) return data({ error: "Invalid request" }, { status: 400 });

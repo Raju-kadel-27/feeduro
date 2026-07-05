@@ -1,20 +1,19 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { asc, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { postActivities, user } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/activities";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireOrganization(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  await requireOrganization(db, request);
 
   const url = new URL(request.url);
   const postId = url.searchParams.get("postId");
 
   if (!postId) return data({ activities: [] });
-
-  const db = getDb();
 
   try {
     const rows = await db

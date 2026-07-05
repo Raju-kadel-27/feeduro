@@ -1,13 +1,13 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { member, user as userTable } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/org-members";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { organizationId } = await requireOrganization(request);
-  const db = getDb();
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { organizationId } = await requireOrganization(db, request);
 
   const members = await db
     .select({

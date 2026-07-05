@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";
 import { moveAsanaTaskToSection } from "./client";
@@ -8,11 +8,11 @@ import type { AsanaSettings } from "./schemas";
 const LOG = "[asana-sync-status]";
 
 export async function syncStatusToAsana(
+  db: Db,
   organizationId: string,
   postId: string,
   newFeeduroStatus: string,
 ): Promise<void> {
-  const db = getDb();
   const [link, integration] = await Promise.all([
     db.query.postExternalLinks.findFirst({
       where: and(
@@ -22,7 +22,7 @@ export async function syncStatusToAsana(
       ),
       columns: { externalId: true },
     }),
-    getIntegration(organizationId, "asana"),
+    getIntegration(db, organizationId, "asana"),
   ]);
 
   if (!link) { console.log(`${LOG} no linked task postId=${postId}`); return; }

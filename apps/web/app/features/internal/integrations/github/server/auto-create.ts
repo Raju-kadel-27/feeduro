@@ -1,3 +1,4 @@
+import type { Db } from "@/db";
 import { type AutoCreatePost, isAlreadyLinked } from "../../server/auto-create";
 import { insertPostExternalLink } from "../../server/mutations";
 import { getIntegration, parseSettings } from "../../server/queries";
@@ -5,11 +6,12 @@ import { createGithubIssue } from "./client";
 import type { GithubSettings } from "./schemas";
 
 export async function autoCreateGithubIssue(
+  db: Db,
   organizationId: string,
   post: AutoCreatePost,
   userId?: string,
 ): Promise<void> {
-  const integration = await getIntegration(organizationId, "github");
+  const integration = await getIntegration(db, organizationId, "github");
   if (!integration?.accessToken) return;
 
   const settings = parseSettings<GithubSettings>(integration.settings);
@@ -29,7 +31,7 @@ export async function autoCreateGithubIssue(
     bodyText,
   );
 
-  await insertPostExternalLink({
+  await insertPostExternalLink(db, {
     postId: post.id,
     organizationId,
     provider: "github",

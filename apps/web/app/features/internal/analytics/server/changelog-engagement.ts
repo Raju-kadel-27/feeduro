@@ -1,10 +1,8 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { ChangelogEngagementSchema } from "../schemas/reports";
 
-export async function getChangelogEngagement(organizationId: string, limit = 20) {
-  const db = getDb();
-
+export async function getChangelogEngagement(db: Db, organizationId: string, limit = 20) {
   const result = await db.execute(sql`
     SELECT
       cl.id                                           AS "changelogId",

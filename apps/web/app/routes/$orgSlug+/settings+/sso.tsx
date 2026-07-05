@@ -2,6 +2,7 @@ import { PageHeader } from "@components/common/page-header";
 import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
 import { ProviderList } from "@features/internal/sso/components/provider-list";
 import { loadSSOSettings } from "@features/internal/sso/server/queries";
+import { getDb } from "~/middleware/cloudflare.server";
 import { KeyRound } from "lucide-react";
 import { data } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
@@ -12,8 +13,9 @@ export function meta() {
   return [{ title: "Login & SSO — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  return data(await loadSSOSettings(request, params.orgSlug));
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  return data(await loadSSOSettings(db, request, params.orgSlug));
 }
 
 export function ErrorBoundary() {

@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";
 import { updateLinearIssueState } from "./client";
@@ -8,11 +8,11 @@ import type { LinearSettings } from "./schemas";
 const LOG = "[linear-sync-status]";
 
 export async function syncStatusToLinear(
+  db: Db,
   organizationId: string,
   postId: string,
   newFeeduroStatus: string,
 ): Promise<void> {
-  const db = getDb();
   const [link, integration] = await Promise.all([
     db.query.postExternalLinks.findFirst({
       where: and(
@@ -22,7 +22,7 @@ export async function syncStatusToLinear(
       ),
       columns: { externalId: true },
     }),
-    getIntegration(organizationId, "linear"),
+    getIntegration(db, organizationId, "linear"),
   ]);
 
   if (!link) { console.log(`${LOG} no linked issue postId=${postId}`); return; }

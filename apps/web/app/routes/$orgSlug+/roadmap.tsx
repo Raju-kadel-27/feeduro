@@ -9,6 +9,7 @@ import { useDragToScroll } from "@hooks/use-drag-to-scroll";
 import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useState } from "react";
 import { useLoaderData, useParams } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/roadmap";
 
 const PostDetailPanel = lazy(() =>
@@ -21,8 +22,9 @@ export function meta() {
   return [{ title: "Roadmap – Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  return loadRoadmapData(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  return loadRoadmapData(db, request, params.orgSlug);
 }
 
 export default function RoadmapPage() {

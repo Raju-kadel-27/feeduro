@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { postExternalLinks } from "@/db/schema";
 import { getIntegration, parseSettings } from "../../server/queries";
 import { moveMondayItemToGroup } from "./client";
@@ -8,11 +8,11 @@ import type { MondaySettings } from "./schemas";
 const LOG = "[monday-sync-status]";
 
 export async function syncStatusToMonday(
+  db: Db,
   organizationId: string,
   postId: string,
   newFeeduroStatus: string,
 ): Promise<void> {
-  const db = getDb();
   const [link, integration] = await Promise.all([
     db.query.postExternalLinks.findFirst({
       where: and(
@@ -22,7 +22,7 @@ export async function syncStatusToMonday(
       ),
       columns: { externalId: true },
     }),
-    getIntegration(organizationId, "monday"),
+    getIntegration(db, organizationId, "monday"),
   ]);
 
   if (!link) { console.log(`${LOG} no linked item postId=${postId}`); return; }

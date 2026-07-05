@@ -14,8 +14,8 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
-import { getDb } from "@/db";
 import { integrations, member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/hubspot";
 
 const CALLBACK_PATH = "/api/hubspot";
@@ -26,7 +26,8 @@ function callbackUrl() {
 
 // GET /api/hubspot?intent=connect  → OAuth redirect
 // GET /api/hubspot?code=...&state=... → OAuth callback
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -34,7 +35,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const error = url.searchParams.get("error");
 
   if (intent === "connect") {
-    const { organizationId } = await requireOrganization(request);
+    const { organizationId } = await requireOrganization(db, request);
     const env = getEnv();
     if (!env.HUBSPOT_CLIENT_ID || !env.HUBSPOT_CLIENT_SECRET) {
       throw new Response("HubSpot OAuth not configured", { status: 501 });
@@ -66,8 +67,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
       const portalInfo = await getHubSpotPortalInfo(accessToken);
 
-      const db = getDb();
-      const existing = await getIntegration(orgId, "hubspot");
+      const existing = await getIntegration(db, orgId, "hubspot");
       const existingSettings = parseSettings<HubSpotSettings>(existing?.settings ?? null);
 
       const settings: HubSpotSettings = {
@@ -92,7 +92,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       // Redirect even on error — UI will show "not connected"
     }
 
-    const orgSlug = await getOrgSlugFromId(orgId);
+    const orgSlug = await getOrgSlugFromId(db, orgId);
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/hubspot` : "/");
   }
 
@@ -107,10 +107,11 @@ const actionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("disconnect") }),
 ]);
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
 
   const raw = await request.json();
   const parsed = actionSchema.safeParse(raw);
@@ -118,10 +119,8 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const db = getDb();
-
   if (parsed.data.intent === "update_settings") {
-    const integration = await getIntegration(organizationId, "hubspot");
+    const integration = await getIntegration(db, organizationId, "hubspot");
     if (!integration?.accessToken) {
       return data({ error: "HubSpot not connected" }, { status: 400 });
     }

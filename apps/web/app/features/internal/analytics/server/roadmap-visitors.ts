@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { BoardVisitorsSchema } from "../schemas/analytics";
 
 const SummarySchema = z.object({
@@ -12,10 +12,9 @@ const SummarySchema = z.object({
 export type RoadmapVisitors7d = z.infer<typeof SummarySchema>;
 
 export async function getRoadmapVisitorsLast7Days(
+  db: Db,
   organizationId: string,
 ): Promise<RoadmapVisitors7d> {
-  const db = getDb();
-
   const result = await db.execute(sql`
     WITH days AS (
       SELECT generate_series(

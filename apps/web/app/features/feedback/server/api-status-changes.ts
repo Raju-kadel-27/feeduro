@@ -1,7 +1,7 @@
 import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/db";
+import type { Db } from "@/db";
 import { feedbackPosts, postActivities, user } from "@/db/schema";
 
 export const ListStatusChangesSchema = z.object({
@@ -10,12 +10,11 @@ export const ListStatusChangesSchema = z.object({
 });
 
 export async function listStatusChanges(
+  db: Db,
   organizationId: string,
   postId: string,
   params: z.infer<typeof ListStatusChangesSchema>,
 ) {
-  const db = getDb();
-
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
     columns: { id: true },

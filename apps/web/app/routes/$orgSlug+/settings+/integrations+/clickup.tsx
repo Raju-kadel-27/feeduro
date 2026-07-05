@@ -2,20 +2,20 @@ import { requireOrgBySlug } from "@features/auth/server/guards";
 import { ClickupSettingsPage } from "@features/internal/integrations/clickup/components/clickup-settings-page";
 import { getIntegration } from "@features/internal/integrations/server/queries";
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/db";
 import { member } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/clickup";
 
 export function meta() {
   return [{ title: "ClickUp Integration — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const { session, organizationId } = await requireOrgBySlug(request, params.orgSlug);
-  const db = getDb();
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const [integration, memberRecord] = await Promise.all([
-    getIntegration(organizationId, "clickup"),
+    getIntegration(db, organizationId, "clickup"),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },

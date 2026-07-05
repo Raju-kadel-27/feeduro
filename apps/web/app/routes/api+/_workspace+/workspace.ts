@@ -4,6 +4,7 @@ import {
   updateWorkspaceName,
   updateWorkspaceSlug,
 } from "@features/internal/workspace/server/mutations";
+import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 import { z } from "zod";
 
@@ -28,13 +29,14 @@ const DeleteOrgSchema = z.object({
   organizationId: z.string(),
 });
 
-export async function action({ request }: Route.ActionArgs) {
-  const { session, organizationId } = await requireOrganization(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrganization(db, request);
 
   const body = (await request.json()) as { intent: string };
 
   if (body.intent === "update_name") {
-    await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+    await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
     const parsed = UpdateNameSchema.safeParse(body);
     if (!parsed.success) {
       return data({ error: parsed.error.issues[0]?.message }, { status: 400 });
@@ -44,7 +46,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "update_slug") {
-    await requirePermission(organizationId, session.user.id, { settings: ["update"] });
+    await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
     const parsed = UpdateSlugSchema.safeParse(body);
     if (!parsed.success) {
       return data({ error: parsed.error.issues[0]?.message }, { status: 400 });
@@ -54,12 +56,12 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (body.intent === "delete_org") {
-    await requirePermission(organizationId, session.user.id, { organization: ["delete"] });
+    await requirePermission(db, organizationId, session.user.id, { organization: ["delete"] });
     const parsed = DeleteOrgSchema.safeParse(body);
     if (!parsed.success) {
       return data({ error: parsed.error.issues[0]?.message }, { status: 400 });
     }
-    await deleteWorkspace(request, organizationId);
+    await deleteWorkspace(db, request, organizationId);
     return data({ success: true });
   }
 

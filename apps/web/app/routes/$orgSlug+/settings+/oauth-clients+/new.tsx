@@ -1,4 +1,5 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getDb } from "~/middleware/cloudflare.server";
 import { CopyButton } from "@features/oauth-clients/components/copy-button";
 import { OAuthClientForm } from "@features/oauth-clients/components/oauth-client-form";
 import type { OAuthClientFormData } from "@features/oauth-clients/schemas/oauth-client";
@@ -15,8 +16,9 @@ export function meta() {
   return [{ title: "Register OAuth App — Feeduro" }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireOrgBySlug(request, params.orgSlug);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  await requireOrgBySlug(db, request, params.orgSlug);
   return {};
 }
 

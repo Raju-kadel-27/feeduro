@@ -4,18 +4,17 @@ import { getSession } from "@lib/session";
 import { createId } from "@paralleldrive/cuid2";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { data } from "react-router";
-import { getDb } from "@/db";
 import { comments, feedbackBoards, feedbackPosts, member, organization, user } from "@/db/schema";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/public-comments";
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const db = getDb(context);
   const url = new URL(request.url);
   const postId = url.searchParams.get("postId");
   const orgSlug = url.searchParams.get("orgSlug");
   if (!postId || !orgSlug) return data({ error: "postId and orgSlug required" }, { status: 400 });
-
-  const db = getDb();
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, orgSlug),
@@ -95,11 +94,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   return data({ comments: threaded });
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const session = await getSession(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const db = getDb(context);
+  const session = await getSession(db, request);
   if (!session) return data({ error: "Unauthorized" }, { status: 401 });
 
-  const db = getDb();
   const body = (await request.json()) as { postId?: string; orgSlug?: string; body?: string };
   const { postId, orgSlug, body: commentBody } = body;
 
@@ -138,7 +137,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const actorName = session.user.name ?? session.user.email ?? "Someone";
   await Promise.all([
-    notifyNewComment({
+    notifyNewComment(db, {
       postId,
       commentBody: commentBody.trim(),
       actorId: session.user.id,
@@ -146,7 +145,7 @@ export async function action({ request }: Route.ActionArgs) {
       postTitle: post.title,
       actorName,
     }),
-    notifyMentions({
+    notifyMentions(db, {
       postId,
       commentBody: commentBody.trim(),
       actorId: session.user.id,

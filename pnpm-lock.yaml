@@ -305,6 +305,9 @@ importers:
       papaparse:
         specifier: ^5.5.3
         version: 5.5.4
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -10280,8 +10283,7 @@ snapshots:
   postgres-range@1.1.4:
     optional: true
 
-  postgres@3.4.9:
-    optional: true
+  postgres@3.4.9: {}
 
   prettier@3.9.4: {}
 

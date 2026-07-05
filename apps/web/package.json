@@ -84,6 +84,7 @@
     "mailtrap": "^4.6.1",
     "nodemailer": "^8.0.6",
     "papaparse": "^5.5.3",
+    "postgres": "^3.4.9",
     "qrcode": "^1.5.4",
     "react": "catalog:",
     "react-day-picker": "^10.0.0",

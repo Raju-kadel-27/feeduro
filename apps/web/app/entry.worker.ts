@@ -12,6 +12,20 @@ const APP_DOMAIN = "feeduro.com";
 
 export default {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
+    const url = new URL(request.url);
+    console.log(`[worker] ${request.method} ${url.pathname}`);
+
+    if (!env.HYPERDRIVE) {
+      console.error("[worker] HYPERDRIVE binding is missing — DB unavailable");
+    } else {
+      try {
+        const { hostname, port } = new URL(env.HYPERDRIVE.connectionString);
+        console.log(`[worker] HYPERDRIVE OK — proxy=${hostname}${port ? `:${port}` : ""}`);
+      } catch {
+        console.warn("[worker] HYPERDRIVE binding present but connectionString is unparseable");
+      }
+    }
+
     const { db, close } = createDb(env.HYPERDRIVE.connectionString);
 
     const run = async (): Promise<Response> => {

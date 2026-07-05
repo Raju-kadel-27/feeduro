@@ -9,6 +9,9 @@ export default async function handleRequest(
   responseHeaders: Headers,
   routerContext: EntryContext,
 ) {
+  const url = new URL(request.url);
+  console.log(`[ssr] ${request.method} ${url.pathname} status=${responseStatusCode}`);
+
   let shellRendered = false;
   const userAgent = request.headers.get("user-agent");
 

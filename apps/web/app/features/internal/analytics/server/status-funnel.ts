@@ -26,6 +26,7 @@ export async function getStatusFunnel(
         created_at                                                            AS "thisAt"
       FROM post_activities pa
       WHERE pa.organization_id = ${organizationId}
+        AND pa.type = 'status_changed'
         ${boardFilter}
         ${sinceFilter}
     )

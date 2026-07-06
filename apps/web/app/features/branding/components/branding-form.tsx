@@ -1,6 +1,6 @@
 import { Input } from "@components/ui/input";
 import type { ReactNode } from "react";
-import { Controller } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 
 import { LANGUAGE_OPTIONS } from "../constants/branding-options";
 import { useBrandingForm } from "../hooks/use-branding-form";
@@ -16,13 +16,13 @@ import { BrandingSwitch } from "./branding-switch";
 import { BrandingThemeCards } from "./branding-theme-cards";
 
 export function BrandingForm({ defaultValues, canHidePoweredBy }: BrandingFormProps) {
-  const { control, register, watch, formState, onSubmit, isSaving, proUnlocked } =
+  const { control, register, formState, onSubmit, isSaving, proUnlocked } =
     useBrandingForm(defaultValues, canHidePoweredBy);
 
-  const watchedName = watch("name");
-  const watchedLogo = watch("logo");
-  const watchedColor = watch("primaryColor");
-  const watchedTheme = watch("theme");
+  const [watchedName, watchedLogo, watchedColor, watchedTheme] = useWatch({
+    control,
+    name: ["name", "logo", "primaryColor", "theme"],
+  });
 
   return (
     <div className="flex gap-12 items-start">

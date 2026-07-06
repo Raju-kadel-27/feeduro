@@ -20,7 +20,7 @@ export async function getUnrespondedPosts(db: Db, organizationId: string, boardI
     WHERE fp.organization_id     = ${organizationId}
       AND fp.status              = 'open'
       AND fp.merged_into_post_id IS NULL
-      AND fp.created_at         <= now() - (${THRESHOLD_DAYS} || ' days')::interval
+      AND fp.created_at         <= now() - (${THRESHOLD_DAYS} * interval '1 day')
       ${boardFilter}
     ORDER BY fp.vote_count DESC, fp.created_at ASC
     LIMIT 10

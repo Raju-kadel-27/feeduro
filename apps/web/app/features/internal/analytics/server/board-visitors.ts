@@ -17,7 +17,7 @@ export async function getBoardVisitorsLast7Days(
   boardId?: string,
 ): Promise<BoardVisitors7d> {
   const boardFilter = boardId
-    ? sql`AND resource_id = ${boardId}`
+    ? sql`AND type = 'board_view' AND resource_id = ${boardId}`
     : sql`AND type = 'board_view'`;
 
   // generate_series guarantees all 7 days are present (zeros for empty days)

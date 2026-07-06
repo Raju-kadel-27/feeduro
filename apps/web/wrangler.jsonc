@@ -20,27 +20,25 @@
     }
   ],
   "env": {
+    // `name` is the WORKER identity — deploying under a new name silently creates
+    // a brand-new worker with no secrets and no routes, while the real one keeps
+    // serving stale code. Never rename these to match Hyperdrive config names;
+    // the Hyperdrive `id` below is the only link to that config.
     "dev": {
-      "name": "nextgen-email-dev",
-      "hyperdrive": [
-        { "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }
-      ]
+      "name": "feeduro-dev",
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }]
     },
     // Wrangler does NOT inherit top-level bindings into named environments, so
     // each deployed env needs its own Hyperdrive entry. Reusing the same id here
     // points every env at the same database — create separate Hyperdrive configs
     // (one per environment DB) and swap the ids in when you split staging/prod.
     "staging": {
-      "name": "feeduro-staging-neon",
-      "hyperdrive": [
-        { "binding": "HYPERDRIVE", "id": "470e373c2cc7463f8ec871d0ebafb42d" }
-      ]
+      "name": "feeduro-staging",
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "470e373c2cc7463f8ec871d0ebafb42d" }]
     },
     "production": {
-      "name": "feeduro-production-neon",
-      "hyperdrive": [
-        { "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }
-      ]
+      "name": "feeduro-production",
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }]
     }
   }
 }

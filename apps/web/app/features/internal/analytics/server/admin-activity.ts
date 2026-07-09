@@ -55,5 +55,5 @@ export async function getAdminActivity(
     LIMIT ${limit}
   `);
 
-  return AdminActivitySchema.parse(result.rows);
+  return AdminActivitySchema.parse(result);
 }

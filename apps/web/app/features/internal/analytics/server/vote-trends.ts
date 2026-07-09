@@ -70,5 +70,5 @@ export async function getTopPostsByVotes(
     LIMIT ${limit}
   `);
 
-  return TopPostsSchema.parse(result.rows);
+  return TopPostsSchema.parse(result);
 }

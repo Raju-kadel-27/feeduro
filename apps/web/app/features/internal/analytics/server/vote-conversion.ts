@@ -30,6 +30,6 @@ export async function getVoteConversion(db: Db, organizationId: string, since?: 
     FROM visitors, voters
   `);
 
-  const row = result.rows[0] ?? { uniqueVisitors: 0, uniqueVoters: 0, conversionRate: null };
+  const row = result[0] ?? { uniqueVisitors: 0, uniqueVoters: 0, conversionRate: null };
   return VoteConversionSchema.parse(row);
 }

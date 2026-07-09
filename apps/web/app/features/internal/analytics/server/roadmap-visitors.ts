@@ -43,7 +43,7 @@ export async function getRoadmapVisitorsLast7Days(
     ORDER BY days.day
   `);
 
-  const chart = BoardVisitorsSchema.parse(result.rows);
+  const chart = BoardVisitorsSchema.parse(result);
   const totalViews = chart.reduce((s, d) => s + d.totalViews, 0);
   const uniqueVisitors = chart.reduce((s, d) => s + d.uniqueVisitors, 0);
 

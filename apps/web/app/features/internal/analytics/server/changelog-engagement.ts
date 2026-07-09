@@ -19,5 +19,5 @@ export async function getChangelogEngagement(db: Db, organizationId: string, lim
     LIMIT ${limit}
   `);
 
-  return ChangelogEngagementSchema.parse(result.rows);
+  return ChangelogEngagementSchema.parse(result);
 }

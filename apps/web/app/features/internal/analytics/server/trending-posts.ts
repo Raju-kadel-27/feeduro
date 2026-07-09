@@ -33,5 +33,5 @@ export async function getTrendingPosts(db: Db, organizationId: string, limit = 8
     LIMIT ${limit}
   `);
 
-  return TrendingPostsSchema.parse(result.rows);
+  return TrendingPostsSchema.parse(result);
 }

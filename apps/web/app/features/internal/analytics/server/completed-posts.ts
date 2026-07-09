@@ -30,5 +30,5 @@ export async function getCompletedInPeriod(
     LIMIT ${limit}
   `);
 
-  return CompletedPostsSchema.parse(result.rows);
+  return CompletedPostsSchema.parse(result);
 }

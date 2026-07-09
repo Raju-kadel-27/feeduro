@@ -42,6 +42,6 @@ export async function getResolutionTime(
       ${boardFilter}
   `);
 
-  const row = result.rows[0] ?? { avgDays: null, medianDays: null, resolvedCount: 0 };
+  const row = result[0] ?? { avgDays: null, medianDays: null, resolvedCount: 0 };
   return ResolutionTimeSchema.parse(row);
 }

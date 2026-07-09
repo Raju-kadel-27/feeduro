@@ -41,5 +41,5 @@ export async function getStatusFunnel(
     ORDER BY count(*) DESC
   `);
 
-  return StatusFunnelSchema.parse(result.rows);
+  return StatusFunnelSchema.parse(result);
 }

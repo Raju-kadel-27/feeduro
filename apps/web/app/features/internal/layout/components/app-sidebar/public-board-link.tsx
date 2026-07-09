@@ -5,14 +5,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@components/ui/sidebar";
+import { getPublicBoardUrl } from "@features/domains/public-board-url";
 import { ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Props = { orgSlug: string };
 
 export function PublicBoardLink({ orgSlug }: Props) {
-  const prodUrl = `https://${orgSlug}.feeduro.com`;
-  const [url, setUrl] = useState(import.meta.env.DEV ? `/${orgSlug}` : prodUrl);
+  const [url, setUrl] = useState(
+    import.meta.env.DEV ? `/${orgSlug}` : getPublicBoardUrl(orgSlug),
+  );
 
   useEffect(() => {
     if (import.meta.env.DEV) {

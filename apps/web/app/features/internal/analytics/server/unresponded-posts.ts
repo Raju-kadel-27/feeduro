@@ -26,5 +26,5 @@ export async function getUnrespondedPosts(db: Db, organizationId: string, boardI
     LIMIT 10
   `);
 
-  return UnrespondedPostsSchema.parse(result.rows);
+  return UnrespondedPostsSchema.parse(result);
 }

@@ -24,7 +24,7 @@ export async function getBacklogAging(db: Db, organizationId: string, boardId?: 
     ) sub
   `);
 
-  const row = result.rows[0] ?? {
+  const row = result[0] ?? {
     bucket0to7: 0, bucket8to30: 0, bucket31to90: 0, bucket90plus: 0, total: 0,
   };
   return BacklogAgingSchema.parse(row);

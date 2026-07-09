@@ -51,7 +51,7 @@ export async function getResponseRate(
       ${boardFilter}
   `);
 
-  const row = result.rows[0] ?? {
+  const row = result[0] ?? {
     totalPosts: 0,
     respondedPosts: 0,
     responseRate: null,

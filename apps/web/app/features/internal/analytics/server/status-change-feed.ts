@@ -34,5 +34,5 @@ export async function getStatusChangeFeed(
     LIMIT ${limit}
   `);
 
-  return StatusChangeFeedSchema.parse(result.rows);
+  return StatusChangeFeedSchema.parse(result);
 }

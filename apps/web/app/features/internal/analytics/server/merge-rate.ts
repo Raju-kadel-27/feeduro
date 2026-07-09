@@ -16,7 +16,7 @@ export async function getMergeRate(
   const result = await db.execute(sql`
     SELECT
       count(*)::int                                                          AS "totalPosts",
-      count(*) FILTER (WHERE merged_into_post_id IS NOT NULL)::int          AS "mergedPosts",
+      (count(*) FILTER (WHERE merged_into_post_id IS NOT NULL))::int        AS "mergedPosts",
       round(
         (count(*) FILTER (WHERE merged_into_post_id IS NOT NULL) * 100.0
           / NULLIF(count(*), 0))::numeric, 1
@@ -27,6 +27,6 @@ export async function getMergeRate(
       ${boardFilter}
   `);
 
-  const row = result.rows[0] ?? { totalPosts: 0, mergedPosts: 0, mergeRate: null };
+  const row = result[0] ?? { totalPosts: 0, mergedPosts: 0, mergeRate: null };
   return MergeRateSchema.parse(row);
 }

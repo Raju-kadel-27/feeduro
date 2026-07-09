@@ -33,5 +33,5 @@ export async function getTagBreakdown(
     LIMIT ${limit}
   `);
 
-  return TagBreakdownSchema.parse(result.rows);
+  return TagBreakdownSchema.parse(result);
 }

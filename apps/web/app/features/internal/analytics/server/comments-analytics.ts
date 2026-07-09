@@ -64,11 +64,11 @@ export async function getCommentsAnalytics(
     `),
   ]);
 
-  const { currentComments, prevComments } = CountsSchema.parse(countsResult.rows[0]);
+  const { currentComments, prevComments } = CountsSchema.parse(countsResult[0]);
 
   return CommentsAnalyticsSchema.parse({
     totalComments: currentComments,
     delta: pct(currentComments, prevComments),
-    topPosts: postsResult.rows,
+    topPosts: postsResult,
   });
 }

@@ -39,5 +39,5 @@ export async function getTopContributors(db: Db, organizationId: string, limit =
     LIMIT ${limit}
   `);
 
-  return ContributorRankSchema.parse(rows.rows);
+  return ContributorRankSchema.parse(rows);
 }

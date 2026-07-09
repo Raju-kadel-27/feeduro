@@ -62,5 +62,5 @@ export async function getCompanyEngagement(
     LIMIT ${limit}
   `);
 
-  return CompanyEngagementSchema.parse(result.rows);
+  return CompanyEngagementSchema.parse(result);
 }

@@ -77,7 +77,7 @@ export async function getPeriodDeltas(
          ${boardPostFilter})                                          AS "prevResolved"
   `);
 
-  const row = RawSchema.parse(result.rows[0]);
+  const row = RawSchema.parse(result[0]);
 
   const currentAvg =
     row.currentPosts > 0

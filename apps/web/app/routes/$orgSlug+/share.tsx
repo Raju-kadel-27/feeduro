@@ -45,6 +45,7 @@ function RedditIcon({ className }: { className?: string }) {
 
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getPublicBoardUrl } from "@features/domains/public-board-url";
 import { cn } from "@lib/utils";
 import { getEnv } from "@utils/get-env";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -62,7 +63,9 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
   const env = getEnv();
   const isDev = env.ENVIRONMENT === "development";
-  const publicBoardUrl = isDev ? `${env.BASE_URL}/${org.slug}` : `https://${org.slug}.feeduro.com`;
+  const publicBoardUrl = isDev
+    ? `${env.BASE_URL}/${org.slug}`
+    : getPublicBoardUrl(org.slug ?? "");
   return data({
     org: { name: org.name ?? "", slug: org.slug ?? "" },
     userName: session.user.name ?? "",

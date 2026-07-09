@@ -1,3 +1,4 @@
+import { getPublicBoardUrl } from "@features/domains/public-board-url";
 import { PublicBoardPage } from "@features/feedback/components/public/public-board-page";
 import { publicPageLoader } from "@features/feedback/server/public-loader";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -18,7 +19,7 @@ export function meta({ data: loaderData, location }: Route.MetaArgs) {
 
   const boardBase = customDomain
     ? `https://${customDomain}`
-    : `https://${org.slug}.feeduro.com`;
+    : getPublicBoardUrl(org.slug);
   const canonical = postId ? `${boardBase}/?postId=${postId}` : `${boardBase}/`;
   const ogImageUrl = postId
     ? `${boardBase}/api/og?orgSlug=${org.slug}&postId=${postId}`

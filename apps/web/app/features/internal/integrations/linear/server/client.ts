@@ -1,3 +1,4 @@
+import { TokenExpiredError } from "@services/oauth/flow.server";
 import type {
   LinearIssue,
   LinearState,
@@ -19,8 +20,15 @@ async function linearGql<T>(
     },
     body: JSON.stringify({ query, variables }),
   });
-  const json = (await res.json()) as { data?: T; errors?: { message: string }[] };
-  if (json.errors?.length) throw new Error(json.errors[0].message);
+  if (res.status === 401) throw new TokenExpiredError();
+  const json = (await res.json()) as {
+    data?: T;
+    errors?: { message: string; extensions?: { type?: string } }[];
+  };
+  if (json.errors?.length) {
+    if (json.errors[0].extensions?.type === "AUTHENTICATION_ERROR") throw new TokenExpiredError();
+    throw new Error(json.errors[0].message);
+  }
   if (!json.data) throw new Error("Empty response from Linear");
   return json.data;
 }

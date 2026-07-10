@@ -73,7 +73,7 @@ export async function handleMondayLoader(db: Db, request: Request) {
 
     console.log(`${LOG} OAuth callback started orgId=${parsed.orgId}`);
     try {
-      const { accessToken } = await exchangeCode(
+      const { accessToken, tokenExpiresAt } = await exchangeCode(
         mondayOAuth,
         code,
         env.MONDAY_CLIENT_ID,
@@ -117,11 +117,17 @@ export async function handleMondayLoader(db: Db, request: Request) {
           organizationId: parsed.orgId,
           provider: "monday",
           accessToken,
+          tokenExpiresAt: tokenExpiresAt ?? null,
           settings: JSON.stringify(settings),
         })
         .onConflictDoUpdate({
           target: [integrations.organizationId, integrations.provider],
-          set: { accessToken, settings: JSON.stringify(settings), updatedAt: new Date() },
+          set: {
+            accessToken,
+            tokenExpiresAt: tokenExpiresAt ?? null,
+            settings: JSON.stringify(settings),
+            updatedAt: new Date(),
+          },
         });
       console.log(`${LOG} OAuth callback complete orgId=${parsed.orgId}`);
     } catch (err) {

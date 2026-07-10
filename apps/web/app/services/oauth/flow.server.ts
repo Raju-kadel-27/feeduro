@@ -1,5 +1,12 @@
 import type { OAuthConfig, TokenResponse } from "./schemas";
 
+export class TokenExpiredError extends Error {
+  constructor() {
+    super("OAuth token expired");
+    this.name = "TokenExpiredError";
+  }
+}
+
 export function buildAuthUrl(
   config: OAuthConfig,
   clientId: string,
@@ -43,10 +50,12 @@ async function parseTokenResponse(res: Response): Promise<TokenResponse> {
   }
   const accessToken = String(json.access_token ?? "");
   if (!accessToken) throw new Error("OAuth response missing access_token");
+  const expiresIn = typeof json.expires_in === "number" ? json.expires_in : undefined;
   return {
     accessToken,
     refreshToken: json.refresh_token ? String(json.refresh_token) : undefined,
-    expiresIn: typeof json.expires_in === "number" ? json.expires_in : undefined,
+    expiresIn,
+    tokenExpiresAt: expiresIn != null ? new Date(Date.now() + expiresIn * 1000) : undefined,
   };
 }
 

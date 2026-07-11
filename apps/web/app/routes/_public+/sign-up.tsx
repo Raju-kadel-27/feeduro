@@ -1,9 +1,8 @@
+import { AuthLeftPanel } from "@features/auth/components/auth-left-panel";
 import { SignUpForm } from "@features/auth/components/sign-up-form";
 import { authClient } from "@lib/auth/client";
 import { getSession } from "@lib/session";
-import { GalleryVerticalEnd } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/sign-up";
@@ -34,11 +33,11 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingMethod, setLoadingMethod] = useState<"email" | "google" | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
+    setLoadingMethod("email");
     setError("");
     await authClient.signUp.email({
       name,
@@ -48,14 +47,14 @@ export default function SignUp() {
       fetchOptions: {
         onError(ctx) {
           setError(ctx.error.message ?? "Could not create account");
-          setLoading(false);
+          setLoadingMethod(null);
         },
       },
     });
   }
 
   async function handleGoogle() {
-    setLoading(true);
+    setLoadingMethod("google");
     setError("");
     const { error: oauthError } = await authClient.signIn.social({
       provider: "google",
@@ -63,50 +62,44 @@ export default function SignUp() {
     });
     if (oauthError) {
       setError(oauthError.message ?? "Google sign-in failed. Please try again.");
-      setLoading(false);
+      setLoadingMethod(null);
     }
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <a href="/" className="flex items-center gap-2 self-center font-medium">
-          <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <GalleryVerticalEnd className="size-4" />
-          </div>
-          Feeduro
-        </a>
+    <div className="flex h-svh">
+      <AuthLeftPanel
+        imageUrl="https://plus.unsplash.com/premium_photo-1738894549244-cb88c55f7784?q=90&w=1400&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        quote="Setup took less than an hour. Within a week we had real user feedback shaping our entire roadmap. I wish we had done this sooner."
+        author="Priya Mehta, CTO at Launchpad"
+      />
 
-        <SignUpForm
-          name={name}
-          email={email}
-          password={password}
-          error={error}
-          loading={loading}
-          onNameChange={setName}
-          onEmailChange={setEmail}
-          onPasswordChange={setPassword}
-          onSubmit={handleSubmit}
-          onGoogle={handleGoogle}
+      {/* Right panel */}
+      <div className="flex flex-1 flex-col bg-background relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(148 163 184 / 0.05)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e\")",
+          }}
         />
-
-        <p className="text-center text-xs text-muted-foreground">
-          By signing up you agree to our{" "}
-          <Link
-            to="/terms"
-            className="underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link
-            to="/privacy"
-            className="underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Privacy Policy
-          </Link>
-          .
-        </p>
+        <div className="flex flex-1 items-center justify-center px-6 pb-16">
+          <div className="w-full max-w-sm">
+            <SignUpForm
+              name={name}
+              email={email}
+              password={password}
+              error={error}
+              loadingMethod={loadingMethod}
+              onNameChange={setName}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onSubmit={handleSubmit}
+              onGoogle={handleGoogle}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

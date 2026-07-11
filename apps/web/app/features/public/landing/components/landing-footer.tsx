@@ -23,30 +23,30 @@ const FOOTER_LINKS = {
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-border py-12 px-6">
+    <footer className="bg-black text-white py-12 px-6">
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 font-bold text-lg mb-3">
+            <Link to="/" className="flex items-center gap-2 font-bold text-lg mb-3 text-white">
               <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                 <MessageSquare className="w-4 h-4 text-primary-foreground" />
               </div>
               <span>Feeduro</span>
             </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-[220px]">
+            <p className="text-sm text-white/50 leading-relaxed max-w-[220px]">
               The feedback intelligence platform for product teams.
             </p>
           </div>
 
           {Object.entries(FOOTER_LINKS).map(([group, links]) => (
             <div key={group}>
-              <p className="text-sm font-semibold mb-4">{group}</p>
+              <p className="text-sm font-semibold mb-4 text-white">{group}</p>
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-white/50 hover:text-white transition-colors"
                     >
                       {link.label}
                     </a>
@@ -57,7 +57,7 @@ export function LandingFooter() {
           ))}
         </div>
 
-        <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-white/40">
           <p>© 2025 Feeduro. All rights reserved.</p>
           <p>Built for product teams who ship.</p>
         </div>

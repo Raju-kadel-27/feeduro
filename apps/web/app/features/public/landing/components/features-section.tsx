@@ -102,7 +102,7 @@ const FEATURES: Feature[] = [
 
 function FeatureCard({ icon: Icon, title, description, iconBg, iconColor }: Feature) {
   return (
-    <div className="flex flex-col p-7 rounded-2xl border border-border bg-card hover:border-border/60 hover:-translate-y-0.5 transition-all duration-200">
+    <div className="flex flex-col p-7 rounded-2xl bg-card hover:-translate-y-0.5 transition-all duration-200">
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 shrink-0"
         style={{ background: iconBg }}

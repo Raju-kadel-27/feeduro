@@ -1,7 +1,6 @@
 import { ChurnSection } from "./components/churn-section";
 import { FeaturesSection } from "./components/features-section";
 import { HeroSection } from "./components/hero-section";
-import { IntegrationsSection } from "./components/integrations-section";
 import { LandingFooter } from "./components/landing-footer";
 import { LandingNav } from "./components/landing-nav";
 import { OutcomesSection } from "./components/outcomes-section";
@@ -26,7 +25,6 @@ export function LandingPage() {
 <OutcomesSection />
         <ShowcaseSection />
         <FeaturesSection />
-        <IntegrationsSection />
         <TestimonialSection />
       </main>
       <LandingFooter />

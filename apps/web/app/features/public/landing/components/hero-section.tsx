@@ -2,7 +2,7 @@ import { BarChart2 } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pt-20 pb-10">
+    <section className="relative overflow-hidden pt-36 pb-10">
       <div
         aria-hidden
         className="absolute inset-0"
@@ -13,8 +13,8 @@ export function HeroSection() {
       />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full"
-          style={{ background: "rgba(59,130,246,0.18)", filter: "blur(120px)" }}
+          className="absolute -top-40 left-0 -translate-x-1/3 w-[800px] h-[600px] rounded-full"
+          style={{ background: "rgba(59,130,246,0.12)", filter: "blur(140px)" }}
         />
         <div
           className="absolute top-20 -left-48 w-[400px] h-[350px] rounded-full"
@@ -29,7 +29,7 @@ export function HeroSection() {
       <div className="relative z-10 max-w-6xl mx-auto px-6">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-1.5 text-sm font-semibold text-white mb-8 animate-slide-up-fade">
-            <BarChart2 className="w-3.5 h-3.5 text-white" />
+            <BarChart2 className="w-3.5 h-3.5 text-yellow-400" />
             <span>Analytics rich feedback board</span>
           </div>
 
@@ -37,15 +37,16 @@ export function HeroSection() {
             className="text-5xl sm:text-7xl font-black tracking-tight leading-[1.05] mb-6 animate-slide-up-fade"
             style={{ animationDelay: "80ms" }}
           >
-            <span className="block text-foreground">Votes lie.</span>
+            <span className="block text-gray-800">Votes lie.</span>
             <span className="block landing-gradient-text-animated">Revenue doesn't.</span>
           </h1>
 
           <p
-            className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-10 animate-slide-up-fade"
+            className="text-lg sm:text-xl text-gray-700 max-w-xl mx-auto mb-10 animate-slide-up-fade font-['Roboto'] font-light"
             style={{ animationDelay: "180ms" }}
           >
-            See <strong className="text-foreground">who's asking</strong>, what they're worth, and the churn risk hiding behind every request. Build what moves revenue, not what gets the most upvotes.
+            Know the revenue, churn risk, and customer value hiding behind every request.{" "}
+            <strong className="text-foreground">Build what retains — not what trends.</strong>
           </p>
 
         </div>

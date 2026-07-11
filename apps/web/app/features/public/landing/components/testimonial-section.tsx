@@ -36,13 +36,13 @@ const TESTIMONIALS: Testimonial[] = [
 
 export function TestimonialSection() {
   return (
-    <section className="py-24 px-6 border-t border-border">
+    <section className="py-24 px-6 bg-black text-white">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/50 mb-3">
             What teams are saying
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
             Built with real product teams
           </h2>
         </div>
@@ -51,9 +51,9 @@ export function TestimonialSection() {
           {TESTIMONIALS.map(({ quote, name, role, initials, accent }, i) => (
             <div
               key={i}
-              className="flex flex-col gap-5 p-6 rounded-2xl border border-border bg-card/40"
+              className="flex flex-col gap-5 p-6 rounded-2xl border border-white/10 bg-white/5"
             >
-              <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+              <p className="text-sm text-white/60 leading-relaxed flex-1">
                 &ldquo;{quote}&rdquo;
               </p>
               <div className="flex items-center gap-3">
@@ -64,8 +64,8 @@ export function TestimonialSection() {
                   {initials}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold leading-tight">{name}</p>
-                  <p className="text-xs text-muted-foreground">{role}</p>
+                  <p className="text-sm font-semibold leading-tight text-white">{name}</p>
+                  <p className="text-xs text-white/50">{role}</p>
                 </div>
               </div>
             </div>

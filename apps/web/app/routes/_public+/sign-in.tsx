@@ -1,8 +1,8 @@
+import { AuthLeftPanel } from "@features/auth/components/auth-left-panel";
 import { LoginForm } from "@features/auth/components/login-form";
 import { authClient } from "@lib/auth/client";
 import { getSession } from "@lib/session";
-import { GalleryVerticalEnd } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/sign-in";
@@ -36,12 +36,12 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   const [email, setEmail] = useState(import.meta.env.DEV ? "johndoe@gmail.com" : "");
   const [password, setPassword] = useState(import.meta.env.DEV ? "password" : "");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingMethod, setLoadingMethod] = useState<"email" | "google" | "passkey" | null>(null);
   const lastMethod = authClient.getLastUsedLoginMethod();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
+    setLoadingMethod("email");
     setError("");
     await authClient.signIn.email({
       email,
@@ -50,7 +50,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
       fetchOptions: {
         onError(ctx) {
           setError(ctx.error.message ?? "Invalid email or password");
-          setLoading(false);
+          setLoadingMethod(null);
         },
         onSuccess(ctx) {
           if (ctx.data?.twoFactorRedirect) {
@@ -62,7 +62,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   }
 
   async function handleGoogle() {
-    setLoading(true);
+    setLoadingMethod("google");
     setError("");
     const { error: oauthError } = await authClient.signIn.social({
       provider: "google",
@@ -70,12 +70,12 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
     });
     if (oauthError) {
       setError(oauthError.message ?? "Google sign-in failed. Please try again.");
-      setLoading(false);
+      setLoadingMethod(null);
     }
   }
 
   async function handlePasskey() {
-    setLoading(true);
+    setLoadingMethod("passkey");
     setError("");
     await authClient.signIn.passkey({
       fetchOptions: {
@@ -84,45 +84,47 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         },
         onError(ctx) {
           setError(ctx.error.message ?? "Passkey sign-in failed. Please try again.");
-          setLoading(false);
+          setLoadingMethod(null);
         },
       },
     });
   }
 
-  useEffect(() => {
-    if (
-      !window.PublicKeyCredential ||
-      !PublicKeyCredential.isConditionalMediationAvailable ||
-      !PublicKeyCredential.isConditionalMediationAvailable()
-    ) {
-      return;
-    }
-    void authClient.signIn.passkey({ autoFill: true });
-  }, []);
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <a href="/" className="flex items-center gap-2 self-center font-medium">
-          <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <GalleryVerticalEnd className="size-4" />
-          </div>
-          Feeduro
-        </a>
+    <div className="flex h-svh">
+      <AuthLeftPanel
+        imageUrl="https://plus.unsplash.com/premium_vector-1773432167566-0c97ed520d49?w=1200&auto=format&fit=crop&q=80&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8ZmVlZGJhY2slMjBsb29wfGVufDB8fDB8fHww"
+        quote="Feeduro changed how we prioritise. We finally know which requests come from our highest-value customers and act on them first."
+        author="Alex Rivera, Head of Product at Orbit"
+      />
 
-        <LoginForm
-          email={email}
-          password={password}
-          error={error}
-          loading={loading}
-          lastMethod={lastMethod}
-          onEmailChange={setEmail}
-          onPasswordChange={setPassword}
-          onSubmit={handleSubmit}
-          onGoogle={handleGoogle}
-          onPasskey={handlePasskey}
+      {/* Right panel */}
+      <div className="flex flex-1 flex-col bg-background relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(148 163 184 / 0.05)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e\")",
+          }}
         />
+        <div className="flex flex-1 items-center justify-center px-6 pb-16">
+          <div className="w-full max-w-sm">
+            <LoginForm
+              email={email}
+              password={password}
+              error={error}
+              loadingMethod={loadingMethod}
+              lastMethod={lastMethod}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onSubmit={handleSubmit}
+              onGoogle={handleGoogle}
+              onPasskey={handlePasskey}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

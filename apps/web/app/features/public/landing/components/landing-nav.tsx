@@ -1,77 +1,282 @@
-import { MessageSquare } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  BarChart3,
+  Bell,
+  BookOpen,
+  ChevronDown,
+  Code2,
+  GitMerge,
+  Globe,
+  MessageSquare,
+  Plug,
+  ShieldCheck,
+  TrendingUp,
+  Webhook,
+  Zap,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 
-const NAV_LINKS = [
-  { label: "Features", href: "#features" },
-  { label: "Integrations", href: "#integrations" },
+function getScrollParent(el: Element | null): Element | null {
+  if (!el) return null;
+  const { overflowY } = getComputedStyle(el);
+  if (overflowY === "auto" || overflowY === "scroll") return el;
+  return getScrollParent(el.parentElement);
+}
+
+const WHY_FEEDURO_ITEMS = [
+  {
+    icon: <TrendingUp className="w-5 h-5 text-blue-500" />,
+    label: "Revenue Intelligence",
+    description: "See the MRR behind every feature request.",
+  },
+  {
+    icon: <ShieldCheck className="w-5 h-5 text-rose-500" />,
+    label: "Churn Risk Detection",
+    description: "Spot at-risk customers before they cancel.",
+  },
+  {
+    icon: <BarChart3 className="w-5 h-5 text-violet-500" />,
+    label: "Priority Scoring",
+    description: "Build what retains customers, not what wins votes.",
+  },
+  {
+    icon: <Bell className="w-5 h-5 text-amber-500" />,
+    label: "Smart Changelog",
+    description: "Close the loop automatically when you ship.",
+  },
+  {
+    icon: <MessageSquare className="w-5 h-5 text-teal-500" />,
+    label: "Feedback Analytics",
+    description: "Understand trends across all your boards.",
+  },
+  {
+    icon: <GitMerge className="w-5 h-5 text-indigo-500" />,
+    label: "Two-way Sync",
+    description: "Push to Jira, Linear, Asana — status flows back.",
+  },
+];
+
+const DEVELOPER_ITEMS = [
+  {
+    icon: <BookOpen className="w-5 h-5 text-blue-500" />,
+    label: "Documentation",
+    description: "Full guides, quickstarts, and API reference.",
+    href: "/docs",
+  },
+  {
+    icon: <Code2 className="w-5 h-5 text-violet-500" />,
+    label: "REST API",
+    description: "Integrate feedback data into your own stack.",
+    href: "/docs/api",
+  },
+  {
+    icon: <Plug className="w-5 h-5 text-teal-500" />,
+    label: "Widget SDK",
+    description: "Embed the feedback widget anywhere in minutes.",
+    href: "/docs/widget",
+  },
+  {
+    icon: <Webhook className="w-5 h-5 text-amber-500" />,
+    label: "Webhooks",
+    description: "React to feedback events in real time.",
+    href: "/docs/webhooks",
+  },
+  {
+    icon: <Zap className="w-5 h-5 text-rose-500" />,
+    label: "Zapier & n8n",
+    description: "Connect to thousands of apps without code.",
+    href: "/integrations",
+  },
+  {
+    icon: <Globe className="w-5 h-5 text-indigo-500" />,
+    label: "Status Page",
+    description: "Live system uptime and incident history.",
+    href: "/status",
+  },
+];
+
+type DropdownItem = {
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+  href?: string;
+};
+
+function NavDropdown({
+  label,
+  items,
+  heading,
+  cta,
+}: {
+  label: string;
+  items: DropdownItem[];
+  heading: string;
+  cta?: { label: string; href: string };
+}) {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const show = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
+  const hide = () => {
+    closeTimer.current = setTimeout(() => setOpen(false), 120);
+  };
+
+  return (
+    <div className="relative" onMouseEnter={show} onMouseLeave={hide}>
+      <button
+        type="button"
+        className="flex items-center gap-1 text-sm text-black hover:text-black/70 transition-colors"
+      >
+        {label}
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50"
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          {/* Arrow */}
+          <div className="flex justify-center mb-0">
+            <div className="w-3 h-3 bg-white border-l border-t border-border rotate-45 -mb-1.5 shadow-sm" />
+          </div>
+
+          <div
+            className="bg-white rounded-2xl shadow-xl border border-border p-5 w-[480px]"
+            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4 px-1">
+              {heading}
+            </p>
+
+            <div className="grid grid-cols-2 gap-1">
+              {items.map((item) => {
+                const inner = (
+                  <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/60 transition-colors cursor-pointer group">
+                    <div className="mt-0.5 shrink-0">{item.icon}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+                return item.href ? (
+                  <Link key={item.label} to={item.href}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <div key={item.label}>{inner}</div>
+                );
+              })}
+            </div>
+
+            {cta && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <Link
+                  to={cta.href}
+                  className="flex items-center justify-center gap-2 w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+                >
+                  {cta.label}
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const PLAIN_LINKS = [
+  { label: "Integrations", href: "/integrations" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Changelog", href: "#changelog" },
+  { label: "Blog", href: "/blog" },
 ];
 
 export function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const check = () => setScrolled(window.scrollY > window.innerHeight);
+    const container = getScrollParent(headerRef.current?.parentElement ?? null) ?? window;
+    const getTop = () =>
+      container instanceof Window ? container.scrollY : (container as Element).scrollTop;
+    const check = () => setScrolled(getTop() > 10);
     check();
-    window.addEventListener("scroll", check, { passive: true });
-    return () => window.removeEventListener("scroll", check);
+    container.addEventListener("scroll", check, { passive: true });
+    return () => container.removeEventListener("scroll", check);
   }, []);
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b"
-      style={{
-        background: scrolled ? "hsl(var(--background) / 0.85)" : "transparent",
-        borderColor: scrolled ? "hsl(var(--border) / 0.6)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
-        <Link to="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-            <MessageSquare className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span>Feeduro</span>
-        </Link>
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+      <div className="max-w-6xl mx-auto px-6 pt-3">
+        <div
+          className="pointer-events-auto flex items-center justify-between gap-6 h-14 px-5 rounded-2xl transition-all duration-200"
+          style={{
+            backgroundColor: scrolled ? "rgba(255,255,255,0.75)" : "transparent",
+            backdropFilter: scrolled ? "blur(16px)" : "none",
+            WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
+            border: scrolled ? "1px solid rgba(0,0,0,0.08)" : "1px solid transparent",
+            boxShadow: scrolled ? "0 4px 20px rgba(0,0,0,0.10)" : "none",
+          }}
+        >
+          <Link to="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <MessageSquare className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <span>Feeduro</span>
+          </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((link) =>
-            link.href.startsWith("/") ? (
+          <nav className="hidden md:flex items-center gap-6">
+            <NavDropdown
+              label="Why Feeduro?"
+              heading="Why teams choose Feeduro"
+              items={WHY_FEEDURO_ITEMS}
+              cta={{ label: "See all features →", href: "#features" }}
+            />
+
+            {PLAIN_LINKS.map((link) => (
               <Link
                 key={link.label}
                 to={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm text-black hover:text-black/70 transition-colors"
               >
                 {link.label}
               </Link>
-            ) : (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </a>
-            ),
-          )}
-        </nav>
+            ))}
 
-        <div className="flex items-center gap-3 shrink-0">
-          <Link
-            to="/sign-in"
-            className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/sign-up"
-            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
-          >
-            Get started
-          </Link>
+            <NavDropdown
+              label="Developers"
+              heading="Developer resources"
+              items={DEVELOPER_ITEMS}
+              cta={{ label: "Read the docs →", href: "/docs" }}
+            />
+          </nav>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              to="/sign-in"
+              className="hidden sm:block text-sm text-black hover:text-black/70 transition-colors"
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/sign-up"
+              className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Get started
+            </Link>
+          </div>
         </div>
       </div>
     </header>

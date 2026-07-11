@@ -1,3 +1,4 @@
+import { TokenExpiredError } from "@services/oauth/flow.server";
 import type {
   JiraCloudResource,
   JiraIssueResult,
@@ -21,6 +22,7 @@ async function jiraFetch<T>(accessToken: string, url: string, options?: RequestI
     },
   });
   if (!res.ok) {
+    if (res.status === 401) throw new TokenExpiredError();
     let message = `Jira API error: ${res.status}`;
     try {
       const err = (await res.json()) as {

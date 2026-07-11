@@ -1,5 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { buildAuthUrl, exchangeCode } from "@services/oauth/flow.server";
+import { buildAuthUrl, exchangeCode, TokenExpiredError } from "@services/oauth/flow.server";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
@@ -17,7 +17,6 @@ import {
 import { requireAdminRole } from "../../server/permissions";
 import {
   getIntegration,
-  getIntegrationToken,
   getOrgSlugFromId,
   parseSettings,
 } from "../../server/queries";
@@ -37,6 +36,26 @@ import { LinearActionSchema, type LinearSettings } from "./schemas";
 
 const CALLBACK_PATH = "/api/linear";
 const LOG = "[linear-service]";
+
+const RECONNECT_MSG =
+  "Linear session expired — please reconnect Linear in Settings → Integrations";
+
+// Linear access tokens are long-lived (no expiry), but can be revoked.
+// On TokenExpiredError we surface a clear reconnect message instead of a raw API error.
+async function withTokenRefresh<T>(
+  db: Db,
+  organizationId: string,
+  fn: (token: string) => Promise<T>,
+): Promise<T> {
+  const integration = await getIntegration(db, organizationId, "linear");
+  if (!integration?.accessToken) throw new Error("Linear not connected");
+  try {
+    return await fn(integration.accessToken);
+  } catch (err) {
+    if (err instanceof TokenExpiredError) throw new Error(RECONNECT_MSG);
+    throw err;
+  }
+}
 
 function callbackUrl(): string {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
@@ -79,7 +98,7 @@ export async function handleLinearLoader(db: Db, request: Request) {
     const { clientId, clientSecret } = requireLinearEnv();
 
     try {
-      const { accessToken } = await exchangeCode(
+      const { accessToken, refreshToken, tokenExpiresAt } = await exchangeCode(
         linearOAuth,
         code,
         clientId,
@@ -119,11 +138,19 @@ export async function handleLinearLoader(db: Db, request: Request) {
           organizationId: parsed.orgId,
           provider: "linear",
           accessToken,
+          refreshToken: refreshToken ?? null,
+          tokenExpiresAt: tokenExpiresAt ?? null,
           settings: JSON.stringify(settings),
         })
         .onConflictDoUpdate({
           target: [integrations.organizationId, integrations.provider],
-          set: { accessToken, settings: JSON.stringify(settings), updatedAt: new Date() },
+          set: {
+            accessToken,
+            refreshToken: refreshToken ?? null,
+            tokenExpiresAt: tokenExpiresAt ?? null,
+            settings: JSON.stringify(settings),
+            updatedAt: new Date(),
+          },
         });
 
       console.log(`${LOG} OAuth callback complete orgId=${parsed.orgId}`);
@@ -155,10 +182,8 @@ export async function handleLinearAction(db: Db, request: Request) {
   const input = parsed.data;
 
   if (input.intent === "list_teams") {
-    const accessToken = await getIntegrationToken(db, organizationId, "linear");
-    if (!accessToken) return data({ error: "Linear not connected" }, { status: 400 });
     try {
-      const teams = await getLinearTeams(accessToken);
+      const teams = await withTokenRefresh(db, organizationId, (token) => getLinearTeams(token));
       return data({ teams });
     } catch (err) {
       return data(
@@ -247,10 +272,10 @@ export async function handleLinearAction(db: Db, request: Request) {
   }
 
   if (input.intent === "list_team_states") {
-    const accessToken = await getIntegrationToken(db, organizationId, "linear");
-    if (!accessToken) return data({ error: "Linear not connected" }, { status: 400 });
     try {
-      const states = await getLinearTeamStates(accessToken, input.teamId);
+      const states = await withTokenRefresh(db, organizationId, (token) =>
+        getLinearTeamStates(token, input.teamId),
+      );
       return data({ states });
     } catch (err) {
       return data(
@@ -310,11 +335,8 @@ export async function handleLinearAction(db: Db, request: Request) {
       const description = input.description ?? (post.description
         ? `${post.description}\n\n---\n*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`
         : `*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`);
-      const issue = await createLinearIssue(
-        integration.accessToken,
-        teamId,
-        baseTitle,
-        description,
+      const issue = await withTokenRefresh(db, organizationId, (token) =>
+        createLinearIssue(token, teamId, baseTitle, description),
       );
       console.log(
         `${LOG} create_issue done issueId=${issue.id} identifier=${issue.identifier} postId=${input.postId}`,
@@ -368,7 +390,9 @@ export async function handleLinearAction(db: Db, request: Request) {
       `${LOG} link_issue postId=${input.postId} issueId=${input.issueId} orgId=${organizationId}`,
     );
     try {
-      const issue = await getLinearIssueById(integration.accessToken, parseLinearInput(input.issueId));
+      const issue = await withTokenRefresh(db, organizationId, (token) =>
+        getLinearIssueById(token, parseLinearInput(input.issueId)),
+      );
       await upsertPostExternalLink(db, {
         postId: input.postId,
         organizationId,
@@ -404,11 +428,11 @@ export async function handleLinearAction(db: Db, request: Request) {
 
   if (input.intent === "search_issues") {
     try {
-      const integration = await getIntegration(db, organizationId, "linear");
-      if (!integration?.accessToken) return data({ error: "Linear not connected" }, { status: 400 });
-      const settings = parseSettings<LinearSettings>(integration.settings);
-      const issues = await searchLinearIssues(
-        integration.accessToken, input.query, settings?.defaultTeamId,
+      const settings = parseSettings<LinearSettings>(
+        (await getIntegration(db, organizationId, "linear"))?.settings ?? null,
+      );
+      const issues = await withTokenRefresh(db, organizationId, (token) =>
+        searchLinearIssues(token, input.query, settings?.defaultTeamId),
       );
       return data({ results: issues.map((i) => ({ id: i.id, identifier: i.identifier, title: i.title, status: i.state.name, url: i.url })) });
     } catch (err) {

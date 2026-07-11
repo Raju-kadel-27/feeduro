@@ -15,6 +15,7 @@ export const TokenResponseSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string().optional(),
   expiresIn: z.number().optional(),
+  tokenExpiresAt: z.date().optional(),
 });
 
 export type OAuthConfig = z.infer<typeof OAuthConfigSchema>;

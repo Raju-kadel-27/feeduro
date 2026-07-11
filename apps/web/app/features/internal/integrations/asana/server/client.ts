@@ -1,3 +1,4 @@
+import { TokenExpiredError } from "@services/oauth/flow.server";
 import type { AsanaProject, AsanaSection, AsanaTaskResult, AsanaWorkspace } from "./schemas";
 
 const ASANA_API = "https://app.asana.com/api/1.0";
@@ -13,6 +14,7 @@ async function asanaFetch<T>(accessToken: string, path: string, options?: Reques
     },
   });
   if (!res.ok) {
+    if (res.status === 401) throw new TokenExpiredError();
     let message = `Asana API error: ${res.status}`;
     try {
       const err = (await res.json()) as { errors?: Array<{ message: string }> };

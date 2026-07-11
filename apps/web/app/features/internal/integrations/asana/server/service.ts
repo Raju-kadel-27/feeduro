@@ -1,5 +1,5 @@
 import { requireOrganization } from "@features/auth/server/guards";
-import { buildAuthUrl, exchangeCode, refreshAccessToken } from "@services/oauth/flow.server";
+import { buildAuthUrl, exchangeCode, refreshAccessToken, TokenExpiredError } from "@services/oauth/flow.server";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
@@ -46,7 +46,8 @@ function requireAsanaEnv() {
 
 const RECONNECT_MSG = "Asana session expired — please reconnect Asana in Settings → Integrations";
 
-// Retries fn once after refreshing the access token on a 401 error.
+// Retries fn once after refreshing the access token on a TokenExpiredError.
+// If tokenExpiresAt is known and already past, skips the first attempt and refreshes immediately.
 async function withTokenRefresh<T>(
   db: Db,
   organizationId: string,
@@ -55,37 +56,47 @@ async function withTokenRefresh<T>(
   const integration = await getIntegration(db, organizationId, "asana");
   if (!integration?.accessToken) throw new Error("Asana not connected");
 
-  try {
-    return await fn(integration.accessToken);
-  } catch (err) {
-    if (!(err instanceof Error && err.message.includes("401"))) throw err;
+  const alreadyExpired =
+    integration.tokenExpiresAt != null && integration.tokenExpiresAt.getTime() <= Date.now();
 
-    if (!integration.refreshToken) throw new Error(RECONNECT_MSG);
-
-    const env = getEnv();
-    if (!env.ASANA_CLIENT_ID || !env.ASANA_CLIENT_SECRET) throw new Error(RECONNECT_MSG);
-
+  if (!alreadyExpired) {
     try {
-      const { accessToken: newToken, refreshToken: newRefresh } = await refreshAccessToken(
-        asanaOAuth,
-        integration.refreshToken,
-        env.ASANA_CLIENT_ID,
-        env.ASANA_CLIENT_SECRET,
-      );
-      await db
-        .update(integrations)
-        .set({
-          accessToken: newToken,
-          refreshToken: newRefresh ?? integration.refreshToken,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "asana")),
-        );
-      return await fn(newToken);
-    } catch {
-      throw new Error(RECONNECT_MSG);
+      return await fn(integration.accessToken);
+    } catch (err) {
+      if (!(err instanceof TokenExpiredError)) throw err;
     }
+  }
+
+  if (!integration.refreshToken) throw new Error(RECONNECT_MSG);
+
+  const env = getEnv();
+  if (!env.ASANA_CLIENT_ID || !env.ASANA_CLIENT_SECRET) throw new Error(RECONNECT_MSG);
+
+  try {
+    const {
+      accessToken: newToken,
+      refreshToken: newRefresh,
+      tokenExpiresAt,
+    } = await refreshAccessToken(
+      asanaOAuth,
+      integration.refreshToken,
+      env.ASANA_CLIENT_ID,
+      env.ASANA_CLIENT_SECRET,
+    );
+    await db
+      .update(integrations)
+      .set({
+        accessToken: newToken,
+        refreshToken: newRefresh ?? integration.refreshToken,
+        ...(tokenExpiresAt != null ? { tokenExpiresAt } : {}),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "asana")),
+      );
+    return await fn(newToken);
+  } catch {
+    throw new Error(RECONNECT_MSG);
   }
 }
 
@@ -114,7 +125,7 @@ export async function handleAsanaLoader(db: Db, request: Request) {
     const { clientId, clientSecret } = requireAsanaEnv();
 
     try {
-      const { accessToken, refreshToken } = await exchangeCode(
+      const { accessToken, refreshToken, tokenExpiresAt } = await exchangeCode(
         asanaOAuth,
         code,
         clientId,
@@ -165,6 +176,7 @@ export async function handleAsanaLoader(db: Db, request: Request) {
           provider: "asana",
           accessToken,
           refreshToken,
+          tokenExpiresAt: tokenExpiresAt ?? null,
           settings: JSON.stringify(settings),
         })
         .onConflictDoUpdate({
@@ -172,6 +184,7 @@ export async function handleAsanaLoader(db: Db, request: Request) {
           set: {
             accessToken,
             refreshToken,
+            tokenExpiresAt: tokenExpiresAt ?? null,
             settings: JSON.stringify(settings),
             updatedAt: new Date(),
           },

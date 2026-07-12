@@ -1,6 +1,8 @@
 import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { RoleFormDialog } from "@features/internal/roles/components/role-form-dialog";
 import { RolesTable } from "@features/internal/roles/components/roles-table";
 import type { OrgRole } from "@features/internal/roles/types";
@@ -10,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Plus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { data, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -22,24 +25,31 @@ export function meta() {
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  const planLimits = await getOrgPlanLimits(db, organizationId);
+  if (!planLimits.customRoles) return data({ planLocked: true as const });
 
-  const memberRecord = await db.query.member.findFirst({
-    where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
-  });
+  const [memberRecord, rolesResult] = await Promise.all([
+    db.query.member.findFirst({
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
+    }),
+    getAuth(db).api.listOrgRoles({ headers: request.headers, query: { organizationId } }),
+  ]);
 
-  const rolesResult = await getAuth(db).api.listOrgRoles({
-    headers: request.headers,
-    query: { organizationId },
-  });
-
-  return {
+  return data({
     roles: (Array.isArray(rolesResult) ? rolesResult : []) as OrgRole[],
     isAdmin: memberRecord?.role === "admin",
     organizationId,
-  };
+  });
 }
 
 export default function RolesSettings({ loaderData }: Route.ComponentProps) {
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+
+  if ("planLocked" in loaderData) {
+    return <UpgradeWall feature="customRoles" orgSlug={orgSlug!} />;
+  }
+
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
 

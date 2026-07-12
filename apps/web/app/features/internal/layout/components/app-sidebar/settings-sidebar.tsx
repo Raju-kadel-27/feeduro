@@ -8,7 +8,8 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@components/ui/sidebar";
-import { ArrowLeft } from "lucide-react";
+import { usePlanLimits } from "@features/internal/billing/hooks/use-plan-limits";
+import { ArrowLeft, Crown } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { makeSettingsSections } from "./settings-sections";
 
@@ -16,7 +17,8 @@ type Props = { base: string };
 
 export function SettingsSidebar({ base }: Props) {
   const location = useLocation();
-  const sections = makeSettingsSections(base);
+  const planLimits = usePlanLimits();
+  const sections = makeSettingsSections(base, planLimits);
 
   return (
     <SidebarContent>
@@ -46,7 +48,10 @@ export function SettingsSidebar({ base }: Props) {
                     <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-base">
                       <Link to={item.url} prefetch="intent">
                         <item.icon />
-                        <span>{item.title}</span>
+                        <span className="flex-1">{item.title}</span>
+                        {item.locked && (
+                          <Crown className="h-3 w-3 shrink-0 text-orange-400" />
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

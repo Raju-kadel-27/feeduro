@@ -77,7 +77,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       getOrgPlanLimits(db, organizationId),
     ]);
 
-    const { boards: boardLimit } = planLimits;
+    const { boards: boardLimit, privateBoards } = planLimits;
     if (boardLimit !== -1 && existing.length >= boardLimit) {
       return data(
         {
@@ -85,6 +85,11 @@ export async function action({ request, context }: Route.ActionArgs) {
         },
         { status: 403 },
       );
+    }
+
+    const requestedVisibility = (body.visibility as "public" | "private") ?? "public";
+    if (requestedVisibility === "private" && !privateBoards) {
+      return data({ error: "Upgrade to Starter to create private boards." }, { status: 403 });
     }
 
     const baseSlug = slugify(name) || createId().substring(0, 16);
@@ -140,6 +145,16 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (!id) return data({ error: "ID is required" }, { status: 400 });
     const visibility = body.visibility as "public" | "private";
     if (!visibility) return data({ error: "Visibility is required" }, { status: 400 });
+
+    if (visibility === "private") {
+      const planLimits = await getOrgPlanLimits(db, organizationId);
+      if (!planLimits.privateBoards) {
+        return data(
+          { error: "Upgrade to Starter to make boards private." },
+          { status: 403 },
+        );
+      }
+    }
 
     await db
       .update(feedbackBoards)

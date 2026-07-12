@@ -4,8 +4,10 @@ import { AuditLogPage } from "@features/internal/audit/components/audit-log-page
 import type { AuditCategory } from "@features/internal/audit/constants";
 import { AUDIT_CATEGORIES } from "@features/internal/audit/constants";
 import { listAuditLogs } from "@features/internal/audit/server/queries";
+import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { ScrollText } from "lucide-react";
-import { data } from "react-router";
+import { data, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/audit-log";
@@ -18,6 +20,9 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
   await requireAdmin(db, organizationId, session.user.id);
+
+  const planLimits = await getOrgPlanLimits(db, organizationId);
+  if (!planLimits.auditLog) return data({ planLocked: true as const });
 
   const url = new URL(request.url);
 
@@ -43,6 +48,12 @@ export function ErrorBoundary() {
 }
 
 export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+
+  if ("planLocked" in loaderData) {
+    return <UpgradeWall feature="auditLog" orgSlug={orgSlug!} />;
+  }
+
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">

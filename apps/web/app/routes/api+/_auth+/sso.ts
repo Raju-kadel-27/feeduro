@@ -1,5 +1,6 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { logOrgActivity } from "@features/internal/audit/server/log-org-activity";
+import { getOrgPlanLimits, planGateResponse } from "@features/internal/billing/server/plan-limits";
 import { getAuth } from "@lib/auth/server";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -88,6 +89,10 @@ export async function action({ request, context }: Route.ActionArgs) {
   const body = parsed.data;
 
   if (body.intent === "register") {
+    const planLimits = await getOrgPlanLimits(db, organizationId);
+    const gate = planGateResponse(planLimits, "sso");
+    if (gate) return gate;
+
     try {
       await getAuth(db).api.registerSSOProvider({
         body: {

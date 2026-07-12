@@ -1,9 +1,13 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { BoardFilter } from "@features/internal/analytics/components/board-filter";
 import { DateRangePicker } from "@features/internal/analytics/components/date-range-picker";
 import { loadAnalyticsOverview } from "@features/internal/analytics/server/overview";
+import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { lazy, Suspense } from "react";
+import { useParams } from "react-router";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/analytics";
@@ -20,10 +24,19 @@ export function meta() {
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
+  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  const planLimits = await getOrgPlanLimits(db, organizationId);
+  if (!planLimits.analytics) return { planLocked: true as const };
   return loadAnalyticsOverview(db, request, params.orgSlug, context);
 }
 
 export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+
+  if ("planLocked" in loaderData) {
+    return <UpgradeWall feature="analytics" orgSlug={orgSlug!} />;
+  }
+
   const data = loaderData;
 
   return (

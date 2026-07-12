@@ -1,4 +1,5 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
+import { getOrgPlanLimits, planGateResponse } from "@features/internal/billing/server/plan-limits";
 import { getBindings } from "@middleware/cloudflare.server";
 import { eq } from "drizzle-orm";
 import { data } from "react-router";
@@ -62,6 +63,10 @@ export async function action({ request, context }: Route.ActionArgs) {
   const body = parsed.data;
 
   if (body.intent === "add_domain") {
+    const planLimits = await getOrgPlanLimits(db, organizationId);
+    const gate = planGateResponse(planLimits, "customDomain");
+    if (gate) return gate;
+
     const rawDomain = body.domain
       .trim()
       .toLowerCase()

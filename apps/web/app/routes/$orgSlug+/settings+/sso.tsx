@@ -1,11 +1,14 @@
 import { PageHeader } from "@components/common/page-header";
+import { requireOrgBySlug } from "@features/auth/server/guards";
+import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
 import { ProviderList } from "@features/internal/sso/components/provider-list";
 import { loadSSOSettings } from "@features/internal/sso/server/queries";
-import { getDb } from "~/middleware/cloudflare.server";
 import { KeyRound } from "lucide-react";
-import { data } from "react-router";
+import { data, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/sso";
 
@@ -15,6 +18,9 @@ export function meta() {
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
+  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  const planLimits = await getOrgPlanLimits(db, organizationId);
+  if (!planLimits.sso) return data({ planLocked: true as const });
   return data(await loadSSOSettings(db, request, params.orgSlug));
 }
 
@@ -27,6 +33,12 @@ export function ErrorBoundary() {
 }
 
 export default function SSOSettings({ loaderData }: Route.ComponentProps) {
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+
+  if ("planLocked" in loaderData) {
+    return <UpgradeWall feature="sso" orgSlug={orgSlug!} />;
+  }
+
   const { providers, isAdmin, baseUrl } = loaderData;
 
   return (

@@ -1,14 +1,12 @@
 import { Sidebar, SidebarHeader, SidebarSeparator } from "@components/ui/sidebar";
 import { SidebarUserFooter } from "@features/internal/layout/components/sidebar-user-footer";
 import { WorkspaceSwitcher } from "@features/internal/workspace/components/workspace-switcher";
-import { Star } from "lucide-react";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { SettingsSidebar } from "./settings-sidebar";
 import { WorkspaceSidebar } from "./workspace-sidebar";
 
 export function AppSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { orgSlug = "" } = useParams();
   const base = `/${orgSlug}`;
   const isSettingsRoute = location.pathname.includes("/settings");
@@ -26,16 +24,6 @@ export function AppSidebar() {
         ) : (
           <WorkspaceSidebar base={base} orgSlug={orgSlug} isDashboard={isDashboard} />
         )}
-      </div>
-      <div className="px-3 pt-2">
-        <button
-          type="button"
-          onClick={() => navigate(`${base}/settings/billing`)}
-          className="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground"
-        >
-          <Star className="h-3.5 w-3.5 shrink-0" />
-          Upgrade Plan
-        </button>
       </div>
       <SidebarUserFooter />
     </Sidebar>

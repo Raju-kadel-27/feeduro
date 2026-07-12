@@ -97,7 +97,26 @@ export const FEATURE_REQUIRED_PLAN: Partial<Record<PlanGatedFeature, "starter" |
   auditLog: "professional",
 };
 
-export async function getOrgPlanLimits(db: Db, organizationId: string): Promise<PlanLimits> {
+// The db client is created per request, so keying on it scopes this cache to a
+// single request — the layout loader and query helpers (e.g. getBoards) both
+// resolve plan limits, and the subscription lookup only needs to run once.
+const planLimitsCache = new WeakMap<Db, Map<string, Promise<PlanLimits>>>();
+
+export function getOrgPlanLimits(db: Db, organizationId: string): Promise<PlanLimits> {
+  let byOrg = planLimitsCache.get(db);
+  if (!byOrg) {
+    byOrg = new Map();
+    planLimitsCache.set(db, byOrg);
+  }
+  let result = byOrg.get(organizationId);
+  if (!result) {
+    result = loadOrgPlanLimits(db, organizationId);
+    byOrg.set(organizationId, result);
+  }
+  return result;
+}
+
+async function loadOrgPlanLimits(db: Db, organizationId: string): Promise<PlanLimits> {
   const activeSub = await db.query.subscription.findFirst({
     where: and(
       eq(subscription.referenceId, organizationId),

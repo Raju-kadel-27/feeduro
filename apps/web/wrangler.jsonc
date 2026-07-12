@@ -7,6 +7,10 @@
   "upload_source_maps": true,
   "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
   "observability": { "enabled": true },
+  // Loaders make several sequential Postgres roundtrips per request — Smart
+  // Placement runs the worker near the database instead of near the visitor,
+  // collapsing per-query latency. Inherited by all named environments.
+  "placement": { "mode": "smart" },
   "assets": { "directory": "./build/client" },
   "workers_dev": true,
   // Postgres over Hyperdrive. In local dev (vite / miniflare) the binding uses

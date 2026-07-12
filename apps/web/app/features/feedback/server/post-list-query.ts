@@ -38,7 +38,12 @@ export async function handleGetPostList(
       orderBy: [sql`rank ASC NULLS LAST`, desc(feedbackPosts.createdAt)],
       // searchVector is a stored tsvector (can be large) and aiSummary is detail-only.
       // Excluding them cuts per-post payload significantly on large boards.
-      columns: { searchVector: false, aiSummary: false },
+      columns: { searchVector: false, aiSummary: false, description: false },
+      extras: {
+        // List rows only render a line-clamped snippet; the detail panel fetches
+        // the full text. Truncating here bounds the per-post payload.
+        description: sql<string | null>`left(${feedbackPosts.description}, 300)`.as("description"),
+      },
     }),
     db.query.feedbackPosts.findMany({
       where: and(
@@ -133,5 +138,7 @@ export async function handleGetPostList(
     };
   });
 
-  return data({ posts: enriched });
+  // traitsIncluded distinguishes this payload from loader-seeded cache entries,
+  // which ship posts without voterTraitCounts/mrrImpact.
+  return data({ posts: enriched, traitsIncluded: true });
 }

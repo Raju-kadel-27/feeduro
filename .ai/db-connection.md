@@ -1,137 +1,90 @@
-# Database Connection Architecture (HTTP + WebSocket hybrid)
+# Database Connection Architecture (postgres.js over Hyperdrive)
 
 How the app connects to Neon Postgres on Cloudflare Workers. For query *style*
 (org scoping, N+1, `columns`) see [database.md](./database.md). This doc is about
-the *plumbing* underneath `getDb()` and `withTransaction()`.
+the plumbing underneath `getDb(context)`.
 
 ## TL;DR
 
-- **Reads and single-statement writes** go over Neon's stateless **HTTP** driver
-  (`drizzle-orm/neon-http`). Call **`getDb()`** — it returns a shared, module-level
-  client. No pool, no connection lifecycle, nothing to close.
-- **Interactive transactions** go over a short-lived **WebSocket** pool
-  (`drizzle-orm/neon-serverless`). Call **`withTransaction(async (tx) => …)`** — it
-  opens a connection, runs the transaction, and closes it.
-- No Hyperdrive, no `AsyncLocalStorage`, no per-request pooling. Two small helpers.
-
-## Why two transports
-
-Neon's serverless driver offers two ways to reach Postgres from a Worker:
-
-| Transport | Driver | Used by | Transactions? |
-|---|---|---|---|
-| **HTTP** (fetch) | `neon-http` | `getDb()` — the default | ❌ single statements only |
-| **WebSocket** | `neon-serverless` `Pool` | `withTransaction()` | ✅ interactive |
-
-HTTP is stateless — each query is one `fetch()`. That means there's no connection
-pinned to a request, so a single client can be created once and shared by every
-request. It's the simplest possible setup and covers the vast majority of queries.
-
-The catch: the HTTP driver **cannot do interactive transactions** (read a row,
-branch on it, then write). Those need a real session, which only the WebSocket
-transport provides — so transactions get their own short-lived connection.
+- One **postgres.js client per request**, created in
+  [`app/entry.worker.ts`](../apps/web/app/entry.worker.ts) from
+  `env.HYPERDRIVE.connectionString` and closed via `ctx.waitUntil` after the
+  response is sent.
+- **Hyperdrive** does the connection pooling near the edge — the Worker never
+  pools; `prepare: false` because Hyperdrive runs in transaction-pooling mode.
+- Handlers get the client with **`getDb(context)`** from
+  [`app/middleware/cloudflare.server.ts`](../apps/web/app/middleware/cloudflare.server.ts) —
+  it's stored on the `RouterContextProvider`, never module state.
+- **Transactions** are just `db.transaction(async (tx) => …)` — postgres.js
+  supports interactive transactions natively. No separate transport.
 
 ## The pieces
 
 | File | Responsibility |
 |---|---|
-| [`db/index.ts`](../apps/web/db/index.ts) | Public API — `getDb()`, `withTransaction()` — and the per-environment driver selection. |
-| [`db/client.ts`](../apps/web/db/client.ts) | Env-agnostic factories: HTTP client and WS transaction pool. |
-| [`db/driver.dev.ts`](../apps/web/db/driver.dev.ts) | Dev-only driver config (points transports at the local proxies). |
-| [`db/driver.prod.ts`](../apps/web/db/driver.prod.ts) | Prod driver config (no overrides — Neon cloud defaults). |
-
-`index.ts` picks the config by `ENVIRONMENT` (lazily, since `process.env` is only
-populated per-request), then `client.ts` builds clients without caring which env
-it's in.
-
-### `getDb()` — non-transactional queries
+| [`db/index.ts`](../apps/web/db/index.ts) | `createDb(connectionString)` — postgres.js + Drizzle, returns `{ db, close }`. Exports the `Db`/`Tx` types. |
+| [`app/entry.worker.ts`](../apps/web/app/entry.worker.ts) | Creates the per-request client from `env.HYPERDRIVE`, puts it on `CloudflareContext`, closes it in `ctx.waitUntil` after the handler returns. |
+| [`app/middleware/cloudflare.server.ts`](../apps/web/app/middleware/cloudflare.server.ts) | `getDb(context)` accessor plus `getBindings`, `waitUntil`, etc. |
+| [`apps/web/wrangler.jsonc`](../apps/web/wrangler.jsonc) | The `HYPERDRIVE` binding per environment. `localConnectionString` points dev straight at the docker Postgres. |
 
 ```ts
-import { getDb } from "@/db";
-
-export async function getBoards(organizationId: string) {
-  const db = getDb();                       // shared HTTP client
-  return db.query.feedbackBoards.findMany({
-    where: eq(feedbackBoards.organizationId, organizationId),
-    columns: { id: true, name: true, slug: true },
-  });
+// route/service code — db is always passed down from the request context
+export async function loader({ context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  …
 }
 ```
 
-- The client is created once and reused for the life of the isolate.
-- Nothing to open or close. Each query is an independent HTTPS request to Neon.
-- Works anywhere the Worker runs, including background work in `waitUntil`.
-- better-auth uses this too — its Drizzle adapter runs sequentially, no real
-  transactions, so HTTP is a perfect fit.
+Never create a module-level client and never share a `Db` across requests —
+Workers forbid cross-request I/O reuse, and the request's client is closed as
+soon as its response finishes.
 
-### `withTransaction()` — atomic multi-statement writes
+## The `Db` instance is request-scoped — use it as a cache key
 
-```ts
-import { withTransaction } from "@/db";
+Because a fresh `Db` is created per request, `WeakMap<Db, …>` is the idiom for
+**request-scoped memoization**. Existing examples:
 
-const { voteCount } = await withTransaction(async (tx) => {
-  await tx.insert(votes).values({ … });
-  const [row] = await tx
-    .update(feedbackPosts)
-    .set({ voteCount: sql`vote_count + 1` })
-    .where(eq(feedbackPosts.id, postId))
-    .returning({ voteCount: feedbackPosts.voteCount });
-  return { voteCount: row.voteCount };
-});
-```
+- `requireOrgBySlug` in [`features/auth/server/guards.ts`](../apps/web/app/features/auth/server/guards.ts) —
+  layout and leaf loaders both guard in the same single-fetch request; the
+  session/org/member lookups run once.
+- `getOrgPlanLimits` in [`features/internal/billing/server/plan-limits.ts`](../apps/web/app/features/internal/billing/server/plan-limits.ts).
 
-`withTransaction` opens a WebSocket pool, runs the callback inside a real
-transaction, and closes the pool in a `finally`. The `tx` handle is a normal
-Drizzle transaction — use it exactly like `db`.
+Follow this pattern for any lookup that multiple loaders repeat within one
+request. Entries are garbage-collected with the `Db`, so there is no eviction
+logic and no cross-request leakage.
 
-> **Two rules for transaction bodies:**
-> 1. **Use `tx` for every query inside** — never call `getDb()` in a transaction.
->    `getDb()` runs over HTTP, on a *different connection*, so its writes are NOT
->    part of the transaction and won't roll back.
-> 2. **Pure DB work only** — no `fetch()` / external API calls inside a `tx`. Do
->    that work before or after (e.g. in `waitUntil`).
+## Performance constraints (production is on the Workers FREE plan)
 
-## Background work (after the response)
-
-Because the HTTP client is stateless, background jobs need no special DB setup —
-just call `getDb()` inside the `waitUntil` callback:
-
-```ts
-waitUntil(context, (async () => {
-  await fireAutoCreateIntegrations(/* uses getDb() internally */);
-})());
-```
-
-(Contrast with the old design, which had to open a fresh request-scoped pool for
-background work — no longer needed.)
+- **~10ms CPU per request.** Large loader payloads (serializing every post,
+  mapping thousands of Drizzle rows) can blow the budget and kill the request
+  with error 1102 ("Worker exceeded CPU time limit"). Keep list payloads
+  bounded — exclude/truncate big columns, aggregate in SQL, never SELECT *.
+- **Every DB roundtrip crosses to Neon's region.** Batch independent queries
+  with `Promise.all`; never chain sequential awaits that don't depend on each
+  other. Smart Placement (`"placement": { "mode": "smart" }` in wrangler.jsonc)
+  moves execution near the database to shrink each roundtrip.
+- Each `/api/*` fetch from the client is a **separate Worker invocation** with
+  its own CPU budget, auth setup, and queries — avoid fanning out many small
+  API calls where one loader can serve the data.
 
 ## Local development
 
-Neon's driver expects Neon's cloud endpoints, so locally we put two proxies in
-front of the docker Postgres (see [docker-compose.yml](../docker/docker-compose.yml)):
+`wrangler.jsonc`'s `localConnectionString` points the HYPERDRIVE binding at the
+docker Postgres (`postgresql://postgres:postgres@localhost:5432/feeduro`), so
+dev uses the exact same code path — postgres.js over TCP — with no proxies.
+`docker compose up` starts Postgres.
 
-| Proxy | Port | Serves | For |
-|---|---|---|---|
-| `neon-http-proxy` (local-neon-http-proxy) | 4444 | Neon `/sql` HTTP endpoint | `getDb()` |
-| `neon-proxy` (wsproxy) | 5433 | Neon WebSocket | `withTransaction()` |
-
-`db/client.ts` points the driver at these in dev (via `neonConfig.fetchEndpoint`
-and `neonConfig.wsProxy`) when `ENVIRONMENT === "development"`. `DATABASE_URL`
-uses `localhost`, whose ports map to: `5432` → Postgres (migrations/scripts),
-`5433` → wsproxy, `4444` → http proxy. `docker compose up` starts all three.
-
-## Migrations & scripts (unchanged, and separate)
+## Migrations & scripts (separate path)
 
 `drizzle-kit` migrations and `seed`/`nuke` run in **Node/CI**, not the Worker.
-They connect **directly to Postgres over TCP** via `DATABASE_URL` (`db/config.ts`)
-using `pg` — they do not touch the neon drivers or the proxies (locally they hit
-`localhost:5432` directly).
+They connect directly over TCP via `DATABASE_URL`
+([`db/config.ts`](../apps/web/db/config.ts)) — they do not use Hyperdrive.
 
 > Migrations are handled manually by the team — do not run `drizzle-kit generate`
 > or edit `_journal.json`.
 
 ## Mental model in one line
 
-> `getDb()` = shared stateless HTTP client for everything; `withTransaction()` =
-> a throwaway WebSocket connection for the rare interactive transaction. Pick the
-> second only when you need multiple statements to commit or roll back together.
+> One postgres.js client per request, born from Hyperdrive in `entry.worker.ts`
+> and passed down through `getDb(context)`; Hyperdrive pools, `db.transaction`
+> handles atomicity, and `WeakMap<Db, …>` is your request-scoped cache.

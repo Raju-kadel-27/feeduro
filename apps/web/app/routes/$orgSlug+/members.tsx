@@ -17,6 +17,15 @@ export function meta() {
   return [{ title: "Members — Feeduro" }];
 }
 
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}: Route.ShouldRevalidateArgs) {
+  if (currentUrl.pathname === nextUrl.pathname) return false;
+  return defaultShouldRevalidate;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);

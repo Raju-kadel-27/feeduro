@@ -17,14 +17,13 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { listChangelogEntries } from "@features/changelog/server/list-entries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { desc, eq } from "drizzle-orm";
 import { Clock, FileText, Globe, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useOutlet, useParams } from "react-router";
 import { toast } from "sonner";
-import { changelogs as changelogsTable } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/index";
@@ -33,25 +32,19 @@ export function meta() {
   return [{ title: "Changelog – Feeduro" }];
 }
 
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}: Route.ShouldRevalidateArgs) {
+  if (currentUrl.pathname === nextUrl.pathname) return false;
+  return defaultShouldRevalidate;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
-
-  const entries = await db.query.changelogs.findMany({
-    where: eq(changelogsTable.organizationId, org.id),
-    orderBy: [desc(changelogsTable.createdAt)],
-    columns: {
-      id: true,
-      title: true,
-      slug: true,
-      status: true,
-      publishedAt: true,
-      createdAt: true,
-      updatedAt: true,
-      body: true,
-    },
-  });
-
+  const entries = await listChangelogEntries(db, org.id);
   return { user: session.user, changelogs: entries, fetchedAt: Date.now() };
 }
 
@@ -63,6 +56,7 @@ interface ChangelogEntry {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  excerpt: string;
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -212,33 +206,9 @@ function ChangelogList({
                           : `Updated ${formatDate(entry.updatedAt)}`}
                       </span>
                     </div>
-                    {entry.body &&
-                      (() => {
-                        try {
-                          const blocks = JSON.parse(entry.body);
-                          const text = Array.isArray(blocks)
-                            ? blocks
-                                .filter((b) => b?.type === "paragraph" || b?.type === "heading")
-                                .flatMap((b) =>
-                                  Array.isArray(b.content)
-                                    ? b.content
-                                        .filter(
-                                          (c: { type: string; text?: string }) => c.type === "text",
-                                        )
-                                        .map((c: { type: string; text?: string }) => c.text)
-                                        .join("")
-                                    : [],
-                                )
-                                .join(" ")
-                                .slice(0, 160)
-                            : "";
-                          return text ? (
-                            <p className="text-xs text-muted-foreground mt-1 truncate">{text}</p>
-                          ) : null;
-                        } catch {
-                          return null;
-                        }
-                      })()}
+                    {entry.excerpt && (
+                      <p className="text-xs text-muted-foreground mt-1 truncate">{entry.excerpt}</p>
+                    )}
                   </button>
                   <TooltipProvider delayDuration={300}>
                     <Tooltip>

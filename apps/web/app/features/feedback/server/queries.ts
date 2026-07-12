@@ -17,7 +17,12 @@ export async function getEnrichedPosts(db: Db, organizationId: string, userId: s
         isNull(feedbackPosts.mergedIntoPostId),
       ),
       orderBy: [desc(feedbackPosts.createdAt)],
-      columns: { searchVector: false, aiSummary: false },
+      columns: { searchVector: false, aiSummary: false, description: false },
+      extras: {
+        // List rows only render a line-clamped snippet; the detail panel fetches
+        // the full text. Truncating here bounds the per-post payload.
+        description: sql<string | null>`left(${feedbackPosts.description}, 300)`.as("description"),
+      },
     }),
     db.query.feedbackPosts.findMany({
       where: and(
@@ -137,7 +142,13 @@ export async function getBoards(db: Db, organizationId: string) {
         count: sql<number>`count(*)`.mapWith(Number),
       })
       .from(feedbackPosts)
-      .where(eq(feedbackPosts.organizationId, organizationId))
+      .where(
+        and(
+          eq(feedbackPosts.organizationId, organizationId),
+          // merged children are hidden from every list — don't count them
+          isNull(feedbackPosts.mergedIntoPostId),
+        ),
+      )
       .groupBy(feedbackPosts.status),
   ]);
 

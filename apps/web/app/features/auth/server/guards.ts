@@ -23,13 +23,16 @@ export async function requireAdmin(db: Db, organizationId: string, userId: strin
   }
 }
 
-export async function requireOrgBySlug(db: Db, request: Request, slug: string) {
-  const session = await requireSession(db, request);
-
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.slug, slug),
-    columns: { id: true, slug: true, name: true, logo: true },
-  });
+async function loadOrgBySlug(db: Db, request: Request, slug: string) {
+  // Session comes from the cookie and the org lookup only needs the slug — run
+  // them concurrently instead of paying two sequential DB roundtrips.
+  const [session, org] = await Promise.all([
+    requireSession(db, request),
+    db.query.organization.findFirst({
+      where: eq(organization.slug, slug),
+      columns: { id: true, slug: true, name: true, logo: true },
+    }),
+  ]);
 
   if (!org) throw new Response("Not found", { status: 404 });
 
@@ -41,6 +44,25 @@ export async function requireOrgBySlug(db: Db, request: Request, slug: string) {
   if (!membership) throw new Response("Not found", { status: 404 });
 
   return { session, org, organizationId: org.id };
+}
+
+// The db client is created per request, so keying on it scopes this cache to a
+// single request. Layout and leaf loaders run in the same single-fetch request
+// and both guard with requireOrgBySlug — memoizing runs the lookups once.
+const orgBySlugCache = new WeakMap<Db, Map<string, ReturnType<typeof loadOrgBySlug>>>();
+
+export function requireOrgBySlug(db: Db, request: Request, slug: string) {
+  let bySlug = orgBySlugCache.get(db);
+  if (!bySlug) {
+    bySlug = new Map();
+    orgBySlugCache.set(db, bySlug);
+  }
+  let result = bySlug.get(slug);
+  if (!result) {
+    result = loadOrgBySlug(db, request, slug);
+    bySlug.set(slug, result);
+  }
+  return result;
 }
 
 /** Resolves org from a session cookie OR a Bearer API key. Returns null if unauthenticated. */

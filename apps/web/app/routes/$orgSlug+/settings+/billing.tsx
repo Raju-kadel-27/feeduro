@@ -165,7 +165,11 @@ export async function action({ request, params, context }: Route.ActionArgs) {
     const activeSub = await db.query.subscription.findFirst({
       where: and(
         eq(subscription.referenceId, organizationId),
-        or(eq(subscription.status, "active"), eq(subscription.status, "trialing")),
+        or(
+          eq(subscription.status, "active"),
+          eq(subscription.status, "trialing"),
+          eq(subscription.status, "past_due"),
+        ),
       ),
       columns: { dodoSubscriptionId: true },
     });
@@ -186,7 +190,11 @@ export async function action({ request, params, context }: Route.ActionArgs) {
     const activeSub = await db.query.subscription.findFirst({
       where: and(
         eq(subscription.referenceId, organizationId),
-        or(eq(subscription.status, "active"), eq(subscription.status, "trialing")),
+        or(
+          eq(subscription.status, "active"),
+          eq(subscription.status, "trialing"),
+          eq(subscription.status, "past_due"),
+        ),
       ),
       columns: { dodoSubscriptionId: true },
     });
@@ -527,7 +535,8 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                   ) : isHigherPlan && plan.id !== "free" ? (
                     <Button
                       size="sm"
-                      disabled={loading || isSubmitting}
+                      disabled={loading || isSubmitting || isPastDue}
+                      title={isPastDue ? "Resolve your failed payment before changing plans" : undefined}
                       onClick={() =>
                         hasManagedSub
                           ? handleChangePlan(plan.id as PlanId)
@@ -540,7 +549,8 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={loading || isSubmitting || (plan.id === "free" && isCancelingAtPeriodEnd)}
+                      disabled={loading || isSubmitting || (plan.id === "free" && isCancelingAtPeriodEnd) || isPastDue}
+                      title={isPastDue ? "Resolve your failed payment before changing plans" : undefined}
                       onClick={() => handleChangePlan(plan.id as PlanId)}
                     >
                       {loading ? "Processing…" : "Downgrade"}

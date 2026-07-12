@@ -1,7 +1,7 @@
 import { getPostTagsBatch } from "@features/feedback/server/tags";
 import { getMrrImpactByPost, getVoterTraitCountsByPost } from "@features/internal/segmentation/server/service";
 import type { VoterTraitCounts } from "@features/internal/segmentation/types";
-import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
 import type { Db } from "@/db";
 import { comments, feedbackPosts, user, votes } from "@/db/schema";
@@ -30,25 +30,33 @@ export async function handleGetPostList(
     );
   }
 
-  const posts = await db.query.feedbackPosts.findMany({
-    where: and(...conditions),
-    orderBy: [sql`rank ASC NULLS LAST`, desc(feedbackPosts.createdAt)],
-  });
+  // Fetch visible posts and all merged children for the org in parallel — both only need
+  // organizationId, so they can run concurrently instead of sequentially.
+  const [posts, allMergedChildren] = await Promise.all([
+    db.query.feedbackPosts.findMany({
+      where: and(...conditions),
+      orderBy: [sql`rank ASC NULLS LAST`, desc(feedbackPosts.createdAt)],
+      // searchVector is a stored tsvector (can be large) and aiSummary is detail-only.
+      // Excluding them cuts per-post payload significantly on large boards.
+      columns: { searchVector: false, aiSummary: false },
+    }),
+    db.query.feedbackPosts.findMany({
+      where: and(
+        eq(feedbackPosts.organizationId, organizationId),
+        isNotNull(feedbackPosts.mergedIntoPostId),
+      ),
+      columns: { id: true, mergedIntoPostId: true },
+    }),
+  ]);
 
   const postIds = posts.map((p) => p.id);
+  const postIdSet = new Set(postIds);
   const authorIds = [...new Set(posts.map((p) => p.createdBy).filter(Boolean))] as string[];
 
-  // Fetch posts merged into any visible post so their votes are counted on the parent.
-  const mergedChildRows =
-    postIds.length > 0
-      ? await db.query.feedbackPosts.findMany({
-          where: and(
-            eq(feedbackPosts.organizationId, organizationId),
-            inArray(feedbackPosts.mergedIntoPostId, postIds),
-          ),
-          columns: { id: true, mergedIntoPostId: true },
-        })
-      : [];
+  // Filter in JS — merged children already fetched for the org, no extra roundtrip needed
+  const mergedChildRows = allMergedChildren.filter(
+    (r) => r.mergedIntoPostId !== null && postIdSet.has(r.mergedIntoPostId),
+  );
 
   const childMap = new Map<string, string[]>();
   for (const row of mergedChildRows) {
@@ -64,7 +72,10 @@ export async function handleGetPostList(
   const [allVotes, commentCountRows, voterTraitCounts, mrrImpactByPost, postTagRows, authors] =
     await Promise.all([
       allRelevantIds.length > 0
-        ? db.query.votes.findMany({ where: inArray(votes.postId, allRelevantIds) })
+        ? db.query.votes.findMany({
+            where: inArray(votes.postId, allRelevantIds),
+            columns: { userId: true, postId: true },
+          })
         : Promise.resolve([]),
       postIds.length > 0
         ? db
@@ -96,14 +107,23 @@ export async function handleGetPostList(
     tagsByPost[row.postId].push(row.id);
   }
 
+  // Pre-build vote maps to avoid an O(posts × votes) filter loop below.
+  const voteCountByPostId = new Map<string, number>();
+  const userVotedPostIds = new Set<string>();
+  for (const v of allVotes) {
+    voteCountByPostId.set(v.postId, (voteCountByPostId.get(v.postId) ?? 0) + 1);
+    if (v.userId === userId) userVotedPostIds.add(v.postId);
+  }
+
   const enriched = posts.map((post) => {
-    const idsForPost = new Set([post.id, ...(childMap.get(post.id) ?? [])]);
-    const postVotes = allVotes.filter((v) => idsForPost.has(v.postId));
-    const mrrImpact = [...idsForPost].reduce((sum, id) => sum + (mrrImpactByPost[id] ?? 0), 0);
+    const idsForPost = [post.id, ...(childMap.get(post.id) ?? [])];
+    const voteCount = idsForPost.reduce((sum, id) => sum + (voteCountByPostId.get(id) ?? 0), 0);
+    const hasVoted = idsForPost.some((id) => userVotedPostIds.has(id));
+    const mrrImpact = idsForPost.reduce((sum, id) => sum + (mrrImpactByPost[id] ?? 0), 0);
     return {
       ...post,
-      voteCount: postVotes.length,
-      hasVoted: postVotes.some((v) => v.userId === userId),
+      voteCount,
+      hasVoted,
       commentCount: commentCountMap[post.id] ?? 0,
       voterTraitCounts: voterTraitCounts[post.id] ?? EMPTY_TRAITS,
       mrrImpact,

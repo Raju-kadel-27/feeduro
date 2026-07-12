@@ -1,7 +1,8 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
+import { getBoards } from "@features/feedback/server/queries";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { createId } from "@paralleldrive/cuid2";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -20,38 +21,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { organizationId } = await requireOrganization(db, request);
 
-  const [boards, planLimits, counts, statusRows] = await Promise.all([
-    db.query.feedbackBoards.findMany({
-      where: eq(feedbackBoards.organizationId, organizationId),
-      orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
-    }),
-    getOrgPlanLimits(db, organizationId),
-    db
-      .select({
-        boardId: feedbackPosts.boardId,
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(feedbackPosts)
-      .where(eq(feedbackPosts.organizationId, organizationId))
-      .groupBy(feedbackPosts.boardId),
-    db
-      .select({
-        status: feedbackPosts.status,
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(feedbackPosts)
-      .where(eq(feedbackPosts.organizationId, organizationId))
-      .groupBy(feedbackPosts.status),
-  ]);
-
-  const countMap = Object.fromEntries(counts.map((r) => [r.boardId, r.count]));
-  const statusCounts = Object.fromEntries(statusRows.map((r) => [r.status, r.count]));
-
-  return data({
-    boards: boards.map((b) => ({ ...b, postCount: countMap[b.id] ?? 0 })),
-    limit: planLimits.boards,
-    statusCounts,
-  });
+  const { boards, statusCounts, limit } = await getBoards(db, organizationId);
+  return data({ boards, limit, statusCounts });
 }
 
 export async function action({ request, context }: Route.ActionArgs) {

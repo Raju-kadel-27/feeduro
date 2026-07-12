@@ -71,6 +71,8 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     orgMembers: orgMembers.map((m) => ({ id: m.userId, name: m.name, image: m.image })),
     posts,
     boards: boardsData.boards,
+    statusCounts: boardsData.statusCounts,
+    boardsLimit: boardsData.limit,
     views,
     tags: tagList,
     fetchedAt: Date.now(),
@@ -88,16 +90,19 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
 
-  const { data: postsData, isLoading: postsLoading } = useQuery({
+  const {
+    data: postsData,
+    isLoading: postsLoading,
+    isFetching: postsFetching,
+    refetch: refetchPosts,
+  } = useQuery({
     queryKey: ["feedback", "all", orgSlug],
     queryFn: async () => {
       const res = await fetch("/api/feedback");
-      return res.json() as Promise<{ posts: Post[] }>;
+      return res.json() as Promise<{ posts: Post[]; traitsIncluded?: boolean }>;
     },
     initialData: { posts: loaderData.posts },
-    // Always treat loader data as stale so TanStack immediately background-fetches
-    // /api/feedback, which includes voterTraitCounts needed for segment filtering.
-    initialDataUpdatedAt: 0,
+    initialDataUpdatedAt: loaderData.fetchedAt,
     staleTime: 30_000,
   });
 
@@ -107,7 +112,11 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
       const res = await fetch("/api/boards");
       return res.json() as Promise<{ boards: Board[] }>;
     },
-    initialData: { boards: loaderData.boards, statusCounts: {}, limit: 2 },
+    initialData: {
+      boards: loaderData.boards,
+      statusCounts: loaderData.statusCounts,
+      limit: loaderData.boardsLimit,
+    },
     initialDataUpdatedAt: loaderData.fetchedAt,
     staleTime: 30_000,
   });
@@ -210,6 +219,18 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
   } = viewState;
 
   const filterKey = `${activeViewId}|${effectiveSort}|${JSON.stringify(refinements)}`;
+
+  // Loader posts ship without voterTraitCounts/mrrImpact (their joins are the most
+  // expensive part of /api/feedback). Fetch the enriched dataset on demand — only
+  // when a segment filter or revenue sort actually needs those fields.
+  const needsEnrichedPosts =
+    !!refinements.segmentId || !!activeView?.filters?.segmentId || effectiveSort === "revenue";
+  const traitsLoaded = postsData?.traitsIncluded === true;
+  useEffect(() => {
+    if (needsEnrichedPosts && !traitsLoaded && !postsFetching) {
+      refetchPosts();
+    }
+  }, [needsEnrichedPosts, traitsLoaded, postsFetching, refetchPosts]);
 
   // Reset visible window whenever filters/sort change
   useEffect(() => {

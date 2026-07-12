@@ -6,11 +6,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@components/ui/sidebar";
-import type { Post } from "@features/internal/dashboard/types";
 import { COLUMNS } from "@features/roadmap/constants";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 type Props = { base: string; sp: URLSearchParams; isDashboard: boolean };
@@ -39,22 +38,19 @@ export function ViewsNav({ base, sp, isDashboard }: Props) {
     navigate(`${base}/dashboard${qs ? `?${qs}` : ""}`, { replace: isDashboard });
   }
 
-  const { data: postsData } = useQuery({
-    queryKey: ["feedback", "all", orgSlug],
+  // Counts come from /api/boards (a few GROUP BY queries) instead of the full
+  // enriched post list — fetching every post just to count statuses was the
+  // heaviest request fired on every tab.
+  const { data: boardsData } = useQuery({
+    queryKey: ["boards", orgSlug],
     queryFn: async () => {
-      const res = await fetch("/api/feedback");
-      return res.json() as Promise<{ posts: Post[] }>;
+      const res = await fetch("/api/boards");
+      return res.json() as Promise<{ statusCounts: Record<string, number> }>;
     },
     staleTime: 30_000,
   });
 
-  const statusCounts = useMemo(() => {
-    const posts = postsData?.posts ?? [];
-    return posts.reduce<Record<string, number>>((acc, p) => {
-      acc[p.status] = (acc[p.status] ?? 0) + 1;
-      return acc;
-    }, {});
-  }, [postsData]);
+  const statusCounts = boardsData?.statusCounts ?? {};
 
   return (
     <SidebarGroup>

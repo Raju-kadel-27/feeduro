@@ -1,4 +1,5 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
+import { listChangelogEntries } from "@features/changelog/server/list-entries";
 import { notifyChangelogSubscribers } from "@features/changelog/server/subscribers";
 import { extractBlockNoteText } from "@features/feedback/utils";
 import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
@@ -31,11 +32,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     return data({ changelog: entry });
   }
 
-  const entries = await db.query.changelogs.findMany({
-    where: eq(changelogs.organizationId, organizationId),
-    orderBy: [desc(changelogs.createdAt)],
-    columns: { id: true, title: true, slug: true, status: true, publishedAt: true, createdAt: true, updatedAt: true },
-  });
+  const entries = await listChangelogEntries(db, organizationId);
   return data({ changelogs: entries });
 }
 

@@ -14,6 +14,18 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { planLimits };
 }
 
+export function shouldRevalidate({
+  currentParams,
+  nextParams,
+  formMethod,
+  defaultShouldRevalidate,
+}: Route.ShouldRevalidateArgs) {
+  // planLimits only changes after a mutation (billing actions) — skip re-running
+  // the layout loader on plain tab-switch navigations within the same org.
+  if (formMethod) return defaultShouldRevalidate;
+  return currentParams.orgSlug !== nextParams.orgSlug;
+}
+
 export default function OrgLayout() {
   const matches = useMatches();
   const leaf = matches[matches.length - 1];

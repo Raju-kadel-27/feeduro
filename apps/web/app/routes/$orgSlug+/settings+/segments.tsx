@@ -1,6 +1,8 @@
 import { PageHeader } from "@components/common/page-header";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { CompaniesManager } from "@features/internal/segmentation/components/companies-manager";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
 import { FilterChips } from "@features/internal/segmentation/components/filter-chips";
@@ -38,7 +40,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [memberRecord, segmentList, planList, companyList] = await Promise.all([
+  const [memberRecord, segmentList, planList, companyList, planLimits] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
@@ -46,7 +48,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     getOrgSegments(db, organizationId),
     getOrgPlans(db, organizationId),
     getOrgCompanies(db, organizationId),
+    getOrgPlanLimits(db, organizationId),
   ]);
+
+  if (!planLimits.segments) return { planLocked: true as const };
 
   return {
     isAdmin: memberRecord?.role === "admin",
@@ -58,6 +63,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
+
+  if ("planLocked" in loaderData) {
+    return <UpgradeWall feature="segments" orgSlug={orgSlug!} />;
+  }
   const qc = useQueryClient();
   const revalidator = useRevalidator();
   const [creating, setCreating] = useState(false);

@@ -14,12 +14,15 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { InviteMemberDialog } from "@features/internal/workspace/components/invite-member-dialog";
 import { getAuth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Crown, Mail, Plus, UserMinus, Users, X } from "lucide-react";
 import { useState } from "react";
+import { data, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { invitation } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -33,6 +36,8 @@ export function meta() {
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  const planLimits = await getOrgPlanLimits(db, organizationId);
+  if (!planLimits.team) return data({ planLocked: true as const });
 
   const [membersResult, pendingInvitations] = await Promise.all([
     getAuth(db).api.listMembers({
@@ -48,13 +53,13 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
   const currentMember = orgMembers.find((m: { userId: string }) => m.userId === session.user.id);
 
-  return {
+  return data({
     members: orgMembers,
     pendingInvitations,
     currentUserId: session.user.id,
     currentRole: currentMember?.role ?? "member",
     orgSlug: params.orgSlug,
-  };
+  });
 }
 
 const ROLES = [
@@ -84,6 +89,12 @@ interface PendingInvitation {
 }
 
 export default function TeamSettings({ loaderData }: Route.ComponentProps) {
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+
+  if ("planLocked" in loaderData) {
+    return <UpgradeWall feature="team" orgSlug={orgSlug!} />;
+  }
+
   const qc = useQueryClient();
   const isAdmin = loaderData.currentRole === "admin";
 

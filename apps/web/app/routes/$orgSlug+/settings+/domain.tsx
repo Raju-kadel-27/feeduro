@@ -1,11 +1,13 @@
 import { PageHeader } from "@components/common/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { AlertCircle, Check, CheckCircle2, Clock, Copy, Globe, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useRevalidator } from "react-router";
+import { useParams, useRevalidator } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { customDomains, member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -20,14 +22,17 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [domain, memberRecord] = await Promise.all([
+  const [domain, memberRecord, planLimits] = await Promise.all([
     db.query.customDomains.findFirst({
       where: eq(customDomains.organizationId, organizationId),
     }),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
     }),
+    getOrgPlanLimits(db, organizationId),
   ]);
+
+  if (!planLimits.customDomain) return { planLocked: true as const };
 
   return {
     domain: domain ?? null,
@@ -72,6 +77,12 @@ async function callDomainApi(body: object): Promise<{ error?: string; verified?:
 }
 
 export default function DomainSettings({ loaderData }: Route.ComponentProps) {
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+
+  if ("planLocked" in loaderData) {
+    return <UpgradeWall feature="customDomain" orgSlug={orgSlug!} />;
+  }
+
   const { domain: initialDomain, isAdmin } = loaderData;
   const domain = initialDomain as DomainRecord | null;
   const revalidator = useRevalidator();

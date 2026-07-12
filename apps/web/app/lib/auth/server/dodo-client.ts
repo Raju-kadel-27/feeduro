@@ -16,6 +16,6 @@ const env = getEnv();
 export const dodoClient = env.DODO_PAYMENTS_API_KEY
   ? new DodoPayments({
       bearerToken: env.DODO_PAYMENTS_API_KEY,
-      environment: env.ENVIRONMENT === "production" ? "live_mode" : "test_mode",
+      environment: "test_mode",
     })
   : null;

@@ -2,7 +2,6 @@
 import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { CreateFeedbackDialog } from "@features/feedback/components/internal/create-feedback-dialog";
-import { getOrgCategories } from "@features/feedback/server/categories";
 import { getBoards, getEnrichedPosts } from "@features/feedback/server/queries";
 import { getOrgTags } from "@features/feedback/server/tags";
 import { FeedbackSearchModal } from "@features/internal/dashboard/components/feedback-search-modal";
@@ -11,7 +10,6 @@ import { RefineChipBar } from "@features/internal/dashboard/components/refine-ch
 import { useViewState } from "@features/internal/dashboard/hooks/use-view-state";
 import { getOrgViewsWithCounts } from "@features/internal/dashboard/server/views";
 import type { Board, Category, Post, Tag, View } from "@features/internal/dashboard/types";
-import { getOrgSegments } from "@features/internal/segmentation/server/service";
 import type { Segment } from "@features/internal/segmentation/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
@@ -42,7 +40,9 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [memberRecord, orgMembers, posts, boardsData, views, segmentList, tagList, categoryList] =
+  // segments and categories are deferred to the client — they're only needed for filter chips,
+  // not for initial list render, so they don't belong on the critical path.
+  const [memberRecord, orgMembers, posts, boardsData, views, tagList] =
     await Promise.all([
       db.query.member.findFirst({
         where: and(eq(member.organizationId, org.id), eq(member.userId, session.user.id)),
@@ -55,9 +55,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       getEnrichedPosts(db, org.id, session.user.id),
       getBoards(db, org.id),
       getOrgViewsWithCounts(db, org.id).catch(() => [] as View[]),
-      getOrgSegments(db, org.id).catch(() => [] as Segment[]),
       getOrgTags(db, org.id).catch(() => [] as Tag[]),
-      getOrgCategories(db, org.id).catch(() => [] as Category[]),
     ]);
 
   if (boardsData.boards.length === 0) {
@@ -74,9 +72,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     posts,
     boards: boardsData.boards,
     views,
-    segments: segmentList,
     tags: tagList,
-    categories: categoryList,
     fetchedAt: Date.now(),
   };
 }
@@ -99,7 +95,9 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
       return res.json() as Promise<{ posts: Post[] }>;
     },
     initialData: { posts: loaderData.posts },
-    initialDataUpdatedAt: loaderData.fetchedAt,
+    // Always treat loader data as stale so TanStack immediately background-fetches
+    // /api/feedback, which includes voterTraitCounts needed for segment filtering.
+    initialDataUpdatedAt: 0,
     staleTime: 30_000,
   });
 
@@ -131,8 +129,6 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
       const res = await fetch("/api/segments");
       return res.json() as Promise<{ segments: Segment[] }>;
     },
-    initialData: { segments: loaderData.segments },
-    initialDataUpdatedAt: loaderData.fetchedAt,
     staleTime: 60_000,
   });
 
@@ -153,8 +149,6 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
       const res = await fetch("/api/categories");
       return res.json() as Promise<{ categories: Category[] }>;
     },
-    initialData: { categories: loaderData.categories },
-    initialDataUpdatedAt: loaderData.fetchedAt,
     staleTime: 60_000,
   });
 

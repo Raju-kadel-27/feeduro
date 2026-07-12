@@ -5,6 +5,7 @@ import { feedbackBoards, feedbackPosts, member, reactions, user, votes } from "@
 export async function getPostCoreData(db: Db, organizationId: string, postId: string, userId: string) {
   const post = await db.query.feedbackPosts.findFirst({
     where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
+    columns: { searchVector: false },
   });
   if (!post) return null;
 

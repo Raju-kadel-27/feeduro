@@ -22,6 +22,11 @@ export function meta() {
   return [{ title: "Roadmap – Feeduro" }];
 }
 
+export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate }: Route.ShouldRevalidateArgs) {
+  if (currentUrl.pathname === nextUrl.pathname) return false;
+  return defaultShouldRevalidate;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   return loadRoadmapData(db, request, params.orgSlug);

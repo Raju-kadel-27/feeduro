@@ -125,6 +125,7 @@ export async function getBoards(db: Db, organizationId: string) {
   const [boards, planLimits, counts, statusRows] = await Promise.all([
     db.query.feedbackBoards.findMany({
       where: eq(feedbackBoards.organizationId, organizationId),
+      columns: { id: true, name: true, slug: true, isDefault: true, createdAt: true },
       orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
     }),
     getOrgPlanLimits(db, organizationId),

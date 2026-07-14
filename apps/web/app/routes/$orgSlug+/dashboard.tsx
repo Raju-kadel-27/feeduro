@@ -8,12 +8,12 @@ import { FeedbackSearchModal } from "@features/internal/dashboard/components/fee
 import { ListView } from "@features/internal/dashboard/components/list-view";
 import { RefineChipBar } from "@features/internal/dashboard/components/refine-chip-bar";
 import { useViewState } from "@features/internal/dashboard/hooks/use-view-state";
-import { getOrgViewsWithCounts } from "@features/internal/dashboard/server/views";
+import { getOrgViews } from "@features/internal/dashboard/server/views";
 import type { Board, Category, Post, Tag, View } from "@features/internal/dashboard/types";
 import type { Segment } from "@features/internal/segmentation/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { and, eq } from "drizzle-orm";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { eq } from "drizzle-orm";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 const PostDetailPanel = lazy(() =>
   import("@features/internal/post-detail-panel/components/post-detail-panel").then((m) => ({
@@ -42,11 +42,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
   // segments and categories are deferred to the client — they're only needed for filter chips,
   // not for initial list render, so they don't belong on the critical path.
-  const [memberRecord, orgMembers, posts, boardsData, views, tagList] =
+  // Views are fetched without counts: useViewState recomputes view counts client-side from
+  // the full post list, so the server-side count pass (O(views × posts)) is redundant.
+  const [orgMembers, posts, boardsData, views, tagList] =
     await Promise.all([
-      db.query.member.findFirst({
-        where: and(eq(member.organizationId, org.id), eq(member.userId, session.user.id)),
-      }),
       db
         .select({ userId: member.userId, name: userTable.name, image: userTable.image, role: member.role })
         .from(member)
@@ -54,9 +53,12 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
         .where(eq(member.organizationId, org.id)),
       getEnrichedPosts(db, org.id, session.user.id),
       getBoards(db, org.id),
-      getOrgViewsWithCounts(db, org.id).catch(() => [] as View[]),
+      getOrgViews(db, org.id).catch(() => [] as View[]),
       getOrgTags(db, org.id).catch(() => [] as Tag[]),
     ]);
+
+  // Derive isAdmin from the orgMembers result — avoids a separate DB round-trip.
+  const currentMember = orgMembers.find((m) => m.userId === session.user.id);
 
   if (boardsData.boards.length === 0) {
     throw redirect(`/${params.orgSlug}/settings/feedback`);
@@ -64,7 +66,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
   return {
     user: session.user,
-    isAdmin: memberRecord?.role === "admin",
+    isAdmin: currentMember?.role === "admin",
     usersMap: Object.fromEntries(
       orgMembers.map((m) => [m.userId, { name: m.name, image: m.image }]),
     ),
@@ -179,28 +181,15 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const tags = tagsData?.tags ?? [];
   const categories = categoriesData?.categories ?? [];
   const orgMembers = orgMembersData?.orgMembers ?? [];
-  const boardMap = Object.fromEntries(boards.map((b) => [b.id, b]));
-  const defaultBoard = boards.find((b) => b.isDefault) ?? boards[0];
+  const boardMap = useMemo(() => Object.fromEntries(boards.map((b) => [b.id, b])), [boards]);
+  const defaultBoard = useMemo(() => boards.find((b) => b.isDefault) ?? boards[0], [boards]);
 
-  // ⌘K / Ctrl+K opens the search modal
+  // ⌘K / Ctrl+K → search modal; ⌘M / Ctrl+M → new feedback dialog
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setShowSearch((prev) => !prev);
-      }
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  // Ctrl+M / ⌘M opens new feedback dialog
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "m") {
-        e.preventDefault();
-        setShowCreate(true);
-      }
+      if (!e.metaKey && !e.ctrlKey) return;
+      if (e.key === "k") { e.preventDefault(); setShowSearch((prev) => !prev); }
+      else if (e.key === "m") { e.preventDefault(); setShowCreate(true); }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);

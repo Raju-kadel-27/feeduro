@@ -2,7 +2,7 @@ import { requireOrganization } from "@features/auth/server/guards";
 import {
   createView,
   deleteView,
-  getOrgViewsWithCounts,
+  getOrgViews,
   updateView,
 } from "@features/internal/dashboard/server/views";
 import type { Sort, ViewFilters } from "@features/internal/dashboard/types";
@@ -13,7 +13,7 @@ import type { Route } from "./+types/views";
 export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { organizationId } = await requireOrganization(db, request);
-  const views = await getOrgViewsWithCounts(db, organizationId);
+  const views = await getOrgViews(db, organizationId);
   return data({ views });
 }
 

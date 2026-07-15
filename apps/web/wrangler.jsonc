@@ -42,7 +42,14 @@
     },
     "production": {
       "name": "feeduro-production",
-      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }]
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }],
+      // Org public boards live at {orgSlug}.feeduro.com (see
+      // features/domains/server/subdomain-routing.ts). Custom Domains can't
+      // cover wildcards, so this must be a route — and it only receives
+      // traffic if the zone has a proxied `*` DNS record (A 192.0.2.1).
+      // The apex feeduro.com is intentionally NOT here: it's attached as a
+      // Custom Domain in the dashboard, which also manages its DNS + cert.
+      "routes": [{ "pattern": "*.feeduro.com/*", "zone_name": "feeduro.com" }]
     }
   }
 }

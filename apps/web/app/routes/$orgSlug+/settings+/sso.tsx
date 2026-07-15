@@ -1,12 +1,11 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { UpgradePrompt } from "@features/internal/billing/components/upgrade-prompt";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
 import { ProviderList } from "@features/internal/sso/components/provider-list";
 import { loadSSOSettings } from "@features/internal/sso/server/queries";
-import { KeyRound } from "lucide-react";
-import { data, useParams } from "react-router";
+import { KeyRound, Star } from "lucide-react";
+import { data, Link, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -36,7 +35,39 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
   if ("planLocked" in loaderData) {
-    return <UpgradePrompt feature="sso" orgSlug={orgSlug!} />;
+    return (
+      <>
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader
+            title="Login & SSO"
+            icon={KeyRound}
+            action={
+              <Link
+                to={`/${orgSlug}/settings/billing`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+              >
+                <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
+                Upgrade to add providers
+              </Link>
+            }
+          />
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-900/50 dark:bg-orange-900/20">
+            <p className="text-sm text-orange-800 dark:text-orange-300">
+              Single Sign-On is available on the <span className="font-semibold">Professional</span> plan.
+            </p>
+            <Link
+              to={`/${orgSlug}/settings/billing`}
+              className="shrink-0 flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-900 transition-colors dark:text-orange-400 dark:hover:text-orange-200"
+            >
+              Upgrade <Star size={13} className="fill-amber-400 text-amber-400" aria-hidden="true" />
+            </Link>
+          </div>
+        </main>
+      </>
+    );
   }
 
   const { providers, isAdmin, baseUrl } = loaderData;

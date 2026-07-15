@@ -1,7 +1,6 @@
 import { PageHeader } from "@components/common/page-header";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { UpgradePrompt } from "@features/internal/billing/components/upgrade-prompt";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { CompaniesManager } from "@features/internal/segmentation/components/companies-manager";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
@@ -23,9 +22,9 @@ import type { PlanCatalogEntry, Segment } from "@features/internal/segmentation/
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Layers, Pencil, Plus, Trash2, Upload, Users2 } from "lucide-react";
+import { Layers, Pencil, Plus, Star, Trash2, Upload, Users2 } from "lucide-react";
 import { useState } from "react";
-import { useParams, useRevalidator } from "react-router";
+import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { member } from "@/db/schema";
@@ -65,7 +64,41 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
   if ("planLocked" in loaderData) {
-    return <UpgradePrompt feature="segments" orgSlug={orgSlug!} />;
+    return (
+      <>
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="p-6 space-y-6">
+          <div className="max-w-[840px] mx-auto w-full">
+            <PageHeader
+              title="Segments"
+              icon={Users2}
+              action={
+                <Link
+                  to={`/${orgSlug}/settings/billing`}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                >
+                  <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
+                  Upgrade to unlock
+                </Link>
+              }
+            />
+          </div>
+          <div className="max-w-[840px] mx-auto w-full flex items-center justify-between gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-900/50 dark:bg-orange-900/20">
+            <p className="text-sm text-orange-800 dark:text-orange-300">
+              Voter segments are available on the <span className="font-semibold">Professional</span> plan.
+            </p>
+            <Link
+              to={`/${orgSlug}/settings/billing`}
+              className="shrink-0 flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-900 transition-colors dark:text-orange-400 dark:hover:text-orange-200"
+            >
+              Upgrade <Star size={13} className="fill-amber-400 text-amber-400" aria-hidden="true" />
+            </Link>
+          </div>
+        </main>
+      </>
+    );
   }
   const qc = useQueryClient();
   const revalidator = useRevalidator();

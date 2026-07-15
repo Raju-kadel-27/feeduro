@@ -5,7 +5,6 @@ import { BoardFilter } from "@features/internal/analytics/components/board-filte
 import { DateRangePicker } from "@features/internal/analytics/components/date-range-picker";
 import { getDemoAnalyticsData } from "@features/internal/analytics/server/demo-data";
 import { loadAnalyticsOverview } from "@features/internal/analytics/server/overview";
-import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { Star } from "lucide-react";
 import { lazy, Suspense } from "react";
@@ -34,11 +33,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 	const planLimits = await getOrgPlanLimits(db, organizationId);
 	if (!planLimits.analytics) {
-		const url = new URL(request.url);
-		if (url.searchParams.get("demo") === "true") {
-			return { ...getDemoAnalyticsData(), isDemo: true as const };
-		}
-		return { planLocked: true as const };
+		return { ...getDemoAnalyticsData(), isDemo: true as const };
 	}
 	return loadAnalyticsOverview(db, request, params.orgSlug, context);
 }
@@ -47,16 +42,6 @@ type OverviewData = Awaited<ReturnType<typeof loadAnalyticsOverview>>;
 
 export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
 	const { orgSlug } = useParams<{ orgSlug: string }>();
-
-	if ("planLocked" in loaderData) {
-		return (
-			<UpgradeWall
-				feature="analytics"
-				orgSlug={orgSlug!}
-				demoHref={`/${orgSlug}/analytics?demo=true`}
-			/>
-		);
-	}
 
 	const isDemo = "isDemo" in loaderData;
 	const data = loaderData as unknown as OverviewData;

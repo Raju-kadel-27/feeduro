@@ -2,6 +2,7 @@ import { apiKey } from "@better-auth/api-key";
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { passkey } from "@better-auth/passkey";
 import { sso } from "@better-auth/sso";
+import { APP_DOMAIN } from "@features/domains/constants";
 import { sendResetPasswordEmail } from "@features/internal/jobs/send-reset-password-email";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
@@ -19,6 +20,15 @@ export type Session = Auth["$Infer"]["Session"];
 
 const authCache = new WeakMap<Db, Auth>();
 
+// Org public boards live on `{orgSlug}.feeduro.com`, so the session cookie must
+// span subdomains and those origins must pass better-auth's CSRF origin check.
+// Only applies when BASE_URL is actually on the app domain — a `.feeduro.com`
+// cookie domain would break auth on localhost and *.workers.dev.
+function isOnAppDomain(): boolean {
+  const hostname = new URL(getBaseUrl()).hostname;
+  return hostname === APP_DOMAIN || hostname.endsWith(`.${APP_DOMAIN}`);
+}
+
 export function getAuth(db: Db): Auth {
   const cached = authCache.get(db);
   if (cached) return cached;
@@ -33,10 +43,15 @@ export function getAuth(db: Db): Auth {
     basePath: "/api/auth",
     trustedOrigins: [
       getBaseUrl(),
+      `https://*.${APP_DOMAIN}`,
       "http://localhost:3000",
       "http://localhost:8788",
       "http://192.168.1.68:3000",
     ],
+
+    advanced: isOnAppDomain()
+      ? { crossSubDomainCookies: { enabled: true, domain: APP_DOMAIN } }
+      : undefined,
 
     disabledPaths: ["/token"],
 

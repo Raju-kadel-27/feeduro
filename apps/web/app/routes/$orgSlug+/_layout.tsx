@@ -2,7 +2,7 @@ import { PageTransition } from "@components/page-transition";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { AppShell } from "@features/internal/layout/components/app-shell";
-import { Outlet, useMatches } from "react-router";
+import { Outlet } from "react-router";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/_layout";
@@ -27,13 +27,6 @@ export function shouldRevalidate({
 }
 
 export default function OrgLayout() {
-  const matches = useMatches();
-  const leaf = matches[matches.length - 1];
-
-  if (leaf?.id === "routes/$orgSlug+/_index") {
-    return <Outlet />;
-  }
-
   return (
     <AppShell>
       <PageTransition>

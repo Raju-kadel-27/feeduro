@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { PlanBanner } from "@features/internal/billing/components/plan-banner";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { InviteMemberDialog } from "@features/internal/workspace/components/invite-member-dialog";
 import { getAuth } from "@lib/auth/server";
@@ -106,21 +107,13 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
               >
                 <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
-                Upgrade to invite members
+                Upgrade
               </Link>
             }
           />
-          <div className="flex items-center justify-between gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-900/50 dark:bg-orange-900/20">
-            <p className="text-sm text-orange-800 dark:text-orange-300">
-              Team collaboration is available on the <span className="font-semibold">Starter</span> plan and above.
-            </p>
-            <Link
-              to={`/${orgSlug}/settings/billing`}
-              className="shrink-0 flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-900 transition-colors dark:text-orange-400 dark:hover:text-orange-200"
-            >
-              Upgrade <Star size={13} className="fill-amber-400 text-amber-400" aria-hidden="true" />
-            </Link>
-          </div>
+          <PlanBanner>
+            Team collaboration is available on the <span className="font-semibold">Starter</span> plan and above.
+          </PlanBanner>
         </main>
       </>
     );

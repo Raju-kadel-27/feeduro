@@ -1,13 +1,12 @@
 import { PageHeader } from "@components/common/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { UpgradePrompt } from "@features/internal/billing/components/upgrade-prompt";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { AlertCircle, Check, CheckCircle2, Clock, Copy, Globe, RefreshCw, Trash2 } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Clock, Copy, Globe, RefreshCw, Star, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams, useRevalidator } from "react-router";
+import { Link, useParams, useRevalidator } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { customDomains, member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -80,7 +79,49 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
   if ("planLocked" in loaderData) {
-    return <UpgradePrompt feature="customDomain" orgSlug={orgSlug!} />;
+    return (
+      <>
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader
+            title="Custom Domain"
+            description="Point a custom domain to this workspace so your users see your brand, not ours."
+            icon={Globe}
+          />
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-900/50 dark:bg-orange-900/20">
+            <p className="text-sm text-orange-800 dark:text-orange-300">
+              Custom domains are available on the <span className="font-semibold">Professional</span> plan.
+            </p>
+            <Link
+              to={`/${orgSlug}/settings/billing`}
+              className="shrink-0 flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-900 transition-colors dark:text-orange-400 dark:hover:text-orange-200"
+            >
+              Upgrade <Star size={13} className="fill-amber-400 text-amber-400" aria-hidden="true" />
+            </Link>
+          </div>
+          <section className="flex flex-wrap gap-2 items-end">
+            <div className="flex-1 min-w-[220px] space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Domain</label>
+              <input
+                type="text"
+                disabled
+                className="w-full px-3 py-2 rounded-md border bg-muted text-sm opacity-50 cursor-not-allowed"
+                placeholder="feedback.company.com"
+              />
+            </div>
+            <Link
+              to={`/${orgSlug}/settings/billing`}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors"
+            >
+              Upgrade to add domain
+              <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" aria-hidden="true" />
+            </Link>
+          </section>
+        </main>
+      </>
+    );
   }
 
   const { domain: initialDomain, isAdmin } = loaderData;

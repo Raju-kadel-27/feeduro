@@ -1,8 +1,12 @@
+import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getDb } from "~/middleware/cloudflare.server";
+import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import WebhooksSettings from "@features/internal/webhooks/components/webhooks-settings";
 import { getWebhooksLoaderData } from "@features/internal/webhooks/server/queries";
+import { Star, Webhook } from "lucide-react";
+import { Link } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/index";
 
@@ -13,10 +17,51 @@ export function meta() {
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  const planLimits = await getOrgPlanLimits(db, organizationId);
+  if (planLimits.webhooks === 0) return { planLocked: true as const };
   return getWebhooksLoaderData(db, session.user.id, organizationId);
 }
 
-export default function WebhooksRoute({ loaderData }: Route.ComponentProps) {
+export default function WebhooksRoute({ loaderData, params }: Route.ComponentProps) {
+  const orgSlug = params.orgSlug;
+
+  if ("planLocked" in loaderData) {
+    return (
+      <>
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          <PageHeader
+            title="Webhooks"
+            icon={Webhook}
+            description="Receive HTTP POST notifications when events happen in your workspace. Every delivery is signed so you can verify authenticity."
+            action={
+              <Link
+                to={`/${orgSlug}/settings/billing`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+              >
+                <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
+                Upgrade to add endpoints
+              </Link>
+            }
+          />
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-900/50 dark:bg-orange-900/20">
+            <p className="text-sm text-orange-800 dark:text-orange-300">
+              Webhooks are available on the <span className="font-semibold">Starter</span> plan and above.
+            </p>
+            <Link
+              to={`/${orgSlug}/settings/billing`}
+              className="shrink-0 flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-900 transition-colors dark:text-orange-400 dark:hover:text-orange-200"
+            >
+              Upgrade <Star size={13} className="fill-amber-400 text-amber-400" aria-hidden="true" />
+            </Link>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">

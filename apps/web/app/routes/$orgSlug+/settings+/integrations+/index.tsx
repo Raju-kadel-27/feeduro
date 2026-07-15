@@ -1,10 +1,10 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import IntegrationsPage from "@features/internal/integrations/components/integrations-page";
+import { LockedIntegrationsPage } from "@features/internal/integrations/components/locked-integrations-page";
 import { integrationsLoader } from "@features/internal/integrations/server/loader";
 import { upsertNotificationSettings } from "@features/internal/integrations/server/queries";
-import { data, useParams } from "react-router";
+import { data } from "react-router";
 import { z } from "zod";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/index";
@@ -39,10 +39,8 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 }
 
 export default function IntegrationsRoute({ loaderData }: Route.ComponentProps) {
-  const { orgSlug } = useParams<{ orgSlug: string }>();
-
   if ("planLocked" in loaderData) {
-    return <UpgradeWall feature="integrations" orgSlug={orgSlug!} />;
+    return <LockedIntegrationsPage />;
   }
 
   return <IntegrationsPage />;

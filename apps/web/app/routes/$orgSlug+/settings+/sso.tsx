@@ -1,6 +1,6 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { UpgradePrompt } from "@features/internal/billing/components/upgrade-prompt";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
 import { ProviderList } from "@features/internal/sso/components/provider-list";
@@ -36,7 +36,7 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
   if ("planLocked" in loaderData) {
-    return <UpgradeWall feature="sso" orgSlug={orgSlug!} />;
+    return <UpgradePrompt feature="sso" orgSlug={orgSlug!} />;
   }
 
   const { providers, isAdmin, baseUrl } = loaderData;

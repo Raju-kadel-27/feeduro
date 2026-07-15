@@ -1,7 +1,7 @@
 import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { UpgradePrompt } from "@features/internal/billing/components/upgrade-prompt";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { RoleFormDialog } from "@features/internal/roles/components/role-form-dialog";
 import { RolesTable } from "@features/internal/roles/components/roles-table";
@@ -47,7 +47,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
   if ("planLocked" in loaderData) {
-    return <UpgradeWall feature="customRoles" orgSlug={orgSlug!} />;
+    return <UpgradePrompt feature="customRoles" orgSlug={orgSlug!} />;
   }
 
   const qc = useQueryClient();

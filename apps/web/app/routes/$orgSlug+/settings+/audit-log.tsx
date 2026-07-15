@@ -4,7 +4,7 @@ import { AuditLogPage } from "@features/internal/audit/components/audit-log-page
 import type { AuditCategory } from "@features/internal/audit/constants";
 import { AUDIT_CATEGORIES } from "@features/internal/audit/constants";
 import { listAuditLogs } from "@features/internal/audit/server/queries";
-import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
+import { UpgradePrompt } from "@features/internal/billing/components/upgrade-prompt";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { ScrollText } from "lucide-react";
 import { data, useParams } from "react-router";
@@ -51,7 +51,7 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
   if ("planLocked" in loaderData) {
-    return <UpgradeWall feature="auditLog" orgSlug={orgSlug!} />;
+    return <UpgradePrompt feature="auditLog" orgSlug={orgSlug!} />;
   }
 
   return (

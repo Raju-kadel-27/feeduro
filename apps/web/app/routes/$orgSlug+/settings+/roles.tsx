@@ -61,7 +61,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
               >
                 <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
-                Upgrade to create roles
+                Upgrade
               </Link>
             }
           />
@@ -78,16 +78,10 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
               ))}
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-900/50 dark:bg-orange-900/20">
-            <p className="text-sm text-orange-800 dark:text-orange-300">
+          <div className="rounded-lg border border-orange-200 bg-orange-50 px-5 py-4 dark:border-orange-900/50 dark:bg-orange-900/20">
+            <p className="text-base text-orange-800 dark:text-orange-300">
               Custom roles are available on the <span className="font-semibold">Professional</span> plan.
             </p>
-            <Link
-              to={`/${orgSlug}/settings/billing`}
-              className="shrink-0 flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-900 transition-colors dark:text-orange-400 dark:hover:text-orange-200"
-            >
-              Upgrade <Star size={13} className="fill-amber-400 text-amber-400" aria-hidden="true" />
-            </Link>
           </div>
         </main>
       </>

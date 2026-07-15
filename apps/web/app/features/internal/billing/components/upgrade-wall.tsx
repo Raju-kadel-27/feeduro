@@ -12,16 +12,16 @@ import {
 	Palette,
 	Puzzle,
 	ScrollText,
+	UserCog,
 	Users,
 	Users2,
-	UserCog,
 	Webhook,
 } from "lucide-react";
 import type { ElementType } from "react";
 import { Link } from "react-router";
 import { FEATURE_PREVIEWS, GenericPreview } from "./upgrade-wall-previews";
 
-type GatedFeature =
+export type GatedFeature =
 	| "analytics"
 	| "customDomain"
 	| "sso"
@@ -39,16 +39,16 @@ type GatedFeature =
 	| "boards"
 	| "team";
 
-type Plan = "starter" | "professional";
+export type Plan = "starter" | "professional";
 
-type FeatureMeta = {
+export type FeatureMeta = {
 	label: string;
 	description: string;
 	requiredPlan: Plan;
 	highlights: string[];
 };
 
-const FEATURE_META: Record<GatedFeature, FeatureMeta> = {
+export const FEATURE_META: Record<GatedFeature, FeatureMeta> = {
 	team: {
 		label: "Team",
 		description: "Invite teammates and collaborate on feedback together.",
@@ -212,7 +212,7 @@ const FEATURE_META: Record<GatedFeature, FeatureMeta> = {
 	},
 };
 
-const FEATURE_ICONS: Record<GatedFeature, ElementType> = {
+export const FEATURE_ICONS: Record<GatedFeature, ElementType> = {
 	analytics: BarChart2,
 	customDomain: Globe,
 	sso: KeyRound,
@@ -231,17 +231,19 @@ const FEATURE_ICONS: Record<GatedFeature, ElementType> = {
 	team: Users,
 };
 
-const PLAN_LABEL: Record<Plan, string> = { starter: "Starter", professional: "Professional" };
-const PLAN_PRICE: Record<Plan, string> = { starter: "$8", professional: "$14" };
+export const PLAN_LABEL: Record<Plan, string> = { starter: "Starter", professional: "Professional" };
+export const PLAN_PRICE: Record<Plan, string> = { starter: "$8", professional: "$14" };
 
 interface UpgradeWallProps {
 	feature: GatedFeature;
 	orgSlug: string;
 	/** Pass the real rendered page to show it blurred behind the card. Falls back to the SVG preview. */
 	children?: React.ReactNode;
+	/** When provided, renders an "explore with example data →" link below the plan comparison link. */
+	demoHref?: string;
 }
 
-export function UpgradeWall({ feature, orgSlug, children }: UpgradeWallProps) {
+export function UpgradeWall({ feature, orgSlug, children, demoHref }: UpgradeWallProps) {
 	const meta = FEATURE_META[feature];
 	const label = PLAN_LABEL[meta.requiredPlan];
 	const price = PLAN_PRICE[meta.requiredPlan];
@@ -317,6 +319,15 @@ export function UpgradeWall({ feature, orgSlug, children }: UpgradeWallProps) {
 					>
 						Compare all plans
 					</Link>
+					{demoHref && (
+						<Link
+							to={demoHref}
+							reloadDocument
+							className="flex w-full items-center justify-center py-1.5 text-xs text-muted-foreground/70 transition-colors hover:text-muted-foreground"
+						>
+							or explore with example data →
+						</Link>
+					)}
 				</div>
 			</div>
 		</div>

@@ -3,7 +3,6 @@ import { parseChangelogSettings } from "@features/changelog/server/changelog-set
 import { verifyIdentityToken } from "@lib/identity-token";
 import { getSession } from "@lib/session";
 import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import type { LoaderFunctionArgs } from "react-router";
 import { data } from "react-router";
 import type { Db } from "@/db";
 import {
@@ -22,9 +21,10 @@ import {
 import type { PublicBoard, PublicChangelog, PublicPost, SessionUser } from "../schemas/public";
 import { generateUserAlias, toStatusKey } from "../utils";
 
-export async function publicPageLoader(db: Db, { request, params }: LoaderFunctionArgs) {
-  const orgSlug = params.orgSlug as string;
-
+export async function publicPageLoader(
+  db: Db,
+  { request, orgSlug }: { request: Request; orgSlug: string },
+) {
   const org = await db.query.organization.findFirst({
     where: eq(organization.slug, orgSlug),
     columns: { id: true, name: true, slug: true, logo: true, metadata: true },

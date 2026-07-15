@@ -69,7 +69,7 @@ export function LockedIntegrationsPage() {
 			<main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
 				<IntegrationsPageHeader />
 
-				<PlanBanner>
+				<PlanBanner upgradeTo={billingPath}>
 					Integrations are available on the <span className="font-semibold">Starter</span> plan and above.
 				</PlanBanner>
 

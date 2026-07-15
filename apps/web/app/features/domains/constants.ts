@@ -6,4 +6,6 @@ export const RESERVED_SUBDOMAINS = new Set([
   "api",
   "mail",
   "admin",
+  "staging",
+  "dev",
 ]);

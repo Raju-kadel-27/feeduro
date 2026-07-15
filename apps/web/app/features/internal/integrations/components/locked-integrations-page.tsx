@@ -16,8 +16,8 @@ import {
 	ZapierIcon,
 	ZendeskIcon,
 } from "@components/icons";
-import { Star } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router";
+import { PlanBanner } from "@features/internal/billing/components/plan-banner";
+import { useNavigate, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { IntegrationSection } from "./integration-section";
 import { IntegrationTile } from "./integration-tile";
@@ -69,17 +69,9 @@ export function LockedIntegrationsPage() {
 			<main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
 				<IntegrationsPageHeader />
 
-				<div className="flex items-center justify-between gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-900/50 dark:bg-orange-900/20">
-					<p className="text-sm text-orange-800 dark:text-orange-300">
-						Integrations are available on the <span className="font-semibold">Starter</span> plan and above.
-					</p>
-					<Link
-						to={billingPath}
-						className="shrink-0 flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-900 transition-colors dark:text-orange-400 dark:hover:text-orange-200"
-					>
-						Upgrade <Star size={13} className="fill-amber-400 text-amber-400" aria-hidden="true" />
-					</Link>
-				</div>
+				<PlanBanner>
+					Integrations are available on the <span className="font-semibold">Starter</span> plan and above.
+				</PlanBanner>
 
 				<IntegrationSection title="Project Management">
 					{PROJECT_MGMT.map((i) => (
@@ -148,12 +140,6 @@ export function LockedIntegrationsPage() {
 									<p className="text-sm font-semibold text-foreground">{i.name}</p>
 									<p className="text-sm text-muted-foreground leading-relaxed">{i.description}</p>
 								</div>
-								<Link
-									to={billingPath}
-									className="shrink-0 flex items-center gap-1 rounded-md border border-orange-300 bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-100 transition-colors dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50"
-								>
-									Upgrade <Star size={11} className="fill-amber-400 text-amber-400" aria-hidden="true" />
-								</Link>
 							</div>
 						))}
 					</div>

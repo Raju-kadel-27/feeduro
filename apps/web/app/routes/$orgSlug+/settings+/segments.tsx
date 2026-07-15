@@ -1,6 +1,7 @@
 import { PageHeader } from "@components/common/page-header";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { PlanBanner } from "@features/internal/billing/components/plan-banner";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { CompaniesManager } from "@features/internal/segmentation/components/companies-manager";
 import { CsvImportDialog } from "@features/internal/segmentation/components/csv-import-dialog";
@@ -85,10 +86,10 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
               }
             />
           </div>
-          <div className="max-w-[840px] mx-auto w-full rounded-lg border border-orange-200 bg-orange-50 px-5 py-4 dark:border-orange-900/50 dark:bg-orange-900/20">
-            <p className="text-base text-orange-800 dark:text-orange-300">
+          <div className="max-w-[840px] mx-auto w-full">
+            <PlanBanner>
               Voter segments are available on the <span className="font-semibold">Professional</span> plan.
-            </p>
+            </PlanBanner>
           </div>
         </main>
       </>

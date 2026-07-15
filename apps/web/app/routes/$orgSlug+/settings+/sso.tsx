@@ -1,5 +1,6 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { PlanBanner } from "@features/internal/billing/components/plan-banner";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { AddProviderDialog } from "@features/internal/sso/components/add-provider-dialog";
 import { ProviderList } from "@features/internal/sso/components/provider-list";
@@ -54,11 +55,9 @@ export default function SSOSettings({ loaderData }: Route.ComponentProps) {
               </Link>
             }
           />
-          <div className="rounded-lg border border-orange-200 bg-orange-50 px-5 py-4 dark:border-orange-900/50 dark:bg-orange-900/20">
-            <p className="text-base text-orange-800 dark:text-orange-300">
-              Single Sign-On is available on the <span className="font-semibold">Professional</span> plan.
-            </p>
-          </div>
+          <PlanBanner>
+            Single Sign-On is available on the <span className="font-semibold">Professional</span> plan.
+          </PlanBanner>
         </main>
       </>
     );

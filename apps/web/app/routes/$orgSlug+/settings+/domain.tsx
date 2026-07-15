@@ -1,6 +1,7 @@
 import { PageHeader } from "@components/common/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { PlanBanner } from "@features/internal/billing/components/plan-banner";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
@@ -90,11 +91,9 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
             description="Point a custom domain to this workspace so your users see your brand, not ours."
             icon={Globe}
           />
-          <div className="rounded-lg border border-orange-200 bg-orange-50 px-5 py-4 dark:border-orange-900/50 dark:bg-orange-900/20">
-            <p className="text-base text-orange-800 dark:text-orange-300">
-              Custom domains are available on the <span className="font-semibold">Professional</span> plan.
-            </p>
-          </div>
+          <PlanBanner>
+            Custom domains are available on the <span className="font-semibold">Professional</span> plan.
+          </PlanBanner>
           <section className="flex flex-wrap gap-2 items-end">
             <div className="flex-1 min-w-[220px] space-y-1">
               <label className="text-xs font-medium text-muted-foreground">Domain</label>

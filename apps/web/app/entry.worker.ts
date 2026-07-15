@@ -1,4 +1,3 @@
-import { rewriteSubdomainRequest } from "@features/domains/server/subdomain-routing";
 import { createRequestHandler, RouterContextProvider } from "react-router";
 import { createDb } from "@/db";
 import { CloudflareContext } from "./middleware/cloudflare.server";
@@ -19,10 +18,9 @@ export default {
     const { db, close } = createDb(env.HYPERDRIVE.connectionString);
 
     const run = async (): Promise<Response> => {
-      const routedRequest = rewriteSubdomainRequest(request) ?? request;
       const context = new RouterContextProvider();
       context.set(CloudflareContext, { env, ctx, cf: request.cf, db });
-      return await handler(routedRequest, context);
+      return await handler(request, context);
     };
 
     try {

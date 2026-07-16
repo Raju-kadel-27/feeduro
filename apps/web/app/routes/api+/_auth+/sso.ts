@@ -104,7 +104,7 @@ export async function action({ request, context }: Route.ActionArgs) {
         },
         headers: request.headers,
       });
-      await logOrgActivity({
+      await logOrgActivity(db, {
         orgId: organizationId,
         actor: { id: session.user.id, email: session.user.email, name: session.user.name },
         action: "sso_configured",
@@ -126,7 +126,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   if (!deleted.length) return data({ error: "Provider not found" }, { status: 404 });
 
-  await logOrgActivity({
+  await logOrgActivity(db, {
     orgId: organizationId,
     actor: { id: session.user.id, email: session.user.email, name: session.user.name },
     action: "sso_deleted",

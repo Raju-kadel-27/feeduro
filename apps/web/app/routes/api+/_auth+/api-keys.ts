@@ -75,7 +75,7 @@ export async function action({ request, context }: Route.ActionArgs) {
         },
         headers: request.headers,
       });
-      await logOrgActivity({
+      await logOrgActivity(db, {
         orgId: organizationId,
         actor: { id: session.user.id, email: session.user.email, name: session.user.name },
         action: "api_key_created",
@@ -104,7 +104,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       body: { keyId: body.keyId },
       headers: request.headers,
     });
-    await logOrgActivity({
+    await logOrgActivity(db, {
       orgId: organizationId,
       actor: { id: session.user.id, email: session.user.email, name: session.user.name },
       action: "api_key_deleted",

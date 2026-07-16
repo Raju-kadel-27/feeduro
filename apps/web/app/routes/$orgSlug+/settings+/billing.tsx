@@ -120,7 +120,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
     .safeParse(formData.get("intent"));
   if (!intentResult.success) return { ok: false, error: "Invalid intent" };
   const intent = intentResult.data;
-  const returnUrl = `${new URL(request.url).origin}${new URL(request.url).pathname}`;
+  const returnUrl = `${env.BASE_URL}${new URL(request.url).pathname.replace(/\.data$/, "")}`;
 
   const dodoProductIds = {
     starter: {

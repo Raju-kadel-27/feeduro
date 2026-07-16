@@ -284,8 +284,8 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
               {showDnsInstructions && (
                 <div className="rounded-lg border p-4 space-y-4">
                   <div>
-                    <h3 className="text-sm font-semibold mb-1">Configure DNS</h3>
-                    <p className="text-xs text-muted-foreground">
+                    <h3 className="text-base font-semibold mb-1">Configure DNS</h3>
+                    <p className="text-sm text-muted-foreground">
                       Add the DNS record below. Usually takes 5–30 minutes; up to 48 hours in rare cases.{" "}
                       <a
                         href={`https://dnschecker.org/#CNAME/${domain.domain}`}
@@ -300,25 +300,25 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
 
                   <Tabs defaultValue={isApex ? "apex" : "cname"}>
                     <TabsList className="h-8">
-                      <TabsTrigger value="cname" className="text-xs px-3 py-1">Subdomain (CNAME)</TabsTrigger>
-                      <TabsTrigger value="apex" className="text-xs px-3 py-1">Apex domain</TabsTrigger>
+                      <TabsTrigger value="cname" className="text-sm px-3 py-1">Subdomain (CNAME)</TabsTrigger>
+                      <TabsTrigger value="apex" className="text-sm px-3 py-1">Apex domain</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="cname">
                       <div className="rounded-md bg-muted/50 p-3 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium">CNAME record</span>
+                          <span className="text-sm font-medium">CNAME record</span>
                           <button
                             type="button"
                             onClick={() => copy("cname.feeduro.com", "cname")}
                             aria-label="Copy CNAME value"
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-[72px] justify-end"
+                            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-[80px] justify-end"
                           >
-                            {copied === "cname" ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                            {copied === "cname" ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
                             {copied === "cname" ? "Copied!" : "Copy"}
                           </button>
                         </div>
-                        <div className="grid grid-cols-[56px_1fr] gap-x-3 gap-y-1 text-xs font-mono">
+                        <div className="grid grid-cols-[64px_1fr] gap-x-3 gap-y-1 text-sm font-mono">
                           <span className="text-muted-foreground font-sans">Name</span>
                           <span className="break-all">{domain.domain}</span>
                           <span className="text-muted-foreground font-sans">Value</span>
@@ -329,11 +329,11 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
 
                     <TabsContent value="apex">
                       <div className="rounded-md bg-muted/50 p-3 space-y-2">
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           Cloudflare, Route 53, and Netlify DNS support CNAME flattening or ALIAS records on apex domains.
                           Use the same target value but set the type to <strong>ALIAS</strong> or <strong>ANAME</strong>.
                         </p>
-                        <div className="grid grid-cols-[56px_1fr] gap-x-3 gap-y-1 text-xs font-mono">
+                        <div className="grid grid-cols-[64px_1fr] gap-x-3 gap-y-1 text-sm font-mono">
                           <span className="text-muted-foreground font-sans">Name</span>
                           <span className="break-all">@ (or leave blank)</span>
                           <span className="text-muted-foreground font-sans">Value</span>
@@ -346,7 +346,7 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
                   </Tabs>
 
                   {verifyError && (
-                    <p className="text-xs text-destructive" role="alert">{verifyError}</p>
+                    <p className="text-sm text-destructive" role="alert">{verifyError}</p>
                   )}
 
                   {isAdmin && (

@@ -48,7 +48,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       headers: request.headers,
       body: { email: body.email, role: "member", organizationId },
     });
-    await logOrgActivity({
+    await logOrgActivity(db, {
       orgId: organizationId,
       actor: { id: session.user.id, email: session.user.email, name: session.user.name },
       action: "member_invited",
@@ -66,7 +66,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       headers: request.headers,
       body: { invitationId: body.invitationId },
     });
-    await logOrgActivity({
+    await logOrgActivity(db, {
       orgId: organizationId,
       actor: { id: session.user.id, email: session.user.email, name: session.user.name },
       action: "invitation_cancelled",
@@ -83,7 +83,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     headers: request.headers,
     body: { memberIdOrEmail: body.memberId },
   });
-  await logOrgActivity({
+  await logOrgActivity(db, {
     orgId: organizationId,
     actor: { id: session.user.id, email: session.user.email, name: session.user.name },
     action: "member_removed",

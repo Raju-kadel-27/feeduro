@@ -1,5 +1,5 @@
 import { sendEmailDev } from "./dev";
-import { sendEmailSandbox } from "./sandbox";
+import { sendEmailProd } from "./prod";
 
 export interface SendEmailOptions {
   to: string | string[];
@@ -11,5 +11,5 @@ export async function sendEmail(options: SendEmailOptions) {
   if (process.env.ENVIRONMENT === "development") {
     return sendEmailDev(options);
   }
-  return sendEmailSandbox(options);
+  return sendEmailProd(options);
 }

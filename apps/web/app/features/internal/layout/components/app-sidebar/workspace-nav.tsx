@@ -6,16 +6,17 @@ import {
   SidebarMenuItem,
 } from "@components/ui/sidebar";
 import { usePlanLimits } from "@features/internal/billing/hooks/use-plan-limits";
+import { usePendingPathname } from "@hooks/use-pending-pathname";
 import { BarChart2, Crown, FileText, Milestone, Settings, Share2 } from "lucide-react";
 import type { ElementType } from "react";
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 
 type NavItem = { title: string; url: string; icon: ElementType; locked?: boolean };
 
 type Props = { base: string; orgSlug: string };
 
 export function WorkspaceNav({ base, orgSlug: _orgSlug }: Props) {
-  const location = useLocation();
+  const pathname = usePendingPathname();
   const planLimits = usePlanLimits();
 
   const items: NavItem[] = [
@@ -32,7 +33,7 @@ export function WorkspaceNav({ base, orgSlug: _orgSlug }: Props) {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-base">
+              <SidebarMenuButton asChild isActive={pathname === item.url} className="text-base">
                 <Link to={item.url}>
                   <item.icon />
                   <span className="flex-1">{item.title}</span>

@@ -9,14 +9,15 @@ import {
   SidebarSeparator,
 } from "@components/ui/sidebar";
 import { usePlanLimits } from "@features/internal/billing/hooks/use-plan-limits";
+import { usePendingPathname } from "@hooks/use-pending-pathname";
 import { ArrowLeft, Crown } from "lucide-react";
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 import { makeSettingsSections } from "./settings-sections";
 
 type Props = { base: string };
 
 export function SettingsSidebar({ base }: Props) {
-  const location = useLocation();
+  const pathname = usePendingPathname();
   const planLimits = usePlanLimits();
   const sections = makeSettingsSections(base, planLimits);
 
@@ -45,7 +46,7 @@ export function SettingsSidebar({ base }: Props) {
               <SidebarMenu>
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={location.pathname === item.url} className="text-base">
+                    <SidebarMenuButton asChild isActive={pathname === item.url} className="text-base">
                       <Link to={item.url}>
                         <item.icon />
                         <span className="flex-1">{item.title}</span>

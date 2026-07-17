@@ -19,15 +19,18 @@ export function buildOrgPlugin(db: Db) {
     sendInvitationEmail: async (data) => {
       const acceptUrl = `${getBaseUrl()}/accept-invitation?invitationId=${data.id}`;
       const { inviter, organization, role } = data;
-      const emailStatus = await sendInvitationEmail({
-        inviterName: inviter.user.name,
-        inviterEmail: inviter.user.email,
-        workspaceName: organization.name,
-        role: role ?? "member",
-        acceptUrl,
-        recipientEmail: data.email,
-      });
-      console.log({ emailStatus });
+      try {
+        await sendInvitationEmail({
+          inviterName: inviter.user.name,
+          inviterEmail: inviter.user.email,
+          workspaceName: organization.name,
+          role: role ?? "member",
+          acceptUrl,
+          recipientEmail: data.email,
+        });
+      } catch (err) {
+        console.error("[invite] failed to send invitation email:", JSON.stringify(err instanceof Error ? { message: err.message, stack: err.stack } : err));
+      }
     },
     organizationHooks: orgHooks(db),
   });

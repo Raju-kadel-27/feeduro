@@ -33,6 +33,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       status: invitation.status,
       expiresAt: invitation.expiresAt,
       orgName: organization.name,
+      orgSlug: organization.slug,
       inviterName: user.name,
       inviterEmail: user.email,
     })
@@ -57,6 +58,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     invitedEmail: row.email,
     role: row.role ?? "member",
     orgName: row.orgName,
+    orgSlug: row.orgSlug,
     inviterName: row.inviterName,
     inviterEmail: row.inviterEmail,
     emailMismatch,
@@ -70,6 +72,7 @@ export default function AcceptInvitation({ loaderData }: Route.ComponentProps) {
     invitedEmail,
     role,
     orgName,
+    orgSlug,
     inviterName,
     inviterEmail,
     emailMismatch,
@@ -89,7 +92,7 @@ export default function AcceptInvitation({ loaderData }: Route.ComponentProps) {
         organizationId: data.invitation.organizationId,
       });
     }
-    window.location.href = "/dashboard";
+    window.location.href = `/${orgSlug}/dashboard`;
   }
 
   async function handleReject() {

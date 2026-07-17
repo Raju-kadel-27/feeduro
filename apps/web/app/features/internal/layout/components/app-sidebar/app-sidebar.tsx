@@ -1,16 +1,17 @@
 import { Sidebar, SidebarHeader, SidebarSeparator } from "@components/ui/sidebar";
 import { SidebarUserFooter } from "@features/internal/layout/components/sidebar-user-footer";
 import { WorkspaceSwitcher } from "@features/internal/workspace/components/workspace-switcher";
-import { useLocation, useParams } from "react-router";
+import { usePendingPathname } from "@hooks/use-pending-pathname";
+import { useParams } from "react-router";
 import { SettingsSidebar } from "./settings-sidebar";
 import { WorkspaceSidebar } from "./workspace-sidebar";
 
 export function AppSidebar() {
-  const location = useLocation();
+  const pathname = usePendingPathname();
   const { orgSlug = "" } = useParams();
   const base = `/${orgSlug}`;
-  const isSettingsRoute = location.pathname.includes("/settings");
-  const isDashboard = location.pathname === `${base}/dashboard`;
+  const isSettingsRoute = pathname.includes("/settings");
+  const isDashboard = pathname === `${base}/dashboard`;
 
   return (
     <Sidebar>

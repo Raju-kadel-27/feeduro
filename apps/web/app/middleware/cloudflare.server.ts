@@ -8,8 +8,21 @@ export const CloudflareContext = createContext<{
   db: Db;
 }>();
 
+// Threads KV + ExecutionContext into guards without changing any call site.
+// Populated by getDb() so it's always set before requireOrgBySlug() is called.
+type RequestContext = { kv?: KVNamespace; ctx: ExecutionContext };
+const requestContextByDb = new WeakMap<Db, RequestContext>();
+
 export function getDb(context: Readonly<RouterContextProvider>): Db {
-  return context.get(CloudflareContext).db;
+  const { db, env, ctx } = context.get(CloudflareContext);
+  if (!requestContextByDb.has(db)) {
+    requestContextByDb.set(db, { kv: env.ORG_CACHE, ctx });
+  }
+  return db;
+}
+
+export function getRequestContext(db: Db): RequestContext | undefined {
+  return requestContextByDb.get(db);
 }
 
 export function getBindings(context: Readonly<RouterContextProvider>) {

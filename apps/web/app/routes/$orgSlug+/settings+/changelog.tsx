@@ -10,7 +10,7 @@ import { getSubscriberCount } from "@features/changelog/server/subscribers";
 import { eq } from "drizzle-orm";
 import { FileText } from "lucide-react";
 import { Suspense, useState } from "react";
-import { Await } from "react-router";
+import { Await, useLoaderData } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { changelogTags, organization } from "@/db/schema";
@@ -51,7 +51,9 @@ export function ErrorBoundary() {
   return <RouteErrorMessage resource="changelog settings" />;
 }
 
-export default function ChangelogSettings({ loaderData }: Route.ComponentProps) {
+export default function ChangelogSettings() {
+  const { dataPromise } = useLoaderData() as { dataPromise: Promise<ChangelogData> };
+
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
@@ -59,7 +61,7 @@ export default function ChangelogSettings({ loaderData }: Route.ComponentProps) 
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await
-          resolve={loaderData.dataPromise as unknown as Promise<ChangelogData>}
+          resolve={dataPromise}
           errorElement={<RouteErrorMessage resource="changelog settings" />}
         >
           {(pageData) => <ChangelogContent data={pageData} />}

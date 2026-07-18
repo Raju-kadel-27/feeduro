@@ -1,60 +1,110 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "account_id": "eaf872daa611531b2c95caf488b832c9",
-  "name": "feeduro",
-  "main": "./app/entry.worker.ts",
-  "compatibility_date": "2026-07-01",
-  "upload_source_maps": true,
-  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
-  "observability": { "enabled": true },
-  // Loaders make several sequential Postgres roundtrips per request — Smart
-  // Placement runs the worker near the database instead of near the visitor,
-  // collapsing per-query latency. Inherited by all named environments.
-  "placement": { "mode": "smart" },
-  "assets": { "directory": "./build/client" },
-  "workers_dev": true,
-  // Postgres over Hyperdrive. In local dev (vite / miniflare) the binding uses
-  // `localConnectionString` and connects straight to the docker Postgres; in
-  // deployed environments it uses the Hyperdrive config identified by `id`.
-  // Deployed envs should ALSO set a DATABASE_URL secret (direct Neon URL,
-  // `wrangler secret put DATABASE_URL --env production`): it enables the Neon
-  // HTTP read path in db/index.ts, which skips the per-request TCP handshake.
-  // Transactions still run over this Hyperdrive binding. Without the secret,
-  // everything falls back to Hyperdrive — slower but fully functional.
-  "hyperdrive": [
-    {
-      "binding": "HYPERDRIVE",
-      "id": "d414e3297a424d73b365dc59d7b859ea",
-      "localConnectionString": "postgresql://postgres:postgres@localhost:5432/feeduro"
-    }
-  ],
-  "env": {
-    // `name` is the WORKER identity — deploying under a new name silently creates
-    // a brand-new worker with no secrets and no routes, while the real one keeps
-    // serving stale code. Never rename these to match Hyperdrive config names;
-    // the Hyperdrive `id` below is the only link to that config.
-    "dev": {
-      "name": "feeduro-dev",
-      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }]
-    },
-    // Wrangler does NOT inherit top-level bindings into named environments, so
-    // each deployed env needs its own Hyperdrive entry. Reusing the same id here
-    // points every env at the same database — create separate Hyperdrive configs
-    // (one per environment DB) and swap the ids in when you split staging/prod.
-    "staging": {
-      "name": "feeduro-staging",
-      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "470e373c2cc7463f8ec871d0ebafb42d" }]
-    },
-    "production": {
-      "name": "feeduro-production",
-      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d414e3297a424d73b365dc59d7b859ea" }],
-      // Org public boards live at {orgSlug}.feeduro.com (see
-      // features/domains/server/subdomain-routing.ts). Custom Domains can't
-      // cover wildcards, so this must be a route — and it only receives
-      // traffic if the zone has a proxied `*` DNS record (A 192.0.2.1).
-      // The apex feeduro.com is intentionally NOT here: it's attached as a
-      // Custom Domain in the dashboard, which also manages its DNS + cert.
-      "routes": [{ "pattern": "*.feeduro.com/*", "zone_name": "feeduro.com" }]
-    }
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"account_id": "eaf872daa611531b2c95caf488b832c9",
+	"name": "feeduro",
+	"main": "./app/entry.worker.ts",
+	"compatibility_date": "2026-07-01",
+	"upload_source_maps": true,
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_compat_populate_process_env"
+	],
+	"observability": {
+		"enabled": true
+	},
+	// Loaders make several sequential Postgres roundtrips per request — Smart
+	// Placement runs the worker near the database instead of near the visitor,
+	// collapsing per-query latency. Inherited by all named environments.
+	"placement": {
+		"mode": "smart"
+	},
+	"assets": {
+		"directory": "./build/client"
+	},
+	"workers_dev": true,
+	// Postgres over Hyperdrive. In local dev (vite / miniflare) the binding uses
+	// `localConnectionString` and connects straight to the docker Postgres; in
+	// deployed environments it uses the Hyperdrive config identified by `id`.
+	// Deployed envs should ALSO set a DATABASE_URL secret (direct Neon URL,
+	// `wrangler secret put DATABASE_URL --env production`): it enables the Neon
+	// HTTP read path in db/index.ts, which skips the per-request TCP handshake.
+	// Transactions still run over this Hyperdrive binding. Without the secret,
+	// everything falls back to Hyperdrive — slower but fully functional.
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "d414e3297a424d73b365dc59d7b859ea",
+			"localConnectionString": "postgresql://postgres:postgres@localhost:5432/feeduro"
+		}
+	],
+	// Org-slug → org-data cache. Keyed per user+slug, TTL 300s.
+	// Create with: wrangler kv namespace create ORG_CACHE --env <env>
+	// Then run: wrangler types  to regenerate worker-configuration.d.ts
+	"kv_namespaces": [
+		{
+			"binding": "ORG_CACHE",
+			"id": "REPLACE_WITH_KV_NAMESPACE_ID"
+		}
+	],
+	"env": {
+		// `name` is the WORKER identity — deploying under a new name silently creates
+		// a brand-new worker with no secrets and no routes, while the real one keeps
+		// serving stale code. Never rename these to match Hyperdrive config names;
+		// the Hyperdrive `id` below is the only link to that config.
+		"dev": {
+			"name": "feeduro-dev",
+			"hyperdrive": [
+				{
+					"binding": "HYPERDRIVE",
+					"id": "d414e3297a424d73b365dc59d7b859ea"
+				}
+			],
+			"kv_namespaces": [
+				{
+					"binding": "ORG_CACHE",
+					"id": "REPLACE_WITH_DEV_KV_NAMESPACE_ID"
+				}
+			]
+		},
+		// Wrangler does NOT inherit top-level bindings into named environments, so
+		// each deployed env needs its own Hyperdrive entry. Reusing the same id here
+		// points every env at the same database — create separate Hyperdrive configs
+		// (one per environment DB) and swap the ids in when you split staging/prod.
+		"staging": {
+			"name": "feeduro-staging",
+			"hyperdrive": [
+				{
+					"binding": "HYPERDRIVE",
+					"id": "470e373c2cc7463f8ec871d0ebafb42d"
+				}
+			],
+			"kv_namespaces": [
+				{ "binding": "ORG_CACHE", "id": "f15c19aca38c4bb8bbcc90911028d6a5" }
+			]
+		},
+		"production": {
+			"name": "feeduro-production",
+			"hyperdrive": [
+				{
+					"binding": "HYPERDRIVE",
+					"id": "d414e3297a424d73b365dc59d7b859ea"
+				}
+			],
+			"kv_namespaces": [
+				{ "binding": "ORG_CACHE", "id": "c970457cc426481d8853325c172d4eaf" }
+			],
+			// Org public boards live at {orgSlug}.feeduro.com (see
+			// features/domains/server/subdomain-routing.ts). Custom Domains can't
+			// cover wildcards, so this must be a route — and it only receives
+			// traffic if the zone has a proxied `*` DNS record (A 192.0.2.1).
+			// The apex feeduro.com is intentionally NOT here: it's attached as a
+			// Custom Domain in the dashboard, which also manages its DNS + cert.
+			"routes": [
+				{
+					"pattern": "*.feeduro.com/*",
+					"zone_name": "feeduro.com"
+				}
+			]
+		}
+	}
 }

@@ -7,6 +7,7 @@
     "app/**/.client/**/*",
     "db/**/*",
     "worker-configuration.d.ts",
+    "env-augments.d.ts",
     "react-router.config.ts"
   ],
   "compilerOptions": {

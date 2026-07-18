@@ -5,7 +5,6 @@ import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
-import { Palette } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { organization } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -56,20 +55,16 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
   return (
-    <>
-      <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
-      </header>
-
-      <main className="p-6 max-w-[1100px] mx-auto w-full space-y-8">
+    <main className="pb-6 px-6 w-full space-y-8">
+      <div className="flex items-center gap-3 pt-4">
+        <SidebarTrigger className="-ml-1 shrink-0" />
         <PageHeader
           title="Branding"
           description="Customize how your workspace looks to your users — logo, colors, and more."
-          icon={Palette}
         />
+      </div>
 
-        <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
-      </main>
-    </>
+      <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
+    </main>
   );
 }

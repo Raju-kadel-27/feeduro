@@ -26,19 +26,27 @@ export default {
     };
 
     const started = performance.now();
-    // cf.colo = where the request ENTERED Cloudflare (closest to the user).
-    // cf-placement response header = where Smart Placement actually EXECUTED the Worker.
-    // We log both so they can be compared in the dashboard.
+    // cf.colo = where the request entered Cloudflare's network (closest edge to
+    // the user). cf-placement is injected by Cloudflare's infrastructure AFTER
+    // the Worker returns — it is never readable from inside the Worker. Check it
+    // from the client instead: `curl -sI https://feeduro.com | grep cf-placement`
     const ingressColo = request.cf?.colo ?? "unknown";
     const dbMode = env.DATABASE_URL?.includes(".neon.tech") ? "http" : "hyperdrive";
 
     const withTimings = (response: Response): Response => {
       const dur = Math.round(performance.now() - started);
       const headers = new Headers(response.headers);
-      const placementColo = response.headers.get("cf-placement") ?? "unknown";
-      headers.set("Server-Timing", `app;dur=${dur};desc="exec=${placementColo}"`);
+      headers.set("Server-Timing", `app;dur=${dur}`);
       console.log(
-        `[perf] ${request.method} ${new URL(request.url).pathname} ingress=${ingressColo} placement=${placementColo} db=${dbMode} dur=${dur}ms status=${response.status}`,
+        JSON.stringify({
+          event: "request",
+          method: request.method,
+          path: new URL(request.url).pathname,
+          ingressColo,
+          db: dbMode,
+          dur,
+          status: response.status,
+        }),
       );
       return new Response(response.body, {
         status: response.status,

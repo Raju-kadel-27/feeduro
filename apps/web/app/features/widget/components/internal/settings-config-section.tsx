@@ -1,3 +1,10 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
 import { Switch } from "@components/ui/switch";
 import { Check } from "lucide-react";
 
@@ -18,6 +25,8 @@ type Props = {
   hasError: boolean;
 };
 
+const BOARD_NONE = "__none__";
+
 export function SettingsConfigSection({
   enabled,
   onToggle,
@@ -37,12 +46,17 @@ export function SettingsConfigSection({
       {/* Enable toggle */}
       <div className="flex items-center justify-between gap-4 px-5 py-4">
         <div>
-          <p className="text-sm font-medium">Widget enabled</p>
+          <p id="widget-enabled-label" className="text-sm font-medium">Widget enabled</p>
           <p className="text-sm text-muted-foreground mt-0.5">
             When off, the embed iframe returns 404 and the button disappears.
           </p>
         </div>
-        <Switch checked={enabled} onCheckedChange={onToggle} disabled={isTogglingEnabled} />
+        <Switch
+          checked={enabled}
+          onCheckedChange={onToggle}
+          disabled={isTogglingEnabled}
+          aria-labelledby="widget-enabled-label"
+        />
       </div>
 
       <div className="border-t border-border/60" />
@@ -55,19 +69,23 @@ export function SettingsConfigSection({
               <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 Board
               </span>
-              <select
-                value={boardId}
-                onChange={(e) => setBoardId(e.target.value)}
-                className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring transition"
+              <Select
+                value={boardId || BOARD_NONE}
+                onValueChange={(v) => setBoardId(v === BOARD_NONE ? "" : v)}
               >
-                <option value="">Default</option>
-                {boards.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                    {b.isDefault ? " ✓" : ""}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-8 text-sm w-auto min-w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={BOARD_NONE}>Default</SelectItem>
+                  {boards.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                      {b.isDefault ? " ✓" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="w-px h-5 bg-border hidden sm:block" />
           </>
@@ -81,6 +99,7 @@ export function SettingsConfigSection({
                 key={v}
                 type="button"
                 onClick={() => setTheme(v)}
+                aria-pressed={theme === v}
                 className={`px-2.5 py-1 rounded text-xs capitalize transition-all ${
                   theme === v
                     ? "bg-background text-foreground font-medium shadow-sm border border-border/60"

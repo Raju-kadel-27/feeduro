@@ -1,3 +1,10 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { CodeBlock } from "./code-block";
 
@@ -59,18 +66,19 @@ export function SettingsIdentityCodeExamples({
         {boards.length > 1 && (
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">Board</span>
-            <select
-              value={inlineBoardId}
-              onChange={(e) => setInlineBoardId(e.target.value)}
-              className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring transition"
-            >
-              {boards.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                  {b.isDefault ? " ✓" : ""}
-                </option>
-              ))}
-            </select>
+            <Select value={inlineBoardId} onValueChange={setInlineBoardId}>
+              <SelectTrigger className="h-8 text-sm w-auto min-w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {boards.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                    {b.isDefault ? " ✓" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
         <CodeBlock

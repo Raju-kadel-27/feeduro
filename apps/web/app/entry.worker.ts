@@ -15,7 +15,9 @@ export default {
       );
     }
 
-    const { db, close } = createDb(env.HYPERDRIVE.connectionString);
+    // DATABASE_URL (direct Neon URL) enables the HTTP read path; without it
+    // everything runs over postgres.js + Hyperdrive. See db/index.ts.
+    const { db, close } = createDb(env.HYPERDRIVE.connectionString, env.DATABASE_URL);
 
     const run = async (): Promise<Response> => {
       const context = new RouterContextProvider();
@@ -23,8 +25,27 @@ export default {
       return await handler(request, context);
     };
 
+    const started = performance.now();
+    const colo = request.cf?.colo ?? "unknown";
+
+    const withTimings = (response: Response): Response => {
+      const dur = Math.round(performance.now() - started);
+      const headers = new Headers(response.headers);
+      // `colo` is where this Worker executed — compare with the cf-placement
+      // header (added by Cloudflare) to see what Smart Placement is doing.
+      headers.set("Server-Timing", `app;dur=${dur};desc="colo=${colo}"`);
+      console.log(
+        `[perf] ${request.method} ${new URL(request.url).pathname} colo=${colo} dur=${dur}ms status=${response.status}`,
+      );
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    };
+
     try {
-      const response = await run();
+      const response = withTimings(await run());
 
       // Delay DB close until the response body is fully streamed. Without this,
       // sql.end() races against deferred loader promises that still need DB

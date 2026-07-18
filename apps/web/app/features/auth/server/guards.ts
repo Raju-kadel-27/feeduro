@@ -24,24 +24,28 @@ export async function requireAdmin(db: Db, organizationId: string, userId: strin
 }
 
 async function loadOrgBySlug(db: Db, request: Request, slug: string) {
-  // Session comes from the cookie and the org lookup only needs the slug — run
-  // them concurrently instead of paying two sequential DB roundtrips.
-  const [session, org] = await Promise.all([
-    requireSession(db, request),
-    db.query.organization.findFirst({
-      where: eq(organization.slug, slug),
-      columns: { id: true, slug: true, name: true, logo: true },
-    }),
-  ]);
+  // The session normally resolves from the signed cookie cache without touching
+  // the DB, so await it first and fold the org lookup + membership check into
+  // one joined query — serial DB depth drops from 2 roundtrips to 1.
+  const session = await requireSession(db, request);
 
+  const [org] = await db
+    .select({
+      id: organization.id,
+      slug: organization.slug,
+      name: organization.name,
+      logo: organization.logo,
+    })
+    .from(organization)
+    .innerJoin(
+      member,
+      and(eq(member.organizationId, organization.id), eq(member.userId, session.user.id)),
+    )
+    .where(eq(organization.slug, slug))
+    .limit(1);
+
+  // Unknown org and org-without-membership both 404, same as before.
   if (!org) throw new Response("Not found", { status: 404 });
-
-  const membership = await db.query.member.findFirst({
-    where: and(eq(member.organizationId, org.id), eq(member.userId, session.user.id)),
-    columns: { role: true },
-  });
-
-  if (!membership) throw new Response("Not found", { status: 404 });
 
   return { session, org, organizationId: org.id };
 }

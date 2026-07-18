@@ -33,33 +33,103 @@ export function createDb(
   const pgDb = drizzle(sql, { schema });
   const close = () => sql.end();
 
-  if (!directUrl?.includes(".neon.tech")) {
+  const isNeonHost = directUrl?.includes(".neon.tech") ?? false;
+  const mode = isNeonHost ? "hybrid" : "hyperdrive-only";
+
+  console.log(
+    JSON.stringify({
+      event: "db.init",
+      mode,
+      hasDirectUrl: !!directUrl,
+      isNeonHost,
+      // Tells you at a glance why the fast path is/isn't active:
+      // "hybrid"        → DATABASE_URL secret is set and is a Neon host → reads use HTTP
+      // "hyperdrive-only" → no secret or local docker postgres → all queries use TCP
+    }),
+  );
+
+  if (!isNeonHost) {
     return { db: pgDb, close };
   }
 
-  const httpDb = drizzleNeonHttp(neon(directUrl), { schema });
+  const httpDb = drizzleNeonHttp(neon(directUrl!), { schema });
   return { db: createHybridDb(pgDb, httpDb), close };
 }
 
 function createHybridDb(pgDb: Db, httpDb: NeonHttpDatabase<typeof schema>): Db {
   return new Proxy(httpDb, {
     get(target, prop) {
-      // Interactive transactions are not supported over Neon HTTP.
-      if (prop === "transaction") return pgDb.transaction.bind(pgDb);
+      // Interactive transactions are not supported over Neon HTTP — route to
+      // postgres.js and log timing so we can see how long TCP mutations take.
+      if (prop === "transaction") {
+        return (
+          callback: Parameters<Db["transaction"]>[0],
+          options?: Parameters<Db["transaction"]>[1],
+        ) => {
+          const t = performance.now();
+          return pgDb.transaction(callback, options).then(
+            (result) => {
+              console.log(
+                JSON.stringify({
+                  event: "db.transaction",
+                  driver: "hyperdrive",
+                  dur: Math.round(performance.now() - t),
+                  status: "ok",
+                }),
+              );
+              return result;
+            },
+            (err) => {
+              console.log(
+                JSON.stringify({
+                  event: "db.transaction",
+                  driver: "hyperdrive",
+                  dur: Math.round(performance.now() - t),
+                  status: "error",
+                  error: String(err),
+                }),
+              );
+              throw err;
+            },
+          );
+        };
+      }
 
       // postgres.js returns rows as a bare array while neon-http wraps them in
       // a result object — normalize so raw-SQL call sites see the array shape
-      // they were written against.
+      // they were written against, and log timing per raw-SQL call.
       if (prop === "execute") {
-        return async (query: Parameters<Db["execute"]>[0]) => (await target.execute(query)).rows;
+        return async (query: Parameters<Db["execute"]>[0]) => {
+          const t = performance.now();
+          try {
+            const result = await target.execute(query);
+            console.log(
+              JSON.stringify({
+                event: "db.execute",
+                driver: "neon-http",
+                dur: Math.round(performance.now() - t),
+                rows: result.rows.length,
+                status: "ok",
+              }),
+            );
+            return result.rows;
+          } catch (err) {
+            console.log(
+              JSON.stringify({
+                event: "db.execute",
+                driver: "neon-http",
+                dur: Math.round(performance.now() - t),
+                status: "error",
+                error: String(err),
+              }),
+            );
+            throw err;
+          }
+        };
       }
 
       const value = Reflect.get(target, prop, target);
       return typeof value === "function" ? value.bind(target) : value;
     },
-    // Runtime-compatible facade: both drivers expose the same drizzle query API
-    // over the same schema; only `transaction`/`execute` differ and are bridged
-    // above. Typing it as the postgres.js flavor keeps `Db`/`Tx` stable for
-    // every consumer.
   }) as unknown as Db;
 }

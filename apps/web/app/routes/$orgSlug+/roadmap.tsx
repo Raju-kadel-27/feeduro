@@ -8,7 +8,7 @@ import type { Post } from "@features/roadmap/types";
 import { useDragToScroll } from "@hooks/use-drag-to-scroll";
 import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useState } from "react";
-import { useLoaderData, useParams } from "react-router";
+import { Await, useParams } from "react-router";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/roadmap";
 
@@ -27,29 +27,52 @@ export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate 
   return defaultShouldRevalidate;
 }
 
+type RoadmapData = Awaited<ReturnType<typeof loadRoadmapData>>;
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  return loadRoadmapData(db, request, params.orgSlug);
+  const dataPromise = loadRoadmapData(db, request, params.orgSlug);
+  return { dataPromise };
 }
 
-export default function RoadmapPage() {
-  const loaderData = useLoaderData<typeof loader>();
-  const { orgSlug } = useParams<{ orgSlug: string }>();
-  const qc = useQueryClient();
-  const { posts, isLoading, updateStatus, updateRank } = useRoadmap(
-    loaderData.posts as Post[],
-    loaderData.fetchedAt,
-  );
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const dragScroll = useDragToScroll();
-
+export default function RoadmapPage({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex flex-col h-svh">
       <header className="flex shrink-0 items-center gap-3 px-8 pt-3 pb-4">
         <SidebarTrigger className="-ml-1" />
         <PageHeader title="Roadmap" />
       </header>
+      <Suspense fallback={<RoadmapBoardSkeleton />}>
+        <Await resolve={loaderData.dataPromise as unknown as Promise<RoadmapData>}>
+          {(data) => <RoadmapContent data={data} />}
+        </Await>
+      </Suspense>
+    </div>
+  );
+}
 
+function RoadmapBoardSkeleton() {
+  return (
+    <div className="flex-1 min-h-0 px-8">
+      <div className="h-full overflow-x-auto overflow-y-hidden pb-5">
+        <ColumnSkeleton />
+      </div>
+    </div>
+  );
+}
+
+function RoadmapContent({ data }: { data: RoadmapData }) {
+  const { orgSlug } = useParams<{ orgSlug: string }>();
+  const qc = useQueryClient();
+  const { posts, isLoading, updateStatus, updateRank } = useRoadmap(
+    data.posts as Post[],
+    data.fetchedAt,
+  );
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const dragScroll = useDragToScroll();
+
+  return (
+    <>
       <div className="flex-1 min-h-0 px-8">
         <div
           ref={dragScroll.ref}
@@ -84,6 +107,6 @@ export default function RoadmapPage() {
           />
         </Suspense>
       )}
-    </div>
+    </>
   );
 }

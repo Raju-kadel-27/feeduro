@@ -8,9 +8,8 @@ import { loadAnalyticsOverview } from "@features/internal/analytics/server/overv
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { Star } from "lucide-react";
 import { lazy, Suspense } from "react";
-import { Link, useParams } from "react-router";
+import { Await, Link, useParams } from "react-router";
 import { getDb } from "~/middleware/cloudflare.server";
-
 import type { Route } from "./+types/analytics";
 
 const AnalyticsOverview = lazy(() =>
@@ -28,26 +27,37 @@ export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate 
 	return defaultShouldRevalidate;
 }
 
+type OverviewData = Awaited<ReturnType<typeof loadAnalyticsOverview>>;
+type AnalyticsData = OverviewData & { isDemo?: true };
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const db = getDb(context);
 	const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
-	const planLimits = await getOrgPlanLimits(db, organizationId);
-	if (!planLimits.analytics) {
-		return { ...getDemoAnalyticsData(), isDemo: true as const };
-	}
-	return loadAnalyticsOverview(db, request, params.orgSlug, context);
+	const dataPromise: Promise<AnalyticsData> = getOrgPlanLimits(db, organizationId).then((planLimits) => {
+		if (!planLimits.analytics) return { ...getDemoAnalyticsData(), isDemo: true as const };
+		return loadAnalyticsOverview(db, request, params.orgSlug, context);
+	});
+	return { dataPromise };
 }
 
-type OverviewData = Awaited<ReturnType<typeof loadAnalyticsOverview>>;
-
 export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
-	const { orgSlug } = useParams<{ orgSlug: string }>();
-
-	const isDemo = "isDemo" in loaderData;
-	const data = loaderData as unknown as OverviewData;
-
 	return (
 		<div className="flex flex-col overflow-y-auto">
+			<Suspense fallback={<AnalyticsPageSkeleton />}>
+				<Await resolve={loaderData.dataPromise as unknown as Promise<AnalyticsData>}>
+					{(pageData) => <AnalyticsContent data={pageData} />}
+				</Await>
+			</Suspense>
+		</div>
+	);
+}
+
+function AnalyticsContent({ data }: { data: AnalyticsData }) {
+	const { orgSlug } = useParams<{ orgSlug: string }>();
+	const isDemo = "isDemo" in data;
+
+	return (
+		<>
 			<div className="flex items-center justify-between px-6 py-3 border-b shrink-0">
 				<div className="flex items-center gap-3">
 					<SidebarTrigger className="-ml-1" />
@@ -91,7 +101,21 @@ export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
 			<Suspense fallback={<AnalyticsOverviewSkeleton />}>
 				<AnalyticsOverview data={data} />
 			</Suspense>
-		</div>
+		</>
+	);
+}
+
+function AnalyticsPageSkeleton() {
+	return (
+		<>
+			<div className="flex items-center px-6 py-3 border-b shrink-0">
+				<div className="flex items-center gap-3">
+					<SidebarTrigger className="-ml-1" />
+					<h1 className="text-lg font-bold">Analytics</h1>
+				</div>
+			</div>
+			<AnalyticsOverviewSkeleton />
+		</>
 	);
 }
 

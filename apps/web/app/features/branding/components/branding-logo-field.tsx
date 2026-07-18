@@ -28,8 +28,8 @@ export function BrandingLogoField({ value, onChange, name: _name }: BrandingLogo
 
   if (value) {
     return (
-      <div className="relative group w-[140px]">
-        <div className="h-14 rounded-lg border border-border overflow-hidden bg-muted flex items-center justify-center p-2">
+      <div className="relative group w-48">
+        <div className="h-24 rounded-lg border border-border overflow-hidden bg-muted flex items-center justify-center p-3">
           <img src={value} alt="logo" className="max-h-full max-w-full object-contain" />
         </div>
         <button
@@ -55,14 +55,14 @@ export function BrandingLogoField({ value, onChange, name: _name }: BrandingLogo
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={cn(
-          "w-[140px] h-14 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer",
+          "w-48 h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer",
           isDragging
             ? "border-primary bg-primary/5"
             : "border-border hover:border-foreground/30 hover:bg-muted/40",
         )}
       >
-        <Upload className="size-4 text-muted-foreground" />
-        <span className="text-[11px] text-muted-foreground leading-tight">
+        <Upload className="size-5 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground leading-tight">
           Drop or <span className="text-foreground">browse</span>
         </span>
       </button>

@@ -19,14 +19,14 @@ export function BrandingForm({ defaultValues, canHidePoweredBy }: BrandingFormPr
   const { control, register, formState, onSubmit, isSaving, proUnlocked } =
     useBrandingForm(defaultValues, canHidePoweredBy);
 
-  const [watchedName, watchedLogo, watchedColor, watchedTheme] = useWatch({
+  const [watchedName, watchedLogo, watchedColor, watchedTheme, watchedHidePoweredBy] = useWatch({
     control,
-    name: ["name", "logo", "primaryColor", "theme"],
+    name: ["name", "logo", "primaryColor", "theme", "hidePoweredBy"],
   });
 
   return (
-    <div className="flex gap-12 items-start">
-      <form onSubmit={onSubmit} className="flex-1 min-w-0">
+    <div className="grid grid-cols-1 lg:grid-cols-[540px_minmax(0,1fr)] gap-8 items-start">
+      <form onSubmit={onSubmit}>
         {/* Identity */}
         <Section title="Identity">
           <BrandingRow
@@ -129,14 +129,15 @@ export function BrandingForm({ defaultValues, canHidePoweredBy }: BrandingFormPr
         <BrandingActions isSubmitting={isSaving} isDirty={formState.isDirty} />
       </form>
 
-      {/* Live preview — visible on xl+ screens */}
-      <div className="sticky top-6 w-[300px] shrink-0 hidden xl:block">
+      {/* Live preview — visible on lg+ screens */}
+      <div className="sticky top-6 hidden lg:block">
         <p className="text-xs font-medium text-muted-foreground mb-3">Preview</p>
         <BrandingPreview
           name={watchedName}
           logo={watchedLogo}
           primaryColor={watchedColor}
           theme={watchedTheme}
+          hidePoweredBy={watchedHidePoweredBy}
         />
       </div>
     </div>

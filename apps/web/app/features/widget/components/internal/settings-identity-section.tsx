@@ -101,8 +101,7 @@ export function SettingsIdentitySection({
       </div>
 
       {/* Rotate secret */}
-      <div className="flex items-center gap-3 pt-1 border-t border-border/60">
-        <div className="flex items-center gap-3 pt-4">
+      <div className="flex items-center gap-3 pt-4 border-t border-border/60">
           <button
             type="button"
             onClick={onRotateSecret}
@@ -129,7 +128,6 @@ export function SettingsIdentitySection({
               Immediately invalidates all existing signatures.
             </p>
           )}
-        </div>
       </div>
     </section>
   );

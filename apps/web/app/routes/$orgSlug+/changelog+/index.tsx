@@ -21,8 +21,8 @@ import { listChangelogEntries } from "@features/changelog/server/list-entries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, FileText, Globe, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate, useOutlet, useParams } from "react-router";
+import { Suspense, useState } from "react";
+import { Await, Link, type ShouldRevalidateFunctionArgs, useNavigate, useOutlet, useParams } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -36,7 +36,7 @@ export function shouldRevalidate({
   currentUrl,
   nextUrl,
   defaultShouldRevalidate,
-}: Route.ShouldRevalidateArgs) {
+}: ShouldRevalidateFunctionArgs) {
   if (currentUrl.pathname === nextUrl.pathname) return false;
   return defaultShouldRevalidate;
 }
@@ -44,41 +44,64 @@ export function shouldRevalidate({
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
-  const entries = await listChangelogEntries(db, org.id);
-  return { user: session.user, changelogs: entries, fetchedAt: Date.now() };
+  const changelogs: Promise<ChangelogEntries> = listChangelogEntries(db, org.id);
+  return { user: session.user, changelogs, fetchedAt: Date.now() };
 }
 
-interface ChangelogEntry {
-  id: string;
-  title: string;
-  slug: string;
-  status: "draft" | "published";
-  publishedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  excerpt: string;
-}
+type ChangelogEntries = Awaited<ReturnType<typeof listChangelogEntries>>;
+type ChangelogEntry = ChangelogEntries[number];
 
 const STATUS_BADGE: Record<string, string> = {
   draft: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
   published: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400",
 };
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(date: Date | string) {
+  return new Date(date).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function ChangelogList({
-  userName,
+function ChangelogEntriesSkeleton() {
+  return (
+    <div className="space-y-2">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-center gap-3 rounded-lg border px-4 py-3">
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-48" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-14 rounded" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ChangelogContentSkeleton() {
+  return (
+    <main className="p-6 max-w-3xl mx-auto w-full">
+      <div className="flex items-center justify-between mb-6">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-9 w-28 rounded-md" />
+      </div>
+      <ChangelogEntriesSkeleton />
+    </main>
+  );
+}
+
+function ChangelogContent({
   initialChangelogs,
   fetchedAt,
 }: {
-  userName: string;
-  initialChangelogs: ChangelogEntry[];
+  initialChangelogs: ChangelogEntries;
   fetchedAt: number;
 }) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
@@ -120,140 +143,125 @@ function ChangelogList({
   const entries = data?.changelogs ?? [];
 
   return (
-        <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <div className="flex-1" />
-          <span className="text-sm text-muted-foreground">{userName}</span>
-        </header>
+    <>
+      <main className="p-6 max-w-3xl mx-auto w-full">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-semibold">Changelog</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Announce new features and updates to your customers.
+            </p>
+          </div>
+          <Link
+            to={`/${orgSlug}/changelog/new`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            New Entry
+          </Link>
+        </div>
 
-        <main className="p-6 max-w-3xl mx-auto w-full">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-semibold">Changelog</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Announce new features and updates to your customers.
-              </p>
-            </div>
+        {isLoading ? (
+          <ChangelogEntriesSkeleton />
+        ) : entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <FileText className="h-10 w-10 text-muted-foreground/40 mb-3" />
+            <p className="text-sm font-medium">No changelog entries yet</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Create your first entry to start announcing updates.
+            </p>
             <Link
               to={`/${orgSlug}/changelog/new`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
               New Entry
             </Link>
           </div>
-
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg border px-4 py-3">
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-48" />
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-4 w-14 rounded" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : entries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <FileText className="h-10 w-10 text-muted-foreground/40 mb-3" />
-              <p className="text-sm font-medium">No changelog entries yet</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Create your first entry to start announcing updates.
-              </p>
-              <Link
-                to={`/${orgSlug}/changelog/new`}
-                className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+        ) : (
+          <div className="space-y-2">
+            {entries.map((entry) => (
+              <div
+                key={entry.id}
+                className="group flex items-center gap-3 rounded-lg border bg-card px-4 py-3 hover:bg-muted/30 transition-colors"
               >
-                <Plus className="h-3.5 w-3.5" />
-                New Entry
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {entries.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="group flex items-center gap-3 rounded-lg border bg-card px-4 py-3 hover:bg-muted/30 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => navigate(`/${orgSlug}/changelog/${entry.id}`)}
+                  className="flex-1 min-w-0 text-left"
                 >
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/${orgSlug}/changelog/${entry.id}`)}
-                    className="flex-1 min-w-0 text-left"
-                  >
-                    <p className="text-sm font-medium truncate">{entry.title}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium",
-                          STATUS_BADGE[entry.status],
-                        )}
+                  <p className="text-sm font-medium truncate">{entry.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium",
+                        STATUS_BADGE[entry.status],
+                      )}
+                    >
+                      {entry.status === "published" ? (
+                        <Globe className="h-2.5 w-2.5" />
+                      ) : (
+                        <Clock className="h-2.5 w-2.5" />
+                      )}
+                      {entry.status === "published" ? "Published" : "Draft"}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {entry.publishedAt
+                        ? formatDate(entry.publishedAt)
+                        : `Updated ${formatDate(entry.updatedAt)}`}
+                    </span>
+                  </div>
+                  {entry.excerpt && (
+                    <p className="text-xs text-muted-foreground mt-1 truncate">{entry.excerpt}</p>
+                  )}
+                </button>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDeleteId(entry.id)}
+                        disabled={deleting}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-all text-muted-foreground disabled:opacity-30"
                       >
-                        {entry.status === "published" ? (
-                          <Globe className="h-2.5 w-2.5" />
-                        ) : (
-                          <Clock className="h-2.5 w-2.5" />
-                        )}
-                        {entry.status === "published" ? "Published" : "Draft"}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {entry.publishedAt
-                          ? formatDate(entry.publishedAt)
-                          : `Updated ${formatDate(entry.updatedAt)}`}
-                      </span>
-                    </div>
-                    {entry.excerpt && (
-                      <p className="text-xs text-muted-foreground mt-1 truncate">{entry.excerpt}</p>
-                    )}
-                  </button>
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={() => setPendingDeleteId(entry.id)}
-                          disabled={deleting}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-destructive/10 hover:text-destructive transition-all text-muted-foreground disabled:opacity-30"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Delete entry</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Delete entry</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
 
-        <AlertDialog open={!!pendingDeleteId} onOpenChange={(open) => !open && setPendingDeleteId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete changelog entry?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. The entry will be permanently deleted.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (pendingDeleteId) deleteEntry(pendingDeleteId);
-                  setPendingDeleteId(null);
-                }}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        </>
+      <AlertDialog
+        open={!!pendingDeleteId}
+        onOpenChange={(open) => !open && setPendingDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete changelog entry?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The entry will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDeleteId) deleteEntry(pendingDeleteId);
+                setPendingDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -261,10 +269,22 @@ export default function Changelog({ loaderData }: Route.ComponentProps) {
   const outlet = useOutlet();
   if (outlet) return <>{outlet}</>;
   return (
-    <ChangelogList
-      userName={loaderData.user.name ?? loaderData.user.email}
-      initialChangelogs={loaderData.changelogs}
-      fetchedAt={loaderData.fetchedAt}
-    />
+    <>
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarTrigger className="-ml-1" />
+        <div className="flex-1" />
+        <span className="text-sm text-muted-foreground">
+          {loaderData.user.name ?? loaderData.user.email}
+        </span>
+      </header>
+
+      <Suspense fallback={<ChangelogContentSkeleton />}>
+        <Await resolve={loaderData.changelogs as unknown as Promise<ChangelogEntries>}>
+          {(entries) => (
+            <ChangelogContent initialChangelogs={entries} fetchedAt={loaderData.fetchedAt} />
+          )}
+        </Await>
+      </Suspense>
+    </>
   );
 }

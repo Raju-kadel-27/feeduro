@@ -24,9 +24,23 @@ export default {
     };
 
     try {
-      return await run();
-    } finally {
+      const response = await run();
+
+      // Delay DB close until the response body is fully streamed. Without this,
+      // sql.end() races against deferred loader promises that still need DB
+      // access after the initial Response object is returned (e.g. analytics
+      // fetchAll's 20 queries start inside a .then() chain AFTER handler returns).
+      if (response.body) {
+        const { readable, writable } = new TransformStream();
+        ctx.waitUntil(response.body.pipeTo(writable).finally(() => close().catch(() => {})));
+        return new Response(readable, { status: response.status, headers: response.headers });
+      }
+
       ctx.waitUntil(close().catch(() => {}));
+      return response;
+    } catch (e) {
+      ctx.waitUntil(close().catch(() => {}));
+      throw e;
     }
   },
 };

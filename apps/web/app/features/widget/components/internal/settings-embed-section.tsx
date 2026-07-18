@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { buildBoardInlineSnippet } from "../../utils/snippet-builder";
 import { CodeBlock } from "./code-block";
 import { SectionHeading } from "./section-heading";
@@ -67,7 +68,10 @@ export function SettingsEmbedSection({ boards, theme, inlineBoardId, setInlineBo
 
       <p className="text-xs text-muted-foreground">
         Want to tie feedback to your logged-in users? See{" "}
-        <span className="font-medium text-foreground">Identity verification</span> below.
+        <Link to="?tab=security" className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80">
+          Identity verification
+        </Link>{" "}
+        in the Security tab.
       </p>
     </section>
   );

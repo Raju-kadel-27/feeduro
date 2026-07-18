@@ -1,15 +1,29 @@
 import { PageHeader } from "@components/common/page-header";
+import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { FeedbackSettingsPanel } from "@features/feedback/components/settings/feedback-settings-panel";
+import type { FeedbackBoard } from "@features/feedback/components/settings/types";
 import { getOrgCategories } from "@features/feedback/server/categories";
 import { parseFeedbackSettings } from "@features/feedback/server/feedback-settings";
 import { getOrgTags } from "@features/feedback/server/tags";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { MessageSquare } from "lucide-react";
+import { Suspense } from "react";
+import { Await } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { feedbackBoards, feedbackPosts, member, organization } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/feedback";
+
+type FeedbackData = {
+  boards: Omit<FeedbackBoard, "color">[];
+  isAdmin: boolean;
+  limit: number;
+  tags: { id: string; name: string; color: string }[];
+  categories: { id: string; name: string; color: string }[];
+  enableRoadmap: boolean;
+  weeklyDigest: boolean;
+};
 
 export function meta() {
   return [{ title: "Feedback Settings — Feeduro" }];
@@ -19,13 +33,14 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [boards, memberRecord, countRows, org] = await Promise.all([
+  const dataPromise: Promise<FeedbackData> = Promise.all([
     db.query.feedbackBoards.findMany({
       where: eq(feedbackBoards.organizationId, organizationId),
       orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
     }),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
     }),
     db
       .select({
@@ -37,65 +52,54 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       .groupBy(feedbackPosts.boardId),
     db.query.organization.findFirst({
       where: eq(organization.id, organizationId),
+      columns: { metadata: true },
     }),
-  ]);
+    getOrgTags(db, organizationId).catch(() => [] as { id: string; name: string; color: string }[]),
+    getOrgCategories(db, organizationId).catch(() => [] as { id: string; name: string; color: string }[]),
+  ]).then(([boards, memberRecord, countRows, org, tags, categories]) => {
+    const countMap = Object.fromEntries(countRows.map((r) => [r.boardId, r.count]));
+    const feedbackSettings = parseFeedbackSettings(org?.metadata ?? null);
+    return {
+      boards: boards.map((b) => ({ ...b, postCount: countMap[b.id] ?? 0 })),
+      isAdmin: memberRecord?.role === "admin",
+      limit: 2,
+      tags,
+      categories,
+      ...feedbackSettings,
+    };
+  });
 
-  let tags: { id: string; name: string; color: string }[] = [];
-  let categories: { id: string; name: string; color: string }[] = [];
-  try {
-    [tags, categories] = await Promise.all([
-      getOrgTags(db, organizationId),
-      getOrgCategories(db, organizationId),
-    ]);
-  } catch {
-    /* tables may not exist yet — run pnpm db:push */
-  }
-
-  const countMap = Object.fromEntries(countRows.map((r) => [r.boardId, r.count]));
-  const feedbackSettings = parseFeedbackSettings(org?.metadata ?? null);
-  return {
-    boards: boards.map((b) => ({ ...b, postCount: countMap[b.id] ?? 0 })),
-    isAdmin: memberRecord?.role === "admin",
-    limit: 2,
-    tags,
-    categories,
-    ...feedbackSettings,
-  };
+  return { dataPromise };
 }
 
 export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentProps) {
-  const {
-    boards,
-    isAdmin,
-    limit,
-    enableRoadmap,
-    weeklyDigest,
-    tags,
-    categories,
-  } = loaderData;
-
   return (
-        <>
-        <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
-
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader
-            title="Feedback"
-            icon={MessageSquare}
-            description="Configure feedback behavior, boards, tags, and categories for your workspace."
-          />
-          <FeedbackSettingsPanel
-            boards={boards}
-            tags={tags}
-            categories={categories}
-            isAdmin={isAdmin ?? false}
-            limit={limit}
-            enableRoadmap={enableRoadmap}
-            weeklyDigest={weeklyDigest}
-          />
-        </main>
-        </>
+    <>
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
+      <Suspense fallback={<SettingsContentSkeleton />}>
+        <Await resolve={loaderData.dataPromise as unknown as Promise<FeedbackData>}>
+          {(pageData) => (
+            <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+              <PageHeader
+                title="Feedback"
+                icon={MessageSquare}
+                description="Configure feedback behavior, boards, tags, and categories for your workspace."
+              />
+              <FeedbackSettingsPanel
+                boards={pageData.boards}
+                tags={pageData.tags}
+                categories={pageData.categories}
+                isAdmin={pageData.isAdmin}
+                limit={pageData.limit}
+                enableRoadmap={pageData.enableRoadmap}
+                weeklyDigest={pageData.weeklyDigest}
+              />
+            </main>
+          )}
+        </Await>
+      </Suspense>
+    </>
   );
 }

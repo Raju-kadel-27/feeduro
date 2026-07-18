@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
@@ -49,6 +50,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="role settings" />;
+}
+
 export default function RolesSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
@@ -58,7 +63,10 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
         <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<RolesData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<RolesData>}
+          errorElement={<RouteErrorMessage resource="role settings" />}
+        >
           {(pageData) => {
             if ("planLocked" in pageData) {
               return (

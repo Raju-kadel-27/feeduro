@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { ColumnSkeleton } from "@features/roadmap/components/internal/column-skeleton";
 import { KanbanBoard } from "@features/roadmap/components/internal/kanban-board";
@@ -35,6 +36,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="the roadmap" />;
+}
+
 export default function RoadmapPage({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex flex-col h-svh">
@@ -43,7 +48,10 @@ export default function RoadmapPage({ loaderData }: Route.ComponentProps) {
         <PageHeader title="Roadmap" />
       </header>
       <Suspense fallback={<RoadmapBoardSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<RoadmapData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<RoadmapData>}
+          errorElement={<RouteErrorMessage resource="the roadmap" />}
+        >
           {(data) => <RoadmapContent data={data} />}
         </Await>
       </Suspense>

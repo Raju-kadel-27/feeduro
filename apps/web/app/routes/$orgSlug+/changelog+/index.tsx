@@ -1,3 +1,4 @@
+import { RouteErrorMessage } from "@components/common/route-error";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +47,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
   const changelogs: Promise<ChangelogEntries> = listChangelogEntries(db, org.id);
   return { user: session.user, changelogs, fetchedAt: Date.now() };
+}
+
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="the changelog" />;
 }
 
 type ChangelogEntries = Awaited<ReturnType<typeof listChangelogEntries>>;
@@ -279,7 +284,10 @@ export default function Changelog({ loaderData }: Route.ComponentProps) {
       </header>
 
       <Suspense fallback={<ChangelogContentSkeleton />}>
-        <Await resolve={loaderData.changelogs as unknown as Promise<ChangelogEntries>}>
+        <Await
+          resolve={loaderData.changelogs as unknown as Promise<ChangelogEntries>}
+          errorElement={<RouteErrorMessage resource="the changelog" />}
+        >
           {(entries) => (
             <ChangelogContent initialChangelogs={entries} fetchedAt={loaderData.fetchedAt} />
           )}

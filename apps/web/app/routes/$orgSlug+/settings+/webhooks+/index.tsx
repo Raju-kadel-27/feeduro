@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { PlanBanner } from "@features/internal/billing/components/plan-banner";
@@ -32,6 +33,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="webhook settings" />;
+}
+
 export default function WebhooksRoute({ loaderData, params }: Route.ComponentProps) {
   const orgSlug = params.orgSlug;
 
@@ -41,7 +46,10 @@ export default function WebhooksRoute({ loaderData, params }: Route.ComponentPro
         <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<WebhooksData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<WebhooksData>}
+          errorElement={<RouteErrorMessage resource="webhook settings" />}
+        >
           {(pageData) => {
             if ("planLocked" in pageData) {
               return (

@@ -1,3 +1,4 @@
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsSkeleton } from "@components/common/settings-skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
@@ -27,6 +28,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="integrations" />;
+}
+
 const UpdateEventsSchema = z.object({
   intent: z.literal("update_notification_events"),
   events: z
@@ -51,7 +56,10 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 export default function IntegrationsRoute({ loaderData }: Route.ComponentProps) {
   return (
     <Suspense fallback={<SettingsSkeleton />}>
-      <Await resolve={loaderData.dataPromise as unknown as Promise<IntegrationsData>}>
+      <Await
+        resolve={loaderData.dataPromise as unknown as Promise<IntegrationsData>}
+        errorElement={<RouteErrorMessage resource="integrations" />}
+      >
         {(pageData) => {
           if ("planLocked" in pageData) return <LockedIntegrationsPage />;
           return <IntegrationsPage loaderData={pageData} />;

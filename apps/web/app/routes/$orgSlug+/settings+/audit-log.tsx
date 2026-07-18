@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { requireAdmin, requireOrgBySlug } from "@features/auth/server/guards";
 import { AuditLogPage } from "@features/internal/audit/components/audit-log-page";
@@ -47,11 +48,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 }
 
 export function ErrorBoundary() {
-  return (
-    <div className="p-6">
-      <p className="text-sm text-destructive">Failed to load audit log. Please refresh.</p>
-    </div>
-  );
+  return <RouteErrorMessage resource="the audit log" />;
 }
 
 export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
@@ -63,7 +60,10 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
         <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<AuditData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<AuditData>}
+          errorElement={<RouteErrorMessage resource="the audit log" />}
+        >
           {(pageData) => {
             if ("planLocked" in pageData) {
               return <UpgradeWall feature="auditLog" orgSlug={orgSlug!} />;

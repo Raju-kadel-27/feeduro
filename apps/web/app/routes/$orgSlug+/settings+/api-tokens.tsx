@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import {
   Dialog,
@@ -106,11 +107,7 @@ function formatDate(date: Date | null) {
 }
 
 export function ErrorBoundary() {
-  return (
-    <div className="p-6 text-sm text-destructive">
-      Failed to load API tokens. Please refresh and try again.
-    </div>
-  );
+  return <RouteErrorMessage resource="API tokens" />;
 }
 
 export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) {
@@ -120,7 +117,10 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
         <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<ApiTokensData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<ApiTokensData>}
+          errorElement={<RouteErrorMessage resource="API tokens" />}
+        >
           {(pageData) => <ApiTokensContent {...pageData} />}
         </Await>
       </Suspense>

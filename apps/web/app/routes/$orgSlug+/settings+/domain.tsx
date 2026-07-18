@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
@@ -68,6 +69,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="domain settings" />;
+}
+
 async function callDomainApi(body: object): Promise<{ error?: string; verified?: boolean }> {
   const res = await fetch("/api/domain", {
     method: "POST",
@@ -88,7 +93,10 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
         <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<DomainData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<DomainData>}
+          errorElement={<RouteErrorMessage resource="domain settings" />}
+        >
           {(pageData) => {
             if ("planLocked" in pageData) {
               return (

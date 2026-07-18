@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import {
   Tooltip,
@@ -7,13 +8,13 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getDb } from "~/middleware/cloudflare.server";
 import { authClient } from "@lib/auth/client";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Fingerprint, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/passkeys";
 
@@ -25,6 +26,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   await requireOrgBySlug(db, request, params.orgSlug);
   return null;
+}
+
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="passkey settings" />;
 }
 
 interface PasskeyRecord {

@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { FeedbackSettingsPanel } from "@features/feedback/components/settings/feedback-settings-panel";
@@ -72,6 +73,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="feedback settings" />;
+}
+
 export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentProps) {
   return (
     <>
@@ -79,7 +84,10 @@ export default function FeedbackSettingsRoute({ loaderData }: Route.ComponentPro
         <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<FeedbackData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<FeedbackData>}
+          errorElement={<RouteErrorMessage resource="feedback settings" />}
+        >
           {(pageData) => (
             <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
               <PageHeader

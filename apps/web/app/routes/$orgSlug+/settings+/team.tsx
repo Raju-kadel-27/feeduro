@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import {
   Dialog,
@@ -73,6 +74,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function ErrorBoundary() {
+  return <RouteErrorMessage resource="team settings" />;
+}
+
 const ROLES = [
   { value: "admin", label: "Admin" },
   { value: "member", label: "Member" },
@@ -108,7 +113,10 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
         <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
-        <Await resolve={loaderData.dataPromise as unknown as Promise<TeamData>}>
+        <Await
+          resolve={loaderData.dataPromise as unknown as Promise<TeamData>}
+          errorElement={<RouteErrorMessage resource="team settings" />}
+        >
           {(pageData) => {
             if ("planLocked" in pageData) {
               return (

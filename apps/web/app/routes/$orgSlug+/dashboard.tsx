@@ -1,3 +1,4 @@
+import { RouteErrorMessage } from "@components/common/route-error";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getBoards, getEnrichedPosts } from "@features/feedback/server/queries";
 import { getOrgTags } from "@features/feedback/server/tags";
@@ -62,10 +63,17 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	return { dataPromise };
 }
 
+export function ErrorBoundary() {
+	return <RouteErrorMessage resource="requests" />;
+}
+
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
 	return (
 		<Suspense fallback={<DashboardSkeleton />}>
-			<Await resolve={loaderData.dataPromise as unknown as Promise<DashboardLoaderData>}>
+			<Await
+				resolve={loaderData.dataPromise as unknown as Promise<DashboardLoaderData>}
+				errorElement={<RouteErrorMessage resource="requests" />}
+			>
 				{(data) => <DashboardContent data={data} />}
 			</Await>
 		</Suspense>

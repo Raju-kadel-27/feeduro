@@ -1,3 +1,4 @@
+import { RouteErrorMessage } from "@components/common/route-error";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
@@ -40,11 +41,18 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	return { dataPromise };
 }
 
+export function ErrorBoundary() {
+	return <RouteErrorMessage resource="analytics" />;
+}
+
 export default function AnalyticsPage({ loaderData }: Route.ComponentProps) {
 	return (
 		<div className="flex flex-col overflow-y-auto">
 			<Suspense fallback={<AnalyticsPageSkeleton />}>
-				<Await resolve={loaderData.dataPromise as unknown as Promise<AnalyticsData>}>
+				<Await
+					resolve={loaderData.dataPromise as unknown as Promise<AnalyticsData>}
+					errorElement={<RouteErrorMessage resource="analytics" />}
+				>
 					{(pageData) => <AnalyticsContent data={pageData} />}
 				</Await>
 			</Suspense>

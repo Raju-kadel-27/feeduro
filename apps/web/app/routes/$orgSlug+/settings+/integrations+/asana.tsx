@@ -34,6 +34,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const [memberRecord, integration] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
     }),
     getIntegration(db, organizationId, "asana"),
   ]);
@@ -327,7 +328,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                         onChange={(e) => {
                           const opt = e.target.options[e.target.selectedIndex];
                           setSelectedProjectGid(e.target.value);
-                          setSelectedProjectName(opt.text);
+                          setSelectedProjectName(opt?.text ?? "");
                         }}
                         className="w-full appearance-none px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary pr-8"
                       >

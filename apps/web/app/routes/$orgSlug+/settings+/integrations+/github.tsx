@@ -14,6 +14,7 @@ import {
   Link2,
   RefreshCw,
   Settings2,
+  Unlink,
   Unplug,
 } from "lucide-react";
 import { useState } from "react";
@@ -36,6 +37,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     getIntegration(db, organizationId, "github"),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
     }),
   ]);
 

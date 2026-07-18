@@ -34,6 +34,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const [memberRecord, integration] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
     }),
     getIntegration(db, organizationId, "jira"),
   ]);

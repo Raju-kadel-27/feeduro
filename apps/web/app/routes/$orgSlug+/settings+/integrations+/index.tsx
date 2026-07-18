@@ -1,20 +1,30 @@
+import { SettingsSkeleton } from "@components/common/settings-skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import IntegrationsPage from "@features/internal/integrations/components/integrations-page";
 import { LockedIntegrationsPage } from "@features/internal/integrations/components/locked-integrations-page";
+import type { IntegrationsLoaderData } from "@features/internal/integrations/server/loader";
 import { integrationsLoader } from "@features/internal/integrations/server/loader";
 import { upsertNotificationSettings } from "@features/internal/integrations/server/queries";
-import { data } from "react-router";
+import { Suspense } from "react";
+import { Await, data } from "react-router";
 import { z } from "zod";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/index";
 
+type IntegrationsData = IntegrationsLoaderData | { planLocked: true };
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
-  const planLimits = await getOrgPlanLimits(db, organizationId);
-  if (planLimits.integrations === 0) return data({ planLocked: true as const });
-  return integrationsLoader(db, { request, params, context });
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  const dataPromise: Promise<IntegrationsData> = Promise.all([
+    getOrgPlanLimits(db, organizationId),
+    integrationsLoader(db, organizationId, session.user.id),
+  ]).then(([planLimits, loaderData]) => {
+    if (planLimits.integrations === 0) return { planLocked: true as const };
+    return loaderData;
+  });
+  return { dataPromise };
 }
 
 const UpdateEventsSchema = z.object({
@@ -39,9 +49,14 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 }
 
 export default function IntegrationsRoute({ loaderData }: Route.ComponentProps) {
-  if ("planLocked" in loaderData) {
-    return <LockedIntegrationsPage />;
-  }
-
-  return <IntegrationsPage />;
+  return (
+    <Suspense fallback={<SettingsSkeleton />}>
+      <Await resolve={loaderData.dataPromise as unknown as Promise<IntegrationsData>}>
+        {(pageData) => {
+          if ("planLocked" in pageData) return <LockedIntegrationsPage />;
+          return <IntegrationsPage loaderData={pageData} />;
+        }}
+      </Await>
+    </Suspense>
+  );
 }

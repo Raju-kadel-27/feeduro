@@ -16,6 +16,11 @@
   // Postgres over Hyperdrive. In local dev (vite / miniflare) the binding uses
   // `localConnectionString` and connects straight to the docker Postgres; in
   // deployed environments it uses the Hyperdrive config identified by `id`.
+  // Deployed envs should ALSO set a DATABASE_URL secret (direct Neon URL,
+  // `wrangler secret put DATABASE_URL --env production`): it enables the Neon
+  // HTTP read path in db/index.ts, which skips the per-request TCP handshake.
+  // Transactions still run over this Hyperdrive binding. Without the secret,
+  // everything falls back to Hyperdrive — slower but fully functional.
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",

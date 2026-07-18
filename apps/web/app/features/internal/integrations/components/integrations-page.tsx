@@ -1,5 +1,4 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
-import { useLoaderData } from "react-router";
 import type { IntegrationsLoaderData } from "../server/loader";
 import { AutomationIntegrations } from "./automation-integrations";
 import { CrmIntegrations } from "./crm-integrations";
@@ -8,8 +7,7 @@ import { IntegrationsPageHeader } from "./page-header";
 import { ProjectManagementIntegrations } from "./project-management-integrations";
 import { SocialLoginIntegrations } from "./social-logins-integrations";
 
-export default function IntegrationsSettings() {
-  const loaderData = useLoaderData() as IntegrationsLoaderData;
+export default function IntegrationsSettings({ loaderData }: { loaderData: IntegrationsLoaderData }) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">

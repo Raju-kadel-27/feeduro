@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { PlanBanner } from "@features/internal/billing/components/plan-banner";
@@ -11,12 +12,16 @@ import { getAuth } from "@lib/auth/server";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Plus, ShieldCheck, Star } from "lucide-react";
-import { useState } from "react";
-import { data, Link, useParams } from "react-router";
+import { Suspense, useState } from "react";
+import { Await, Link, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/roles";
+
+type RolesData =
+  | { planLocked: true }
+  | { roles: OrgRole[]; isAdmin: boolean; organizationId: string };
 
 export function meta() {
   return [{ title: "Roles — Feeduro" }];
@@ -25,68 +30,82 @@ export function meta() {
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
-  const planLimits = await getOrgPlanLimits(db, organizationId);
-  if (!planLimits.customRoles) return data({ planLocked: true as const });
-
-  const [memberRecord, rolesResult] = await Promise.all([
+  const dataPromise: Promise<RolesData> = Promise.all([
+    getOrgPlanLimits(db, organizationId),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
     }),
-    getAuth(db).api.listOrgRoles({ headers: request.headers, query: { organizationId } }),
-  ]);
-
-  return data({
-    roles: (Array.isArray(rolesResult) ? rolesResult : []) as OrgRole[],
-    isAdmin: memberRecord?.role === "admin",
-    organizationId,
+    // biome-ignore lint/suspicious/noExplicitAny: Better Auth organization plugin endpoints are not statically inferred
+    (getAuth(db).api as any).listOrgRoles({ headers: request.headers, query: { organizationId } }),
+  ]).then(([planLimits, memberRecord, rolesResult]) => {
+    if (!planLimits.customRoles) return { planLocked: true as const };
+    return {
+      roles: (Array.isArray(rolesResult) ? rolesResult : []) as OrgRole[],
+      isAdmin: memberRecord?.role === "admin",
+      organizationId,
+    };
   });
+  return { dataPromise };
 }
 
 export default function RolesSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
-  if ("planLocked" in loaderData) {
-    return (
-      <>
-        <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader
-            title="Roles & Permissions"
-            icon={ShieldCheck}
-            action={
-              <Link
-                to={`/${orgSlug}/settings/billing`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-              >
-                <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
-                Upgrade
-              </Link>
+  return (
+    <>
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
+      <Suspense fallback={<SettingsContentSkeleton />}>
+        <Await resolve={loaderData.dataPromise as unknown as Promise<RolesData>}>
+          {(pageData) => {
+            if ("planLocked" in pageData) {
+              return (
+                <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+                  <PageHeader
+                    title="Roles & Permissions"
+                    icon={ShieldCheck}
+                    action={
+                      <Link
+                        to={`/${orgSlug}/settings/billing`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                      >
+                        <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
+                        Upgrade
+                      </Link>
+                    }
+                  />
+                  <div className="rounded-lg border bg-muted/30 p-4">
+                    <p className="text-sm font-medium mb-1">Built-in roles</p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      These roles are managed by the system and cannot be edited.
+                    </p>
+                    <div className="flex gap-2" role="list" aria-label="Built-in roles">
+                      {["admin", "member", "viewer"].map((r) => (
+                        <span key={r} role="listitem" className="px-2.5 py-0.5 rounded-full bg-background border text-xs font-medium capitalize">
+                          {r}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <PlanBanner>
+                    Custom roles are available on the <span className="font-semibold">Professional</span> plan.
+                  </PlanBanner>
+                </main>
+              );
             }
-          />
-          <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-sm font-medium mb-1">Built-in roles</p>
-            <p className="text-xs text-muted-foreground mb-3">
-              These roles are managed by the system and cannot be edited.
-            </p>
-            <div className="flex gap-2" role="list" aria-label="Built-in roles">
-              {["admin", "member", "viewer"].map((r) => (
-                <span key={r} role="listitem" className="px-2.5 py-0.5 rounded-full bg-background border text-xs font-medium capitalize">
-                  {r}
-                </span>
-              ))}
-            </div>
-          </div>
-          <PlanBanner>
-            Custom roles are available on the <span className="font-semibold">Professional</span> plan.
-          </PlanBanner>
-        </main>
-      </>
-    );
-  }
+            return <RolesContent {...pageData} />;
+          }}
+        </Await>
+      </Suspense>
+    </>
+  );
+}
 
+type RolesContentProps = Exclude<RolesData, { planLocked: true }>;
+
+function RolesContent({ roles: initialRoles, isAdmin, organizationId }: RolesContentProps) {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
 
@@ -96,7 +115,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
       const result = await authClient.organization.listRoles();
       return (result.data ?? []) as OrgRole[];
     },
-    initialData: loaderData.roles,
+    initialData: initialRoles,
     staleTime: 30_000,
   });
 
@@ -154,19 +173,15 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["org-roles"] }),
   });
 
-  const roles = rolesData ?? loaderData.roles;
+  const roles = rolesData ?? initialRoles;
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
-      </header>
-
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Roles & Permissions"
           icon={ShieldCheck}
-          action={loaderData.isAdmin ? (
+          action={isAdmin ? (
             <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
               <Plus className="h-4 w-4" />
               New Role
@@ -199,7 +214,7 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
           </p>
           <RolesTable
             roles={roles}
-            isAdmin={loaderData.isAdmin}
+            isAdmin={isAdmin}
             onDelete={(roleId) => deleteRole(roleId)}
             onUpdate={(roleId, name, permissions) => updateRole({ roleId, name, permissions })}
             deletingRoleId={isDeleting ? deletingRoleId : undefined}

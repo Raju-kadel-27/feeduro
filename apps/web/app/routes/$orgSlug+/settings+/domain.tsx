@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { PlanBanner } from "@features/internal/billing/components/plan-banner";
@@ -6,8 +7,8 @@ import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits"
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { AlertCircle, Check, CheckCircle2, Clock, Copy, Globe, RefreshCw, Star, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useParams, useRevalidator } from "react-router";
+import { Suspense, useEffect, useState } from "react";
+import { Await, Link, useParams, useRevalidator } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { customDomains, member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
@@ -16,28 +17,6 @@ import type { Route } from "./+types/domain";
 
 export function meta() {
   return [{ title: "Domain Settings — Feeduro" }];
-}
-
-export async function loader({ request, params, context }: Route.LoaderArgs) {
-  const db = getDb(context);
-  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
-
-  const [domain, memberRecord, planLimits] = await Promise.all([
-    db.query.customDomains.findFirst({
-      where: eq(customDomains.organizationId, organizationId),
-    }),
-    db.query.member.findFirst({
-      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
-    }),
-    getOrgPlanLimits(db, organizationId),
-  ]);
-
-  if (!planLimits.customDomain) return { planLocked: true as const };
-
-  return {
-    domain: domain ?? null,
-    isAdmin: memberRecord?.role === "admin",
-  };
 }
 
 type DomainRecord = {
@@ -65,6 +44,30 @@ function validateDomain(val: string): string | null {
   return null;
 }
 
+type DomainData = { planLocked: true } | { domain: DomainRecord | null; isAdmin: boolean };
+
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const db = getDb(context);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+
+  const dataPromise: Promise<DomainData> = Promise.all([
+    db.query.customDomains.findFirst({
+      where: eq(customDomains.organizationId, organizationId),
+      columns: { id: true, domain: true, status: true, verifiedAt: true },
+    }),
+    db.query.member.findFirst({
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
+    }),
+    getOrgPlanLimits(db, organizationId),
+  ]).then(([domain, memberRecord, planLimits]) => {
+    if (!planLimits.customDomain) return { planLocked: true as const };
+    return { domain: (domain ?? null) as DomainRecord | null, isAdmin: memberRecord?.role === "admin" };
+  });
+
+  return { dataPromise };
+}
+
 async function callDomainApi(body: object): Promise<{ error?: string; verified?: boolean }> {
   const res = await fetch("/api/domain", {
     method: "POST",
@@ -79,46 +82,56 @@ async function callDomainApi(body: object): Promise<{ error?: string; verified?:
 export default function DomainSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
-  if ("planLocked" in loaderData) {
-    return (
-      <>
-        <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader
-            title="Custom Domain"
-            description="Point a custom domain to this workspace so your users see your brand, not ours."
-            icon={Globe}
-          />
-          <PlanBanner>
-            Custom domains are available on the <span className="font-semibold">Professional</span> plan.
-          </PlanBanner>
-          <section className="flex flex-wrap gap-2 items-end">
-            <div className="flex-1 min-w-[220px] space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Domain</label>
-              <input
-                type="text"
-                disabled
-                className="w-full px-3 py-2 rounded-md border bg-muted text-sm opacity-50 cursor-not-allowed"
-                placeholder="feedback.company.com"
-              />
-            </div>
-            <Link
-              to={`/${orgSlug}/settings/billing`}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors"
-            >
-              Upgrade
-              <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" aria-hidden="true" />
-            </Link>
-          </section>
-        </main>
-      </>
-    );
-  }
+  return (
+    <>
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
+      <Suspense fallback={<SettingsContentSkeleton />}>
+        <Await resolve={loaderData.dataPromise as unknown as Promise<DomainData>}>
+          {(pageData) => {
+            if ("planLocked" in pageData) {
+              return (
+                <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+                  <PageHeader
+                    title="Custom Domain"
+                    description="Point a custom domain to this workspace so your users see your brand, not ours."
+                    icon={Globe}
+                  />
+                  <PlanBanner>
+                    Custom domains are available on the <span className="font-semibold">Professional</span> plan.
+                  </PlanBanner>
+                  <section className="flex flex-wrap gap-2 items-end">
+                    <div className="flex-1 min-w-[220px] space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Domain</label>
+                      <input
+                        type="text"
+                        disabled
+                        className="w-full px-3 py-2 rounded-md border bg-muted text-sm opacity-50 cursor-not-allowed"
+                        placeholder="feedback.company.com"
+                      />
+                    </div>
+                    <Link
+                      to={`/${orgSlug}/settings/billing`}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors"
+                    >
+                      Upgrade
+                      <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" aria-hidden="true" />
+                    </Link>
+                  </section>
+                </main>
+              );
+            }
+            return <DomainContent domain={pageData.domain} isAdmin={pageData.isAdmin} />;
+          }}
+        </Await>
+      </Suspense>
+    </>
+  );
+}
 
-  const { domain: initialDomain, isAdmin } = loaderData;
-  const domain = initialDomain as DomainRecord | null;
+function DomainContent({ domain: initialDomain, isAdmin }: { domain: DomainRecord | null; isAdmin: boolean }) {
+  const domain = initialDomain;
   const revalidator = useRevalidator();
 
   const [domainInput, setDomainInput] = useState("");
@@ -172,15 +185,10 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
   const isApex = domain ? APEX_RE.test(domain.domain) : false;
 
   return (
-    <>
-      <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
-      </header>
-
-      <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-        <PageHeader
-          title="Custom Domain"
-          description="Point a custom domain to this workspace so your users see your brand, not ours."
+    <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+      <PageHeader
+        title="Custom Domain"
+        description="Point a custom domain to this workspace so your users see your brand, not ours."
           icon={Globe}
         />
 
@@ -378,7 +386,6 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
             <p className="mt-2 text-sm text-destructive" role="alert">{(addError as Error).message}</p>
           )}
         </section>
-      </main>
-    </>
+    </main>
   );
 }

@@ -35,6 +35,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     getIntegration(db, organizationId, "linear"),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
     }),
   ]);
 
@@ -44,6 +45,8 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
         workspaceName?: string;
         defaultTeamId?: string;
         autoCreateIssues?: boolean;
+        webhookId?: string;
+        statusMappings?: Array<{ linearStateId: string; linearStateName: string; feeduroStatus: string }>;
       })
     : null;
 
@@ -206,7 +209,7 @@ export default function LinearIntegrationSettings({ loaderData }: Route.Componen
   // statusMappings: linearStateId → feeduroStatus
   const [statusMappings, setStatusMappings] = useState<Record<string, string>>(
     Object.fromEntries(
-      (integration?.statusMappings ?? []).map((m) => [m.linearStateId, m.feeduroStatus]),
+      (integration?.statusMappings ?? []).map((m: { linearStateId: string; feeduroStatus: string }) => [m.linearStateId, m.feeduroStatus]),
     ),
   );
 

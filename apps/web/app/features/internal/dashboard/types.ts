@@ -165,6 +165,20 @@ export function postMatchesFilters(
   return true;
 }
 
+export type DashboardLoaderData = {
+  user: { id: string; name: string | null; email: string; image: string | null };
+  isAdmin: boolean;
+  usersMap: Record<string, { name: string | null; image: string | null }>;
+  orgMembers: Array<{ id: string; name: string | null; image: string | null }>;
+  posts: Post[];
+  boards: Board[];
+  statusCounts: Record<string, number>;
+  boardsLimit: number;
+  views: View[];
+  tags: Tag[];
+  fetchedAt: number;
+};
+
 export function mergeFilters(viewFilters: ViewFilters, refinements: Refinements): ViewFilters {
   const merged: ViewFilters = { ...viewFilters };
   if (refinements.board?.length) merged.board = refinements.board;

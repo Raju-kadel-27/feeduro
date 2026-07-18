@@ -1,118 +1,79 @@
-import { requireOrgBySlug } from "@features/auth/server/guards";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { Db } from "@/db";
-import { member } from "@/db/schema";
-import type { Route } from "../../../+types/root";
+import { integrations, member } from "@/db/schema";
 import { parseSettings } from "../utils";
-import { getIntegration } from "./queries";
+import type { IntegrationProvider } from "./queries";
 
-export async function integrationsLoader(db: Db, { request, params }: Route.LoaderArgs) {
-  if (!params.orgSlug) {
-    throw new Response("Organization slug is required", { status: 400 });
-  }
+const PROVIDERS: IntegrationProvider[] = [
+  "github",
+  "linear",
+  "jira",
+  "asana",
+  "notion",
+  "monday",
+  "trello",
+  "shortcut",
+  "zapier",
+  "n8n",
+  "zendesk",
+  "hubspot",
+  "salesforce",
+  "clickup",
+  "notifications",
+];
 
-  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+type IntegrationRow = { provider: IntegrationProvider; accessToken: string | null; settings: string | null };
 
-  const [
-    memberRecord,
-    githubIntegration,
-    linearIntegration,
-    jiraIntegration,
-    asanaIntegration,
-    notionIntegration,
-    mondayIntegration,
-    trelloIntegration,
-    shortcutIntegration,
-    zapierIntegration,
-    n8nIntegration,
-    zendeskIntegration,
-    hubspotIntegration,
-    salesforceIntegration,
-    clickupIntegration,
-    notificationsIntegration,
-  ] = await Promise.all([
+export async function integrationsLoader(db: Db, organizationId: string, userId: string) {
+  const [memberRecord, rows] = await Promise.all([
     db.query.member.findFirst({
-      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, userId)),
+      columns: { role: true },
     }),
-
-    getIntegration(db, organizationId, "github"),
-    getIntegration(db, organizationId, "linear"),
-    getIntegration(db, organizationId, "jira"),
-    getIntegration(db, organizationId, "asana"),
-    getIntegration(db, organizationId, "notion"),
-    getIntegration(db, organizationId, "monday"),
-    getIntegration(db, organizationId, "trello"),
-    getIntegration(db, organizationId, "shortcut"),
-    getIntegration(db, organizationId, "zapier"),
-    getIntegration(db, organizationId, "n8n"),
-    getIntegration(db, organizationId, "zendesk"),
-    getIntegration(db, organizationId, "hubspot"),
-    getIntegration(db, organizationId, "salesforce"),
-    getIntegration(db, organizationId, "clickup"),
-    getIntegration(db, organizationId, "notifications"),
+    db.query.integrations.findMany({
+      where: and(
+        eq(integrations.organizationId, organizationId),
+        inArray(integrations.provider, PROVIDERS),
+      ),
+      columns: { provider: true, accessToken: true, settings: true },
+    }),
   ]);
 
-  const githubSettings = parseSettings<{
-    repoOwner?: string;
-    repoName?: string;
-  }>(githubIntegration?.settings);
+  const byProvider = Object.fromEntries(
+    (rows as IntegrationRow[]).map((r) => [r.provider, r]),
+  ) as Partial<Record<IntegrationProvider, IntegrationRow>>;
 
-  const linearSettings = parseSettings<{
-    workspaceName?: string;
-  }>(linearIntegration?.settings);
+  const get = (p: IntegrationProvider): IntegrationRow | null => byProvider[p] ?? null;
 
-  const jiraSettings = parseSettings<{
-    cloudName?: string;
-  }>(jiraIntegration?.settings);
+  const githubIntegration = get("github");
+  const linearIntegration = get("linear");
+  const jiraIntegration = get("jira");
+  const asanaIntegration = get("asana");
+  const notionIntegration = get("notion");
+  const mondayIntegration = get("monday");
+  const trelloIntegration = get("trello");
+  const shortcutIntegration = get("shortcut");
+  const zapierIntegration = get("zapier");
+  const n8nIntegration = get("n8n");
+  const zendeskIntegration = get("zendesk");
+  const hubspotIntegration = get("hubspot");
+  const salesforceIntegration = get("salesforce");
+  const clickupIntegration = get("clickup");
+  const notificationsIntegration = get("notifications");
 
-  const asanaSettings = parseSettings<{
-    workspaceName?: string;
-  }>(asanaIntegration?.settings);
-
-  const notionSettings = parseSettings<{
-    workspaceName?: string;
-  }>(notionIntegration?.settings);
-
-  const mondaySettings = parseSettings<{
-    accountName?: string;
-  }>(mondayIntegration?.settings);
-
-  const trelloSettings = parseSettings<{
-    memberUsername?: string;
-  }>(trelloIntegration?.settings);
-
-  const shortcutSettings = parseSettings<{
-    memberName?: string;
-    mentionName?: string;
-  }>(shortcutIntegration?.settings);
-
-  const clickupSettings = parseSettings<{
-    workspaceId?: string;
-    workspaceName?: string;
-    defaultListId?: string;
-    defaultListName?: string;
-  }>(clickupIntegration?.settings);
-
-  const zendeskSettings = parseSettings<{
-    subdomain?: string;
-    accountName?: string;
-  }>(zendeskIntegration?.settings);
-
-  const hubspotSettings = parseSettings<{
-    portalId?: string;
-    hubDomain?: string;
-  }>(hubspotIntegration?.settings);
-
-  const salesforceSettings = parseSettings<{
-    instanceUrl?: string;
-    displayName?: string;
-  }>(salesforceIntegration?.settings);
-
-  const notificationSettings = parseSettings<{
-    enabledEvents?: string[];
-    discordWebhookUrl?: string;
-    slackWebhookUrl?: string;
-  }>(notificationsIntegration?.settings);
+  const githubSettings = parseSettings<{ repoOwner?: string; repoName?: string }>(githubIntegration?.settings);
+  const linearSettings = parseSettings<{ workspaceName?: string }>(linearIntegration?.settings);
+  const jiraSettings = parseSettings<{ cloudName?: string }>(jiraIntegration?.settings);
+  const asanaSettings = parseSettings<{ workspaceName?: string }>(asanaIntegration?.settings);
+  const notionSettings = parseSettings<{ workspaceName?: string }>(notionIntegration?.settings);
+  const mondaySettings = parseSettings<{ accountName?: string }>(mondayIntegration?.settings);
+  const trelloSettings = parseSettings<{ memberUsername?: string }>(trelloIntegration?.settings);
+  const shortcutSettings = parseSettings<{ memberName?: string; mentionName?: string }>(shortcutIntegration?.settings);
+  const clickupSettings = parseSettings<{ workspaceId?: string; workspaceName?: string; defaultListId?: string; defaultListName?: string }>(clickupIntegration?.settings);
+  const zendeskSettings = parseSettings<{ subdomain?: string; accountName?: string }>(zendeskIntegration?.settings);
+  const hubspotSettings = parseSettings<{ portalId?: string; hubDomain?: string }>(hubspotIntegration?.settings);
+  const salesforceSettings = parseSettings<{ instanceUrl?: string; displayName?: string }>(salesforceIntegration?.settings);
+  const notificationSettings = parseSettings<{ enabledEvents?: string[]; discordWebhookUrl?: string; discordChannelId?: string; slackWebhookUrl?: string; slackChannel?: string }>(notificationsIntegration?.settings);
   const enabledEvents = notificationSettings?.enabledEvents ?? ["feedback.created"];
 
   return {
@@ -169,9 +130,7 @@ export async function integrationsLoader(db: Db, { request, params }: Route.Load
 
     github: {
       configured: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
-
       connected: !!githubIntegration?.accessToken,
-
       repo:
         githubSettings?.repoOwner && githubSettings?.repoName
           ? `${githubSettings.repoOwner}/${githubSettings.repoName}`
@@ -180,67 +139,50 @@ export async function integrationsLoader(db: Db, { request, params }: Route.Load
 
     linear: {
       configured: !!(process.env.LINEAR_CLIENT_ID && process.env.LINEAR_CLIENT_SECRET),
-
       connected: !!linearIntegration?.accessToken,
-
       workspaceName: linearSettings?.workspaceName ?? null,
     },
 
     jira: {
       configured: !!(process.env.JIRA_CLIENT_ID && process.env.JIRA_CLIENT_SECRET),
-
       connected: !!jiraIntegration?.accessToken,
-
       cloudName: jiraSettings?.cloudName ?? null,
     },
 
     asana: {
       configured: !!(process.env.ASANA_CLIENT_ID && process.env.ASANA_CLIENT_SECRET),
-
       connected: !!asanaIntegration?.accessToken,
-
       workspaceName: asanaSettings?.workspaceName ?? null,
     },
 
     notion: {
       configured: !!(process.env.NOTION_CLIENT_ID && process.env.NOTION_CLIENT_SECRET),
-
       connected: !!notionIntegration?.accessToken,
-
       workspaceName: notionSettings?.workspaceName ?? null,
     },
 
     monday: {
       configured: !!(process.env.MONDAY_CLIENT_ID && process.env.MONDAY_CLIENT_SECRET),
-
       connected: !!mondayIntegration?.accessToken,
-
       accountName: mondaySettings?.accountName ?? null,
     },
 
     trello: {
       configured: !!process.env.TRELLO_API_KEY,
-
       connected: !!trelloIntegration?.accessToken,
-
       memberUsername: trelloSettings?.memberUsername ?? null,
     },
 
     shortcut: {
-      // No server-side OAuth app needed — user provides their own API token
       configured: true,
-
       connected: !!shortcutIntegration?.accessToken,
-
       memberName: shortcutSettings?.memberName ?? null,
       mentionName: shortcutSettings?.mentionName ?? null,
     },
 
     clickup: {
       configured: !!(process.env.CLICKUP_CLIENT_ID && process.env.CLICKUP_CLIENT_SECRET),
-
       connected: !!clickupIntegration?.accessToken,
-
       workspaceName: clickupSettings?.workspaceName ?? null,
     },
   };

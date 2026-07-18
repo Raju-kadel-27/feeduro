@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import {
   Dialog,
   DialogContent,
@@ -21,13 +22,23 @@ import { getAuth } from "@lib/auth/server";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Crown, Mail, Plus, Star, UserMinus, Users, X } from "lucide-react";
-import { useState } from "react";
-import { data, Link, useParams } from "react-router";
+import { Suspense, useState } from "react";
+import { Await, Link, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { invitation } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/team";
+
+type TeamData =
+  | { planLocked: true }
+  | {
+      members: Member[];
+      pendingInvitations: PendingInvitation[];
+      currentUserId: string;
+      currentRole: string;
+      orgSlug: string;
+    };
 
 export function meta() {
   return [{ title: "Team Settings — Feeduro" }];
@@ -36,30 +47,30 @@ export function meta() {
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
-  const planLimits = await getOrgPlanLimits(db, organizationId);
-  if (!planLimits.team) return data({ planLocked: true as const });
-
-  const [membersResult, pendingInvitations] = await Promise.all([
-    getAuth(db).api.listMembers({
+  const dataPromise: Promise<TeamData> = Promise.all([
+    getOrgPlanLimits(db, organizationId),
+    // biome-ignore lint/suspicious/noExplicitAny: Better Auth organization plugin endpoints are not statically inferred
+    (getAuth(db).api as any).listMembers({
       headers: request.headers,
       query: { organizationId },
     }),
     db.query.invitation.findMany({
       where: and(eq(invitation.organizationId, organizationId), eq(invitation.status, "pending")),
+      columns: { id: true, email: true, role: true, expiresAt: true },
     }),
-  ]);
-
-  const orgMembers = membersResult?.members ?? [];
-
-  const currentMember = orgMembers.find((m: { userId: string }) => m.userId === session.user.id);
-
-  return data({
-    members: orgMembers,
-    pendingInvitations,
-    currentUserId: session.user.id,
-    currentRole: currentMember?.role ?? "member",
-    orgSlug: params.orgSlug,
+  ]).then(([planLimits, membersResult, pendingInvitations]) => {
+    if (!planLimits.team) return { planLocked: true as const };
+    const orgMembers = (membersResult?.members ?? []) as Member[];
+    const currentMember = orgMembers.find((m) => m.userId === session.user.id);
+    return {
+      members: orgMembers,
+      pendingInvitations: pendingInvitations as PendingInvitation[],
+      currentUserId: session.user.id,
+      currentRole: currentMember?.role ?? "member",
+      orgSlug: params.orgSlug,
+    };
   });
+  return { dataPromise };
 }
 
 const ROLES = [
@@ -91,46 +102,55 @@ interface PendingInvitation {
 export default function TeamSettings({ loaderData }: Route.ComponentProps) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
-  if ("planLocked" in loaderData) {
-    return (
-      <>
-        <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
-        <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-          <PageHeader
-            title="Team"
-            icon={Users}
-            action={
-              <Link
-                to={`/${orgSlug}/settings/billing`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-              >
-                <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
-                Upgrade
-              </Link>
+  return (
+    <>
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
+      <Suspense fallback={<SettingsContentSkeleton />}>
+        <Await resolve={loaderData.dataPromise as unknown as Promise<TeamData>}>
+          {(pageData) => {
+            if ("planLocked" in pageData) {
+              return (
+                <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+                  <PageHeader
+                    title="Team"
+                    icon={Users}
+                    action={
+                      <Link
+                        to={`/${orgSlug}/settings/billing`}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[15px] font-semibold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                      >
+                        <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
+                        Upgrade
+                      </Link>
+                    }
+                  />
+                  <PlanBanner>
+                    Team collaboration is available on the <span className="font-semibold">Starter</span> plan and above.
+                  </PlanBanner>
+                </main>
+              );
             }
-          />
-          <PlanBanner>
-            Team collaboration is available on the <span className="font-semibold">Starter</span> plan and above.
-          </PlanBanner>
-        </main>
-      </>
-    );
-  }
+            return <TeamContent {...pageData} orgSlug={orgSlug ?? pageData.orgSlug} />;
+          }}
+        </Await>
+      </Suspense>
+    </>
+  );
+}
 
+type TeamContentProps = Exclude<TeamData, { planLocked: true }>;
+
+function TeamContent({ members, pendingInvitations, currentUserId, currentRole, orgSlug }: TeamContentProps) {
   const qc = useQueryClient();
-  const isAdmin = loaderData.currentRole === "admin";
+  const isAdmin = currentRole === "admin";
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [confirmRemoveMember, setConfirmRemoveMember] = useState<Member | null>(null);
-
-  const members: Member[] = loaderData.members as Member[];
-  const pendingInvitations: PendingInvitation[] =
-    loaderData.pendingInvitations as PendingInvitation[];
 
   const {
     mutate: sendInvite,
@@ -190,9 +210,6 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-        <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <PageHeader
             title="Team"
@@ -268,7 +285,7 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
               {members.map((m) => {
                 const name = m.user?.name ?? m.user?.email ?? "Unknown";
                 const email = m.user?.email ?? "";
-                const isCurrentUser = m.userId === loaderData.currentUserId;
+                const isCurrentUser = m.userId === currentUserId;
 
                 return (
                   <div key={m.id} className="flex items-center justify-between px-4 py-3">

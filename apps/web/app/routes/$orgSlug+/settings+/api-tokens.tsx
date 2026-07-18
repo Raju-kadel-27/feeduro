@@ -1,4 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
+import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +14,8 @@ import { useMutation } from "@tanstack/react-query";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { and, desc, eq } from "drizzle-orm";
 import { AlertCircle, Check, Code, Copy, Key, Plus, Terminal, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useRevalidator } from "react-router";
+import { Suspense, useMemo, useState } from "react";
+import { Await, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { apikey, member } from "@/db/schema";
@@ -37,11 +38,13 @@ interface ApiKeyRow {
   enabled: boolean;
 }
 
+type ApiTokensData = { keys: ApiKeyRow[]; isAdmin: boolean };
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [keys, memberRecord] = await Promise.all([
+  const dataPromise: Promise<ApiTokensData> = Promise.all([
     db.query.apikey.findMany({
       where: eq(apikey.referenceId, organizationId),
       columns: {
@@ -58,13 +61,14 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     }),
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
     }),
-  ]);
-
-  return {
+  ]).then(([keys, memberRecord]) => ({
     keys: keys as ApiKeyRow[],
     isAdmin: memberRecord?.role === "admin",
-  };
+  }));
+
+  return { dataPromise };
 }
 
 const EXPIRY_OPTIONS = [
@@ -110,7 +114,21 @@ export function ErrorBoundary() {
 }
 
 export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) {
-  const { keys, isAdmin } = loaderData;
+  return (
+    <>
+      <header className="flex h-14 shrink-0 items-center px-4">
+        <SidebarTrigger className="-ml-1" />
+      </header>
+      <Suspense fallback={<SettingsContentSkeleton />}>
+        <Await resolve={loaderData.dataPromise as unknown as Promise<ApiTokensData>}>
+          {(pageData) => <ApiTokensContent {...pageData} />}
+        </Await>
+      </Suspense>
+    </>
+  );
+}
+
+function ApiTokensContent({ keys, isAdmin }: ApiTokensData) {
   const revalidator = useRevalidator();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -227,14 +245,9 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
   });
 
   return (
-    <>
-      <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
-      </header>
-
-      <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
-        <PageHeader
-          title="API Tokens"
+    <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+      <PageHeader
+        title="API Tokens"
           icon={Code}
           action={isAdmin ? (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -399,7 +412,6 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
             </div>
           </div>
         </section>
-      </main>
-    </>
+    </main>
   );
 }

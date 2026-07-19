@@ -15,11 +15,7 @@ import {
   SegmentForm,
 } from "@features/internal/segmentation/components/segment-form";
 import { SegmentSetupGuide } from "@features/internal/segmentation/components/segment-setup-guide";
-import {
-  getOrgCompanies,
-  getOrgPlans,
-  getOrgSegments,
-} from "@features/internal/segmentation/server/service";
+import { getOrgSegments } from "@features/internal/segmentation/server/service";
 import type { PlanCatalogEntry, Segment } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,14 +37,12 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [memberRecord, segmentList, planList, companyList, planLimits, userCountRows] = await Promise.all([
+  const [memberRecord, segmentList, planLimits, userCountRows] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
     }),
     getOrgSegments(db, organizationId),
-    getOrgPlans(db, organizationId),
-    getOrgCompanies(db, organizationId),
     getOrgPlanLimits(db, organizationId),
     db
       .select({ count: sql<number>`cast(count(*) as int)` })
@@ -61,8 +55,6 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return {
     isAdmin: memberRecord?.role === "admin",
     segments: segmentList,
-    plans: planList,
-    companies: companyList,
     userProfileCount: userCountRows[0]?.count ?? 0,
   };
 }
@@ -125,7 +117,6 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
       const res = await fetch("/api/plans");
       return res.json() as Promise<{ plans: PlanCatalogEntry[] }>;
     },
-    initialData: { plans: loaderData.plans },
     staleTime: 30_000,
   });
   const planOptions = (plansData?.plans ?? []).map((p) => p.name);
@@ -210,7 +201,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
 
         <div className="max-w-[840px] mx-auto w-full space-y-4">
           <SegmentSetupGuide
-            planCount={loaderData.plans.length}
+            planCount={plansData?.plans.length ?? 0}
             userCount={loaderData.userProfileCount}
             segmentCount={segments.length}
             onOpenImport={() => setImportOpen(true)}
@@ -278,13 +269,13 @@ Authorization: Bearer <your-api-key>
           </details>
 
           <PlanCatalogManager
-            initialPlans={loaderData.plans}
+            initialPlans={[]}
             isAdmin={loaderData.isAdmin}
             orgSlug={orgSlug ?? ""}
           />
 
           <CompaniesManager
-            initialCompanies={loaderData.companies}
+            initialCompanies={[]}
             isAdmin={loaderData.isAdmin}
             orgSlug={orgSlug ?? ""}
           />

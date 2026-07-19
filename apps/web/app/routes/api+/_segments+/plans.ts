@@ -51,6 +51,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       const id = await createPlan(db, organizationId, {
         name: action.name,
         monthlyPrice: action.monthlyPrice,
+        annualMonthlyPrice: action.annualMonthlyPrice,
         interval: action.interval,
       });
       return data({ success: true, id });
@@ -60,6 +61,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       await updatePlan(db, organizationId, action.id, {
         name: action.name,
         monthlyPrice: action.monthlyPrice,
+        annualMonthlyPrice: action.annualMonthlyPrice,
         interval: action.interval,
       });
       return data({ success: true });

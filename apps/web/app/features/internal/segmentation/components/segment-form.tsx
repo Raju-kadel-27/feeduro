@@ -19,6 +19,7 @@ export interface SegmentFormState {
   name: string;
   color: string;
   plan: string[];
+  billingInterval: "monthly" | "annual" | "";
   role: string;
   industry: string;
   location: string;
@@ -32,6 +33,7 @@ export const defaultForm = (): SegmentFormState => ({
   name: "",
   color: "#6366f1",
   plan: [],
+  billingInterval: "",
   role: "",
   industry: "",
   location: "",
@@ -46,6 +48,7 @@ export function formFromSegment(seg: Segment): SegmentFormState {
     name: seg.name,
     color: seg.color,
     plan: seg.filters.plan ?? [],
+    billingInterval: (seg.filters.billingInterval?.[0] ?? "") as "monthly" | "annual" | "",
     role: seg.filters.role?.[0] ?? "",
     industry: seg.filters.industry?.[0] ?? "",
     location: seg.filters.location?.[0] ?? "",
@@ -59,6 +62,7 @@ export function formFromSegment(seg: Segment): SegmentFormState {
 export function filtersFromForm(form: SegmentFormState): SegmentFilters {
   const filters: SegmentFilters = {};
   if (form.plan.length) filters.plan = form.plan;
+  if (form.billingInterval) filters.billingInterval = [form.billingInterval];
   if (form.role.trim()) filters.role = [form.role.trim()];
   if (form.industry.trim()) filters.industry = [form.industry.trim()];
   if (form.location.trim()) filters.location = [form.location.trim()];
@@ -96,6 +100,7 @@ export function SegmentForm({
   const [showAdvanced, setShowAdvanced] = useState(
     () =>
       !!(
+        initial.billingInterval ||
         initial.role ||
         initial.industry ||
         initial.location ||
@@ -199,11 +204,32 @@ export function SegmentForm({
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        {showAdvanced ? "Hide advanced filters" : "More filters (role, industry, location, size, MRR)"}
+        {showAdvanced ? "Hide advanced filters" : "More filters (billing, role, industry, location, size, MRR)"}
       </button>
 
       {showAdvanced && (
         <div className="space-y-3 animate-in slide-in-from-top-1 fade-in duration-150">
+          <div>
+            <p className="text-xs text-muted-foreground font-medium mb-1.5">Billing interval</p>
+            <div className="flex gap-1.5">
+              {(["", "monthly", "annual"] as const).map((v) => (
+                <button
+                  key={v || "all"}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, billingInterval: v }))}
+                  className={cn(
+                    "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
+                    form.billingInterval === v
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                  )}
+                >
+                  {v || "All"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-3 gap-3">
             {(["role", "industry", "location"] as const).map((field) => (
               <label key={field} className="block">

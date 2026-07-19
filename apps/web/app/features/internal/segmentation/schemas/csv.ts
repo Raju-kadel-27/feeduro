@@ -13,6 +13,8 @@ export const CsvRowSchema = z
     companySize: z.coerce.number().int().positive("Must be a positive integer").optional(),
     // Optional explicit MRR override (whole dollars/mo). When omitted, MRR is derived from `plan`.
     mrr: z.coerce.number().int().nonnegative("Must be a non-negative integer").optional(),
+    // 'monthly' or 'annual' — selects which plan catalog price is used for MRR.
+    billingInterval: z.enum(["monthly", "annual"]).optional(),
     industry: z.string().max(100).optional(),
     location: z.string().max(100).optional(),
     // Company columns (Canny-style). companyId links the user to a company; companyMrr is that
@@ -32,6 +34,7 @@ export function csvRowToIdentifyInput(row: CsvRow): IdentifyUserInput {
     externalId,
     name,
     plan,
+    billingInterval,
     role,
     companySize,
     mrr,
@@ -49,9 +52,10 @@ export function csvRowToIdentifyInput(row: CsvRow): IdentifyUserInput {
     ...(name && { name }),
     traits: {
       ...(plan && { plan }),
+      ...(billingInterval && { billingInterval }),
+      ...(mrr !== undefined && { mrr: mrr as number }),
       ...(role && { role }),
       ...(companySize !== undefined && { companySize: companySize as number }),
-      ...(mrr !== undefined && { mrr: mrr as number }),
       ...(industry && { industry }),
       ...(location && { location }),
       ...rest,

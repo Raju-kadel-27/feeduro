@@ -7,17 +7,18 @@ import type { PlanCatalogEntry } from "../types";
 interface DraftState {
   name: string;
   monthlyPrice: string;
-  interval: "monthly" | "annual";
+  annualMonthlyPrice: string;
 }
 
-const emptyDraft: DraftState = { name: "", monthlyPrice: "", interval: "monthly" };
+const emptyDraft: DraftState = { name: "", monthlyPrice: "", annualMonthlyPrice: "" };
 
 function draftToPayload(draft: DraftState) {
   const price = Number.parseInt(draft.monthlyPrice, 10);
+  const annual = Number.parseInt(draft.annualMonthlyPrice, 10);
   return {
     name: draft.name.trim(),
     monthlyPrice: Number.isNaN(price) || price < 0 ? 0 : price,
-    interval: draft.interval,
+    annualMonthlyPrice: Number.isNaN(annual) || annual < 0 ? undefined : annual,
   };
 }
 
@@ -47,8 +48,8 @@ function PlanEditor({
         onChange={(e) => onChange({ ...draft, name: e.target.value })}
         className={`${inputCls} flex-1 min-w-[140px]`}
       />
-      <div className="flex items-center gap-1">
-        <span className="text-muted-foreground text-sm">$</span>
+      <label className="flex items-center gap-1">
+        <span className="text-muted-foreground text-[12px] shrink-0">$/mo</span>
         <input
           type="number"
           min={0}
@@ -56,17 +57,21 @@ function PlanEditor({
           value={draft.monthlyPrice}
           onChange={(e) => onChange({ ...draft, monthlyPrice: e.target.value })}
           className={`${inputCls} w-24`}
+          aria-label="Monthly price"
         />
-      </div>
-      <select
-        value={draft.interval}
-        onChange={(e) => onChange({ ...draft, interval: e.target.value as DraftState["interval"] })}
-        className={inputCls}
-        aria-label="Billing interval"
-      >
-        <option value="monthly">/mo billed monthly</option>
-        <option value="annual">/mo billed annually</option>
-      </select>
+      </label>
+      <label className="flex items-center gap-1">
+        <span className="text-muted-foreground text-[12px] shrink-0">annual $/mo</span>
+        <input
+          type="number"
+          min={0}
+          placeholder="optional"
+          value={draft.annualMonthlyPrice}
+          onChange={(e) => onChange({ ...draft, annualMonthlyPrice: e.target.value })}
+          className={`${inputCls} w-28`}
+          aria-label="Annual price normalized to $/mo (e.g. $960/yr → 80)"
+        />
+      </label>
       <div className="flex gap-1.5 ml-auto">
         <button type="button" onClick={onCancel} className={`${btnBase} border border-border hover:bg-accent`}>
           <X className="h-3.5 w-3.5" />
@@ -130,7 +135,7 @@ export function PlanCatalogManager({
     setDraft({
       name: plan.name,
       monthlyPrice: String(plan.monthlyPrice),
-      interval: plan.interval === "annual" ? "annual" : "monthly",
+      annualMonthlyPrice: plan.annualMonthlyPrice != null ? String(plan.annualMonthlyPrice) : "",
     });
   }
 
@@ -163,7 +168,7 @@ export function PlanCatalogManager({
   }
 
   return (
-    <details className="rounded-lg border border-border text-sm bg-muted/30 group" open={plans.length > 0}>
+    <details id="plans-catalog" className="rounded-lg border border-border text-sm bg-muted/30 group" open={plans.length > 0}>
       <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-medium text-foreground select-none">
         <span className="flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -184,8 +189,9 @@ export function PlanCatalogManager({
 
       <div className="px-4 pb-4 space-y-2.5">
         <p className="text-muted-foreground text-[13px]">
-          Set the monthly price of each plan. A voter's MRR impact is read from their plan's price
-          (or an explicit per-user MRR override). Prices are whole dollars, normalized to /month.
+          One entry per plan tier. Set a monthly price and, optionally, an annual price (normalized
+          to $/mo — e.g. $960/yr → 80). Users tagged with <code className="text-[11px]">billingInterval: annual</code> automatically use
+          the annual price. An explicit per-user <code className="text-[11px]">mrr</code> always takes priority.
         </p>
 
         {plans.map((plan) =>
@@ -205,8 +211,10 @@ export function PlanCatalogManager({
               <span className="tabular-nums text-emerald-600 dark:text-emerald-400 font-medium">
                 ${plan.monthlyPrice}/mo
               </span>
-              {plan.interval === "annual" && (
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">billed annually</span>
+              {plan.annualMonthlyPrice != null && (
+                <span className="tabular-nums text-[12px] text-muted-foreground">
+                  · ${plan.annualMonthlyPrice}/mo annual
+                </span>
               )}
               {isAdmin && (
                 <div className="flex items-center gap-1 shrink-0">

@@ -3,6 +3,7 @@ export interface VoterTraitCounts {
   role: Record<string, number>;
   industry: Record<string, number>;
   location: Record<string, number>;
+  billingInterval: Record<string, number>;
 }
 
 export interface UserProfile {
@@ -17,6 +18,8 @@ export interface UserProfile {
   companySize: number | null;
   /** Explicit MRR override in whole dollars. When null, MRR is derived from the plan catalog. */
   mrr: number | null;
+  /** 'monthly' | 'annual' — selects which plan catalog price is used. null = treated as monthly. */
+  billingInterval: string | null;
   industry: string | null;
   location: string | null;
   customAttributes: Record<string, unknown>;
@@ -51,8 +54,11 @@ export interface PlanCatalogEntry {
   id: string;
   organizationId: string;
   name: string;
-  /** Normalized monthly price in whole dollars. */
+  /** Normalized monthly price in whole dollars — used when billingInterval is 'monthly' or unset. */
   monthlyPrice: number;
+  /** Normalized annual price in $/mo (e.g. $960/yr → 80). Used when billingInterval is 'annual'. */
+  annualMonthlyPrice: number | null;
+  /** Kept for backward compat; no longer drives MRR math. */
   interval: string;
   createdAt: string;
   updatedAt: string;
@@ -60,6 +66,7 @@ export interface PlanCatalogEntry {
 
 export interface SegmentFilters {
   plan?: string[];
+  billingInterval?: string[];
   role?: string[];
   industry?: string[];
   location?: string[];
@@ -83,6 +90,7 @@ export interface Segment {
 
 export function userMatchesSegment(profile: UserProfile, filters: SegmentFilters): boolean {
   if (filters.plan?.length && !filters.plan.includes(profile.plan ?? "")) return false;
+  if (filters.billingInterval?.length && !filters.billingInterval.includes(profile.billingInterval ?? "monthly")) return false;
   if (filters.role?.length && !filters.role.includes(profile.role ?? "")) return false;
   if (filters.industry?.length && !filters.industry.includes(profile.industry ?? "")) return false;
   if (filters.location?.length && !filters.location.includes(profile.location ?? "")) return false;

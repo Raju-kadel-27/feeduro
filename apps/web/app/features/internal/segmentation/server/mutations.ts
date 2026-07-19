@@ -9,16 +9,17 @@ type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 function buildProfileValues(organizationId: string, input: IdentifyUserInput) {
   const { email, externalId, name, traits } = input;
-  const { plan, role, companySize, mrr, industry, location, ...rest } = traits ?? {};
+  const { plan, billingInterval, mrr, role, companySize, industry, location, ...rest } = traits ?? {};
   return {
     organizationId,
     email,
     ...(externalId !== undefined && { externalId }),
     ...(name !== undefined && { name }),
     ...(plan !== undefined && { plan }),
+    ...(billingInterval !== undefined && { billingInterval }),
+    ...(mrr !== undefined && { mrr }),
     ...(role !== undefined && { role }),
     ...(companySize !== undefined && { companySize }),
-    ...(mrr !== undefined && { mrr }),
     ...(industry !== undefined && { industry }),
     ...(location !== undefined && { location }),
     customAttributes: JSON.stringify(rest),
@@ -191,7 +192,7 @@ export async function deleteSegment(db: Db, organizationId: string, id: string):
 export async function createPlan(
   db: Db,
   organizationId: string,
-  data: { name: string; monthlyPrice: number; interval?: string },
+  data: { name: string; monthlyPrice: number; annualMonthlyPrice?: number; interval?: string },
 ): Promise<string> {
   const [row] = await db
     .insert(plans)
@@ -199,6 +200,7 @@ export async function createPlan(
       organizationId,
       name: data.name,
       monthlyPrice: data.monthlyPrice,
+      ...(data.annualMonthlyPrice !== undefined && { annualMonthlyPrice: data.annualMonthlyPrice }),
       ...(data.interval !== undefined && { interval: data.interval }),
     })
     .returning({ id: plans.id });
@@ -209,13 +211,15 @@ export async function updatePlan(
   db: Db,
   organizationId: string,
   id: string,
-  data: { name?: string; monthlyPrice?: number; interval?: string },
+  data: { name?: string; monthlyPrice?: number; annualMonthlyPrice?: number | null; interval?: string },
 ): Promise<void> {
   await db
     .update(plans)
     .set({
       ...(data.name !== undefined && { name: data.name }),
       ...(data.monthlyPrice !== undefined && { monthlyPrice: data.monthlyPrice }),
+      // null clears the annual price; undefined means no-op
+      ...(data.annualMonthlyPrice !== undefined && { annualMonthlyPrice: data.annualMonthlyPrice }),
       ...(data.interval !== undefined && { interval: data.interval }),
     })
     .where(and(eq(plans.id, id), eq(plans.organizationId, organizationId)));

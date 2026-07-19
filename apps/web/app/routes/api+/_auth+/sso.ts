@@ -71,7 +71,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { security: ["update"] });
 
   let rawBody: unknown;
   try {

@@ -57,10 +57,34 @@ export const RESOURCE_DEFINITIONS: {
   },
   {
     key: "settings",
-    label: "Settings",
+    label: "General Settings",
     permissions: [
       { value: "read", label: "View" },
       { value: "update", label: "Update" },
+    ],
+  },
+  {
+    key: "branding",
+    label: "Branding",
+    permissions: [
+      { value: "read", label: "View" },
+      { value: "update", label: "Update" },
+    ],
+  },
+  {
+    key: "integrations",
+    label: "Integrations",
+    permissions: [
+      { value: "read", label: "View" },
+      { value: "update", label: "Manage" },
+    ],
+  },
+  {
+    key: "security",
+    label: "Security",
+    permissions: [
+      { value: "read", label: "View" },
+      { value: "update", label: "Manage" },
     ],
   },
 ];

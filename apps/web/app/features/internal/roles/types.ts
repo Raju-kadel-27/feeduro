@@ -9,4 +9,13 @@ export interface OrgRole {
   updatedAt?: Date | string;
 }
 
-export type ResourceKey = "feedback" | "board" | "changelog" | "settings" | "member" | "invitation";
+export type ResourceKey =
+  | "feedback"
+  | "board"
+  | "changelog"
+  | "settings"
+  | "branding"
+  | "integrations"
+  | "security"
+  | "member"
+  | "invitation";

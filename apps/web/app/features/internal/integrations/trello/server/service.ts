@@ -115,7 +115,7 @@ export async function handleTrelloLoader(db: Db, request: Request) {
 export async function handleTrelloAction(db: Db, request: Request) {
   const { session, organizationId } = await requireOrganization(db, request);
 
-  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { integrations: ["update"] });
 
   const body = (await request.json()) as { intent: string; [key: string]: unknown };
 

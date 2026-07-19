@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import type { Db } from "@/db";
-import { comments, feedbackPosts, member, user } from "@/db/schema";
+import { comments, feedbackPosts, member, organizationRole, user } from "@/db/schema";
 import { isVoteMilestone } from "../schemas/notification";
 import { insertNotifications } from "./mutations";
 
@@ -144,13 +144,34 @@ export async function notifyNewPost(
     actorName: string;
   },
 ): Promise<void> {
-  const orgMembers = await db.query.member.findMany({
-    where: eq(member.organizationId, organizationId),
-    columns: { userId: true, role: true },
-  });
+  const [orgMembers, customRoles] = await Promise.all([
+    db.query.member.findMany({
+      where: eq(member.organizationId, organizationId),
+      columns: { userId: true, role: true },
+    }),
+    db.query.organizationRole.findMany({
+      where: eq(organizationRole.organizationId, organizationId),
+      columns: { role: true, permission: true },
+    }),
+  ]);
+
+  // Viewer-equivalent custom roles: no active feedback permissions (create/update/delete/respond/change-status).
+  const viewerEquivalentCustomRoles = new Set(
+    customRoles
+      .filter((r) => {
+        try {
+          const perms = JSON.parse(r.permission as string) as Record<string, string[]>;
+          const active = (perms.feedback ?? []).filter((p) => p !== "read");
+          return active.length === 0;
+        } catch {
+          return false;
+        }
+      })
+      .map((r) => r.role),
+  );
 
   const recipients = orgMembers
-    .filter((m) => m.userId !== actorId && m.role !== "viewer")
+    .filter((m) => m.userId !== actorId && m.role !== "viewer" && !viewerEquivalentCustomRoles.has(m.role))
     .map((m) => m.userId);
 
   await insertNotifications(
@@ -266,8 +287,29 @@ export async function notifyAutopilotDuplicate(
     organizationId: string;
   },
 ): Promise<void> {
+  // Notify admins + any custom-role members who can change-status (they're the ones
+  // who can take action on potential duplicates).
+  const customRoles = await db.query.organizationRole.findMany({
+    where: eq(organizationRole.organizationId, organizationId),
+    columns: { role: true, permission: true },
+  });
+
+  const actionableRoles = [
+    "admin",
+    ...customRoles
+      .filter((r) => {
+        try {
+          const perms = JSON.parse(r.permission as string) as Record<string, string[]>;
+          return perms.feedback?.includes("change-status") ?? false;
+        } catch {
+          return false;
+        }
+      })
+      .map((r) => r.role),
+  ];
+
   const admins = await db.query.member.findMany({
-    where: and(eq(member.organizationId, organizationId), inArray(member.role, ["admin", "owner"])),
+    where: and(eq(member.organizationId, organizationId), inArray(member.role, actionableRoles)),
     columns: { userId: true },
   });
 

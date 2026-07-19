@@ -873,6 +873,8 @@ export const userProfiles = pgTable(
     role: varchar("role", { length: 100 }),
     companySize: integer("company_size"),
     mrr: integer("mrr"),
+    // 'monthly' | 'annual' — determines which plan price is used in MRR resolution.
+    billingInterval: varchar("billing_interval", { length: 20 }),
     industry: varchar("industry", { length: 100 }),
     location: varchar("location", { length: 100 }),
     customAttributes: text("custom_attributes"),
@@ -897,6 +899,7 @@ export const userProfiles = pgTable(
     orgLocationIdx: index("up_org_location_idx").on(t.organizationId, t.location),
     orgCompanySizeIdx: index("up_org_company_size_idx").on(t.organizationId, t.companySize),
     orgMrrIdx: index("up_org_mrr_idx").on(t.organizationId, t.mrr),
+    orgBillingIntervalIdx: index("up_org_billing_interval_idx").on(t.organizationId, t.billingInterval),
   }),
 );
 
@@ -942,7 +945,10 @@ export const plans = pgTable(
       .references(() => organization.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 100 }).notNull(),
     monthlyPrice: integer("monthly_price").notNull().default(0),
-    // The cadence the price was quoted at — metadata only; monthlyPrice is always normalized to /mo.
+    // Optional normalized annual price in $/mo (e.g. $960/yr → 80). When set, users with
+    // billingInterval='annual' use this value instead of monthlyPrice for MRR resolution.
+    annualMonthlyPrice: integer("annual_monthly_price"),
+    // Kept for backward compat; no longer used in MRR math — annualMonthlyPrice is the source of truth.
     interval: varchar("interval", { length: 20 }).notNull().default("monthly"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")

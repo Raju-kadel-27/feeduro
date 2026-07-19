@@ -1834,6 +1834,22 @@ async function seed() {
     "alex@cloudbuild.io": 60,
   };
 
+  // billingInterval for paying-plan users — exercises the annual/monthly price split in segments.
+  // Profiles without an entry default to monthly at read time.
+  const billingIntervalByEmail: Record<string, "monthly" | "annual"> = {
+    "johndoe@gmail.com":  "monthly",
+    "alice@acmecorp.dev": "annual",
+    "priya@startupco.io": "annual",  // no explicit mrr → catalog picks $79 annual price
+    "chen@bigcorp.cn":    "annual",
+    "carlos@enterprise.mx": "monthly",
+    "tom@bigretail.com":  "annual",
+    "yuki@finwise.jp":    "annual",
+    "claire@saashq.co":   "annual",
+    "ravi@logismart.in":  "monthly",
+    "nina@logistix.de":   "monthly",
+    "alex@cloudbuild.io": "monthly",
+  };
+
   // email → profile id, so companies can link members below.
   const profileIdsByEmail: Record<string, string> = {};
 
@@ -1853,6 +1869,7 @@ async function seed() {
       location: p.location,
       companySize: p.companySize,
       mrr: mrrByEmail[p.email] ?? null,
+      billingInterval: billingIntervalByEmail[p.email] ?? null,
     });
   }
 
@@ -1862,10 +1879,10 @@ async function seed() {
   // Resolves a profile's/company's MRR from its plan name when no explicit value is set.
 
   const planDefs = [
-    { name: "free", monthlyPrice: 0 },
-    { name: "trial", monthlyPrice: 0 },
-    { name: "paying", monthlyPrice: 99 },
-    { name: "churned", monthlyPrice: 0 },
+    { name: "free",    monthlyPrice: 0,  annualMonthlyPrice: null },
+    { name: "trial",   monthlyPrice: 0,  annualMonthlyPrice: null },
+    { name: "paying",  monthlyPrice: 99, annualMonthlyPrice: 79   }, // $79/mo when billed annually ($948/yr)
+    { name: "churned", monthlyPrice: 0,  annualMonthlyPrice: null },
   ];
 
   for (const pl of planDefs) {
@@ -1874,6 +1891,7 @@ async function seed() {
       organizationId: orgId,
       name: pl.name,
       monthlyPrice: pl.monthlyPrice,
+      annualMonthlyPrice: pl.annualMonthlyPrice,
     });
   }
 
@@ -1971,6 +1989,16 @@ async function seed() {
       name: "High-value ($200+/mo)",
       color: "#eab308",
       filters: { minMrr: 200 },
+    },
+    {
+      name: "Annual subscribers",
+      color: "#06b6d4",
+      filters: { billingInterval: ["annual"] },
+    },
+    {
+      name: "Monthly subscribers",
+      color: "#ec4899",
+      filters: { billingInterval: ["monthly"] },
     },
   ];
 
@@ -2089,7 +2117,7 @@ async function seed() {
   Taxonomy:  ${categoryDefs.length} categories  |  ${tagDefs.length} feedback tags  |  ${changelogTagDefs.length} changelog tags
   Views:     ${viewDefs.length} feedback views (5 system + 1 custom)
   Segments:  ${segmentDefs.length} segments  |  ${profileDefs.length} user profiles (5 linked + 20 external)
-  Revenue:   ${planDefs.length} plans  |  ${companyDefs.length} companies (${companyMemberCount} memberships, deduped MRR)
+  Revenue:   ${planDefs.length} plans (1 with annual price)  |  ${companyDefs.length} companies (${companyMemberCount} memberships, deduped MRR)
   Dev data:  2 webhook endpoints  |  3 GitHub external links  |  1 GitHub integration
   Traffic:   ${portalEventRows.length} portal events across last 7 days (board/roadmap/updates/changelog)
 `);

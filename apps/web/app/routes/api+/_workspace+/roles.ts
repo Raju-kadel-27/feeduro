@@ -11,6 +11,11 @@ const BUILTIN_ROLES = new Set(["admin", "member", "viewer"]);
 
 const RolesActionSchema = z.discriminatedUnion("intent", [
   z.object({
+    intent: z.literal("create"),
+    name: z.string().min(1, "Name is required").max(64, "Name must be 64 characters or fewer"),
+    permissions: z.record(z.array(z.string())),
+  }),
+  z.object({
     intent: z.literal("delete"),
     roleId: z.string().min(1, "roleId is required"),
   }),
@@ -34,6 +39,41 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   const body = parsed.data;
+
+  if (body.intent === "create") {
+    await requirePermission(db, organizationId, session.user.id, { ac: ["create"] });
+
+    const normalised = body.name.trim();
+    if (BUILTIN_ROLES.has(normalised.toLowerCase())) {
+      return data(
+        { error: `"${normalised}" is a reserved built-in role name` },
+        { status: 400 },
+      );
+    }
+
+    const existing = await db.query.organizationRole.findFirst({
+      where: and(
+        eq(organizationRole.organizationId, organizationId),
+        eq(organizationRole.role, normalised),
+      ),
+      columns: { id: true },
+    });
+    if (existing) {
+      return data({ error: "A role with this name already exists" }, { status: 409 });
+    }
+
+    const [created] = await db
+      .insert(organizationRole)
+      .values({
+        id: crypto.randomUUID(),
+        role: normalised,
+        organizationId,
+        permission: JSON.stringify(body.permissions),
+      })
+      .returning();
+
+    return data({ role: created });
+  }
 
   if (body.intent === "delete") {
     await requirePermission(db, organizationId, session.user.id, { ac: ["delete"] });

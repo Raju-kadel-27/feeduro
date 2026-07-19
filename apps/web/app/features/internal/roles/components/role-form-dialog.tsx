@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import type { OrgRole } from "../types";
 import { PermissionsEditor } from "./permissions-editor";
 
+const BUILTIN_ROLE_NAMES = new Set(["admin", "member", "viewer"]);
+
 interface RoleFormDialogProps {
   role?: OrgRole;
   onClose: () => void;
@@ -14,16 +16,26 @@ interface RoleFormDialogProps {
 
 export function RoleFormDialog({ role, onClose, onSubmit, isPending }: RoleFormDialogProps) {
   const [name, setName] = useState(role?.role ?? "");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<Record<string, string[]>>(role?.permission ?? {});
   const isEdit = !!role;
+
+  function validateName(value: string): string | null {
+    if (BUILTIN_ROLE_NAMES.has(value.trim().toLowerCase())) {
+      return `"${value.trim()}" is a reserved built-in role name`;
+    }
+    return null;
+  }
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        if (name.trim() && !isPending) {
-          onSubmit(name.trim(), permissions);
-        }
+        const trimmed = name.trim();
+        if (!trimmed || isPending) return;
+        const err = validateName(trimmed);
+        if (err) { setNameError(err); return; }
+        onSubmit(trimmed, permissions);
       }
     };
     document.addEventListener("keydown", handleKey);
@@ -32,8 +44,11 @@ export function RoleFormDialog({ role, onClose, onSubmit, isPending }: RoleFormD
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    onSubmit(name.trim(), permissions);
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const err = validateName(trimmed);
+    if (err) { setNameError(err); return; }
+    onSubmit(trimmed, permissions);
   };
 
   return (
@@ -80,13 +95,19 @@ export function RoleFormDialog({ role, onClose, onSubmit, isPending }: RoleFormD
                 id="role-name-input"
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => { setName(e.target.value); setNameError(null); }}
                 placeholder="e.g. Support Agent"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                className={`w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring ${nameError ? "border-destructive focus:ring-destructive/40" : "border-input"}`}
                 required
                 maxLength={64}
                 autoFocus
+                aria-describedby={nameError ? "role-name-error" : undefined}
               />
+              {nameError && (
+                <p id="role-name-error" className="mt-1.5 text-xs text-destructive">
+                  {nameError}
+                </p>
+              )}
             </div>
             <div>
               <p className="text-sm font-medium mb-3">Permissions</p>

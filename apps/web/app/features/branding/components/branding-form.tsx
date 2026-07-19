@@ -131,7 +131,7 @@ export function BrandingForm({ defaultValues, canHidePoweredBy }: BrandingFormPr
 
       {/* Live preview — visible on lg+ screens */}
       <div className="sticky top-6 hidden lg:block">
-        <p className="text-xs font-medium text-muted-foreground mb-3">Preview</p>
+        <p className="text-base font-bold text-muted-foreground mb-3 text-center">Preview</p>
         <BrandingPreview
           name={watchedName}
           logo={watchedLogo}

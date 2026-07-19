@@ -1,8 +1,8 @@
 import { createId } from "@paralleldrive/cuid2";
 import { generateText } from "@services/groq/client";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@/db";
-import { comments, feedbackBoards, member, organization, user } from "@/db/schema";
+import { comments, feedbackBoards, member, organization, organizationRole, user } from "@/db/schema";
 
 interface PostContext {
   id: string;
@@ -62,23 +62,44 @@ export async function triggerSmartReply(db: Db, post: PostContext, apiKey: strin
 
   if (!board?.smartRepliesEnabled) return;
 
-  const [org, firstAdmin] = await Promise.all([
+  // Find custom roles that carry feedback:respond so the AI reply can be attributed
+  // to any member who is allowed to respond — not just hardcoded "admin".
+  const [org, customRolesWithRespond] = await Promise.all([
     db.query.organization.findFirst({
       where: eq(organization.id, post.organizationId),
       columns: { name: true },
     }),
-    db
-      .select({ userId: member.userId })
-      .from(member)
-      .where(and(eq(member.organizationId, post.organizationId), eq(member.role, "admin")))
-      .orderBy(asc(member.createdAt))
-      .limit(1),
+    db.query.organizationRole.findMany({
+      where: eq(organizationRole.organizationId, post.organizationId),
+      columns: { role: true, permission: true },
+    }),
   ]);
 
-  if (!firstAdmin[0]) return;
+  const respondingRoles = [
+    "admin",
+    ...customRolesWithRespond
+      .filter((r) => {
+        try {
+          const perms = JSON.parse(r.permission as string) as Record<string, string[]>;
+          return perms.feedback?.includes("respond") ?? false;
+        } catch {
+          return false;
+        }
+      })
+      .map((r) => r.role),
+  ];
+
+  const firstResponder = await db
+    .select({ userId: member.userId })
+    .from(member)
+    .where(and(eq(member.organizationId, post.organizationId), inArray(member.role, respondingRoles)))
+    .orderBy(asc(member.createdAt))
+    .limit(1);
+
+  if (!firstResponder[0]) return;
 
   const adminUser = await db.query.user.findFirst({
-    where: eq(user.id, firstAdmin[0].userId),
+    where: eq(user.id, firstResponder[0].userId),
     columns: { id: true },
   });
 

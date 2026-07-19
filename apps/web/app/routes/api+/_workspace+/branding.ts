@@ -29,7 +29,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export async function action({ request, context }: Route.ActionArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrganization(db, request);
-  await requirePermission(db, organizationId, session.user.id, { settings: ["update"] });
+  await requirePermission(db, organizationId, session.user.id, { branding: ["update"] });
 
   const body = (await request.json()) as {
     logo?: string;

@@ -23,7 +23,7 @@ export async function requireAdmin(db: Db, organizationId: string, userId: strin
     where: and(eq(member.organizationId, organizationId), eq(member.userId, userId)),
     columns: { role: true },
   });
-  if (!membership || !["admin", "owner"].includes(membership.role)) {
+  if (!membership || membership.role !== "admin") {
     throw new Response("Forbidden", { status: 403 });
   }
 }
@@ -152,16 +152,23 @@ async function resolveAcRole(
   if (builtIn) return builtIn;
 
   const record = customRoles.find((r) => r.role === membership.role);
-  if (!record) return null;
+  if (!record) {
+    // Role was deleted without reassigning this member. Fall back to member
+    // permissions so the user isn't silently locked out of everything.
+    console.warn(
+      `[permission] member ${userId} in org ${organizationId} has unresolvable role "${membership.role}" — falling back to member`,
+    );
+    return memberRole;
+  }
 
   let parsed: Record<string, string[]>;
   try {
     parsed = JSON.parse(record.permission as string) as Record<string, string[]>;
   } catch {
     console.error(
-      `[permission] malformed JSON for role "${membership.role}" in org ${organizationId}`,
+      `[permission] malformed JSON for role "${membership.role}" in org ${organizationId} — falling back to member`,
     );
-    return null;
+    return memberRole;
   }
 
   return ac.newRole(parsed as never);

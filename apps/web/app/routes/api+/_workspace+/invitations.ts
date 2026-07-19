@@ -1,16 +1,21 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
 import { logOrgActivity } from "@features/internal/audit/server/log-org-activity";
 import { getAuth } from "@lib/auth/server";
+import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
 import { z } from "zod";
+import { organizationRole } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/invitations";
+
+const BUILTIN_ROLES = ["admin", "member", "viewer"] as const;
 
 const InvitationsActionSchema = z.discriminatedUnion("intent", [
   z.object({
     intent: z.literal("invite"),
     email: z.string().email("Invalid email address"),
+    role: z.string().min(1).optional().default("member"),
   }),
   z.object({
     intent: z.literal("cancel"),
@@ -44,16 +49,35 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (body.intent === "invite") {
     await requirePermission(db, organizationId, session.user.id, { invitation: ["create"] });
 
+    const role = body.role;
+
+    // Validate role: must be a known built-in or an existing custom role for this org.
+    if (!(BUILTIN_ROLES as readonly string[]).includes(role)) {
+      const customRole = await db.query.organizationRole.findFirst({
+        where: and(eq(organizationRole.organizationId, organizationId), eq(organizationRole.role, role)),
+        columns: { role: true },
+      });
+      if (!customRole) {
+        return data({ error: `Unknown role "${role}"` }, { status: 400 });
+      }
+    }
+
+    // Privilege escalation guard: only members with member:create permission (admins)
+    // can invite someone as admin. Regular members with invitation:create cannot.
+    if (role === "admin") {
+      await requirePermission(db, organizationId, session.user.id, { member: ["create"] });
+    }
+
     const result = await getAuth(db).api.createInvitation({
       headers: request.headers,
-      body: { email: body.email, role: "member", organizationId },
+      body: { email: body.email, role, organizationId },
     });
     await logOrgActivity(db, {
       orgId: organizationId,
       actor: { id: session.user.id, email: session.user.email, name: session.user.name },
       action: "member_invited",
       target: { type: "invitation" },
-      metadata: { email: body.email, role: "member" },
+      metadata: { email: body.email, role },
       request,
     });
     return data({ success: true, invitation: result });

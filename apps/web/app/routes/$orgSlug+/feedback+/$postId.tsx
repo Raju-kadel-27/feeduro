@@ -1,5 +1,5 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
-import { requireOrgBySlug } from "@features/auth/server/guards";
+import { canDo, requireOrgBySlug } from "@features/auth/server/guards";
 import { getOrgTags, getPostTags } from "@features/feedback/server/tags";
 import { PostMergeDialog } from "@features/internal/post-detail-panel/components/post-merge-dialog";
 import { PostMergedBanner } from "@features/internal/post-detail-panel/components/post-merged-banner";
@@ -577,12 +577,16 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     }),
   ]);
 
-  const [voterTraitCountsMap, voterProfiles] = await Promise.all([
-    getVoterTraitCountsByPost(db, organizationId, [post.id]).catch(
-      () => ({}) as Record<string, VoterTraitCounts>,
-    ),
-    getVoterProfilesByPost(db, organizationId, post.id, 50).catch(() => [] as VoterProfileRow[]),
-  ]);
+  const [voterTraitCountsMap, voterProfiles, canChangeStatus, canRespond, canEditFeedback] =
+    await Promise.all([
+      getVoterTraitCountsByPost(db, organizationId, [post.id]).catch(
+        () => ({}) as Record<string, VoterTraitCounts>,
+      ),
+      getVoterProfilesByPost(db, organizationId, post.id, 50).catch(() => [] as VoterProfileRow[]),
+      canDo(db, organizationId, session.user.id, { feedback: ["change-status"] }),
+      canDo(db, organizationId, session.user.id, { feedback: ["respond"] }),
+      canDo(db, organizationId, session.user.id, { feedback: ["update"] }),
+    ]);
   const voterTraitCounts: VoterTraitCounts = voterTraitCountsMap[post.id] ?? {
     plan: {},
     role: {},
@@ -728,6 +732,9 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     })) as ActivityData[],
     currentUserId: session.user.id,
     currentRole: memberRecord?.role ?? "member",
+    canChangeStatus,
+    canRespond,
+    canEditFeedback,
     orgSlug: params.orgSlug,
     linearLink: linearLinkRow
       ? {
@@ -801,6 +808,9 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
     availableTags,
     voterTraitCounts,
     voterProfiles,
+    canChangeStatus,
+    canRespond,
+    canEditFeedback,
   } = loaderData;
 
   const qc = useQueryClient();
@@ -1583,7 +1593,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                             <TooltipContent>Add emoji</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        {isAdmin && (
+                        {canRespond && (
                           <button
                             type="button"
                             onClick={() => setIsInternal((v) => !v)}
@@ -1901,7 +1911,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground w-14 shrink-0">Status</span>
               <div className="relative flex-1">
-                {isAdmin ? (
+                {canChangeStatus ? (
                   <>
                     <button
                       type="button"
@@ -1972,7 +1982,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
           <div className="border-t pt-4 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Tags</span>
-              {isAdmin && unselectedTags.length > 0 && (
+              {canEditFeedback && unselectedTags.length > 0 && (
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1991,7 +2001,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
             </div>
 
             {/* Tag picker dropdown */}
-            {showTagPicker && isAdmin && (
+            {showTagPicker && canEditFeedback && (
               <div className="rounded-md border bg-popover shadow-md overflow-hidden">
                 {unselectedTags.map((tag) => (
                   <button
@@ -2023,7 +2033,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                     style={{ backgroundColor: `${tag.color}22`, color: tag.color }}
                   >
                     {tag.name}
-                    {isAdmin && (
+                    {canEditFeedback && (
                       <button
                         type="button"
                         onClick={() => removeTagMutation.mutate(tag.id)}
@@ -2771,7 +2781,7 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
       />
 
       {/* ── Bottom action bar (admin + has next status) ────────────────── */}
-      {isAdmin && nextStatus && (
+      {canChangeStatus && nextStatus && (
         <div className="flex items-center justify-center h-14 border-t shrink-0 bg-background">
           <button
             type="button"

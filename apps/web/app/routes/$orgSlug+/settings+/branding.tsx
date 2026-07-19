@@ -55,7 +55,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
   return (
-    <main className="pb-6 px-6 w-full space-y-8">
+    <main className="pb-6 pl-14 pr-10 w-full space-y-8">
       <div className="flex items-center gap-3 pt-4">
         <SidebarTrigger className="-ml-1 shrink-0" />
         <PageHeader

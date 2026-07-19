@@ -65,9 +65,27 @@ const ROADMAP_COLS = [
 ];
 
 const FAKE_CHANGELOGS = [
-  { title: "Improved search & filtering", date: "Jul 12", tag: "improvement", version: null },
-  { title: "Google Sheets integration", date: "Jun 28", tag: "feature", version: "v2.4.0" },
-  { title: "Bug fixes & performance", date: "Jun 14", tag: "fix", version: null },
+  {
+    title: "Improved search & filtering",
+    date: "Jul 12",
+    tag: "improvement",
+    version: null,
+    body: "Search now returns results as you type with smarter ranking. You can filter by status, board, and date range simultaneously — no more resetting filters between searches.",
+  },
+  {
+    title: "Google Sheets integration",
+    date: "Jun 28",
+    tag: "feature",
+    version: "v2.4.0",
+    body: "Export your feedback boards directly to Google Sheets with one click. Columns map to title, status, votes, and board name. Auto-sync keeps your sheet up to date as new posts come in.",
+  },
+  {
+    title: "Bug fixes & performance",
+    date: "Jun 14",
+    tag: "fix",
+    version: null,
+    body: "Fixed an issue where vote counts could appear stale after a page refresh. Portal load time improved by ~40% through better asset caching and deferred script loading.",
+  },
 ];
 
 const CL_MINT = "#7EB8A6";
@@ -199,8 +217,7 @@ function FeedbackView({
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Sidebar — left panel, matches PublicSidebar layout */}
       <div
-        className="w-44 shrink-0 py-3 flex flex-col"
-        style={{ borderRight: `1px solid ${borderColor}` }}
+        className="w-48 shrink-0 py-3 pl-16 flex flex-col"
       >
         <div>
           <p className="px-3 text-[10px] tracking-wider uppercase mb-1.5" style={{ color: textMuted }}>
@@ -233,8 +250,8 @@ function FeedbackView({
         </div>
 
         {!hidePoweredBy && (
-          <div className="mt-auto px-3 pb-1">
-            <p className="text-[11px]" style={{ color: isDark ? "#374151" : "#d1d5db" }}>
+          <div className="mt-auto px-3 pb-2">
+            <p className="text-[12px] font-medium" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>
               Powered by Feeduro
             </p>
           </div>
@@ -242,7 +259,7 @@ function FeedbackView({
       </div>
 
       {/* Main — right of sidebar */}
-      <div className="flex-1 min-w-0 overflow-hidden px-3 py-3 flex flex-col gap-2.5">
+      <div className="flex-1 min-w-0 overflow-hidden pl-6 pr-16 py-3 flex flex-col gap-2.5">
         {/* Submission card */}
         <div
           className="rounded-lg border p-3 shrink-0"
@@ -360,7 +377,7 @@ function RoadmapView({ isDark, hidePoweredBy }: { isDark: boolean; hidePoweredBy
   const textPrimary = isDark ? "#f9fafb" : "#111827";
 
   return (
-    <div className="flex flex-col flex-1 px-3 py-3">
+    <div className="flex flex-col flex-1 px-16 pt-8 pb-3">
       <div className="flex gap-3 flex-1">
         {ROADMAP_COLS.map((col) => (
           <div key={col.label} className="flex-1 flex flex-col">
@@ -437,7 +454,7 @@ function ChangelogView({ isDark, hidePoweredBy }: { isDark: boolean; hidePowered
   const cardBg = isDark ? "rgba(255,255,255,0.03)" : "#ffffff";
 
   return (
-    <div className="flex flex-col flex-1 px-4 py-3">
+    <div className="flex flex-col flex-1 px-16 py-3">
       {/* Header */}
       <div className="mb-3">
         <h3 className="text-base font-bold tracking-tight" style={{ color: textPrimary }}>Changelogs</h3>
@@ -489,7 +506,7 @@ function ChangelogView({ isDark, hidePoweredBy }: { isDark: boolean; hidePowered
               </div>
 
               {/* Entry card */}
-              <div style={{ flex: 1, minWidth: 0, padding: "8px 10px", borderRadius: 10, background: cardBg, border: `1px solid ${borderColor}` }}>
+              <div style={{ flex: 1, minWidth: 0, padding: "8px 10px", borderRadius: 10, background: cardBg }}>
                 {/* Tag + version row */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 5 }}>
                   {entry.version && (
@@ -504,6 +521,10 @@ function ChangelogView({ isDark, hidePoweredBy }: { isDark: boolean; hidePowered
                 {/* Title */}
                 <p style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, color: textPrimary, margin: 0 }}>
                   {entry.title}
+                </p>
+                {/* Body */}
+                <p style={{ fontSize: 11, lineHeight: 1.5, color: textMuted, margin: "5px 0 0" }}>
+                  {entry.body}
                 </p>
                 {/* Like row */}
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 7 }}>

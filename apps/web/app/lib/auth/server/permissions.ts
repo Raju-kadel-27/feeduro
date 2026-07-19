@@ -6,11 +6,15 @@ export const ac = createAccessControl({
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
   ac: ["create", "read", "update", "delete"],
-  // Feeduro app resources
+  // Feeduro app resources — feedback & content
   feedback: ["create", "read", "update", "delete", "respond", "change-status"],
   board: ["create", "read", "update", "delete"],
   changelog: ["create", "read", "update", "delete", "publish"],
-  settings: ["read", "update"],
+  // Feeduro app resources — settings (split into focused sub-domains)
+  settings: ["read", "update"],          // workspace name, slug, privacy
+  branding: ["read", "update"],          // logo, colors, theme, portal appearance
+  integrations: ["read", "update"],      // all third-party connectors
+  security: ["read", "update"],          // SSO, API keys, custom domain
 });
 
 export const adminRole = ac.newRole({
@@ -22,14 +26,17 @@ export const adminRole = ac.newRole({
   board: ["create", "read", "update", "delete"],
   changelog: ["create", "read", "update", "delete", "publish"],
   settings: ["read", "update"],
+  branding: ["read", "update"],
+  integrations: ["read", "update"],
+  security: ["read", "update"],
 });
 
 export const memberRole = ac.newRole({
-  invitation: ["create", "cancel"],
-  feedback: ["create", "read", "update"],
+  feedback: ["create", "read", "update", "respond", "change-status"],
   board: ["read"],
-  changelog: ["read"],
+  changelog: ["create", "read", "update"],
   settings: ["read"],
+  branding: ["read"],
 });
 
 export const viewerRole = ac.newRole({

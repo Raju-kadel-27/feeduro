@@ -14,6 +14,7 @@ import {
   formFromSegment,
   SegmentForm,
 } from "@features/internal/segmentation/components/segment-form";
+import { SegmentSetupGuide } from "@features/internal/segmentation/components/segment-setup-guide";
 import {
   getOrgCompanies,
   getOrgPlans,
@@ -22,13 +23,13 @@ import {
 import type { PlanCatalogEntry, Segment } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Layers, Pencil, Plus, Star, Trash2, Upload, Users2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { member } from "@/db/schema";
+import { member, userProfiles } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/segments";
 
@@ -40,7 +41,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [memberRecord, segmentList, planList, companyList, planLimits] = await Promise.all([
+  const [memberRecord, segmentList, planList, companyList, planLimits, userCountRows] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
@@ -49,6 +50,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     getOrgPlans(db, organizationId),
     getOrgCompanies(db, organizationId),
     getOrgPlanLimits(db, organizationId),
+    db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(userProfiles)
+      .where(eq(userProfiles.organizationId, organizationId)),
   ]);
 
   if (!planLimits.segments) return { planLocked: true as const };
@@ -58,6 +63,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     segments: segmentList,
     plans: planList,
     companies: companyList,
+    userProfileCount: userCountRows[0]?.count ?? 0,
   };
 }
 
@@ -203,6 +209,21 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="max-w-[840px] mx-auto w-full space-y-4">
+          <SegmentSetupGuide
+            planCount={loaderData.plans.length}
+            userCount={loaderData.userProfileCount}
+            segmentCount={segments.length}
+            onOpenImport={() => setImportOpen(true)}
+            onScrollToPlans={() => {
+              const el = document.getElementById("plans-catalog");
+              if (el) {
+                if (!el.open) el.open = true;
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+            onCreateSegment={startCreating}
+          />
+
           {/* Inline create form */}
           {creating && (
             <div className="rounded-lg border border-border p-4 bg-muted/40 animate-in slide-in-from-top-2 fade-in duration-150">
@@ -239,11 +260,19 @@ Authorization: Bearer <your-api-key>
   "email": "user@example.com",
   "externalId": "cus_abc123",
   "traits": {
-    "plan": "paying",
+    "plan": "starter",            // matches a name in your plan catalog
+    "billingInterval": "annual",  // "monthly" | "annual" — picks monthly or annual price
+    "mrr": 80,                    // explicit $/mo override — beats plan price entirely
     "role": "founder",
     "companySize": 12,
-    "industry": "SaaS"
-  }
+    "industry": "SaaS",
+    "location": "North America"
+  },
+  "companies": [{
+    "externalId": "bigco",
+    "name": "BigCo",
+    "monthlySpend": 500           // company MRR — counted once per company per post
+  }]
 }`}</pre>
             </div>
           </details>

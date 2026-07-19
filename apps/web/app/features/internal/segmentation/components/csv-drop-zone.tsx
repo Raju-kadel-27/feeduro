@@ -2,25 +2,26 @@ import { Download, Upload } from "lucide-react";
 import { useRef } from "react";
 
 const COLUMNS = [
-  { name: "email",       required: true,  desc: "Email address (identifier)" },
-  { name: "externalId",  required: false, desc: "Your internal user / customer ID" },
-  { name: "name",        required: false, desc: "Display name" },
-  { name: "plan",        required: false, desc: "Plan name — sets MRR from your plan catalog" },
-  { name: "mrr",         required: false, desc: "Monthly revenue ($) — overrides the plan price" },
-  { name: "role",        required: false, desc: "Job role (e.g. founder, developer)" },
-  { name: "companySize", required: false, desc: "Employee count — whole number" },
-  { name: "industry",    required: false, desc: "Industry (e.g. SaaS, Fintech)" },
-  { name: "location",    required: false, desc: "Region or country (e.g. North America)" },
-  { name: "companyId",   required: false, desc: "Company identifier — groups seats into one account" },
-  { name: "companyName", required: false, desc: "Company display name" },
-  { name: "companyMrr",  required: false, desc: "Company MRR ($) — counted once per company" },
+  { name: "email",           required: true,  desc: "Email address (identifier)" },
+  { name: "externalId",      required: false, desc: "Your internal user / customer ID" },
+  { name: "name",            required: false, desc: "Display name" },
+  { name: "plan",            required: false, desc: "Plan name — sets MRR from your plan catalog" },
+  { name: "billingInterval", required: false, desc: "'monthly' or 'annual' — selects plan price" },
+  { name: "mrr",             required: false, desc: "Explicit $/mo override — beats plan price" },
+  { name: "role",            required: false, desc: "Job role (e.g. founder, developer)" },
+  { name: "companySize",     required: false, desc: "Employee count — whole number" },
+  { name: "industry",        required: false, desc: "Industry (e.g. SaaS, Fintech)" },
+  { name: "location",        required: false, desc: "Region or country (e.g. North America)" },
+  { name: "companyId",       required: false, desc: "Company identifier — groups seats into one account" },
+  { name: "companyName",     required: false, desc: "Company display name" },
+  { name: "companyMrr",      required: false, desc: "Company MRR ($) — counted once per company" },
 ] as const;
 
 const SAMPLE_CSV = [
-  "email,externalId,name,plan,mrr,role,companySize,industry,location,companyId,companyName,companyMrr",
-  "alice@bigco.com,cus_001,Alice Johnson,pro,,founder,120,SaaS,North America,bigco,BigCo,500",
-  "bob@bigco.com,,Bob Smith,pro,,developer,120,SaaS,North America,bigco,BigCo,500",
-  "dana@example.com,,Dana Lee,pro,24,designer,,SaaS,Europe,,,",
+  "email,externalId,name,plan,billingInterval,mrr,role,companySize,industry,location,companyId,companyName,companyMrr",
+  "alice@bigco.com,cus_001,Alice Johnson,starter,annual,,founder,120,SaaS,North America,bigco,BigCo,500",
+  "bob@bigco.com,,Bob Smith,starter,monthly,,developer,120,SaaS,North America,bigco,BigCo,500",
+  "dana@example.com,,Dana Lee,pro,,80,designer,,SaaS,Europe,,,",
 ].join("\n");
 
 function downloadSample() {

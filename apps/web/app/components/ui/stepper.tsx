@@ -91,10 +91,10 @@ function Stepper({
   const stepperDefRef = useRef<ReturnType<typeof Stepperize.defineStepper> | null>(null)
 
   if (stepperDefRef.current === null) {
-    stepperDefRef.current = Stepperize.defineStepper(...steps)
+    stepperDefRef.current = Stepperize.defineStepper(steps)
   }
 
-  const stepper = stepperDefRef.current.useStepper({ initialStep: defaultValue || steps[0]?.id })
+  const stepper = stepperDefRef.current.useStepper({ defaultStep: defaultValue || steps[0]?.id })
 
   const [triggerNodes, setTriggerNodes] = useState<HTMLButtonElement[]>([])
 
@@ -200,17 +200,17 @@ function Stepper({
 
   // Controlled behavior: if `value` is provided, navigate to it when it changes
   useEffect(() => {
-    if (typeof value === 'string' && value !== stepper.state.current.data.id) {
-      stepper.navigation.goTo(value)
+    if (typeof value === 'string' && value !== stepper.current.id) {
+      stepper.goTo(value)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   // Notify parent when internal step changes
   useEffect(() => {
-    onValueChange?.(stepper.state.current.data.id)
+    onValueChange?.(stepper.current.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepper.state.current.data.id])
+  }, [stepper.current.id])
 
   return (
     <StepperContext.Provider value={contextValue}>
@@ -245,8 +245,8 @@ function StepperItem({
   ...props
 }: StepperItemProps) {
   const { stepper, steps } = useStepper()
-  const stepIndex = stepper.lookup.getIndex(stepId)
-  const currentIndex = stepper.lookup.getIndex(stepper.state.current.data.id)
+  const stepIndex = stepper.steps.findIndex((s: StepDefinition) => s.id === stepId)
+  const currentIndex = stepper.index
   const step = steps.find(s => s.id === stepId)!
 
   const state: StepState =
@@ -281,7 +281,7 @@ function StepperTrigger({ asChild = false, className, children, tabIndex, ...pro
   const { stepper, registerTrigger, triggerNodes, focusNext, focusPrev, focusFirst, focusLast } = useStepper()
 
   const { step, isDisabled } = useStepItem()
-  const isSelected = stepper.state.current.data.id === step.id
+  const isSelected = stepper.current.id === step.id
   const id = `stepper-tab-${step.id}`
   const panelId = `stepper-panel-${step.id}`
 
@@ -327,7 +327,7 @@ function StepperTrigger({ asChild = false, className, children, tabIndex, ...pro
       case 'Enter':
       case ' ':
         e.preventDefault()
-        stepper.navigation.goTo(step.id)
+        stepper.goTo(step.id)
         break
     }
   }
@@ -356,7 +356,7 @@ function StepperTrigger({ asChild = false, className, children, tabIndex, ...pro
         'gap-2.5 rounded-full',
         className
       )}
-      onClick={() => stepper.navigation.goTo(step.id)}
+      onClick={() => stepper.goTo(step.id)}
       onKeyDown={handleKeyDown}
       disabled={isDisabled}
       {...props}
@@ -446,7 +446,7 @@ function StepperNav({ children, className }: React.ComponentProps<'nav'>) {
   return (
     <nav
       data-slot='stepper-nav'
-      data-state={stepper.state.current.data.id}
+      data-state={stepper.current.id}
       data-orientation={orientation}
       className={cn(
         'group/stepper-nav inline-flex data-[orientation=horizontal]:w-full data-[orientation=horizontal]:flex-row data-[orientation=vertical]:flex-col',
@@ -463,7 +463,7 @@ function StepperPanel({ children, className }: React.ComponentProps<'div'>) {
   const { stepper } = useStepper()
 
   return (
-    <div data-slot='stepper-panel' data-state={stepper.state.current.data.id} className={cn('w-full', className)}>
+    <div data-slot='stepper-panel' data-state={stepper.current.id} className={cn('w-full', className)}>
       {children}
     </div>
   )
@@ -476,7 +476,7 @@ interface StepperContentProps extends React.ComponentProps<'div'> {
 
 function StepperContent({ value, forceMount, children, className }: StepperContentProps) {
   const { stepper } = useStepper()
-  const isActive = value === stepper.state.current.data.id
+  const isActive = value === stepper.current.id
 
   if (!forceMount && !isActive) {
     return null
@@ -488,7 +488,7 @@ function StepperContent({ value, forceMount, children, className }: StepperConte
       id={`stepper-panel-${value}`}
       aria-labelledby={`stepper-tab-${value}`}
       data-slot='stepper-content'
-      data-state={stepper.state.current.data.id}
+      data-state={stepper.current.id}
       className={cn('w-full', className, !isActive && forceMount && 'hidden')}
       hidden={!isActive && forceMount}
     >

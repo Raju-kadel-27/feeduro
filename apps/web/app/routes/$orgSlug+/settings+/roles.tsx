@@ -174,9 +174,14 @@ function RolesContent({ roles: initialRoles, isAdmin, organizationId }: RolesCon
     variables: deletingRoleId,
   } = useMutation({
     mutationFn: async (roleId: string) => {
-      const result = await authClient.organization.deleteRole({ roleId });
-      if (result.error) throw new Error(result.error.message ?? "Failed to delete role");
-      return result.data;
+      const res = await fetch("/api/roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "delete", roleId }),
+      });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Failed to delete role");
+      return json;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["org-roles"] }),
   });

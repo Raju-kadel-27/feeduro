@@ -18,9 +18,10 @@ export const IdentifyUserSchema = z.object({
   traits: z
     .object({
       plan: z.string().max(100).optional(),
+      billingInterval: z.enum(["monthly", "annual"]).optional(),
+      mrr: z.number().int().nonnegative().optional(),
       role: z.string().max(100).optional(),
       companySize: z.number().int().positive().optional(),
-      mrr: z.number().int().nonnegative().optional(),
       industry: z.string().max(100).optional(),
       location: z.string().max(100).optional(),
     })

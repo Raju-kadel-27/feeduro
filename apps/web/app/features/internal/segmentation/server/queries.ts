@@ -15,6 +15,7 @@ export interface VoterProfileRow {
   name: string | null;
   email: string;
   plan: string | null;
+  billingInterval: string | null;
   role: string | null;
   industry: string | null;
   location: string | null;
@@ -55,6 +56,7 @@ export async function getOrgPlans(db: Db, organizationId: string): Promise<PlanC
       organizationId: true,
       name: true,
       monthlyPrice: true,
+      annualMonthlyPrice: true,
       interval: true,
       createdAt: true,
       updatedAt: true,
@@ -69,14 +71,20 @@ export async function getOrgPlans(db: Db, organizationId: string): Promise<PlanC
 }
 
 // A voter's effective MRR is their explicit override, else their plan's catalog price, else 0.
+// billingInterval selects monthly vs annual price; null/undefined is treated as monthly.
 // The catalog is small (a handful of tiers per org) so we resolve in JS off a single fetch.
-async function getPlanPriceMap(db: Db, organizationId: string): Promise<Map<string, number>> {
+interface PlanPrices {
+  monthly: number;
+  annual: number | null;
+}
+
+async function getPlanPriceMap(db: Db, organizationId: string): Promise<Map<string, PlanPrices>> {
   try {
     const rows = await db
-      .select({ name: plans.name, monthlyPrice: plans.monthlyPrice })
+      .select({ name: plans.name, monthlyPrice: plans.monthlyPrice, annualMonthlyPrice: plans.annualMonthlyPrice })
       .from(plans)
       .where(eq(plans.organizationId, organizationId));
-    return new Map(rows.map((r) => [r.name, r.monthlyPrice]));
+    return new Map(rows.map((r) => [r.name, { monthly: r.monthlyPrice, annual: r.annualMonthlyPrice ?? null }]));
   } catch (err) {
     // Pricing is optional (table may be unmigrated) — degrade to no catalog rather than break callers.
     console.error("getPlanPriceMap failed; treating catalog as empty", err);
@@ -87,10 +95,15 @@ async function getPlanPriceMap(db: Db, organizationId: string): Promise<Map<stri
 function resolveMrr(
   explicit: number | null,
   plan: string | null,
-  priceMap: Map<string, number>,
+  billingInterval: string | null | undefined,
+  priceMap: Map<string, PlanPrices>,
 ): number {
   if (explicit != null) return explicit;
-  if (plan != null) return priceMap.get(plan) ?? 0;
+  if (plan != null) {
+    const prices = priceMap.get(plan);
+    if (!prices) return 0;
+    return billingInterval === "annual" && prices.annual != null ? prices.annual : prices.monthly;
+  }
   return 0;
 }
 
@@ -130,7 +143,7 @@ async function getCompanyMembershipMap(
   db: Db,
   organizationId: string,
   profileIds: string[],
-  priceMap: Map<string, number>,
+  priceMap: Map<string, PlanPrices>,
 ): Promise<Map<string, CompanyRef[]>> {
   const map = new Map<string, CompanyRef[]>();
   if (profileIds.length === 0) return map;
@@ -163,7 +176,8 @@ async function getCompanyMembershipMap(
     return map;
   }
   for (const r of rows) {
-    const mrr = r.monthlySpend ?? (r.plan != null ? (priceMap.get(r.plan) ?? 0) : 0);
+    const prices = r.plan != null ? priceMap.get(r.plan) : undefined;
+    const mrr = r.monthlySpend ?? (prices?.monthly ?? 0);
     const arr = map.get(r.profileId) ?? [];
     arr.push({ companyId: r.companyId, mrr });
     map.set(r.profileId, arr);
@@ -195,6 +209,7 @@ export async function getVoterTraitCountsByPost(
     .select({
       postId: votes.postId,
       plan: sql<string | null>`coalesce(${nativeProfile.plan}, ${importedProfile.plan})`,
+      billingInterval: sql<string | null>`coalesce(${nativeProfile.billingInterval}, ${importedProfile.billingInterval})`,
       role: sql<string | null>`coalesce(${nativeProfile.role}, ${importedProfile.role})`,
       industry: sql<string | null>`coalesce(${nativeProfile.industry}, ${importedProfile.industry})`,
       location: sql<string | null>`coalesce(${nativeProfile.location}, ${importedProfile.location})`,
@@ -228,10 +243,11 @@ export async function getVoterTraitCountsByPost(
 
   for (const row of rows) {
     if (!result[row.postId]) {
-      result[row.postId] = { plan: {}, role: {}, industry: {}, location: {} };
+      result[row.postId] = { plan: {}, billingInterval: {}, role: {}, industry: {}, location: {} };
     }
     const t = result[row.postId];
     inc(t.plan, row.plan);
+    inc(t.billingInterval, row.billingInterval);
     inc(t.role, row.role);
     inc(t.industry, row.industry);
     inc(t.location, row.location);
@@ -247,14 +263,22 @@ export async function getSegmentMemberCounts(
 ): Promise<Record<string, number>> {
   if (segmentList.length === 0) return {};
 
-  // Effective MRR = explicit override, else the plan's catalog price. `plans.name` is unique per
-  // org, so the LEFT JOIN matches at most one row and never inflates count(*).
-  const effectiveMrr = sql<number>`coalesce(${userProfiles.mrr}, ${plans.monthlyPrice}, 0)`;
+  // Effective MRR = explicit override, else the plan's catalog price (annual if billingInterval='annual').
+  // `plans.name` is unique per org, so the LEFT JOIN matches at most one row and never inflates count(*).
+  const effectiveMrr = sql<number>`coalesce(
+    ${userProfiles.mrr},
+    case when ${userProfiles.billingInterval} = 'annual' and ${plans.annualMonthlyPrice} is not null
+         then ${plans.annualMonthlyPrice}
+         else ${plans.monthlyPrice}
+    end,
+    0
+  )`;
 
   const counts = await Promise.all(
     segmentList.map(async ({ id, filters }) => {
       const conditions = [eq(userProfiles.organizationId, organizationId)];
       if (filters.plan?.length) conditions.push(inArray(userProfiles.plan, filters.plan));
+      if (filters.billingInterval?.length) conditions.push(inArray(userProfiles.billingInterval, filters.billingInterval));
       if (filters.role?.length) conditions.push(inArray(userProfiles.role, filters.role));
       if (filters.industry?.length) conditions.push(inArray(userProfiles.industry, filters.industry));
       if (filters.location?.length) conditions.push(inArray(userProfiles.location, filters.location));
@@ -294,6 +318,7 @@ export async function getVoterProfilesByPost(
       // At least one profile is guaranteed by the WHERE filter, so email is always non-null
       email: sql<string>`coalesce(${nativeProfile.email}, ${importedProfile.email})`,
       plan: sql<string | null>`coalesce(${nativeProfile.plan}, ${importedProfile.plan})`,
+      billingInterval: sql<string | null>`coalesce(${nativeProfile.billingInterval}, ${importedProfile.billingInterval})`,
       role: sql<string | null>`coalesce(${nativeProfile.role}, ${importedProfile.role})`,
       industry: sql<string | null>`coalesce(${nativeProfile.industry}, ${importedProfile.industry})`,
       location: sql<string | null>`coalesce(${nativeProfile.location}, ${importedProfile.location})`,
@@ -351,7 +376,8 @@ export async function getVoterProfilesByPost(
           ),
         );
       for (const r of memRows) {
-        const mrr = r.monthlySpend ?? (r.plan != null ? (priceMap.get(r.plan) ?? 0) : 0);
+        const prices = r.plan != null ? priceMap.get(r.plan) : undefined;
+        const mrr = r.monthlySpend ?? (prices?.monthly ?? 0);
         const existing = primaryCompany.get(r.profileId);
         if (!existing || mrr > existing.mrr) {
           primaryCompany.set(r.profileId, { id: r.companyId, name: r.name, mrr });
@@ -410,6 +436,7 @@ export async function getSegmentCountsByPost(
       .select({
         profileId: sql<string | null>`coalesce(${nativeProfile.id}, ${importedProfile.id})`,
         plan: sql<string | null>`coalesce(${nativeProfile.plan}, ${importedProfile.plan})`,
+        billingInterval: sql<string | null>`coalesce(${nativeProfile.billingInterval}, ${importedProfile.billingInterval})`,
         role: sql<string | null>`coalesce(${nativeProfile.role}, ${importedProfile.role})`,
         industry: sql<string | null>`coalesce(${nativeProfile.industry}, ${importedProfile.industry})`,
         location: sql<string | null>`coalesce(${nativeProfile.location}, ${importedProfile.location})`,
@@ -463,14 +490,15 @@ export async function getSegmentCountsByPost(
   };
 
   for (const row of rows) {
-    const mrr = resolveMrr(row.explicitMrr, row.plan, priceMap);
+    const mrr = resolveMrr(row.explicitMrr, row.plan, row.billingInterval, priceMap);
     const memberOf = row.profileId ? membershipMap.get(row.profileId) : undefined;
 
-    // Segment membership is decided by the voter's per-user traits (unchanged from Phase 0).
+    // Segment membership is decided by the voter's per-user traits.
     let matchedId: string | null = null;
     for (const seg of segmentList) {
       const f = seg.filters;
       if (f.plan?.length && !f.plan.includes(row.plan ?? "")) continue;
+      if (f.billingInterval?.length && !f.billingInterval.includes(row.billingInterval ?? "monthly")) continue;
       if (f.role?.length && !f.role.includes(row.role ?? "")) continue;
       if (f.industry?.length && !f.industry.includes(row.industry ?? "")) continue;
       if (f.location?.length && !f.location.includes(row.location ?? "")) continue;
@@ -530,6 +558,7 @@ export async function getMrrImpactByPost(
         postId: votes.postId,
         profileId: sql<string | null>`coalesce(${nativeProfile.id}, ${importedProfile.id})`,
         plan: sql<string | null>`coalesce(${nativeProfile.plan}, ${importedProfile.plan})`,
+        billingInterval: sql<string | null>`coalesce(${nativeProfile.billingInterval}, ${importedProfile.billingInterval})`,
         explicitMrr: sql<number | null>`coalesce(${nativeProfile.mrr}, ${importedProfile.mrr})`,
       })
       .from(votes)
@@ -571,7 +600,7 @@ export async function getMrrImpactByPost(
       }
     } else {
       result[row.postId] =
-        (result[row.postId] ?? 0) + resolveMrr(row.explicitMrr, row.plan, priceMap);
+        (result[row.postId] ?? 0) + resolveMrr(row.explicitMrr, row.plan, row.billingInterval, priceMap);
     }
   }
   return result;
@@ -640,7 +669,8 @@ export async function getCompanyVotersByPost(
   for (const r of memRows) {
     let entry = map.get(r.companyId);
     if (!entry) {
-      const mrr = r.monthlySpend ?? (r.plan != null ? (priceMap.get(r.plan) ?? 0) : 0);
+      const prices = r.plan != null ? priceMap.get(r.plan) : undefined;
+      const mrr = r.monthlySpend ?? (prices?.monthly ?? 0);
       entry = { name: r.name, mrr, voters: new Set() };
       map.set(r.companyId, entry);
     }

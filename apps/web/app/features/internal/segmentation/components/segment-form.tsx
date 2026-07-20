@@ -81,15 +81,26 @@ export function SegmentForm({
   initial,
   onSave,
   onCancel,
+  onChange,
   planOptions = [],
 }: {
   initial: SegmentFormState;
   onSave: (form: SegmentFormState) => void;
   onCancel: () => void;
+  onChange?: (state: SegmentFormState) => void;
   /** Plan names from the org's plan catalog. */
   planOptions?: string[];
 }) {
   const [form, setForm] = useState<SegmentFormState>(initial);
+
+  // Single setter that also notifies the parent so they can persist a draft.
+  function update(patch: Partial<SegmentFormState> | ((prev: SegmentFormState) => SegmentFormState)) {
+    setForm((prev) => {
+      const next = typeof patch === "function" ? patch(prev) : { ...prev, ...patch };
+      onChange?.(next);
+      return next;
+    });
+  }
 
   // Catalog plans plus any already-selected plans not (or no longer) in the catalog,
   // so editing an existing segment never silently drops a filter value.
@@ -134,13 +145,6 @@ export function SegmentForm({
     staleTime: 30_000,
   });
 
-  function togglePlan(p: string) {
-    setForm((f) => ({
-      ...f,
-      plan: f.plan.includes(p) ? f.plan.filter((x) => x !== p) : [...f.plan, p],
-    }));
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -151,7 +155,7 @@ export function SegmentForm({
               type="button"
               aria-label={`Color ${c}`}
               aria-pressed={form.color === c}
-              onClick={() => setForm((f) => ({ ...f, color: c }))}
+              onClick={() => update({ color: c })}
               className={cn(
                 "h-5 w-5 rounded-full transition-transform",
                 form.color === c && "ring-2 ring-offset-1 ring-ring scale-110",
@@ -164,7 +168,7 @@ export function SegmentForm({
           type="text"
           placeholder="Segment name (e.g. Paying customers)"
           value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          onChange={(e) => update({ name: e.target.value })}
           className="flex-1 px-3 py-1.5 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
         />
       </div>
@@ -183,7 +187,7 @@ export function SegmentForm({
                 key={p}
                 type="button"
                 aria-pressed={form.plan.includes(p)}
-                onClick={() => togglePlan(p)}
+                onClick={() => update((f) => ({ ...f, plan: f.plan.includes(p) ? f.plan.filter((x) => x !== p) : [...f.plan, p] }))}
                 className={cn(
                   "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
                   form.plan.includes(p)
@@ -216,7 +220,7 @@ export function SegmentForm({
                 <button
                   key={v || "all"}
                   type="button"
-                  onClick={() => setForm((f) => ({ ...f, billingInterval: v }))}
+                  onClick={() => update({ billingInterval: v })}
                   className={cn(
                     "px-2.5 py-1 text-[12.5px] rounded-md border capitalize transition-colors",
                     form.billingInterval === v
@@ -240,7 +244,7 @@ export function SegmentForm({
                   type="text"
                   placeholder={`e.g. ${field === "role" ? "founder" : field === "industry" ? "SaaS" : "North America"}`}
                   value={form[field]}
-                  onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+                  onChange={(e) => update({ [field]: e.target.value })}
                   className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                 />
               </label>
@@ -255,7 +259,7 @@ export function SegmentForm({
                 min={1}
                 placeholder="Min"
                 value={form.minCompanySize}
-                onChange={(e) => setForm((f) => ({ ...f, minCompanySize: e.target.value }))}
+                onChange={(e) => update({ minCompanySize: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
               <span className="text-xs text-muted-foreground shrink-0">to</span>
@@ -264,7 +268,7 @@ export function SegmentForm({
                 min={1}
                 placeholder="Max"
                 value={form.maxCompanySize}
-                onChange={(e) => setForm((f) => ({ ...f, maxCompanySize: e.target.value }))}
+                onChange={(e) => update({ maxCompanySize: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
@@ -278,7 +282,7 @@ export function SegmentForm({
                 min={0}
                 placeholder="Min"
                 value={form.minMrr}
-                onChange={(e) => setForm((f) => ({ ...f, minMrr: e.target.value }))}
+                onChange={(e) => update({ minMrr: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
               <span className="text-xs text-muted-foreground shrink-0">to</span>
@@ -287,7 +291,7 @@ export function SegmentForm({
                 min={0}
                 placeholder="Max"
                 value={form.maxMrr}
-                onChange={(e) => setForm((f) => ({ ...f, maxMrr: e.target.value }))}
+                onChange={(e) => update({ maxMrr: e.target.value })}
                 className="w-full px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>

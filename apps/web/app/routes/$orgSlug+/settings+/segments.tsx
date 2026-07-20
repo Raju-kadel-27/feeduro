@@ -14,7 +14,7 @@ import {
   formFromSegment,
   SegmentForm,
 } from "@features/internal/segmentation/components/segment-form";
-import { SegmentSetupGuide } from "@features/internal/segmentation/components/segment-setup-guide";
+import { SegmentSetupWizard } from "@features/internal/segmentation/components/segment-setup-wizard";
 import { getOrgSegments } from "@features/internal/segmentation/server/service";
 import type { PlanCatalogEntry, Segment } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
@@ -151,7 +151,6 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
 
   function handleCreate(form: SegmentFormState) {
     mutate({ intent: "create", name: form.name, color: form.color, filters: filtersFromForm(form) });
-    setCreating(false);
     toast.success("Segment created");
   }
 
@@ -167,12 +166,31 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
     toast.success("Segment deleted");
   }
 
+  const showWizard = segments.length === 0;
+
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
       </header>
 
+      {showWizard ? (
+        <SegmentSetupWizard
+          planCount={plansData?.plans.length ?? 0}
+          userCount={loaderData.userProfileCount}
+          orgSlug={orgSlug ?? ""}
+          isAdmin={loaderData.isAdmin}
+          planOptions={planOptions}
+          onComplete={(form) => {
+            handleCreate(form);
+          }}
+          onImportSuccess={() => {
+            qc.invalidateQueries({ queryKey: ["segments", orgSlug] });
+            revalidator.revalidate();
+          }}
+        />
+      ) : (
+        <>
       <main className="p-6 space-y-8">
         <div className="max-w-[840px] mx-auto w-full">
           <PageHeader
@@ -200,28 +218,16 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="max-w-[840px] mx-auto w-full space-y-4">
-          <SegmentSetupGuide
-            planCount={plansData?.plans.length ?? 0}
-            userCount={loaderData.userProfileCount}
-            segmentCount={segments.length}
-            onOpenImport={() => setImportOpen(true)}
-            onScrollToPlans={() => {
-              const el = document.getElementById("plans-catalog");
-              if (el) {
-                if (!el.open) el.open = true;
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }}
-            onCreateSegment={startCreating}
-          />
-
           {/* Inline create form */}
           {creating && (
             <div className="rounded-lg border border-border p-4 bg-muted/40 animate-in slide-in-from-top-2 fade-in duration-150">
               <p className="text-sm font-medium mb-4">New segment</p>
               <SegmentForm
                 initial={defaultForm()}
-                onSave={handleCreate}
+                onSave={(form) => {
+                  handleCreate(form);
+                  setCreating(false);
+                }}
                 onCancel={() => setCreating(false)}
                 planOptions={planOptions}
               />
@@ -368,6 +374,8 @@ Authorization: Bearer <your-api-key>
           revalidator.revalidate();
         }}
       />
+        </>
+      )}
     </>
   );
 }

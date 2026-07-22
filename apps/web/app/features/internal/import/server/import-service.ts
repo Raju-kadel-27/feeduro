@@ -61,7 +61,7 @@ export async function runCannyImport(
     // 3. Upsert all unique users (with email) into userProfiles
     const uniqueUsers = collectUniqueUsers(allPosts, allVotes, allComments);
     const usersWithEmail = uniqueUsers.filter((u) => u.email);
-    await bulkUpsertUserProfiles(organizationId, usersWithEmail.map(toIdentifyInput));
+    await bulkUpsertUserProfiles(db, organizationId, usersWithEmail.map(toIdentifyInput));
 
     // Build email → profileId map for vote and comment attribution
     const profileRows = await db

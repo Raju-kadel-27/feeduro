@@ -10,7 +10,7 @@ export {
   updateSegment,
   upsertUserProfile,
 } from "./mutations";
-export type { SegmentCountsResult, VoterProfileRow } from "./queries";
+export type { SegmentCountsResult, SegmentTraitOptions, VoterProfileRow } from "./queries";
 export {
   getCompanyVotersByPost,
   getMrrImpactByPost,
@@ -19,6 +19,7 @@ export {
   getOrgSegments,
   getSegmentCountsByPost,
   getSegmentMemberCounts,
+  getSegmentTraitOptions,
   getVoterProfilesByPost,
   getVoterTraitCountsByPost,
 } from "./queries";

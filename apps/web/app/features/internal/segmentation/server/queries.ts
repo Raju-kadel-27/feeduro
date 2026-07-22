@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "@/db";
 import { companies, companyMembers, plans, segments, user, userProfiles, votes } from "@/db/schema";
@@ -277,11 +277,19 @@ export async function getSegmentMemberCounts(
   const counts = await Promise.all(
     segmentList.map(async ({ id, filters }) => {
       const conditions = [eq(userProfiles.organizationId, organizationId)];
-      if (filters.plan?.length) conditions.push(inArray(userProfiles.plan, filters.plan));
-      if (filters.billingInterval?.length) conditions.push(inArray(userProfiles.billingInterval, filters.billingInterval));
-      if (filters.role?.length) conditions.push(inArray(userProfiles.role, filters.role));
-      if (filters.industry?.length) conditions.push(inArray(userProfiles.industry, filters.industry));
-      if (filters.location?.length) conditions.push(inArray(userProfiles.location, filters.location));
+      if (filters.plan?.length) conditions.push(inArray(sql`lower(${userProfiles.plan})`, filters.plan));
+      if (filters.billingInterval?.length) {
+        const billingCond = inArray(userProfiles.billingInterval, filters.billingInterval);
+        // NULL billing_interval is treated as "monthly" everywhere else in the codebase.
+        conditions.push(
+          filters.billingInterval.includes("monthly")
+            ? or(billingCond, isNull(userProfiles.billingInterval))!
+            : billingCond,
+        );
+      }
+      if (filters.role?.length) conditions.push(inArray(sql`lower(${userProfiles.role})`, filters.role));
+      if (filters.industry?.length) conditions.push(inArray(sql`lower(${userProfiles.industry})`, filters.industry));
+      if (filters.location?.length) conditions.push(inArray(sql`lower(${userProfiles.location})`, filters.location));
       if (filters.minCompanySize != null) conditions.push(gte(userProfiles.companySize, filters.minCompanySize));
       if (filters.maxCompanySize != null) conditions.push(lte(userProfiles.companySize, filters.maxCompanySize));
       if (filters.minMrr != null) conditions.push(gte(effectiveMrr, filters.minMrr));
@@ -680,4 +688,35 @@ export async function getCompanyVotersByPost(
   return [...map.entries()]
     .map(([companyId, e]) => ({ companyId, name: e.name, mrr: e.mrr, voterCount: e.voters.size }))
     .sort((a, b) => b.mrr - a.mrr || b.voterCount - a.voterCount);
+}
+
+export interface SegmentTraitOptions {
+  roles: string[];
+  industries: string[];
+  locations: string[];
+}
+
+export async function getSegmentTraitOptions(
+  db: Db,
+  organizationId: string,
+): Promise<SegmentTraitOptions> {
+  const base = (col: typeof userProfiles.role) =>
+    db
+      .select({ val: col })
+      .from(userProfiles)
+      .where(and(eq(userProfiles.organizationId, organizationId), isNotNull(col)))
+      .groupBy(col)
+      .orderBy(col);
+
+  const [roles, industries, locations] = await Promise.all([
+    base(userProfiles.role),
+    base(userProfiles.industry),
+    base(userProfiles.location),
+  ]);
+
+  return {
+    roles: roles.map((r) => r.val as string),
+    industries: industries.map((r) => r.val as string),
+    locations: locations.map((r) => r.val as string),
+  };
 }

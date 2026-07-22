@@ -15,14 +15,14 @@ function buildProfileValues(organizationId: string, input: IdentifyUserInput) {
     email,
     ...(externalId !== undefined && { externalId }),
     ...(name !== undefined && { name }),
-    ...(plan !== undefined && { plan }),
-    ...(billingInterval !== undefined && { billingInterval }),
+    ...(plan !== undefined && { plan: plan.trim().toLowerCase() }),
+    ...(billingInterval !== undefined && { billingInterval: billingInterval.trim().toLowerCase() }),
     ...(mrr !== undefined && { mrr }),
-    ...(role !== undefined && { role }),
+    ...(role !== undefined && { role: role.trim().toLowerCase() }),
     ...(companySize !== undefined && { companySize }),
-    ...(industry !== undefined && { industry }),
-    ...(location !== undefined && { location }),
-    customAttributes: JSON.stringify(rest),
+    ...(industry !== undefined && { industry: industry.trim().toLowerCase() }),
+    ...(location !== undefined && { location: location.trim().toLowerCase() }),
+    ...(Object.keys(rest).length > 0 && { customAttributes: JSON.stringify(rest) }),
   };
 }
 

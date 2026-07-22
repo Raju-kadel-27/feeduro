@@ -12,8 +12,8 @@ interface Draft {
 }
 
 const inputCls =
-  "px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring";
-const btnBase = "inline-flex items-center gap-1 px-2.5 py-1.5 text-[13px] rounded-md transition-colors";
+  "px-2.5 py-2 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring";
+const btnBase = "inline-flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors";
 
 export function CompaniesManager({
   initialCompanies,
@@ -91,13 +91,13 @@ export function CompaniesManager({
   }
 
   return (
-    <details className="rounded-lg border border-border text-sm bg-muted/30 group" open={companies.length > 0}>
-      <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-medium text-foreground select-none">
+    <details className="rounded-lg border border-border bg-muted/30 group" open={companies.length > 0}>
+      <summary className="flex items-center justify-between p-4 cursor-pointer list-none text-base font-medium text-foreground select-none">
         <span className="flex items-center gap-2">
           <Building2 className="h-4 w-4 text-sky-600 dark:text-sky-400" />
           Companies
           {companies.length > 0 && (
-            <span className="text-[11px] font-normal text-muted-foreground tabular-nums">
+            <span className="text-xs font-normal text-muted-foreground tabular-nums">
               {companies.length}
             </span>
           )}
@@ -111,13 +111,13 @@ export function CompaniesManager({
       </summary>
 
       <div className="px-4 pb-4 space-y-2.5">
-        <p className="text-muted-foreground text-[13px]">
+        <p className="text-muted-foreground text-sm">
           Companies are created when you identify users with a company (widget or CSV). MRR impact
           counts each company once, no matter how many of its members vote. Edit spend or remove here.
         </p>
 
         {companies.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground italic">No companies yet.</p>
+          <p className="text-sm text-muted-foreground italic">No companies yet.</p>
         ) : (
           <>
             {companies.length > 6 && (
@@ -182,18 +182,18 @@ export function CompaniesManager({
                   <li key={c.id} className="flex items-center gap-2.5 rounded-md border border-border p-2.5 bg-background">
                     <CompanyMonogram name={c.name} seed={c.id} size={26} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium">{c.name ?? c.externalId}</p>
+                      <p className="truncate text-sm font-medium">{c.name ?? c.externalId}</p>
                       {c.plan && (
-                        <span className="text-[11px] text-muted-foreground capitalize">{c.plan}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{c.plan}</span>
                       )}
                     </div>
                     {c.monthlySpend != null ? (
-                      <span className="tabular-nums text-[13px] font-medium text-emerald-600 dark:text-emerald-400">
+                      <span className="tabular-nums text-sm font-medium text-emerald-600 dark:text-emerald-400">
                         ${c.monthlySpend}
-                        <span className="text-[10px] font-normal text-muted-foreground">/mo</span>
+                        <span className="text-xs font-normal text-muted-foreground">/mo</span>
                       </span>
                     ) : (
-                      <span className="text-[11px] text-muted-foreground italic">from plan</span>
+                      <span className="text-xs text-muted-foreground italic">from plan</span>
                     )}
                     {isAdmin && (
                       <div className="flex items-center gap-1 shrink-0">
@@ -219,8 +219,8 @@ export function CompaniesManager({
                 ),
               )}
               {filtered.length === 0 && (
-                <li className="text-[13px] text-muted-foreground italic px-1 py-2">
-                  No companies match “{search}”.
+                <li className="text-sm text-muted-foreground italic px-1 py-2">
+                  No companies match "{search}".
                 </li>
               )}
             </ul>

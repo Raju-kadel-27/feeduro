@@ -1,9 +1,9 @@
 import { resolveApiOrganizationId } from "@features/auth/server/guards";
 import { IdentifyUserSchema } from "@features/internal/segmentation/schemas/identify";
 import { bulkUpsertUserProfiles } from "@features/internal/segmentation/server/service";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
 import { z } from "zod";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/user-profiles-bulk";
 
@@ -32,6 +32,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data({ error: "Validation failed", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const result = await bulkUpsertUserProfiles(organizationId, parsed.data.profiles);
+  const result = await bulkUpsertUserProfiles(db, organizationId, parsed.data.profiles);
   return data({ success: true, ...result });
 }

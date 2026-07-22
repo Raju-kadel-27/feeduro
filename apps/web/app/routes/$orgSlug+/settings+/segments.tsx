@@ -15,17 +15,18 @@ import {
   SegmentForm,
 } from "@features/internal/segmentation/components/segment-form";
 import { SegmentSetupGuide } from "@features/internal/segmentation/components/segment-setup-guide";
-import { getOrgSegments } from "@features/internal/segmentation/server/service";
+import { SegmentSetupWizard } from "@features/internal/segmentation/components/segment-setup-wizard";
+import { getOrgPlans, getOrgSegments, getSegmentMemberCounts } from "@features/internal/segmentation/server/service";
 import type { PlanCatalogEntry, Segment } from "@features/internal/segmentation/types";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq, sql } from "drizzle-orm";
 import { Layers, Pencil, Plus, Star, Trash2, Upload, Users2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { member, userProfiles } from "@/db/schema";
+import { member, segmentsSetup, userProfiles } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/segments";
 
@@ -37,7 +38,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [memberRecord, segmentList, planLimits, userCountRows] = await Promise.all([
+  const [memberRecord, segmentList, planLimits, userCountRows, orgRecord, planList] = await Promise.all([
     db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
@@ -48,14 +49,25 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(userProfiles)
       .where(eq(userProfiles.organizationId, organizationId)),
+    db.query.segmentsSetup.findFirst({
+      where: eq(segmentsSetup.organizationId, organizationId),
+      columns: { wizardSkipped: true, wizardDraft: true, guideDismissed: true },
+    }),
+    getOrgPlans(db, organizationId),
   ]);
 
   if (!planLimits.segments) return { planLocked: true as const };
 
+  const memberCounts = await getSegmentMemberCounts(db, organizationId, segmentList);
+
   return {
     isAdmin: memberRecord?.role === "admin",
-    segments: segmentList,
+    segments: segmentList.map((s) => ({ ...s, memberCount: memberCounts[s.id] ?? 0 })),
     userProfileCount: userCountRows[0]?.count ?? 0,
+    planCount: planList.length,
+    segmentsWizardSkipped: orgRecord?.wizardSkipped ?? false,
+    wizardDraft: orgRecord?.wizardDraft ?? null,
+    guideDismissed: orgRecord?.guideDismissed ?? false,
   };
 }
 
@@ -99,6 +111,30 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   const [editingSegment, setEditingSegment] = useState<Segment | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
+  // Optimistic local state — seeded from DB, immediately flipped on skip so the
+  // UI responds without waiting for the revalidation round-trip.
+  const [wizardSkipped, setWizardSkipped] = useState(loaderData.segmentsWizardSkipped);
+
+  const { mutate: skipWizardMutation } = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/segments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "skip-wizard" }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+    },
+    onSuccess: () => revalidator.revalidate(),
+    onError: () => setWizardSkipped(false),
+  });
+
+  function handleSkipWizard() {
+    setWizardSkipped(true);
+    skipWizardMutation();
+  }
+
+  const plansCatalogRef = useRef<HTMLDivElement>(null);
+
   const { data } = useQuery({
     queryKey: ["segments", orgSlug],
     queryFn: async () => {
@@ -139,6 +175,43 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
     onError: (e) => toast.error(e.message),
   });
 
+  const { mutate: saveDraft } = useMutation({
+    mutationFn: async (draft: string) => {
+      await fetch("/api/segments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "save-draft", draft }),
+      });
+    },
+  });
+
+  const { mutate: clearDraft } = useMutation({
+    mutationFn: async () => {
+      await fetch("/api/segments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "clear-draft" }),
+      });
+    },
+  });
+
+  const [guideDismissed, setGuideDismissed] = useState(loaderData.guideDismissed);
+  const { mutate: dismissGuide } = useMutation({
+    mutationFn: async () => {
+      await fetch("/api/segments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: "dismiss-guide" }),
+      });
+    },
+    onError: () => setGuideDismissed(false),
+  });
+
+  function handleDismissGuide() {
+    setGuideDismissed(true);
+    dismissGuide();
+  }
+
   function startCreating() {
     setEditingSegment(null);
     setCreating(true);
@@ -150,15 +223,18 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   }
 
   function handleCreate(form: SegmentFormState) {
-    mutate({ intent: "create", name: form.name, color: form.color, filters: filtersFromForm(form) });
-    setCreating(false);
-    toast.success("Segment created");
+    mutate(
+      { intent: "create", name: form.name, color: form.color, filters: filtersFromForm(form) },
+      { onSuccess: () => toast.success("Segment created") },
+    );
   }
 
   function handleUpdate(id: string, form: SegmentFormState) {
-    mutate({ intent: "update", id, name: form.name, color: form.color, filters: filtersFromForm(form) });
+    mutate(
+      { intent: "update", id, name: form.name, color: form.color, filters: filtersFromForm(form) },
+      { onSuccess: () => toast.success("Segment updated") },
+    );
     setEditingSegment(null);
-    toast.success("Segment updated");
   }
 
   function handleDelete(id: string, name: string) {
@@ -167,12 +243,36 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
     toast.success("Segment deleted");
   }
 
+  const planCount = plansData?.plans.length ?? loaderData.planCount;
+  const showWizard = segments.length === 0 && !wizardSkipped;
+
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
         <SidebarTrigger className="-ml-1" />
       </header>
 
+      {showWizard ? (
+        <SegmentSetupWizard
+          planCount={planCount}
+          userCount={loaderData.userProfileCount}
+          orgSlug={orgSlug ?? ""}
+          isAdmin={loaderData.isAdmin}
+          planOptions={planOptions}
+          initialDraft={loaderData.wizardDraft}
+          onDraftChange={(draft) => saveDraft(JSON.stringify(draft))}
+          onComplete={(form) => {
+            clearDraft();
+            handleCreate(form);
+          }}
+          onImportSuccess={() => {
+            qc.invalidateQueries({ queryKey: ["segments", orgSlug] });
+            revalidator.revalidate();
+          }}
+          onSkip={handleSkipWizard}
+        />
+      ) : (
+        <>
       <main className="p-6 space-y-8">
         <div className="max-w-[840px] mx-auto w-full">
           <PageHeader
@@ -199,38 +299,41 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
           />
         </div>
 
-        <div className="max-w-[840px] mx-auto w-full space-y-4">
-          <SegmentSetupGuide
-            planCount={plansData?.plans.length ?? 0}
-            userCount={loaderData.userProfileCount}
-            segmentCount={segments.length}
-            onOpenImport={() => setImportOpen(true)}
-            onScrollToPlans={() => {
-              const el = document.getElementById("plans-catalog");
-              if (el) {
-                if (!el.open) el.open = true;
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }}
-            onCreateSegment={startCreating}
-          />
+        {wizardSkipped && !guideDismissed && (
+          <div className="max-w-[840px] mx-auto w-full">
+            <SegmentSetupGuide
+              planCount={planCount}
+              userCount={loaderData.userProfileCount}
+              segmentCount={segments.length}
+              onOpenImport={() => setImportOpen(true)}
+              onScrollToPlans={() => plansCatalogRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              onCreateSegment={startCreating}
+              onDismiss={handleDismissGuide}
+            />
+          </div>
+        )}
 
+        <div className="max-w-[840px] mx-auto w-full space-y-4">
           {/* Inline create form */}
           {creating && (
             <div className="rounded-lg border border-border p-4 bg-muted/40 animate-in slide-in-from-top-2 fade-in duration-150">
               <p className="text-sm font-medium mb-4">New segment</p>
               <SegmentForm
                 initial={defaultForm()}
-                onSave={handleCreate}
+                onSave={(form) => {
+                  handleCreate(form);
+                  setCreating(false);
+                }}
                 onCancel={() => setCreating(false)}
                 planOptions={planOptions}
+                orgSlug={orgSlug}
               />
             </div>
           )}
 
           {/* API reference — collapsed by default */}
-          <details className="rounded-lg border border-border text-sm bg-muted/30 group">
-            <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-medium text-foreground select-none">
+          <details className="rounded-lg border border-border bg-muted/30 group">
+            <summary className="flex items-center justify-between p-4 cursor-pointer list-none text-base font-medium text-foreground select-none">
               <span>Identify users via API</span>
               <svg
                 className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180"
@@ -241,10 +344,10 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
               </svg>
             </summary>
             <div className="px-4 pb-4">
-              <p className="text-muted-foreground text-[13px] mb-2">
+              <p className="text-muted-foreground text-sm mb-3">
                 Push customer traits from your backend using your API key:
               </p>
-              <pre className="text-[12px] bg-muted rounded p-3 overflow-x-auto text-foreground">{`POST /api/user-profiles
+              <pre className="text-sm bg-muted rounded p-4 overflow-x-auto text-foreground leading-relaxed">{`POST /api/user-profiles
 Authorization: Bearer <your-api-key>
 
 {
@@ -268,11 +371,13 @@ Authorization: Bearer <your-api-key>
             </div>
           </details>
 
-          <PlanCatalogManager
-            initialPlans={[]}
-            isAdmin={loaderData.isAdmin}
-            orgSlug={orgSlug ?? ""}
-          />
+          <div ref={plansCatalogRef}>
+            <PlanCatalogManager
+              initialPlans={[]}
+              isAdmin={loaderData.isAdmin}
+              orgSlug={orgSlug ?? ""}
+            />
+          </div>
 
           <CompaniesManager
             initialCompanies={[]}
@@ -350,6 +455,7 @@ Authorization: Bearer <your-api-key>
                         onSave={(form) => handleUpdate(seg.id, form)}
                         onCancel={() => setEditingSegment(null)}
                         planOptions={planOptions}
+                        orgSlug={orgSlug}
                       />
                     </div>
                   )}
@@ -368,6 +474,8 @@ Authorization: Bearer <your-api-key>
           revalidator.revalidate();
         }}
       />
+        </>
+      )}
     </>
   );
 }

@@ -929,6 +929,26 @@ export const segments = pgTable(
   }),
 );
 
+// ============ Segments Setup (per-org onboarding state) ============
+
+// One row per org, created on first interaction. Tracks wizard dismissal so the
+// decision survives browser clears and is consistent across admins on the same org.
+export const segmentsSetup = pgTable("segments_setup", {
+  organizationId: varchar("organization_id", { length: 36 })
+    .primaryKey()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  wizardSkipped: boolean("wizard_skipped").notNull().default(false),
+  guideDismissed: boolean("guide_dismissed").notNull().default(false),
+  // JSON-serialised SegmentFormState draft saved while the user is on step 3.
+  // Null means no draft (fresh form). Cleared on wizard complete or skip.
+  wizardDraft: text("wizard_draft"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
+});
+
 // ============ Plan Catalog (pricing tiers for MRR resolution) ============
 
 // One row per pricing tier an org offers to *their* customers. `name` matches

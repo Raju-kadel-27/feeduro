@@ -2,19 +2,19 @@ import { Download, Upload } from "lucide-react";
 import { useRef } from "react";
 
 const COLUMNS = [
-  { name: "email",           required: true,  desc: "Email address (identifier)" },
-  { name: "externalId",      required: false, desc: "Your internal user / customer ID" },
+  { name: "email",           required: true,  desc: "Email address — the unique identifier for each user" },
+  { name: "externalId",      required: false, desc: "Your internal user or customer ID" },
   { name: "name",            required: false, desc: "Display name" },
-  { name: "plan",            required: false, desc: "Plan name — sets MRR from your plan catalog" },
-  { name: "billingInterval", required: false, desc: "'monthly' or 'annual' — selects plan price" },
-  { name: "mrr",             required: false, desc: "Explicit $/mo override — beats plan price" },
+  { name: "plan",            required: false, desc: "Plan name — resolves MRR from your plan catalog" },
+  { name: "billingInterval", required: false, desc: "'monthly' or 'annual' — picks the right plan price" },
+  { name: "mrr",             required: false, desc: "Explicit $/mo override — takes priority over plan price" },
   { name: "role",            required: false, desc: "Job role (e.g. founder, developer)" },
-  { name: "companySize",     required: false, desc: "Employee count — whole number" },
+  { name: "companySize",     required: false, desc: "Employee count, whole number" },
   { name: "industry",        required: false, desc: "Industry (e.g. SaaS, Fintech)" },
   { name: "location",        required: false, desc: "Region or country (e.g. North America)" },
-  { name: "companyId",       required: false, desc: "Company identifier — groups seats into one account" },
+  { name: "companyId",       required: false, desc: "Groups users into a shared company account" },
   { name: "companyName",     required: false, desc: "Company display name" },
-  { name: "companyMrr",      required: false, desc: "Company MRR ($) — counted once per company" },
+  { name: "companyMrr",      required: false, desc: "Company MRR ($) — counted once per company per post" },
 ] as const;
 
 const SAMPLE_CSV = [
@@ -39,52 +39,65 @@ export function CsvDropZone({ onFile }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div
-      className="border-2 border-dashed border-border rounded-lg p-6 cursor-pointer hover:border-foreground/30 transition-colors"
-      onClick={() => inputRef.current?.click()}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) onFile(f); }}
-    >
-      <Upload className="h-7 w-7 mx-auto mb-2 text-muted-foreground" />
-      <p className="text-sm font-medium text-center mb-4">Drop a CSV file or click to browse</p>
-
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 mb-2 text-left">
-        {COLUMNS.map((col) => (
-          <div key={col.name} className="flex items-baseline gap-1.5 min-w-0">
-            <code className="text-[11.5px] shrink-0">{col.name}</code>
-            {col.required && (
-              <span className="text-[10px] font-semibold text-destructive shrink-0">required</span>
-            )}
-            <span className="text-[11px] text-muted-foreground truncate">{col.desc}</span>
-          </div>
-        ))}
-        <div className="col-span-2 flex items-baseline gap-1.5">
-          <code className="text-[11.5px] text-muted-foreground shrink-0">any other column</code>
-          <span className="text-[11px] text-muted-foreground">Saved as a custom attribute</span>
-        </div>
-      </div>
-
-      <p className="text-[11px] text-muted-foreground text-center mt-3 mb-4">
-        Column order doesn't matter — headers are matched by name.
-      </p>
-
-      <div className="flex justify-center">
+    <div className="space-y-5">
+      {/* Upload area */}
+      <div
+        role="button"
+        tabIndex={0}
+        className="border-2 border-dashed border-border rounded-xl p-8 cursor-pointer text-center hover:border-primary/40 hover:bg-muted/20 transition-colors"
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click(); }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) onFile(f); }}
+      >
+        <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+        <p className="text-base font-semibold mb-1">Drop a CSV file or click to browse</p>
+        <p className="text-sm text-muted-foreground mb-5">
+          Column order doesn't matter — headers are matched by name.
+        </p>
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); downloadSample(); }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-background hover:bg-accent transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border bg-background hover:bg-accent transition-colors"
         >
-          <Download className="h-3 w-3" /> Download sample CSV
+          <Download className="h-4 w-4" /> Download sample CSV
         </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".csv"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
+        />
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".csv"
-        className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
-      />
+      {/* Column reference */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2.5">
+          Supported columns
+        </p>
+        <div className="rounded-lg border border-border overflow-hidden divide-y divide-border">
+          {COLUMNS.map((col) => (
+            <div key={col.name} className="flex items-start gap-4 px-4 py-3 bg-background">
+              <div className="flex items-center gap-2 shrink-0 w-44">
+                <code className="text-sm font-mono font-medium text-foreground">{col.name}</code>
+                {col.required && (
+                  <span className="text-[11px] font-semibold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded shrink-0">
+                    required
+                  </span>
+                )}
+              </div>
+              <span className="text-sm text-muted-foreground leading-snug">{col.desc}</span>
+            </div>
+          ))}
+          <div className="flex items-start gap-4 px-4 py-3 bg-muted/30">
+            <div className="shrink-0 w-44">
+              <code className="text-sm font-mono text-muted-foreground">any other column</code>
+            </div>
+            <span className="text-sm text-muted-foreground">Saved as a custom attribute</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

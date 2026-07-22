@@ -68,34 +68,34 @@ export function CsvImportDialog({ open, onOpenChange, onSuccess }: Props) {
     }
   }
 
-  const btnBase = "inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-md transition-colors";
+  const btnBase = "inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors";
 
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import contacts from CSV</DialogTitle>
+          <DialogTitle className="text-lg">Import contacts from CSV</DialogTitle>
         </DialogHeader>
 
         {!result ? (
           <CsvDropZone onFile={handleFile} />
         ) : (
-          <div className="space-y-3">
-            <div className="flex items-center gap-4 text-sm">
-              <span className="font-medium">{result.valid.length} valid rows</span>
+          <div className="space-y-4">
+            <div className="flex items-center gap-5 text-base">
+              <span className="font-semibold">{result.valid.length} valid rows</span>
               {result.errors.length > 0 && (
-                <span className="text-destructive">{result.errors.length} with errors (skipped)</span>
+                <span className="text-destructive font-medium">{result.errors.length} with errors (will be skipped)</span>
               )}
             </div>
             {result.errors.length > 0 && (
-              <ul className="text-xs text-destructive space-y-0.5 bg-destructive/5 rounded-md p-3 max-h-32 overflow-y-auto">
+              <ul className="text-sm text-destructive space-y-1 bg-destructive/5 rounded-lg p-4 max-h-40 overflow-y-auto">
                 {result.errors.slice(0, 10).map((e) => (
                   <li key={e.row}>Row {e.row}: {e.message}</li>
                 ))}
                 {result.errors.length > 10 && <li>…and {result.errors.length - 10} more</li>}
               </ul>
             )}
-            <button type="button" onClick={reset} className="text-xs text-muted-foreground hover:text-foreground underline">
+            <button type="button" onClick={reset} className="text-sm text-muted-foreground hover:text-foreground underline">
               Choose a different file
             </button>
           </div>

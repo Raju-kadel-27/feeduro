@@ -9,7 +9,7 @@ import {
 } from "@features/internal/segmentation/server/service";
 import { and, eq } from "drizzle-orm";
 import { data } from "react-router";
-import { member } from "@/db/schema";
+import { member, segmentsSetup } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/segments";
@@ -90,6 +90,50 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   if (action.intent === "delete") {
     await deleteSegment(db, organizationId, action.id);
+    return data({ success: true });
+  }
+
+  if (action.intent === "skip-wizard") {
+    await db
+      .insert(segmentsSetup)
+      .values({ organizationId, wizardSkipped: true, wizardDraft: null })
+      .onConflictDoUpdate({
+        target: segmentsSetup.organizationId,
+        set: { wizardSkipped: true, wizardDraft: null },
+      });
+    return data({ success: true });
+  }
+
+  if (action.intent === "save-draft") {
+    await db
+      .insert(segmentsSetup)
+      .values({ organizationId, wizardDraft: action.draft })
+      .onConflictDoUpdate({
+        target: segmentsSetup.organizationId,
+        set: { wizardDraft: action.draft },
+      });
+    return data({ success: true });
+  }
+
+  if (action.intent === "clear-draft") {
+    await db
+      .insert(segmentsSetup)
+      .values({ organizationId, wizardDraft: null })
+      .onConflictDoUpdate({
+        target: segmentsSetup.organizationId,
+        set: { wizardDraft: null },
+      });
+    return data({ success: true });
+  }
+
+  if (action.intent === "dismiss-guide") {
+    await db
+      .insert(segmentsSetup)
+      .values({ organizationId, guideDismissed: true })
+      .onConflictDoUpdate({
+        target: segmentsSetup.organizationId,
+        set: { guideDismissed: true },
+      });
     return data({ success: true });
   }
 

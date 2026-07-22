@@ -13,8 +13,6 @@ import {
 import { Check, DollarSign, Download, Layers, Upload, X } from "lucide-react";
 import { useState } from "react";
 
-const DISMISSED_KEY = "feeduro-segments-guide-v1";
-
 const STEPS = [
   {
     id: "plans",
@@ -45,6 +43,7 @@ interface Props {
   onOpenImport: () => void;
   onScrollToPlans: () => void;
   onCreateSegment: () => void;
+  onDismiss: () => void;
 }
 
 const SAMPLE_CSV = [
@@ -78,11 +77,9 @@ export function SegmentSetupGuide({
   onOpenImport,
   onScrollToPlans,
   onCreateSegment,
+  onDismiss,
 }: Props) {
   const allDone = planCount > 0 && userCount > 0 && segmentCount > 0;
-  const [dismissed, setDismissed] = useState<boolean>(
-    () => allDone || (typeof window !== "undefined" && localStorage.getItem(DISMISSED_KEY) === "1"),
-  );
   const [current, setCurrent] = useState<StepId>(() => {
     if (planCount === 0) return "plans";
     if (userCount === 0) return "import";
@@ -90,12 +87,7 @@ export function SegmentSetupGuide({
   });
   const [importTab, setImportTab] = useState<"csv" | "api">("csv");
 
-  function dismiss() {
-    localStorage.setItem(DISMISSED_KEY, "1");
-    setDismissed(true);
-  }
-
-  if (dismissed || allDone) return null;
+  if (allDone) return null;
 
   return (
     <div className="rounded-lg border border-border bg-card overflow-hidden">
@@ -111,7 +103,7 @@ export function SegmentSetupGuide({
         </div>
         <button
           type="button"
-          onClick={dismiss}
+          onClick={onDismiss}
           aria-label="Dismiss setup guide"
           className="ml-4 shrink-0 p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
         >

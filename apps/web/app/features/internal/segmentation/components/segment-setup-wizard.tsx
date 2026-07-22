@@ -18,10 +18,10 @@ import {
 import { useState } from "react";
 
 const SAMPLE_CSV = [
-  "email,plan,billingInterval,mrr,companyId,companyName,companyMrr",
-  "alice@bigco.com,starter,annual,,bigco,BigCo,500",
-  "bob@bigco.com,starter,monthly,,,",
-  "carol@example.com,pro,,80,,,",
+  "email,plan,billingInterval,mrr,role,industry,location,companyId,companyName,companyMrr",
+  "alice@bigco.com,starter,annual,,founder,saas,north america,bigco,bigco inc,500",
+  "bob@bigco.com,starter,monthly,,,,,,,",
+  "carol@example.com,pro,,80,engineer,fintech,europe,,,",
 ].join("\n");
 
 function downloadSample() {
@@ -34,24 +34,17 @@ function downloadSample() {
   URL.revokeObjectURL(url);
 }
 
-const STEP_KEY = "feeduro-segments-wizard-step-v1";
-const DRAFT_KEY = "feeduro-segments-wizard-draft-v1";
-
-function readStorage<T>(key: string, fallback: T, parse: (raw: string) => T): T {
-  if (typeof window === "undefined") return fallback;
-  const raw = localStorage.getItem(key);
-  if (!raw) return fallback;
-  try { return parse(raw); } catch { return fallback; }
-}
-
 interface Props {
   planCount: number;
   userCount: number;
   orgSlug: string;
   isAdmin: boolean;
   planOptions: string[];
+  initialDraft?: string | null;
+  onDraftChange: (draft: SegmentFormState) => void;
   onComplete: (form: SegmentFormState) => void;
   onImportSuccess: () => void;
+  onSkip?: () => void;
 }
 
 type Step = 1 | 2 | 3;
@@ -68,37 +61,33 @@ export function SegmentSetupWizard({
   orgSlug,
   isAdmin,
   planOptions,
+  initialDraft,
+  onDraftChange,
   onComplete,
   onImportSuccess,
+  onSkip,
 }: Props) {
   const qc = useQueryClient();
 
-  // Persist step so the user can resume where they left off.
-  // Always forward to the first incomplete step if they haven't reached it yet.
-  const [step, setStep] = useState<Step>(() => {
-    const smart: Step = planCount === 0 ? 1 : userCount === 0 ? 2 : 3;
-    const saved = readStorage(STEP_KEY, 0, Number);
-    return ([1, 2, 3].includes(saved) && saved >= smart ? saved : smart) as Step;
-  });
-
-  function goToStep(s: Step) {
-    setStep(s);
-    localStorage.setItem(STEP_KEY, String(s));
-  }
-
-  // Persist the segment form draft (step 3) so partial work isn't lost on navigation.
-  const [segmentDraft, setSegmentDraft] = useState<SegmentFormState>(() =>
-    readStorage(DRAFT_KEY, defaultForm(), (raw) => JSON.parse(raw) as SegmentFormState),
+  // Always open on the first incomplete step — no need to persist step position
+  // separately since it's fully derivable from real data.
+  const [step, setStep] = useState<Step>(
+    planCount === 0 ? 1 : userCount === 0 ? 2 : 3,
   );
+
+  function goToStep(s: Step) { setStep(s); }
+
+  const [segmentDraft, setSegmentDraft] = useState<SegmentFormState>(() => {
+    if (!initialDraft) return defaultForm();
+    try { return JSON.parse(initialDraft) as SegmentFormState; } catch { return defaultForm(); }
+  });
 
   function handleDraftChange(draft: SegmentFormState) {
     setSegmentDraft(draft);
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    onDraftChange(draft);
   }
 
   function handleComplete(form: SegmentFormState) {
-    localStorage.removeItem(DRAFT_KEY);
-    localStorage.removeItem(STEP_KEY);
     onComplete(form);
   }
 
@@ -173,11 +162,8 @@ export function SegmentSetupWizard({
                 </div>
               </div>
               <p className="text-base text-muted-foreground leading-relaxed">
-                Add one entry per pricing tier —{" "}
-                <code className="text-sm bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">starter</code>,{" "}
-                <code className="text-sm bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">pro</code>,{" "}
-                <code className="text-sm bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">enterprise</code>, etc.
-                Set a monthly price and an optional annual price — we resolve each customer's MRR automatically.
+                Add one entry per pricing tier. The name must match exactly what you send in customer data.
+                Enter annual prices as a monthly equivalent — e.g. $960/yr → <span className="font-medium text-foreground">80</span>.
               </p>
               <PlanCatalogManager initialPlans={[]} isAdmin={isAdmin} orgSlug={orgSlug} large />
               {planCount > 0 && (
@@ -228,9 +214,12 @@ export function SegmentSetupWizard({
                     {(
                       [
                         ["email",           "required — user identifier"],
-                        ["plan",            "matches your catalog name"],
+                        ["plan",            "lowercase — matches your catalog name"],
                         ["billingInterval", '"monthly" or "annual"'],
                         ["mrr",             "explicit $/mo — beats plan price"],
+                        ["role",            "lowercase — e.g. founder, engineer"],
+                        ["industry",        "lowercase — e.g. saas, fintech"],
+                        ["location",        "lowercase — e.g. north america, europe"],
                         ["companyId",       "groups seats into one account"],
                         ["companyMrr",      "company MRR, counted once per post"],
                       ] as [string, string][]
@@ -306,6 +295,7 @@ Authorization: Bearer <api-key>
                 onCancel={() => goToStep(2)}
                 onChange={handleDraftChange}
                 planOptions={planOptions}
+                orgSlug={orgSlug}
               />
             </>
           )}
@@ -325,14 +315,34 @@ Authorization: Bearer <api-key>
             >
               <ArrowLeft className="h-5 w-5" /> Back
             </button>
-            <button
-              type="button"
-              onClick={() => goToStep((step + 1) as Step)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
-              Continue <ArrowRight className="h-5 w-5" />
-            </button>
+            <div className="flex flex-col items-end gap-1.5">
+              <button
+                type="button"
+                onClick={() => goToStep((step + 1) as Step)}
+                disabled={step === 1 ? planCount === 0 : userCount === 0}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Continue <ArrowRight className="h-5 w-5" />
+              </button>
+              {step === 1 && planCount === 0 && (
+                <p className="text-xs text-muted-foreground">Add at least one plan above to continue</p>
+              )}
+              {step === 2 && userCount === 0 && (
+                <p className="text-xs text-muted-foreground">Import at least one customer above to continue</p>
+              )}
+            </div>
           </div>
+          {onSkip && (
+            <div className="max-w-2xl mx-auto pt-3 text-center">
+              <button
+                type="button"
+                onClick={onSkip}
+                className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
+              >
+                Skip setup for now
+              </button>
+            </div>
+          )}
         </div>
       )}
 

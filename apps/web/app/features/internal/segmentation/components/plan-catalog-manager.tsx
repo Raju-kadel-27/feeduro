@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@components/ui/alert-dialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, DollarSign, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
@@ -37,8 +47,8 @@ function PlanEditor({
   saving: boolean;
   large?: boolean;
 }) {
-  const smInputCls = "px-2.5 py-1.5 text-[13px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring";
-  const smBtnBase = "inline-flex items-center gap-1 px-2.5 py-1.5 text-[13px] rounded-md transition-colors";
+  const smInputCls = "px-2.5 py-2 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring";
+  const smBtnBase = "inline-flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors";
 
   if (large) {
     const lgInputCls = "w-full pl-7 pr-3 py-2.5 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring";
@@ -131,7 +141,7 @@ function PlanEditor({
         className={`${smInputCls} flex-1 min-w-[140px]`}
       />
       <label className="flex items-center gap-1.5">
-        <span className="text-muted-foreground text-[12px] shrink-0">$/mo</span>
+        <span className="text-muted-foreground text-xs shrink-0">$/mo</span>
         <input
           type="number"
           min={0}
@@ -143,7 +153,7 @@ function PlanEditor({
         />
       </label>
       <label className="flex items-center gap-1.5">
-        <span className="text-muted-foreground text-[12px] shrink-0">annual $/mo equiv.</span>
+        <span className="text-muted-foreground text-xs shrink-0">annual $/mo equiv.</span>
         <input
           type="number"
           min={0}
@@ -186,6 +196,7 @@ export function PlanCatalogManager({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<DraftState>(emptyDraft);
+  const [deletingPlan, setDeletingPlan] = useState<PlanCatalogEntry | null>(null);
 
   const { data } = useQuery({
     queryKey: ["plans", orgSlug],
@@ -193,7 +204,7 @@ export function PlanCatalogManager({
       const res = await fetch("/api/plans");
       return res.json() as Promise<{ plans: PlanCatalogEntry[] }>;
     },
-    initialData: { plans: initialPlans },
+    placeholderData: { plans: initialPlans },
     staleTime: 30_000,
   });
   const plans = data?.plans ?? [];
@@ -244,23 +255,25 @@ export function PlanCatalogManager({
     setDraft(emptyDraft);
   }
 
-  function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete plan "${name}"? Voters on this plan will fall back to $0 unless they have an explicit MRR.`))
-      return;
-    mutate({ intent: "delete", id });
+  function confirmDelete() {
+    if (!deletingPlan) return;
+    mutate({ intent: "delete", id: deletingPlan.id });
     toast.success("Plan deleted");
+    setDeletingPlan(null);
   }
 
   const planList = (
     <div className={`space-y-${large ? "3" : "2.5"}`}>
-      <p className={`text-muted-foreground ${large ? "text-base leading-relaxed" : "text-[13px]"}`}>
-        One entry per plan tier. Set a monthly price and, optionally, an annual price (normalized
-        to $/mo — e.g. $960/yr → 80). Users tagged with{" "}
-        <code className={large ? "text-sm bg-muted px-1.5 py-0.5 rounded" : "text-[11px]"}>billingInterval: annual</code>{" "}
-        automatically use the annual price. An explicit per-user{" "}
-        <code className={large ? "text-sm bg-muted px-1.5 py-0.5 rounded" : "text-[11px]"}>mrr</code>{" "}
-        always takes priority.
-      </p>
+      {!large && (
+        <p className="text-sm text-muted-foreground">
+          One entry per plan tier. Set a monthly price and, optionally, an annual price (normalized
+          to $/mo — e.g. $960/yr → 80). Users tagged with{" "}
+          <code className="text-xs">billingInterval: annual</code>{" "}
+          automatically use the annual price. An explicit per-user{" "}
+          <code className="text-xs">mrr</code>{" "}
+          always takes priority.
+        </p>
+      )}
 
       {plans.map((plan) =>
         editingId === plan.id ? (
@@ -281,7 +294,7 @@ export function PlanCatalogManager({
               ${plan.monthlyPrice}/mo
             </span>
             {plan.annualMonthlyPrice != null && (
-              <span className={`tabular-nums text-muted-foreground ${large ? "text-sm" : "text-[12px]"}`}>
+              <span className={`tabular-nums text-muted-foreground ${large ? "text-sm" : "text-xs"}`}>
                 · ${plan.annualMonthlyPrice}/mo annual
               </span>
             )}
@@ -298,7 +311,7 @@ export function PlanCatalogManager({
                 <button
                   type="button"
                   aria-label={`Delete plan ${plan.name}`}
-                  onClick={() => handleDelete(plan.id, plan.name)}
+                  onClick={() => setDeletingPlan(plan)}
                   className={`${large ? "p-2" : "p-1.5"} rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors`}
                 >
                   <Trash2 className={large ? "h-4 w-4" : "h-3.5 w-3.5"} />
@@ -325,7 +338,7 @@ export function PlanCatalogManager({
           <button
             type="button"
             onClick={startAdd}
-            className={`inline-flex items-center gap-1.5 ${large ? "text-sm" : "text-[13px]"} text-primary hover:underline`}
+            className={`inline-flex items-center gap-1.5 text-sm text-primary hover:underline`}
           >
             <Plus className={large ? "h-4 w-4" : "h-3.5 w-3.5"} /> Add plan
           </button>
@@ -333,32 +346,59 @@ export function PlanCatalogManager({
     </div>
   );
 
+  const deleteDialog = (
+    <AlertDialog open={!!deletingPlan} onOpenChange={(o) => { if (!o) setDeletingPlan(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete plan "{deletingPlan?.name}"?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Customers on this plan will fall back to $0 MRR unless they have an explicit mrr value.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   if (large) {
-    return <div id="plans-catalog">{planList}</div>;
+    return (
+      <>
+        <div id="plans-catalog">{planList}</div>
+        {deleteDialog}
+      </>
+    );
   }
 
   return (
-    <details id="plans-catalog" className="rounded-lg border border-border text-sm bg-muted/30 group" open={plans.length > 0}>
-      <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-medium text-foreground select-none">
-        <span className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-          Plans &amp; pricing
-          {plans.length > 0 && (
-            <span className="text-[11px] font-normal text-muted-foreground">
-              {plans.length} {plans.length === 1 ? "plan" : "plans"}
-            </span>
-          )}
-        </span>
-        <svg
-          className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180"
-          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"
-        >
-          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </summary>
-      <div className="px-4 pb-4">
-        {planList}
-      </div>
-    </details>
+    <>
+      <details id="plans-catalog" className="rounded-lg border border-border bg-muted/30 group" open={plans.length > 0}>
+        <summary className="flex items-center justify-between p-4 cursor-pointer list-none text-base font-medium text-foreground select-none">
+          <span className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            Plans &amp; pricing
+            {plans.length > 0 && (
+              <span className="text-xs font-normal text-muted-foreground">
+                {plans.length} {plans.length === 1 ? "plan" : "plans"}
+              </span>
+            )}
+          </span>
+          <svg
+            className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </summary>
+        <div className="px-4 pb-4">
+          {planList}
+        </div>
+      </details>
+      {deleteDialog}
+    </>
   );
 }

@@ -1,6 +1,10 @@
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { createElement as h } from "react";
 import satori, { init as initSatori } from "satori/standalone";
+// Bundled via wrangler CompiledWasm rule — no CDN fetch at cold start
+import resvgWasm from "@resvg/resvg-wasm/index_bg.wasm";
+import yogaWasm from "satori/yoga.wasm";
+import { getInterFonts, type FontEntry } from "./fonts";
 
 export type OgImageParams = {
   orgName: string;
@@ -10,8 +14,7 @@ export type OgImageParams = {
   voteCount?: number;
 };
 
-type FontEntry = { name: string; data: ArrayBuffer; weight: 400 | 700; style: "normal" };
-
+// Keep in sync with apps/web/app/features/branding/constants/branding-options.ts
 const COLOR_MAP: Record<string, string> = {
   indigo: "#6366f1",
   blue: "#3b82f6",
@@ -33,11 +36,7 @@ const COLOR_MAP: Record<string, string> = {
   zinc: "#71717a",
 };
 
-const FONT_BASE = "https://cdn.jsdelivr.net/npm/@fontsource/inter@5/files";
-const WASM_URL = "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2/index_bg.wasm";
-const YOGA_WASM_URL = "https://cdn.jsdelivr.net/npm/satori@0.26.0/yoga.wasm";
-
-let fontCache: FontEntry[] | null = null;
+let fonts: FontEntry[] | null = null;
 let wasmReady = false;
 let bootPromise: Promise<void> | null = null;
 
@@ -46,26 +45,23 @@ function boot(): Promise<void> {
     bootPromise = (async () => {
       await Promise.all([
         (async () => {
-          if (fontCache) return;
-          const [r400, r700] = await Promise.all([
-            fetch(`${FONT_BASE}/inter-latin-400-normal.woff2`),
-            fetch(`${FONT_BASE}/inter-latin-700-normal.woff2`),
-          ]);
-          fontCache = [
-            { name: "Inter", data: await r400.arrayBuffer(), weight: 400, style: "normal" },
-            { name: "Inter", data: await r700.arrayBuffer(), weight: 700, style: "normal" },
-          ];
+          if (fonts) return;
+          fonts = getInterFonts();
         })(),
         (async () => {
           if (wasmReady) return;
           await Promise.all([
-            initWasm(fetch(WASM_URL)),
-            initSatori(fetch(YOGA_WASM_URL)),
+            initWasm(resvgWasm),
+            initSatori(yogaWasm),
           ]);
           wasmReady = true;
         })(),
       ]);
-    })();
+    })().catch((err) => {
+      // Reset so the next request can retry rather than failing permanently.
+      bootPromise = null;
+      throw err;
+    });
   }
   return bootPromise;
 }
@@ -80,18 +76,24 @@ function hexRgb(hex: string): string {
 
 export async function generateOgPng(p: OgImageParams): Promise<Uint8Array> {
   await boot();
+
+  if (!fonts) throw new Error("Fonts failed to initialise");
+
+  // Clamp inputs so satori never gets runaway-length strings that overflow the layout.
+  const orgName = p.orgName.slice(0, 60) || "Untitled";
+  const postTitle = p.postTitle?.slice(0, 160);
   const hex = brandHex(p.primaryColor);
   const rgb = hexRgb(hex);
-  const initial = (p.orgName.charAt(0) ?? "F").toUpperCase();
+  const initial = orgName.charAt(0).toUpperCase();
 
-  const bodyContent = p.postTitle
+  const bodyContent = postTitle
     ? h(
         "div",
         { style: { display: "flex", flexDirection: "column", gap: 20 } },
         h(
           "div",
           { style: { fontSize: 52, fontWeight: 700, color: "#111827", lineHeight: 1.25, maxWidth: 1000 } },
-          p.postTitle,
+          postTitle,
         ),
         (p.voteCount ?? 0) > 0 &&
           h(
@@ -115,7 +117,7 @@ export async function generateOgPng(p: OgImageParams): Promise<Uint8Array> {
     : h(
         "div",
         { style: { display: "flex", flexDirection: "column", gap: 12 } },
-        h("div", { style: { fontSize: 44, fontWeight: 700, color: "#111827" } }, p.orgName),
+        h("div", { style: { fontSize: 44, fontWeight: 700, color: "#111827" } }, orgName),
         h(
           "div",
           { style: { fontSize: 26, fontWeight: 400, color: "#6B7280", maxWidth: 800 } },
@@ -134,7 +136,7 @@ export async function generateOgPng(p: OgImageParams): Promise<Uint8Array> {
         { style: { width: 44, height: 44, borderRadius: 10, background: hex, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "#fff" } },
         initial,
       ),
-      h("span", { style: { fontSize: 24, fontWeight: 500, color: "#374151" } }, p.orgName),
+      h("span", { style: { fontSize: 24, fontWeight: 500, color: "#374151" } }, orgName),
     ),
     h("div", { style: { display: "flex", flex: 1, alignItems: "center" } }, bodyContent),
     !p.hidePoweredBy &&
@@ -144,6 +146,6 @@ export async function generateOgPng(p: OgImageParams): Promise<Uint8Array> {
     h("div", { style: { position: "absolute", bottom: 0, left: 0, right: 0, height: 8, background: hex } }),
   );
 
-  const svg = await satori(tree, { width: 1200, height: 630, fonts: fontCache! });
+  const svg = await satori(tree, { width: 1200, height: 630, fonts });
   return new Resvg(svg, { fitTo: { mode: "width", value: 1200 } }).render().asPng();
 }

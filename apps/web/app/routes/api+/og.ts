@@ -5,6 +5,12 @@ import type { LoaderFunctionArgs } from "react-router";
 import { feedbackPosts, organization } from "@/db/schema";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
+  // Cache the rendered PNG at the Cloudflare edge — OG images are stable for 1hr
+  // and social platforms (Slack, Twitter) unfurl the same URL many times in bursts.
+  const cache = caches.default;
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
   const db = getDb(context);
   const url = new URL(request.url);
   const orgSlug = url.searchParams.get("orgSlug");
@@ -14,10 +20,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return new Response("Missing orgSlug", { status: 400 });
   }
 
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.slug, orgSlug),
-    columns: { id: true, name: true, metadata: true },
-  });
+  // Fetch org and post concurrently — post query needs org.id for tenant check,
+  // but we can fire both and validate in JS after both resolve.
+  const [org, post] = await Promise.all([
+    db.query.organization.findFirst({
+      where: eq(organization.slug, orgSlug),
+      columns: { id: true, name: true, metadata: true },
+    }),
+    postId
+      ? db.query.feedbackPosts.findFirst({
+          where: eq(feedbackPosts.id, postId),
+          columns: { title: true, voteCount: true, organizationId: true },
+        })
+      : Promise.resolve(null),
+  ]);
 
   if (!org) {
     return new Response("Not found", { status: 404 });
@@ -28,15 +44,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   let postTitle: string | undefined;
   let voteCount: number | undefined;
 
-  if (postId) {
-    const post = await db.query.feedbackPosts.findFirst({
-      where: eq(feedbackPosts.id, postId),
-      columns: { title: true, voteCount: true, organizationId: true },
-    });
-    if (post?.organizationId === org.id) {
-      postTitle = post.title;
-      voteCount = post.voteCount ?? 0;
-    }
+  if (post?.organizationId === org.id) {
+    postTitle = post.title;
+    voteCount = post.voteCount ?? 0;
   }
 
   const env = getBindings(context);
@@ -46,12 +56,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return new Response("OG image service unavailable", { status: 503 });
   }
 
-  const ogUrl = new URL("https://feeduro-og.workers.dev/");
+  // URL hostname is arbitrary for service bindings — Cloudflare routes by binding
+  // name, not hostname. Using a recognisable placeholder avoids confusion.
+  const ogUrl = new URL("https://og-worker.internal/");
   ogUrl.searchParams.set("orgName", org.name ?? orgSlug);
   ogUrl.searchParams.set("primaryColor", branding.primaryColor);
   ogUrl.searchParams.set("hidePoweredBy", String(branding.hidePoweredBy));
   if (postTitle) ogUrl.searchParams.set("postTitle", postTitle);
   if (voteCount !== undefined) ogUrl.searchParams.set("voteCount", String(voteCount));
 
-  return ogWorker.fetch(new Request(ogUrl.toString()));
+  const response = await ogWorker.fetch(new Request(ogUrl.toString()));
+
+  // Only cache successful renders; don't cache 500s from the og-worker.
+  if (response.ok) {
+    await cache.put(request, response.clone());
+  }
+
+  return response;
 }

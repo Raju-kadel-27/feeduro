@@ -46,6 +46,12 @@
 			"id": "REPLACE_WITH_KV_NAMESPACE_ID"
 		}
 	],
+	// Service binding to the og-worker for server-side OG image generation.
+	// The main /api/og route proxies to this worker so WASM image rendering
+	// runs in a separate isolate, outside the 10ms CPU budget of the web worker.
+	"services": [
+		{ "binding": "OG_WORKER", "service": "feeduro-og" }
+	],
 	"env": {
 		// `name` is the WORKER identity — deploying under a new name silently creates
 		// a brand-new worker with no secrets and no routes, while the real one keeps
@@ -64,6 +70,9 @@
 					"binding": "ORG_CACHE",
 					"id": "REPLACE_WITH_DEV_KV_NAMESPACE_ID"
 				}
+			],
+			"services": [
+				{ "binding": "OG_WORKER", "service": "feeduro-og" }
 			]
 		},
 		// Wrangler does NOT inherit top-level bindings into named environments, so
@@ -80,6 +89,9 @@
 			],
 			"kv_namespaces": [
 				{ "binding": "ORG_CACHE", "id": "f15c19aca38c4bb8bbcc90911028d6a5" }
+			],
+			"services": [
+				{ "binding": "OG_WORKER", "service": "feeduro-og-staging" }
 			]
 		},
 		"production": {
@@ -92,6 +104,9 @@
 			],
 			"kv_namespaces": [
 				{ "binding": "ORG_CACHE", "id": "c970457cc426481d8853325c172d4eaf" }
+			],
+			"services": [
+				{ "binding": "OG_WORKER", "service": "feeduro-og-production" }
 			],
 			// Org public boards live at {orgSlug}.feeduro.com (see
 			// features/domains/server/subdomain-routing.ts). Custom Domains can't

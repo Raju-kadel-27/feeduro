@@ -1,16 +1,29 @@
 {
   "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "account_id": "eaf872daa611531b2c95caf488b832c9",
   "name": "feeduro-og",
   "main": "./src/index.ts",
-  "compatibility_date": "2025-04-07",
+  "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat"],
+  // Bundle .wasm files from node_modules as compiled WebAssembly.Module so the
+  // worker ships self-contained — no external CDN fetches at cold start.
+  "rules": [
+    { "type": "CompiledWasm", "globs": ["**/*.wasm"] }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  // workers_dev exposes a public *.workers.dev URL. We only want the worker
+  // reachable via the web worker's service binding, not from the open internet.
   "workers_dev": true,
   "env": {
     "staging": {
-      "name": "feeduro-og-staging"
+      "name": "feeduro-og-staging",
+      "workers_dev": false
     },
     "production": {
-      "name": "feeduro-og-production"
+      "name": "feeduro-og-production",
+      "workers_dev": false
     }
   }
 }

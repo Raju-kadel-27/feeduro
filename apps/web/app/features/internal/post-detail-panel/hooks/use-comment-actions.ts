@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function useCommentActions(postId: string, onDataChange: () => void) {
   const qc = useQueryClient();
@@ -68,6 +69,20 @@ export function useCommentActions(postId: string, onDataChange: () => void) {
     },
   });
 
+  const { mutate: togglePin, isPending: pinning } = useMutation({
+    mutationFn: async ({ commentId, pinned }: { commentId: string; pinned: boolean }) => {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: pinned ? "pin" : "unpin", commentId }),
+      });
+      if (!res.ok) throw new Error("Failed to update pin");
+      return res.json();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["comments", postId] }),
+    onError: () => toast.error("Failed to update pin"),
+  });
+
   const { mutate: createCommentWithStatus, isPending: creatingWithStatus } = useMutation({
     mutationFn: async (afterStatus: string) => {
       const res = await fetch("/api/comments", {
@@ -128,6 +143,8 @@ export function useCommentActions(postId: string, onDataChange: () => void) {
     createReply,
     replying,
     deleteComment,
+    togglePin,
+    pinning,
     generateSummary,
     generatingSummary,
   };

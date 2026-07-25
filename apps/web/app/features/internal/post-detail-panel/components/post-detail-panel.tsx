@@ -105,9 +105,9 @@ export function PostDetailPanel({
   }, [merge.mergeOpen, merge, onClose]);
 
   const feed: FeedItem[] = [
-    ...commentList.map((c) => ({ kind: "comment" as const, data: c, createdAt: c.createdAt })),
-    ...activities.map((a) => ({ kind: "activity" as const, data: a, createdAt: a.createdAt })),
-  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    ...commentList.map((c) => ({ kind: "comment" as const, data: c, createdAt: c.createdAt, isPinned: c.isPinned })),
+    ...activities.map((a) => ({ kind: "activity" as const, data: a, createdAt: a.createdAt, isPinned: false as const })),
+  ];
 
   const totalComments = commentList.reduce((acc, c) => acc + 1 + c.replies.length, 0);
 

@@ -357,6 +357,8 @@ export const comments = pgTable(
     body: text("body").notNull(),
     isInternal: boolean("is_internal").notNull().default(false),
     isAiGenerated: boolean("is_ai_generated").notNull().default(false),
+    isPinned: boolean("is_pinned").notNull().default(false),
+    pinnedAt: timestamp("pinned_at"),
     // Import provenance — null on all natively created comments
     importSource: varchar("import_source", { length: 50 }),
     externalId: varchar("external_id", { length: 255 }),
@@ -372,6 +374,8 @@ export const comments = pgTable(
     parentIdIdx: index("comments_parent_id_idx").on(t.parentId),
     // Chronological listing within a post; covers both the filter and the ORDER BY
     postCreatedAtIdx: index("comments_post_created_at_idx").on(t.postId, t.createdAt),
+    // Pinned-first queries: filter by post then sort by isPinned DESC, createdAt ASC
+    postPinnedIdx: index("comments_post_pinned_idx").on(t.postId, t.isPinned),
     // Period-based analytics queries: filter by org + date range
     orgCreatedAtIdx: index("comments_org_created_at_idx").on(t.organizationId, t.createdAt),
     // Every comment must have an actor (mirrors the votes pattern)

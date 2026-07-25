@@ -24,6 +24,8 @@ import {
   Lock,
   MessageSquare,
   MoreHorizontal,
+  Pin,
+  PinOff,
   Plus,
   Share2,
   Smile,
@@ -59,6 +61,8 @@ interface CommentData {
   body: string;
   isInternal: boolean;
   isAiGenerated: boolean;
+  isPinned: boolean;
+  pinnedAt: string | null;
   parentId: string | null;
   userId: string;
   createdAt: string;
@@ -514,6 +518,8 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
         body: comments.body,
         isInternal: comments.isInternal,
         isAiGenerated: comments.isAiGenerated,
+        isPinned: comments.isPinned,
+        pinnedAt: comments.pinnedAt,
         parentId: comments.parentId,
         userId: comments.userId,
         createdAt: comments.createdAt,
@@ -701,6 +707,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     .map((c) => ({
       ...c,
       createdAt: c.createdAt.toISOString(),
+      pinnedAt: c.pinnedAt ? c.pinnedAt.toISOString() : null,
       replies: (repliesMap.get(c.id) ?? []).map((r) => ({
         ...r,
         createdAt: r.createdAt.toISOString(),
@@ -964,23 +971,29 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
   const threadedComments = commentsData?.comments ?? [];
   const activities = activitiesData?.activities ?? [];
 
-  // Unified feed sorted by time
+  // Unified feed: pinned comments float to the top, then chronological
   type FeedItem =
-    | { kind: "comment"; data: CommentData; createdAt: string }
-    | { kind: "activity"; data: ActivityData; createdAt: string };
+    | { kind: "comment"; data: CommentData; createdAt: string; isPinned: boolean }
+    | { kind: "activity"; data: ActivityData; createdAt: string; isPinned: false };
 
   const feed: FeedItem[] = [
     ...threadedComments.map((c) => ({
       kind: "comment" as const,
       data: c,
       createdAt: c.createdAt,
+      isPinned: c.isPinned,
     })),
     ...activities.map((a) => ({
       kind: "activity" as const,
       data: a,
       createdAt: a.createdAt,
+      isPinned: false as const,
     })),
-  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  ].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
 
   // ── Mutations ──────────────────────────────────────────────────────────────
   const { mutate: toggleVote, isPending: voting } = useMutation({
@@ -1113,6 +1126,20 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
       qc.invalidateQueries({ queryKey: ["comments", post.id] });
       qc.invalidateQueries({ queryKey: ["feedback"] });
     },
+  });
+
+  const { mutate: togglePin, isPending: pinning } = useMutation({
+    mutationFn: async ({ commentId, pinned }: { commentId: string; pinned: boolean }) => {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intent: pinned ? "pin" : "unpin", commentId }),
+      });
+      if (!res.ok) throw new Error("Failed to update pin");
+      return res.json();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["comments", post.id] }),
+    onError: () => toast.error("Failed to update pin"),
   });
 
   type LinearIssueResult = {
@@ -1734,7 +1761,20 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                         const displayName = c.userName ?? c.userEmail ?? "Unknown";
 
                         return (
-                          <div key={c.id} className="py-3">
+                          <div
+                            key={c.id}
+                            className={cn(
+                              "py-3",
+                              c.isPinned &&
+                                "rounded-lg border border-primary/20 bg-primary/5 px-3 -mx-3",
+                            )}
+                          >
+                            {c.isPinned && (
+                              <div className="flex items-center gap-1 mb-2 text-[10px] font-medium text-primary/70 uppercase tracking-wider">
+                                <Pin className="h-3 w-3" />
+                                Pinned
+                              </div>
+                            )}
                             <div className="flex gap-3">
                               <Avatar name={c.userName} image={c.userImage} size={28} />
                               <div className="flex-1 min-w-0">
@@ -1762,18 +1802,45 @@ export default function FeedbackDetail({ loaderData }: Route.ComponentProps) {
                                   <button
                                     type="button"
                                     onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                                   >
-                                    <CornerDownRight className="h-3 w-3" />
+                                    <CornerDownRight className="h-3.5 w-3.5" />
                                     Reply
                                   </button>
+                                  {canRespond && (
+                                    <button
+                                      type="button"
+                                      disabled={pinning}
+                                      onClick={() =>
+                                        togglePin({ commentId: c.id, pinned: !c.isPinned })
+                                      }
+                                      className={cn(
+                                        "flex items-center gap-1 text-sm transition-colors",
+                                        c.isPinned
+                                          ? "text-primary/70 hover:text-destructive"
+                                          : "text-muted-foreground hover:text-foreground",
+                                      )}
+                                    >
+                                      {c.isPinned ? (
+                                        <>
+                                          <PinOff className="h-3.5 w-3.5" />
+                                          Unpin
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Pin className="h-3.5 w-3.5" />
+                                          Pin
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
                                   {canDelete && (
                                     <button
                                       type="button"
                                       onClick={() => deleteComment(c.id)}
-                                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
+                                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors"
                                     >
-                                      <Trash2 className="h-3 w-3" />
+                                      <Trash2 className="h-3.5 w-3.5" />
                                       Delete
                                     </button>
                                   )}

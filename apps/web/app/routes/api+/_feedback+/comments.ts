@@ -1,4 +1,5 @@
 import { canDo, requireOrganization } from "@features/auth/server/guards";
+import { pinComment } from "@features/feedback/server/api-comments-mutations";
 import { notifyCustomerReplyByEmail } from "@features/internal/notifications/server/email";
 import { notifyMentions, notifyNewComment } from "@features/internal/notifications/server/service";
 import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
@@ -29,6 +30,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       body: comments.body,
       isInternal: comments.isInternal,
       isAiGenerated: comments.isAiGenerated,
+      isPinned: comments.isPinned,
+      pinnedAt: comments.pinnedAt,
       parentId: comments.parentId,
       userId: comments.userId,
       createdAt: comments.createdAt,
@@ -138,6 +141,20 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
 
     return data({ success: true, id });
+  }
+
+  if (body.intent === "pin" || body.intent === "unpin") {
+    const commentId = body.commentId as string;
+    if (!commentId) return data({ error: "commentId required" }, { status: 400 });
+
+    const canPin = await canDo(db, organizationId, session.user.id, { feedback: ["respond"] });
+    if (!canPin) return data({ error: "Not authorized" }, { status: 403 });
+
+    const result = await pinComment(db, organizationId, commentId, body.intent === "pin");
+    if (result === "not_found") return data({ error: "Comment not found" }, { status: 404 });
+    if (result === "cannot_pin_reply") return data({ error: "Cannot pin a reply" }, { status: 400 });
+
+    return data({ success: true });
   }
 
   if (body.intent === "delete") {

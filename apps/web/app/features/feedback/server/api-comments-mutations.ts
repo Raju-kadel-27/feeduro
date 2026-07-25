@@ -90,3 +90,35 @@ export async function deleteComment(db: Db, organizationId: string, commentId: s
 
   return true;
 }
+
+type PinCommentResult = "ok" | "not_found" | "cannot_pin_reply";
+
+export async function pinComment(
+  db: Db,
+  organizationId: string,
+  commentId: string,
+  pinned: boolean,
+): Promise<PinCommentResult> {
+  const comment = await db.query.comments.findFirst({
+    where: and(eq(comments.id, commentId), eq(comments.organizationId, organizationId)),
+    columns: { id: true, parentId: true, postId: true },
+  });
+  if (!comment) return "not_found";
+  if (comment.parentId !== null) return "cannot_pin_reply";
+
+  await db.transaction(async (tx) => {
+    // Enforce 1-pin limit: clear any existing pin on this post before setting the new one
+    if (pinned) {
+      await tx
+        .update(comments)
+        .set({ isPinned: false, pinnedAt: null })
+        .where(and(eq(comments.postId, comment.postId), eq(comments.organizationId, organizationId)));
+    }
+    await tx
+      .update(comments)
+      .set({ isPinned: pinned, pinnedAt: pinned ? new Date() : null })
+      .where(and(eq(comments.id, commentId), eq(comments.organizationId, organizationId)));
+  });
+
+  return "ok";
+}

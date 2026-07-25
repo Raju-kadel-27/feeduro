@@ -27,6 +27,8 @@ export const CommentDataSchema = z.object({
   id: z.string(),
   body: z.string(),
   isInternal: z.boolean(),
+  isPinned: z.boolean().default(false),
+  pinnedAt: z.string().nullable().default(null),
   parentId: z.string().nullable(),
   userId: z.string(),
   createdAt: z.string(),

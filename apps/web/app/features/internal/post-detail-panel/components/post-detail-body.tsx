@@ -210,12 +210,16 @@ export function PostDetailBody({
                   </div>
                 )}
                 <PostActivityFeed
-                  feed={mainFeed} isAdmin={isAdmin} replyingTo={comments.replyingTo}
+                  feed={mainFeed} isAdmin={isAdmin} canRespond={isAdmin}
+                  replyingTo={comments.replyingTo}
                   replyBodies={comments.replyBodies} replying={comments.replying}
+                  pinning={comments.pinning}
                   onSetReplyingTo={comments.setReplyingTo}
                   onReplyBodyChange={(id, body) => comments.setReplyBodies((prev) => ({ ...prev, [id]: body }))}
                   onSubmitReply={(parentId, body) => comments.createReply({ parentId, body })}
-                  onDeleteComment={comments.deleteComment} onOpenPost={onOpenPost}
+                  onDeleteComment={comments.deleteComment}
+                  onTogglePin={(commentId, pinned) => comments.togglePin({ commentId, pinned })}
+                  onOpenPost={onOpenPost}
                 />
               </div>
             ) : (

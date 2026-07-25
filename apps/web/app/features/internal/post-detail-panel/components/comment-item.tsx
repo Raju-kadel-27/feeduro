@@ -1,7 +1,8 @@
 import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import type { CommentData } from "@features/feedback/schemas/admin";
 import { timeAgo } from "@features/feedback/utils";
-import { CornerDownRight, Lock, Trash2 } from "lucide-react";
+import { cn } from "@lib/utils";
+import { CornerDownRight, Lock, Pin, PinOff, Trash2 } from "lucide-react";
 
 function renderBody(body: string): React.ReactNode {
   const parts = body.split(/(@\w+)/g);
@@ -15,27 +16,44 @@ function renderBody(body: string): React.ReactNode {
 export function CommentItem({
   comment,
   isAdmin,
+  canRespond,
   replyingTo,
   replyBodies,
   replying,
+  pinning,
   onSetReplyingTo,
   onReplyBodyChange,
   onSubmitReply,
   onDeleteComment,
+  onTogglePin,
 }: {
   comment: CommentData;
   isAdmin: boolean;
+  canRespond: boolean;
   replyingTo: string | null;
   replyBodies: Record<string, string>;
   replying: boolean;
+  pinning: boolean;
   onSetReplyingTo: (id: string | null) => void;
   onReplyBodyChange: (id: string, body: string) => void;
   onSubmitReply: (parentId: string, body: string) => void;
   onDeleteComment: (id: string) => void;
+  onTogglePin: (commentId: string, pinned: boolean) => void;
 }) {
   const displayName = comment.userName ?? comment.userEmail ?? "Unknown";
   return (
-    <div className="py-2">
+    <div
+      className={cn(
+        "py-2",
+        comment.isPinned && "rounded-lg border border-primary/20 bg-primary/5 px-2.5 -mx-2.5",
+      )}
+    >
+      {comment.isPinned && (
+        <div className="flex items-center gap-1 mb-1.5 text-[10px] font-medium text-primary/70 uppercase tracking-wider">
+          <Pin className="h-2.5 w-2.5" />
+          Pinned
+        </div>
+      )}
       <div className="flex gap-2.5">
         <FeedbackAvatar name={comment.userName} image={comment.userImage} size={20} />
         <div className="flex-1 min-w-0">
@@ -56,18 +74,43 @@ export function CommentItem({
             <button
               type="button"
               onClick={() => onSetReplyingTo(replyingTo === comment.id ? null : comment.id)}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <CornerDownRight className="h-2.5 w-2.5" />
+              <CornerDownRight className="h-3 w-3" />
               Reply
             </button>
+            {canRespond && (
+              <button
+                type="button"
+                disabled={pinning}
+                onClick={() => onTogglePin(comment.id, !comment.isPinned)}
+                className={cn(
+                  "flex items-center gap-1 text-xs transition-colors",
+                  comment.isPinned
+                    ? "text-primary/70 hover:text-destructive"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {comment.isPinned ? (
+                  <>
+                    <PinOff className="h-3 w-3" />
+                    Unpin
+                  </>
+                ) : (
+                  <>
+                    <Pin className="h-3 w-3" />
+                    Pin
+                  </>
+                )}
+              </button>
+            )}
             {isAdmin && (
               <button
                 type="button"
                 onClick={() => onDeleteComment(comment.id)}
-                className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
               >
-                <Trash2 className="h-2.5 w-2.5" />
+                <Trash2 className="h-3 w-3" />
                 Delete
               </button>
             )}

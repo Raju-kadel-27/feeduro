@@ -1,5 +1,6 @@
 import type { DetailData, PostDetail } from "@features/feedback/schemas/admin";
 import type { CompanyVoter, Segment } from "@features/internal/segmentation/types";
+import { cn } from "@lib/utils";
 import { formatMrr } from "@utils/format-mrr";
 import { TrendingUp } from "lucide-react";
 import { useMemo } from "react";
@@ -95,6 +96,7 @@ export function PostSegmentSidebar({
   detailData,
   integrations,
   isAdmin,
+  fullPage,
 }: {
   segmentCounts: Record<string, number>;
   otherCount: number;
@@ -110,6 +112,7 @@ export function PostSegmentSidebar({
   detailData: DetailData;
   integrations: Integrations;
   isAdmin: boolean;
+  fullPage?: boolean;
 }) {
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
@@ -140,7 +143,7 @@ export function PostSegmentSidebar({
   }, [segmentCounts, otherCount, profiledCount, voteCount, segments, mrrBySegment, otherMrr]);
 
   return (
-    <aside className="w-[400px] shrink-0 border-l overflow-y-auto">
+    <aside className={cn(fullPage ? "w-[480px]" : "w-[400px]", "shrink-0 border-l overflow-y-auto")}>
       {isAdmin && hasAnyIntegration && (
         <div className="px-4 pt-4 pb-5 space-y-5 border-b">
           <IntegrationSections post={post} detailData={detailData} integrations={integrations} isAdmin={isAdmin} />

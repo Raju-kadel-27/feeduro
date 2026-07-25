@@ -28,13 +28,14 @@ export type Tab = "comments" | "segments";
 
 export function PostDetailBody({
   post, detailData, orgSlug, postId, isAdmin, vote, comments, merge, integrations,
-  feed, totalComments, segments, activeTab, onTabChange, onClose, onOpenPost,
+  feed, totalComments, segments, activeTab, onTabChange, onClose, onOpenPost, fullPage,
 }: {
   post: PostDetail; detailData: DetailData; orgSlug: string; postId: string; isAdmin: boolean;
   vote: VoteState; comments: CommentState; merge: MergeState; integrations: IntegrationState;
   feed: FeedItem[]; totalComments: number; segments: Segment[];
   activeTab: Tab; onTabChange: (tab: Tab) => void;
   onClose: () => void; onOpenPost?: (id: string) => void;
+  fullPage?: boolean;
 }) {
   const { voters, isLoading: votersLoading } = useVoterData(postId, isAdmin);
   const {
@@ -65,7 +66,7 @@ export function PostDetailBody({
         <div className="flex-1 overflow-y-auto">
 
           {/* Post metadata */}
-          <div className="px-5 pt-2 pb-2 space-y-2 max-w-2xl">
+          <div className={cn("px-5 pt-2 pb-2 space-y-2 max-w-2xl", fullPage && "mx-auto")}>
             {post.mergedIntoPostId && detailData.mergedIntoPost && (
               <PostMergedBanner
                 title={detailData.mergedIntoPost.title} targetId={detailData.mergedIntoPost.id}
@@ -116,7 +117,7 @@ export function PostDetailBody({
           {/* Tab bar — admins only */}
           {isAdmin && (
             <div className="sticky top-0 bg-background z-10 border-b px-5">
-              <div className="flex items-center justify-between max-w-2xl">
+              <div className={cn("flex items-center justify-between max-w-2xl", fullPage && "mx-auto pl-4")}>
                 <div className="flex items-center">
                   {(["comments", "segments"] as Tab[]).map((tab) => (
                     <button
@@ -168,9 +169,12 @@ export function PostDetailBody({
           )}
 
           {/* Tab content */}
-          <div className="px-5 pt-3 pb-3 max-w-2xl">
+          <div className={cn("px-5 pt-3 pb-3 max-w-2xl", fullPage && "mx-auto")}>
             {activeTab === "comments" || !isAdmin ? (
               <div className="space-y-3">
+                {/* Compose box — top of comments */}
+                <PostComposeFooter post={post} comments={comments} isAdmin={isAdmin} />
+
                 {/* Merged posts — distinct block at top */}
                 {mergedPosts.length > 0 && (
                   <div className="rounded-lg border border-violet-200/60 dark:border-violet-900/40 bg-violet-50/50 dark:bg-violet-950/15 px-3.5 py-3 space-y-2">
@@ -229,10 +233,6 @@ export function PostDetailBody({
           </div>
         </div>
 
-        {/* Compose footer — hidden on segments tab */}
-        {(activeTab === "comments" || !isAdmin) && (
-          <PostComposeFooter post={post} comments={comments} isAdmin={isAdmin} />
-        )}
       </div>
 
       {/* ── Right column ─────────────────────────────────────────────────── */}
@@ -251,6 +251,7 @@ export function PostDetailBody({
         detailData={detailData}
         integrations={integrations}
         isAdmin={isAdmin}
+        fullPage={fullPage}
       />
     </div>
   );

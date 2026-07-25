@@ -13,7 +13,8 @@ import { buttonVariants } from "@components/ui/button";
 import { ADMIN_STATUS_CONFIG } from "@features/feedback/constants";
 import type { AdminStatus } from "@features/feedback/schemas/admin";
 import { cn } from "@lib/utils";
-import { ArrowUpRight, GitMerge, Smile, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, GitMerge, Link2, Trash2, X } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 import type { useOwnerPicker } from "../hooks/use-owner-picker";
 import type { useVoteStatus } from "../hooks/use-vote-status";
@@ -35,6 +36,7 @@ export function PostDetailHeader({
   onMergeOpen,
   onDeletePost,
   onClose,
+  fullPage,
 }: {
   orgSlug: string;
   postId: string;
@@ -46,11 +48,21 @@ export function PostDetailHeader({
   onMergeOpen: () => void;
   onDeletePost: () => void;
   onClose: () => void;
+  fullPage?: boolean;
 }) {
   const cfg = ADMIN_STATUS_CONFIG[vote.status] as StatusConfig;
+  const [copied, setCopied] = useState(false);
 
-  return (
-    <header className="flex items-center h-12 px-4 border-b shrink-0 gap-2">
+  function copyLink() {
+    const url = `${window.location.origin}/${orgSlug}/feedback/${postId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  const statusAndOwner = (
+    <>
       <StatusPill cfg={cfg} isAdmin={isAdmin} status={vote.status} onUpdate={vote.updateStatus} />
       <div className="w-px h-4 bg-border shrink-0" />
       <OwnerPicker
@@ -62,21 +74,45 @@ export function PostDetailHeader({
         assigning={owner.assigning}
         onAssign={owner.assignOwner}
       />
-      <div className="flex-1" />
-      <div className="flex items-center gap-0.5">
-        <Link
-          to={`/${orgSlug}/feedback/${postId}`}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        >
-          <ArrowUpRight className="h-3.5 w-3.5" />
-          Full page
-        </Link>
+    </>
+  );
+
+  return (
+    <header className={cn("flex items-center h-12 px-4 border-b shrink-0 gap-2", fullPage && "relative")}>
+      {fullPage ? (
         <button
           type="button"
+          onClick={onClose}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="font-medium">Back</span>
+        </button>
+      ) : statusAndOwner}
+      <div className="flex-1" />
+      <div className={cn("flex items-center gap-0.5", fullPage && "absolute left-[32%] -translate-x-1/2")}>
+        {fullPage && (
+          <>
+            {statusAndOwner}
+            <div className="w-px h-4 bg-border shrink-0 mx-1" />
+          </>
+        )}
+        {!fullPage && (
+          <Link
+            to={`/${orgSlug}/feedback/${postId}`}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <ArrowUpRight className="h-3.5 w-3.5" />
+            Full page
+          </Link>
+        )}
+        <button
+          type="button"
+          onClick={copyLink}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
-          <Smile className="h-3.5 w-3.5" />
-          Share
+          {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Link2 className="h-3.5 w-3.5" />}
+          {copied ? "Copied!" : "Share"}
         </button>
         {isAdmin && !hasMergedInto && (
           <button
@@ -118,13 +154,15 @@ export function PostDetailHeader({
             </AlertDialogContent>
           </AlertDialog>
         )}
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {!fullPage && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </header>
   );

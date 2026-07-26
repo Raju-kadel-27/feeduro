@@ -1,8 +1,8 @@
-import { AddTagToPostSchema, addPostTag } from "@features/feedback/server/api-tags";
+import { AddTagToPostSchema, addPostTag } from "@feeduro/data-access/feedback/tags";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/posts.$id.tags";
 
@@ -29,7 +29,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await addPostTag(organizationId, params.id, parsed.data.tagId);
+  const result = await addPostTag(db, organizationId, params.id, parsed.data.tagId);
 
   if ("error" in result) {
     const err = apiError("not_found");

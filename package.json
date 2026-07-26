@@ -15,14 +15,7 @@
     "prepare": "husky"
   },
   "pnpm": {
-    "patchedDependencies": {
-      "@remix-run/node-fetch-server@0.13.0": "patches/@remix-run__node-fetch-server@0.13.0.patch"
-    }
-  },
-  "pnpm": {
-    "overrides": {
-      "zod": "^4.4.3"
-    }
+    "overrides": {}
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",

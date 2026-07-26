@@ -2,8 +2,8 @@ import { ListCommentsSchema, listComments } from "@features/feedback/server/api-
 import { CreateCommentSchema, createComment } from "@features/feedback/server/api-comments-mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/comments";
 
@@ -54,7 +54,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await createComment(organizationId, parsed.data, context);
+  const result = await createComment(db, organizationId, parsed.data, context);
 
   if ("error" in result) {
     const err = apiError(result.error);

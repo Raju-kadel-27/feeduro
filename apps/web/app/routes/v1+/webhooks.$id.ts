@@ -1,10 +1,9 @@
-import { UpdateWebhookSchema } from "@features/internal/webhooks/schemas/endpoint";
-import { deleteWebhook, updateWebhook } from "@features/internal/webhooks/server/api-webhooks";
-import { getWebhook } from "@features/internal/webhooks/server/queries";
+import { getWebhook } from "@feeduro/data-access/webhooks/queries";
+import { deleteWebhook, UpdateWebhookSchema, updateWebhook } from "@feeduro/data-access/webhooks/webhooks";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/webhooks.$id";
 
@@ -47,7 +46,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
       return data(err.body, err.init);
     }
 
-    const updated = await updateWebhook(organizationId, params.id, parsed.data);
+    const updated = await updateWebhook(db, organizationId, params.id, parsed.data);
     if (!updated) {
       const err = apiError("not_found");
       return data(err.body, err.init);

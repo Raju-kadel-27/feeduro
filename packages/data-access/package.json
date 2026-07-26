@@ -1,0 +1,30 @@
+{
+  "name": "@feeduro/data-access",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "peerDependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
+    "drizzle-orm": "^0.45.2",
+    "zod": "catalog:"
+  },
+  "exports": {
+    "./feedback/boards": "./src/feedback/boards.ts",
+    "./feedback/posts": "./src/feedback/posts.ts",
+    "./feedback/posts-mutations": "./src/feedback/posts-mutations.ts",
+    "./feedback/categories": "./src/feedback/categories.ts",
+    "./feedback/tags": "./src/feedback/tags.ts",
+    "./feedback/votes": "./src/feedback/votes.ts",
+    "./feedback/votes-mutations": "./src/feedback/votes-mutations.ts",
+    "./changelog/changelog": "./src/changelog/changelog.ts",
+    "./roadmap/roadmap": "./src/roadmap/roadmap.ts",
+    "./users/users": "./src/users/users.ts",
+    "./users/identify-schema": "./src/users/identify-schema.ts",
+    "./users/mutations": "./src/users/mutations.ts",
+    "./users/companies": "./src/users/companies.ts",
+    "./webhooks/constants": "./src/webhooks/constants.ts",
+    "./webhooks/schemas": "./src/webhooks/schemas.ts",
+    "./webhooks/webhooks": "./src/webhooks/webhooks.ts",
+    "./webhooks/queries": "./src/webhooks/queries.ts"
+  }
+}

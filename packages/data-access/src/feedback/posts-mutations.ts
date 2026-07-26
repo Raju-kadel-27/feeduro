@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/db";
 import { feedbackBoards, feedbackPosts } from "@/db/schema";
-import { CreatePostSchema, getPost, UpdatePostSchema } from "./api-posts";
+import { CreatePostSchema, getPost, UpdatePostSchema } from "./posts";
 
 export async function createPost(db: Db, organizationId: string, input: z.infer<typeof CreatePostSchema>) {
   const board = await db.query.feedbackBoards.findFirst({
@@ -61,3 +61,5 @@ export async function deletePost(db: Db, organizationId: string, postId: string)
     .returning({ id: feedbackPosts.id });
   return result.length > 0;
 }
+
+export { CreatePostSchema, UpdatePostSchema } from "./posts";

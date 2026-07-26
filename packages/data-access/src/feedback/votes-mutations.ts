@@ -1,4 +1,3 @@
-import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/server/service";
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -18,6 +17,7 @@ export async function createVote(
   db: Db,
   organizationId: string,
   input: z.infer<typeof CreateVoteSchema>,
+  onMilestone?: (args: { postId: string; organizationId: string; newVoteCount: number }) => void,
 ): Promise<CreateVoteResult> {
   const [post, voter, existing] = await Promise.all([
     db.query.feedbackPosts.findFirst({
@@ -51,17 +51,13 @@ export async function createVote(
     return { voteCount: updated?.voteCount ?? 1 };
   });
 
-  notifyVoteMilestoneIfReached({
-    postId: input.postId,
-    organizationId,
-    newVoteCount: voteCount,
-  }).catch(() => {});
+  onMilestone?.({ postId: input.postId, organizationId, newVoteCount: voteCount });
 
   return { data: { id, postId: input.postId, userId: input.userId, createdAt, voteCount } };
 }
 
 export async function deleteVote(db: Db, organizationId: string, voteId: string): Promise<boolean> {
-  return await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const [deleted] = await tx
       .delete(votes)
       .where(and(eq(votes.id, voteId), eq(votes.organizationId, organizationId)))

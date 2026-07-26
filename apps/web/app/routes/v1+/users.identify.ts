@@ -1,9 +1,9 @@
-import { IdentifyUserSchema } from "@features/internal/segmentation/schemas/identify";
-import { upsertUserProfile } from "@features/internal/segmentation/server/service";
+import { IdentifyUserSchema } from "@feeduro/data-access/users/identify-schema";
+import { upsertUserProfile } from "@feeduro/data-access/users/mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/users.identify";
 
@@ -30,6 +30,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const id = await upsertUserProfile(organizationId, parsed.data);
+  const id = await upsertUserProfile(db, organizationId, parsed.data);
   return data({ data: { id } });
 }

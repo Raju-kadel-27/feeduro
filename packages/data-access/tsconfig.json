@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["ESNext"],
+    "paths": {
+      "@/db": ["../../apps/web/db/index.ts"],
+      "@/db/*": ["../../apps/web/db/*"],
+      "@lib/*": ["../../apps/web/app/lib/*"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

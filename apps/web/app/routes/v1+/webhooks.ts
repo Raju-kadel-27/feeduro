@@ -1,10 +1,9 @@
-import { CreateWebhookSchema } from "@features/internal/webhooks/schemas/endpoint";
-import { createWebhook } from "@features/internal/webhooks/server/api-webhooks";
-import { listWebhooks } from "@features/internal/webhooks/server/queries";
+import { listWebhooks } from "@feeduro/data-access/webhooks/queries";
+import { CreateWebhookSchema, createWebhook } from "@feeduro/data-access/webhooks/webhooks";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/webhooks";
 
@@ -37,7 +36,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await createWebhook(organizationId, parsed.data);
+  const result = await createWebhook(db, organizationId, parsed.data);
   if ("error" in result) {
     const err = apiError("limit_reached");
     return data(err.body, err.init);

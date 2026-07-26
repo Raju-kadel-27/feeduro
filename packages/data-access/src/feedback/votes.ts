@@ -21,7 +21,6 @@ export async function listVotes(db: Db, organizationId: string, params: z.infer<
       userId: votes.userId,
       userProfileId: votes.userProfileId,
       createdAt: votes.createdAt,
-      // Coalesce: native vote → user table; imported vote → userProfiles table
       voterName: sql<string | null>`coalesce(${user.name}, ${userProfiles.name})`,
       voterEmail: sql<string | null>`coalesce(${user.email}, ${userProfiles.email})`,
     })

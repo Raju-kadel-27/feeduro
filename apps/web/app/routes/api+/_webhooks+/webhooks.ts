@@ -1,17 +1,11 @@
 import { requireOrganization } from "@features/auth/server/guards";
 import { isAdmin } from "@features/internal/roles/server/queries";
-import { SUPPORTED_EVENTS } from "@features/internal/webhooks/constants";
-import { CreateWebhookSchema, UpdateWebhookSchema } from "@features/internal/webhooks/schemas/endpoint";
-import {
-  createWebhook,
-  deleteWebhook,
-  rotateWebhookSecret,
-  updateWebhook,
-} from "@features/internal/webhooks/server/api-webhooks";
-import { getWebhookSecret, listWebhooks } from "@features/internal/webhooks/server/queries";
-import { getDb } from "~/middleware/cloudflare.server";
+import { SUPPORTED_EVENTS } from "@feeduro/data-access/webhooks/constants";
+import { getWebhookSecret, listWebhooks } from "@feeduro/data-access/webhooks/queries";
+import { CreateWebhookSchema, createWebhook, deleteWebhook, rotateWebhookSecret, UpdateWebhookSchema, updateWebhook } from "@feeduro/data-access/webhooks/webhooks";
 import { data } from "react-router";
 import { z } from "zod";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/webhooks";
 
@@ -53,9 +47,9 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (!parsed.success) {
       return data({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-    const result = await createWebhook(organizationId, parsed.data);
+    const result = await createWebhook(db, organizationId, parsed.data);
     if ("error" in result) {
-      return data({ error: `Webhook endpoint limit reached (max 10)` }, { status: 422 });
+      return data({ error: "Webhook endpoint limit reached (max 10)" }, { status: 422 });
     }
     return data({ success: true, endpoint: result.data });
   }
@@ -71,7 +65,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (!parsed.success) {
       return data({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-    const result = await updateWebhook(organizationId, id, parsed.data);
+    const result = await updateWebhook(db, organizationId, id, parsed.data);
     if (!result) return data({ error: "Webhook endpoint not found" }, { status: 404 });
     return data({ success: true });
   }
@@ -88,7 +82,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data({ success: true, secret });
   }
 
-  // intent === "delete"
   const ok = await deleteWebhook(db, organizationId, id);
   if (!ok) return data({ error: "Webhook endpoint not found" }, { status: 404 });
   return data({ success: true });

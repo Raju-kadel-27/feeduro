@@ -1,9 +1,9 @@
-import { CreatePostSchema, ListPostsSchema, listPosts } from "@features/feedback/server/api-posts";
-import { createPost } from "@features/feedback/server/api-posts-mutations";
+import { CreatePostSchema, ListPostsSchema, listPosts } from "@feeduro/data-access/feedback/posts";
+import { createPost } from "@feeduro/data-access/feedback/posts-mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/posts";
 

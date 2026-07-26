@@ -1,16 +1,16 @@
-import { getPost, UpdatePostSchema } from "@features/feedback/server/api-posts";
-import { deletePost, updatePost } from "@features/feedback/server/api-posts-mutations";
+import { getPost, UpdatePostSchema } from "@feeduro/data-access/feedback/posts";
+import { deletePost, updatePost } from "@feeduro/data-access/feedback/posts-mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/posts.$id";
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const organizationId = await requireApiKey(db, request);
-  const post = await getPost(organizationId, params.id);
+  const post = await getPost(db, organizationId, params.id);
   if (!post) {
     const err = apiError("not_found");
     return data(err.body, err.init);
@@ -23,7 +23,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
   const organizationId = await requireApiKey(db, request);
 
   if (request.method === "DELETE") {
-    const deleted = await deletePost(organizationId, params.id);
+    const deleted = await deletePost(db, organizationId, params.id);
     if (!deleted) {
       const err = apiError("not_found");
       return data(err.body, err.init);
@@ -46,7 +46,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
       return data(err.body, err.init);
     }
 
-    const post = await updatePost(organizationId, params.id, parsed.data);
+    const post = await updatePost(db, organizationId, params.id, parsed.data);
     if (!post) {
       const err = apiError("not_found");
       return data(err.body, err.init);

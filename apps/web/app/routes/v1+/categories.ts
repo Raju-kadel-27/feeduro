@@ -2,11 +2,11 @@ import {
   CreateCategorySchema,
   createOrgCategory,
   listCategories,
-} from "@features/feedback/server/api-categories";
+} from "@feeduro/data-access/feedback/categories";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/categories";
 
@@ -17,12 +17,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return data({ data: categories });
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
   if (request.method !== "POST") {
     const err = apiError("method_not_allowed");
     return data(err.body, err.init);
   }
 
+  const db = getDb(context);
   const organizationId = await requireApiKey(db, request);
 
   let body: unknown;
@@ -39,7 +40,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await createOrgCategory(organizationId, parsed.data);
+  const result = await createOrgCategory(db, organizationId, parsed.data);
 
   if ("error" in result) {
     const err = apiError("conflict");

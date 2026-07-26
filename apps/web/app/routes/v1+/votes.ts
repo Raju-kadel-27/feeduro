@@ -1,9 +1,10 @@
-import { ListVotesSchema, listVotes } from "@features/feedback/server/api-votes";
-import { CreateVoteSchema, createVote } from "@features/feedback/server/api-votes-mutations";
+import { notifyVoteMilestoneIfReached } from "@features/internal/notifications/server/service";
+import { ListVotesSchema, listVotes } from "@feeduro/data-access/feedback/votes";
+import { CreateVoteSchema, createVote } from "@feeduro/data-access/feedback/votes-mutations";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/votes";
 
@@ -50,7 +51,9 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await createVote(organizationId, parsed.data);
+  const result = await createVote(db, organizationId, parsed.data, ({ postId, organizationId: orgId, newVoteCount }) => {
+    notifyVoteMilestoneIfReached({ postId, organizationId: orgId, newVoteCount }).catch(() => {});
+  });
 
   if ("error" in result) {
     const err = apiError(result.error);

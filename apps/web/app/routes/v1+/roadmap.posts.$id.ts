@@ -1,8 +1,8 @@
-import { UpdateRoadmapPostSchema, updateRoadmapPost } from "@features/roadmap/server/api-roadmap";
+import { UpdateRoadmapPostSchema, updateRoadmapPost } from "@feeduro/data-access/roadmap/roadmap";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/roadmap.posts.$id";
 
@@ -29,7 +29,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const updated = await updateRoadmapPost(organizationId, params.id, parsed.data);
+  const updated = await updateRoadmapPost(db, organizationId, params.id, parsed.data);
   if (!updated) {
     const err = apiError("not_found");
     return data(err.body, err.init);

@@ -1,14 +1,14 @@
+import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
 import {
   CreateChangelogSchema,
   createChangelog,
   ListChangelogSchema,
   listChangelogs,
-} from "@features/changelog/server/api-changelog";
-import { dispatchWebhook } from "@features/internal/webhooks/server/dispatch";
+} from "@feeduro/data-access/changelog/changelog";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/changelog";
 
@@ -28,7 +28,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     return data(err.body, err.init);
   }
 
-  return data(await listChangelogs(organizationId, parsed.data));
+  return data(await listChangelogs(db, organizationId, parsed.data));
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -54,7 +54,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const entry = await createChangelog(organizationId, parsed.data);
+  const entry = await createChangelog(db, organizationId, parsed.data);
 
   dispatchWebhook(context, organizationId, "changelog.created", {
     id: entry.id,

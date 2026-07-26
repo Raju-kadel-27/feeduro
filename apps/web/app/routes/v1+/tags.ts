@@ -1,8 +1,8 @@
-import { CreateTagSchema, createOrgTag, listTags } from "@features/feedback/server/api-tags";
+import { CreateTagSchema, createOrgTag, listTags } from "@feeduro/data-access/feedback/tags";
 import { apiError } from "@feeduro/errors";
 import { requireApiKey } from "@lib/api/require-api-key";
-import { getDb } from "~/middleware/cloudflare.server";
 import { data } from "react-router";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/tags";
 
@@ -36,7 +36,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data(err.body, err.init);
   }
 
-  const result = await createOrgTag(organizationId, parsed.data);
+  const result = await createOrgTag(db, organizationId, parsed.data);
 
   if ("error" in result) {
     const err = apiError("conflict");

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["ESNext"],
+    "types": ["./worker-configuration.d.ts", "node"],
+    "paths": {
+      "@/*": ["../web/*"],
+      "~/*": ["../web/app/*"],
+      "@lib/*": ["../web/app/lib/*"],
+      "@utils/*": ["../web/app/utils/*"],
+      "@feeduro/errors": ["../../packages/errors/src/index.ts"],
+      "@feeduro/data-access/*": ["../../packages/data-access/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "worker-configuration.d.ts"]
+}

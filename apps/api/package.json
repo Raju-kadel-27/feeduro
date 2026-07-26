@@ -1,0 +1,30 @@
+{
+	"name": "@feeduro/api",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "wrangler dev",
+		"deploy:staging": "wrangler deploy --env staging",
+		"deploy:production": "wrangler deploy --env production",
+		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
+	},
+	"dependencies": {
+		"@feeduro/data-access": "workspace:*",
+		"@feeduro/errors": "workspace:*",
+		"@hono/zod-openapi": "^1.5.1",
+		"@neondatabase/serverless": "^1.1.0",
+		"@paralleldrive/cuid2": "^2.2.2",
+		"@scalar/hono-api-reference": "^0.5.169",
+		"drizzle-orm": "^0.45.2",
+		"hono": "^4.12.32",
+		"postgres": "^3.4.9",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251202.0",
+		"@types/node": "^26.1.1",
+		"typescript": "^5.9.3",
+		"wrangler": "^4.114.0"
+	}
+}

@@ -1,0 +1,42 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"account_id": "eaf872daa611531b2c95caf488b832c9",
+	"name": "feeduro-api",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-25",
+	"compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+	"placement": { "mode": "smart" },
+	"observability": { "enabled": true },
+	"upload_source_maps": true,
+	"workers_dev": true,
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "d414e3297a424d73b365dc59d7b859ea",
+			"localConnectionString": "postgresql://postgres:postgres@localhost:5432/feeduro"
+		}
+	],
+	"env": {
+		"staging": {
+			"name": "feeduro-api-staging",
+			"workers_dev": false,
+			"hyperdrive": [
+				{
+					"binding": "HYPERDRIVE",
+					"id": "470e373c2cc7463f8ec871d0ebafb42d"
+				}
+			]
+		},
+		"production": {
+			"name": "feeduro-api-production",
+			"workers_dev": false,
+			"hyperdrive": [
+				{
+					"binding": "HYPERDRIVE",
+					"id": "d414e3297a424d73b365dc59d7b859ea"
+				}
+			]
+			// api.feeduro.com is attached as a Custom Domain in the Cloudflare dashboard.
+		}
+	}
+}

@@ -20,6 +20,9 @@
 		"staging": {
 			"name": "feeduro-api-staging",
 			"workers_dev": false,
+			"routes": [
+				{ "pattern": "api-staging.feeduro.com", "custom_domain": true }
+			],
 			"hyperdrive": [
 				{
 					"binding": "HYPERDRIVE",
@@ -30,13 +33,15 @@
 		"production": {
 			"name": "feeduro-api-production",
 			"workers_dev": false,
+			"routes": [
+				{ "pattern": "api.feeduro.com", "custom_domain": true }
+			],
 			"hyperdrive": [
 				{
 					"binding": "HYPERDRIVE",
 					"id": "d414e3297a424d73b365dc59d7b859ea"
 				}
 			]
-			// api.feeduro.com is attached as a Custom Domain in the Cloudflare dashboard.
 		}
 	}
 }

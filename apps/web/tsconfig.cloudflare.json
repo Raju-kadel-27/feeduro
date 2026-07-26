@@ -31,7 +31,8 @@
       "@styles/*": ["./styles/*"],
       "@middleware/*": ["./app/middleware/*"],
       "@features/*": ["./app/features/*"],
-      "@services/*": ["./app/services/*"]
+      "@services/*": ["./app/services/*"],
+      "@feeduro/data-access/*": ["../../packages/data-access/src/*"]
     }
   }
 }

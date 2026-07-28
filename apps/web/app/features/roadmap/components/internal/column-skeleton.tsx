@@ -1,5 +1,4 @@
 import { Skeleton } from "@components/ui/skeleton";
-import { cn } from "@lib/utils";
 import { COLUMNS } from "../../constants";
 
 export function ColumnSkeleton() {
@@ -11,13 +10,8 @@ export function ColumnSkeleton() {
             <Skeleton className="h-6 w-24 rounded-full" />
             <Skeleton className="h-3 w-4" />
           </div>
-          <div
-            className={cn(
-              "flex-1 rounded-xl border border-border/50 overflow-hidden min-h-[200px]",
-              col.bg,
-            )}
-          >
-            <div className={cn("h-1 w-full", col.accent)} />
+          <div className="flex-1 rounded-xl border border-border/50 overflow-hidden min-h-[200px]">
+            <div className="h-1 w-full bg-muted" />
             <div className="p-2 space-y-2">
               {[0, 1, 2].map((i) => (
                 <div

@@ -170,11 +170,6 @@ export const feedbackBoards = pgTable(
     smartRepliesEnabled: boolean("smart_replies_enabled").notNull().default(false),
     smartRepliesInstructions: text("smart_replies_instructions"),
     anonymizeUsers: boolean("anonymize_users").notNull().default(false),
-    // Unique token for per-board inline embeds (data-fdy-embed / FeeduroBoard)
-    embedToken: varchar("embed_token", { length: 128 })
-      .notNull()
-      .default(sql`replace(gen_random_uuid()::text, '-', '')`)
-      .$defaultFn(() => createId()),
     createdBy: varchar("created_by", { length: 36 }).references(() => user.id, {
       onDelete: "set null",
     }),
@@ -187,7 +182,6 @@ export const feedbackBoards = pgTable(
   (t) => ({
     orgIdIdx: index("fb_org_id_idx").on(t.organizationId),
     orgSlugUniqueIdx: uniqueIndex("fb_org_slug_unique_idx").on(t.organizationId, t.slug),
-    embedTokenIdx: uniqueIndex("fb_embed_token_idx").on(t.embedToken),
     // Only one board per org may be the default
     orgDefaultUniqueIdx: uniqueIndex("fb_org_default_unique_idx")
       .on(t.organizationId)

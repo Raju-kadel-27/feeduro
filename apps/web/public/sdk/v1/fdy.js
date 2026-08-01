@@ -19,11 +19,15 @@
   function embed(token, target, options) {
     options = options || {};
     var theme = options.theme || "auto";
+    var boardSlug = options.boardSlug || "";
     var container = typeof target === "string" ? document.querySelector(target) : target;
     if (!container) return;
 
+    var src = BASE_URL + "/widget/" + token + "?mode=inline&theme=" + encodeURIComponent(theme);
+    if (boardSlug) src += "&board=" + encodeURIComponent(boardSlug);
+
     var f = document.createElement("iframe");
-    f.src = BASE_URL + "/widget/" + token + "?mode=inline&theme=" + encodeURIComponent(theme);
+    f.src = src;
     f.style.cssText = "width:100%;height:100%;border:none;display:block;";
     f.setAttribute("title", "Feedback");
     f.setAttribute("loading", "lazy");
@@ -44,7 +48,8 @@
       var el = containers[i];
       var token = el.getAttribute("data-fdy-embed");
       var theme = el.getAttribute("data-fdy-theme") || "auto";
-      if (token) embed(token, el, { theme: theme });
+      var boardSlug = el.getAttribute("data-fdy-board") || "";
+      if (token) embed(token, el, { theme: theme, boardSlug: boardSlug });
     }
   }
 
@@ -75,7 +80,7 @@
 
   window.feeduro = { embed, identify, setTheme, destroy };
 
-  // Auto-detect <... data-fdy-embed="TOKEN"> containers
+  // Auto-detect <... data-fdy-embed="TOKEN" data-fdy-board="SLUG"> containers
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", autoDetectEmbeds);
   } else {

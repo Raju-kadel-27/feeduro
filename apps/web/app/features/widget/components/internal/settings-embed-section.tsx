@@ -61,6 +61,12 @@ export function SettingsEmbedSection({ orgToken, boards, theme, inlineBoardId, s
         </p>
       )}
 
+      <p className="text-sm text-muted-foreground">
+        Add the <code className="bg-muted px-1 py-0.5 rounded">&lt;script&gt;</code> tag once to your{" "}
+        <code className="bg-muted px-1 py-0.5 rounded">&lt;head&gt;</code>. The{" "}
+        <code className="bg-muted px-1 py-0.5 rounded">&lt;div&gt;</code> can go anywhere in the page body.
+      </p>
+
       <ul className="space-y-1.5 text-sm text-muted-foreground">
         <li>
           <code className="bg-muted px-1 py-0.5 rounded">data-fdy-embed</code>

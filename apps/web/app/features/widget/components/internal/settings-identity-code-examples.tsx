@@ -38,17 +38,17 @@ export function SettingsIdentityCodeExamples({
       </TabsList>
 
       <TabsContent value="nodejs" className="space-y-2">
-        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server</p>
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server — generate signature and pass to template</p>
         <CodeBlock
           label="server.js"
-          code={`import crypto from 'node:crypto';\n\nconst signature = crypto\n  .createHmac('sha256', process.env.FEEDURO_SIGNING_SECRET)\n  .update(currentUser.id)\n  .digest('hex');\n\n// Pass to the client — e.g. res.render('page', { feeduroSig: signature });`}
+          code={`import crypto from 'node:crypto';\n\n// In your route handler:\nconst feeduroSig = crypto\n  .createHmac('sha256', process.env.FEEDURO_SIGNING_SECRET)\n  .update(String(currentUser.id))\n  .digest('hex');\n\nres.render('page', { user: currentUser, feeduroSig });`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
-          Client
+          Client — inject into your HTML template (EJS / Handlebars / Pug)
         </p>
         <CodeBlock
-          label="page.js"
-          code={`window.feeduro.identify({\n  id:        currentUser.id,\n  email:     currentUser.email,\n  name:      currentUser.name,\n  signature: feeduroSig,\n});`}
+          label="page.ejs"
+          code={`<% if (user) { %>\n<script>\n  // Safe to place anywhere — runs before fdy.js finishes loading\n  window.$fdyq = window.$fdyq || [];\n  window.$fdyq.push(['identify', {\n    id:        '<%= user.id %>',\n    email:     '<%= user.email %>',\n    name:      '<%= user.name %>',\n    signature: '<%= feeduroSig %>',\n  }]);\n</script>\n<% } %>`}
         />
       </TabsContent>
 
@@ -98,7 +98,7 @@ export function SettingsIdentityCodeExamples({
         </p>
         <CodeBlock
           label="page.html"
-          code={`<script>\n  window.feeduro.identify({\n    id:        '{{ .User.ID }}',\n    email:     '{{ .User.Email }}',\n    name:      '{{ .User.Name }}',\n    signature: '{{ .FeeduroSig }}',\n  });\n</script>`}
+          code={`{{ if .User }}\n<script>\n  window.$fdyq = window.$fdyq || [];\n  window.$fdyq.push(['identify', {\n    id:        '{{ .User.ID }}',\n    email:     '{{ .User.Email }}',\n    name:      '{{ .User.Name }}',\n    signature: '{{ .FeeduroSig }}',\n  }]);\n</script>\n{{ end }}`}
         />
       </TabsContent>
 
@@ -113,7 +113,7 @@ export function SettingsIdentityCodeExamples({
         </p>
         <CodeBlock
           label="layout.html.erb"
-          code={`<% if current_user %>\n  <script>\n    window.feeduro.identify({\n      id:        '<%= current_user.id %>',\n      email:     '<%= current_user.email %>',\n      name:      '<%= current_user.name %>',\n      signature: '<%= feeduro_signature %>',\n    });\n  </script>\n<% end %>`}
+          code={`<% if current_user %>\n  <script>\n    window.$fdyq = window.$fdyq || [];\n    window.$fdyq.push(['identify', {\n      id:        '<%= current_user.id %>',\n      email:     '<%= current_user.email %>',\n      name:      '<%= current_user.name %>',\n      signature: '<%= feeduro_signature %>',\n    }]);\n  </script>\n<% end %>`}
         />
       </TabsContent>
 
@@ -128,7 +128,7 @@ export function SettingsIdentityCodeExamples({
         </p>
         <CodeBlock
           label="layout.html"
-          code={`{% if user.is_authenticated %}\n  <script>\n    window.feeduro.identify({\n      id:        '{{ user.id }}',\n      email:     '{{ user.email }}',\n      name:      '{{ user.get_full_name }}',\n      signature: '{{ feeduro_sig }}',\n    });\n  </script>\n{% endif %}`}
+          code={`{% if user.is_authenticated %}\n  <script>\n    window.$fdyq = window.$fdyq || [];\n    window.$fdyq.push(['identify', {\n      id:        '{{ user.id }}',\n      email:     '{{ user.email }}',\n      name:      '{{ user.get_full_name }}',\n      signature: '{{ feeduro_sig }}',\n    }]);\n  </script>\n{% endif %}`}
         />
       </TabsContent>
     </Tabs>

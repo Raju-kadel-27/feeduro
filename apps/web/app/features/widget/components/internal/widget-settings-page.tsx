@@ -4,7 +4,6 @@ import { LayoutPanelLeft } from "lucide-react";
 import { useState } from "react";
 import { useFetcher, useSearchParams } from "react-router";
 import type { WidgetSettingsLoaderData } from "../../types";
-import { SettingsBoardTokensSection } from "./settings-board-tokens-section";
 import { SettingsConfigSection } from "./settings-config-section";
 import { SettingsDangerSection } from "./settings-danger-section";
 import { SettingsEmbedSection } from "./settings-embed-section";
@@ -23,7 +22,7 @@ function isTab(v: string | null): v is Tab {
 }
 
 export function WidgetSettingsPage({ loaderData }: Props) {
-  const { config, boards, orgSlug } = loaderData;
+  const { config, boards } = loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab: Tab = isTab(searchParams.get("tab")) ? (searchParams.get("tab") as Tab) : "general";
@@ -44,6 +43,8 @@ export function WidgetSettingsPage({ loaderData }: Props) {
   const [confirmRotateSecret, setConfirmRotateSecret] = useState(false);
   const [isSecretVisible, setIsSecretVisible] = useState(false);
 
+  // Use the latest regenerated token if available, otherwise the loaded one
+  const orgToken = regenFetcher.data?.newToken ?? config.token;
   const currentSecret = revealFetcher.data?.secret ?? secretFetcher.data?.newSecret ?? "";
 
   function handleTabChange(tab: string) {
@@ -131,12 +132,12 @@ export function WidgetSettingsPage({ loaderData }: Props) {
 
         <TabsContent value="install" className="space-y-6 mt-6">
           <SettingsEmbedSection
+            orgToken={orgToken}
             boards={boards}
             theme={theme}
             inlineBoardId={inlineBoardId}
             setInlineBoardId={setInlineBoardId}
           />
-          <SettingsBoardTokensSection boards={boards} />
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6 mt-6">
@@ -151,7 +152,7 @@ export function WidgetSettingsPage({ loaderData }: Props) {
             onHide={() => setIsSecretVisible(false)}
             onRotateSecret={handleRotateSecret}
             theme={theme}
-            orgSlug={orgSlug}
+            orgToken={orgToken}
             boards={boards}
             inlineBoardId={inlineBoardId}
             setInlineBoardId={setInlineBoardId}

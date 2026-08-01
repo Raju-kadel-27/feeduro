@@ -23,7 +23,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { org } = await requireOrgBySlug(db, request, params.orgSlug);
   const { config, boards } = await getWidgetSettings(db, org.id);
-  return data({ orgSlug: org.slug ?? "", config, boards });
+  return data({ config, boards });
 }
 
 export async function action({ request, params, context }: Route.ActionArgs) {

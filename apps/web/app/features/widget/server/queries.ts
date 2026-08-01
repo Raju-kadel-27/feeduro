@@ -1,5 +1,4 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { data } from "react-router";
 import type { Db } from "@/db";
 import {
   comments,
@@ -24,9 +23,15 @@ export function toStatusKey(dbStatus: string): StatusKey {
   return map[dbStatus] ?? "pending";
 }
 
-export async function getWidgetLoaderData(db: Db, widgetToken: string) {
+export async function getWidgetLoaderData(
+  db: Db,
+  widgetToken: string,
+  boardSlug?: string,
+  theme = "auto",
+) {
   const config = await db.query.widgetConfigs.findFirst({
     where: eq(widgetConfigs.token, widgetToken),
+    columns: { organizationId: true, enabled: true, boardId: true, theme: true },
   });
 
   if (!config?.enabled) {
@@ -35,19 +40,32 @@ export async function getWidgetLoaderData(db: Db, widgetToken: string) {
 
   const org = await db.query.organization.findFirst({
     where: eq(organization.id, config.organizationId),
+    columns: { id: true, name: true, slug: true },
   });
   if (!org) throw new Response("Not found", { status: 404 });
 
-  // Resolve which board to show: configured > default > first public
-  let board = config.boardId
+  // Resolve board: slug param > server-configured boardId > default > first public
+  let board = boardSlug
     ? await db.query.feedbackBoards.findFirst({
         where: and(
-          eq(feedbackBoards.id, config.boardId),
           eq(feedbackBoards.organizationId, org.id),
+          eq(feedbackBoards.slug, boardSlug),
           eq(feedbackBoards.visibility, "public"),
         ),
+        columns: { id: true, name: true, description: true },
       })
     : undefined;
+
+  if (!board && config.boardId) {
+    board = await db.query.feedbackBoards.findFirst({
+      where: and(
+        eq(feedbackBoards.id, config.boardId),
+        eq(feedbackBoards.organizationId, org.id),
+        eq(feedbackBoards.visibility, "public"),
+      ),
+      columns: { id: true, name: true, description: true },
+    });
+  }
 
   if (!board) {
     board =
@@ -57,15 +75,19 @@ export async function getWidgetLoaderData(db: Db, widgetToken: string) {
           eq(feedbackBoards.visibility, "public"),
           eq(feedbackBoards.isDefault, true),
         ),
+        columns: { id: true, name: true, description: true },
       })) ??
       (await db.query.feedbackBoards.findFirst({
         where: and(
           eq(feedbackBoards.organizationId, org.id),
           eq(feedbackBoards.visibility, "public"),
         ),
+        columns: { id: true, name: true, description: true },
         orderBy: [desc(feedbackBoards.createdAt)],
       }));
   }
+
+  const validTheme = ["light", "dark", "auto"].includes(theme) ? theme : "auto";
 
   if (!board) {
     return {
@@ -73,9 +95,8 @@ export async function getWidgetLoaderData(db: Db, widgetToken: string) {
       org: { name: org.name ?? "", slug: org.slug ?? "" },
       board: null,
       posts: [] as WidgetPost[],
-      theme: config.theme,
-      mode: "inline" as const,
-    };
+      theme: validTheme,
+          };
   }
 
   const rawPosts = await db.query.feedbackPosts.findMany({
@@ -84,6 +105,7 @@ export async function getWidgetLoaderData(db: Db, widgetToken: string) {
       eq(feedbackPosts.organizationId, org.id),
       isNull(feedbackPosts.mergedIntoPostId),
     ),
+    columns: { id: true, title: true, status: true, description: true },
     orderBy: [desc(feedbackPosts.createdAt)],
     limit: 50,
   });
@@ -114,7 +136,10 @@ export async function getWidgetLoaderData(db: Db, widgetToken: string) {
 
   const [allVotes, commentCountRows] = await Promise.all([
     allRelevantIds.length > 0
-      ? db.query.votes.findMany({ where: inArray(votes.postId, allRelevantIds) })
+      ? db.query.votes.findMany({
+          where: inArray(votes.postId, allRelevantIds),
+          columns: { postId: true },
+        })
       : Promise.resolve([]),
     postIds.length > 0
       ? db
@@ -147,7 +172,6 @@ export async function getWidgetLoaderData(db: Db, widgetToken: string) {
     org: { name: org.name ?? "", slug: org.slug ?? "" },
     board: { id: board.id, name: board.name, description: board.description ?? null },
     posts,
-    theme: config.theme,
-    mode: "inline" as const,
-  };
+    theme: validTheme,
+      };
 }

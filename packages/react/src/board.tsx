@@ -2,8 +2,13 @@ import { type CSSProperties, useEffect, useRef } from "react";
 import type { IdentifyPayload, Theme } from "./types";
 
 export interface FeeduroBoardProps {
-  /** Widget token for this board from your Feeduro settings. */
+  /** Org-level widget token from your Feeduro settings. */
   token: string;
+  /**
+   * Slug of the board to display (visible in the board URL).
+   * Omit to show the default board configured in your Feeduro settings.
+   */
+  boardSlug?: string;
   theme?: Theme;
   /**
    * Identified user — include `signature` for verified identity.
@@ -19,10 +24,19 @@ export interface FeeduroBoardProps {
   style?: CSSProperties;
 }
 
-export function FeeduroBoard({ token, theme = "auto", user, baseUrl = "https://feeduro.com", className, style }: FeeduroBoardProps) {
+export function FeeduroBoard({
+  token,
+  boardSlug,
+  theme = "auto",
+  user,
+  baseUrl = "https://feeduro.com",
+  className,
+  style,
+}: FeeduroBoardProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  // Lock the src to the initial theme — theme changes go via postMessage, not src reload.
+  // Lock the src to initial values — changes go via postMessage, not src reload.
   const initialThemeRef = useRef(theme);
+  const initialBoardSlugRef = useRef(boardSlug);
 
   // Send identity whenever user changes or iframe (re)loads.
   useEffect(() => {
@@ -43,10 +57,14 @@ export function FeeduroBoard({ token, theme = "auto", user, baseUrl = "https://f
     iframeRef.current?.contentWindow?.postMessage({ type: "fdy:setTheme", theme }, baseUrl);
   }, [theme, baseUrl]);
 
+  const boardParam = initialBoardSlugRef.current
+    ? `&board=${encodeURIComponent(initialBoardSlugRef.current)}`
+    : "";
+
   return (
     <iframe
       ref={iframeRef}
-      src={`${baseUrl}/widget/${token}?mode=inline&theme=${encodeURIComponent(initialThemeRef.current)}`}
+      src={`${baseUrl}/widget/${token}?mode=inline&theme=${encodeURIComponent(initialThemeRef.current)}${boardParam}`}
       title="Feedback"
       loading="lazy"
       allow="clipboard-write"

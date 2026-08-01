@@ -1,5 +1,4 @@
 import { WidgetPage } from "@features/widget/components/public/widget-page";
-import { getBoardWidgetData } from "@features/widget/server/board-queries";
 import { getWidgetLoaderData } from "@features/widget/server/queries";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -15,12 +14,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const url = new URL(request.url);
   const theme = url.searchParams.get("theme") ?? "auto";
+  const boardSlug = url.searchParams.get("board") ?? undefined;
 
-  // Board-level embed token takes priority; falls back to org widget config token
-  const boardData = await getBoardWidgetData(params.widgetToken, theme);
-  if (boardData) return boardData;
-
-  return getWidgetLoaderData(db, params.widgetToken);
+  return getWidgetLoaderData(db, params.widgetToken, boardSlug, theme);
 }
 
 export default WidgetPage;

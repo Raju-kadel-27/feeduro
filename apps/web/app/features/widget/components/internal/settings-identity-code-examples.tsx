@@ -8,11 +8,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { CodeBlock } from "./code-block";
 
-type Board = { id: string; name: string; isDefault: boolean; embedToken: string };
+type Board = { id: string; name: string; slug: string; isDefault: boolean };
 
 type Props = {
   theme: "light" | "dark" | "auto";
-  orgSlug: string;
+  orgToken: string;
   boards: Board[];
   inlineBoardId: string;
   setInlineBoardId: (id: string) => void;
@@ -20,7 +20,7 @@ type Props = {
 
 export function SettingsIdentityCodeExamples({
   theme,
-  orgSlug,
+  orgToken,
   boards,
   inlineBoardId,
   setInlineBoardId,
@@ -38,17 +38,17 @@ export function SettingsIdentityCodeExamples({
       </TabsList>
 
       <TabsContent value="nodejs" className="space-y-2">
-        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server</p>
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5">Server — generate signature and pass to template</p>
         <CodeBlock
           label="server.js"
-          code={`import crypto from 'node:crypto';\n\nconst signature = crypto\n  .createHmac('sha256', process.env.FEEDURO_SIGNING_SECRET)\n  .update(currentUser.id)\n  .digest('hex');\n\n// Pass to the client — e.g. res.render('page', { feeduroSig: signature });`}
+          code={`import crypto from 'node:crypto';\n\n// In your route handler:\nconst feeduroSig = crypto\n  .createHmac('sha256', process.env.FEEDURO_SIGNING_SECRET)\n  .update(String(currentUser.id))\n  .digest('hex');\n\nres.render('page', { user: currentUser, feeduroSig });`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
-          Client
+          Client — inject into your HTML template (EJS / Handlebars / Pug)
         </p>
         <CodeBlock
-          label="page.js"
-          code={`window.feeduro.identify({\n  id:        currentUser.id,\n  email:     currentUser.email,\n  name:      currentUser.name,\n  signature: feeduroSig,\n});`}
+          label="page.ejs"
+          code={`<% if (user) { %>\n<script>\n  // Safe to place anywhere — runs before fdy.js finishes loading\n  window.$fdyq = window.$fdyq || [];\n  window.$fdyq.push(['identify', {\n    id:        '<%= user.id %>',\n    email:     '<%= user.email %>',\n    name:      '<%= user.name %>',\n    signature: '<%= feeduroSig %>',\n  }]);\n</script>\n<% } %>`}
         />
       </TabsContent>
 
@@ -61,7 +61,7 @@ export function SettingsIdentityCodeExamples({
           code={`import { createIdentityToken } from '~/lib/identity-token';\n\nexport async function loader({ request }) {\n  const user = await getAuthUser(request);\n\n  const feeduroAuth = user\n    ? await createIdentityToken(\n        user.id,\n        user.email,\n        user.name,\n        process.env.FEEDURO_SIGNING_SECRET!,\n      )\n    : null;\n\n  return { user, feeduroAuth };\n}`}
         />
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
-          Client — pass the embed token and identity to the SDK
+          Client — pass the board slug and identity to the SDK
         </p>
         {boards.length > 1 && (
           <div className="flex items-center gap-2">
@@ -83,14 +83,7 @@ export function SettingsIdentityCodeExamples({
         )}
         <CodeBlock
           label="feedback/page.tsx"
-          code={`export default function FeedbackPage({ loaderData }) {\n  const { user, feeduroAuth } = loaderData;\n\n  return (\n    <div style={{ height: 600 }}>\n      <div\n        data-fdy-embed="${selectedBoard?.embedToken ?? "YOUR_EMBED_TOKEN"}"\n        data-fdy-theme="${theme}"\n        data-fdy-user-id={user?.id}\n        data-fdy-user-email={user?.email}\n        data-fdy-user-name={user?.name}\n        data-fdy-signature={feeduroAuth?.signature}\n        style={{ height: '100%' }}\n      />\n    </div>\n  );\n}`}
-        />
-        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-0.5 pt-1">
-          Automatic login — link to your public board
-        </p>
-        <CodeBlock
-          label="any component"
-          code={`import { useFeeduro } from '@feeduro/react';\n\nfunction FeedbackLink() {\n  const { createAutoLoginUrl } = useFeeduro();\n\n  return (\n    <a href={createAutoLoginUrl('https://${orgSlug}.feeduro.com')}>\n      View public board →\n    </a>\n  );\n}`}
+          code={`import { FeeduroBoard } from '@feeduro/react';\n\nexport default function FeedbackPage({ loaderData }) {\n  const { user, feeduroAuth } = loaderData;\n\n  return (\n    <div style={{ height: 600 }}>\n      <FeeduroBoard\n        token="${orgToken}"\n        boardSlug="${selectedBoard?.slug ?? "YOUR_BOARD_SLUG"}"\n        theme="${theme}"\n        user={user ? {\n          id: user.id,\n          email: user.email,\n          name: user.name,\n          signature: feeduroAuth?.signature,\n        } : null}\n        style={{ height: '100%' }}\n      />\n    </div>\n  );\n}`}
         />
       </TabsContent>
 
@@ -105,7 +98,7 @@ export function SettingsIdentityCodeExamples({
         </p>
         <CodeBlock
           label="page.html"
-          code={`<script>\n  window.feeduro.identify({\n    id:        '{{ .User.ID }}',\n    email:     '{{ .User.Email }}',\n    name:      '{{ .User.Name }}',\n    signature: '{{ .FeeduroSig }}',\n  });\n</script>`}
+          code={`{{ if .User }}\n<script>\n  window.$fdyq = window.$fdyq || [];\n  window.$fdyq.push(['identify', {\n    id:        '{{ .User.ID }}',\n    email:     '{{ .User.Email }}',\n    name:      '{{ .User.Name }}',\n    signature: '{{ .FeeduroSig }}',\n  }]);\n</script>\n{{ end }}`}
         />
       </TabsContent>
 
@@ -120,7 +113,7 @@ export function SettingsIdentityCodeExamples({
         </p>
         <CodeBlock
           label="layout.html.erb"
-          code={`<% if current_user %>\n  <script>\n    window.feeduro.identify({\n      id:        '<%= current_user.id %>',\n      email:     '<%= current_user.email %>',\n      name:      '<%= current_user.name %>',\n      signature: '<%= feeduro_signature %>',\n    });\n  </script>\n<% end %>`}
+          code={`<% if current_user %>\n  <script>\n    window.$fdyq = window.$fdyq || [];\n    window.$fdyq.push(['identify', {\n      id:        '<%= current_user.id %>',\n      email:     '<%= current_user.email %>',\n      name:      '<%= current_user.name %>',\n      signature: '<%= feeduro_signature %>',\n    }]);\n  </script>\n<% end %>`}
         />
       </TabsContent>
 
@@ -135,7 +128,7 @@ export function SettingsIdentityCodeExamples({
         </p>
         <CodeBlock
           label="layout.html"
-          code={`{% if user.is_authenticated %}\n  <script>\n    window.feeduro.identify({\n      id:        '{{ user.id }}',\n      email:     '{{ user.email }}',\n      name:      '{{ user.get_full_name }}',\n      signature: '{{ feeduro_sig }}',\n    });\n  </script>\n{% endif %}`}
+          code={`{% if user.is_authenticated %}\n  <script>\n    window.$fdyq = window.$fdyq || [];\n    window.$fdyq.push(['identify', {\n      id:        '{{ user.id }}',\n      email:     '{{ user.email }}',\n      name:      '{{ user.get_full_name }}',\n      signature: '{{ feeduro_sig }}',\n    }]);\n  </script>\n{% endif %}`}
         />
       </TabsContent>
     </Tabs>

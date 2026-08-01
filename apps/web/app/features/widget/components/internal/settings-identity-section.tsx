@@ -4,7 +4,7 @@ import { SectionHeading } from "./section-heading";
 import { SettingsIdentityCodeExamples } from "./settings-identity-code-examples";
 import { StepBadge } from "./step-badge";
 
-type Board = { id: string; name: string; isDefault: boolean; embedToken: string };
+type Board = { id: string; name: string; slug: string; isDefault: boolean };
 
 type Props = {
   currentSecret: string;
@@ -17,7 +17,7 @@ type Props = {
   onHide: () => void;
   onRotateSecret: () => void;
   theme: "light" | "dark" | "auto";
-  orgSlug: string;
+  orgToken: string;
   boards: Board[];
   inlineBoardId: string;
   setInlineBoardId: (id: string) => void;
@@ -34,7 +34,7 @@ export function SettingsIdentitySection({
   onHide,
   onRotateSecret,
   theme,
-  orgSlug,
+  orgToken,
   boards,
   inlineBoardId,
   setInlineBoardId,
@@ -47,17 +47,17 @@ export function SettingsIdentitySection({
     <section className="rounded-xl border border-border bg-card p-5 space-y-6">
       <SectionHeading
         title="Identity verification"
-        description="Tie feedback submissions to your logged-in users with a server-generated HMAC signature. Without it, anyone could spoof a user ID."
+        description="Optionally tie feedback to your logged-in users. Without this, submissions are anonymous. With it, each post is stamped with the submitter's name and email."
       />
 
       {/* Step 1 */}
       <div className="space-y-3">
-        <StepBadge n={1} label="Copy your signing secret and store it as an environment variable" />
+        <StepBadge n={1} label="Copy your signing secret — add it to your server's environment variables" />
         <div className="pl-7 space-y-2">
           <div className="flex items-center gap-2">
             <div className="flex-1 rounded-md border border-border bg-muted/30 px-3 py-2 font-mono text-sm text-foreground/80 overflow-hidden">
               {isRevealLoading ? (
-                <span className="text-muted-foreground text-xs">Loading…</span>
+                <span className="text-muted-foreground text-sm">Loading…</span>
               ) : (
                 displaySecret
               )}
@@ -66,7 +66,7 @@ export function SettingsIdentitySection({
               type="button"
               onClick={isSecretVisible ? onHide : onReveal}
               disabled={isRevealLoading}
-              className="shrink-0 flex items-center gap-1.5 px-2.5 h-8 rounded-md text-xs border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 h-9 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
               aria-label={isSecretVisible ? "Hide" : "Reveal"}
             >
               {isSecretVisible ? (
@@ -78,21 +78,20 @@ export function SettingsIdentitySection({
             </button>
             <CopyButton text={currentSecret} disabled={!isSecretVisible || !currentSecret} />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Never put this in client-side code. Set it as{" "}
-            <code className="bg-muted px-1 py-0.5 rounded">FEEDURO_SIGNING_SECRET</code> on your
-            server.
+          <p className="text-sm text-muted-foreground">
+            Keep this server-side only — exposing it lets anyone forge verified identities. Store it as{" "}
+            <code className="bg-muted px-1 py-0.5 rounded">FEEDURO_SIGNING_SECRET</code> in your server environment.
           </p>
         </div>
       </div>
 
       {/* Step 2 */}
       <div className="space-y-3">
-        <StepBadge n={2} label="Generate the signature server-side and pass it to the embed" />
+        <StepBadge n={2} label="On your server, hash the user's ID with the secret. Pass it to the embed." />
         <div className="pl-7">
           <SettingsIdentityCodeExamples
             theme={theme}
-            orgSlug={orgSlug}
+            orgToken={orgToken}
             boards={boards}
             inlineBoardId={inlineBoardId}
             setInlineBoardId={setInlineBoardId}
@@ -124,7 +123,7 @@ export function SettingsIdentitySection({
               Cancel
             </button>
           ) : (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Immediately invalidates all existing signatures.
             </p>
           )}

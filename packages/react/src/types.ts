@@ -15,29 +15,10 @@ export interface IdentifyPayload {
   clientToken?: string;
 }
 
-export interface FeeduroContextValue {
-  identify(user: IdentifyPayload | null): void;
-  showWidget(): void;
-  hideWidget(): void;
-  setTheme(theme: Theme): void;
-  /**
-   * Wraps a public board URL with the current user's clientToken so they land
-   * already signed in. Falls back to the original href if no token is present.
-   *
-   * @example
-   * const { createAutoLoginUrl } = useFeeduro();
-   * <a href={createAutoLoginUrl("https://feedback.acme.com")}>View roadmap</a>
-   */
-  createAutoLoginUrl(href: string): string;
-}
-
 /** Shape of window.feeduro after the SDK script loads. */
 export interface FeeduroSDK {
-  init(token: string, options?: { position?: Position; theme?: Theme; baseUrl?: string }): void;
+  embed(token: string, target: string | Element, options?: { theme?: Theme; boardSlug?: string }): void;
   identify(user: IdentifyPayload | null): void;
-  embed(token: string, target: string | Element, options?: { theme?: Theme }): void;
-  showWidget(): void;
-  hideWidget(): void;
   setTheme(theme: Theme): void;
   destroy(): void;
 }

@@ -3,8 +3,8 @@ import type { StatusKey } from "./constants";
 export type WidgetSettingsBoard = {
   id: string;
   name: string;
+  slug: string;
   isDefault: boolean;
-  embedToken: string;
 };
 
 export type WidgetSettingsConfig = {
@@ -17,12 +17,9 @@ export type WidgetSettingsConfig = {
 };
 
 export type WidgetSettingsLoaderData = {
-  orgSlug: string;
   config: WidgetSettingsConfig;
   boards: WidgetSettingsBoard[];
 };
-
-export type WidgetMode = "inline";
 
 export interface WidgetPost {
   id: string;
@@ -46,5 +43,4 @@ export interface WidgetLoaderData {
   board: { id: string; name: string; description: string | null } | null;
   posts: WidgetPost[];
   theme: string;
-  mode: WidgetMode;
 }

@@ -22,15 +22,15 @@ export async function getWidgetSettings(db: Db, orgId: string) {
         eq(feedbackBoards.organizationId, orgId),
         eq(feedbackBoards.visibility, "public"),
       ),
-      columns: { id: true, name: true, isDefault: true, embedToken: true },
+      columns: { id: true, name: true, slug: true, isDefault: true },
     }),
   ]);
 
   const boards = rawBoards.map((b) => ({
     id: b.id,
     name: b.name,
+    slug: b.slug,
     isDefault: b.isDefault ?? false,
-    embedToken: b.embedToken,
   }));
 
   if (!existing) {

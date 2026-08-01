@@ -28,8 +28,11 @@ export function SettingsOriginsSection({ initialAllowedOrigins }: Props) {
     <section className="rounded-xl border border-border bg-card p-5 space-y-4">
       <SectionHeading
         title="Allowed origins"
-        description="Restrict which domains may embed this widget. Leave empty to allow all origins. Enter one origin per line (e.g. https://yourapp.com)."
+        description="Domains that are allowed to embed this widget. Leave empty to allow any site. One origin per line — e.g. https://yourapp.com"
       />
+      <p className="text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
+        Enforcement is not yet active — origins are saved but not checked at request time.
+      </p>
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -39,7 +42,7 @@ export function SettingsOriginsSection({ initialAllowedOrigins }: Props) {
       />
       <div className="flex items-center gap-2">
         {!isSaving && savedOk && (
-          <span className="flex items-center gap-1 text-xs text-green-600">
+          <span className="flex items-center gap-1 text-sm text-green-600">
             <Check className="h-3 w-3" /> Saved
           </span>
         )}
@@ -47,7 +50,7 @@ export function SettingsOriginsSection({ initialAllowedOrigins }: Props) {
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="px-3 h-8 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          className="px-3 h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
           {isSaving ? "Saving…" : "Save"}
         </button>

@@ -65,7 +65,7 @@ export function HeroSection() {
               </div>
             </div>
             <video
-              src="https://res.cloudinary.com/dlimsxfkf/video/upload/v1782641096/Untitled_design_1_mk3hmr.mp4"
+              src="https://res.cloudinary.com/dlimsxfkf/video/upload/v1785661312/product__demo__feeduro_cpctts.mp4"
               autoPlay
               muted
               loop

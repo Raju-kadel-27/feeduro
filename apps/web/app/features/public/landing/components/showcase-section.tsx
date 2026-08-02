@@ -1,15 +1,7 @@
 import { TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
-function Callout({
-  title,
-  accent = "green",
-  children,
-}: {
-  title: string;
-  accent?: "green" | "orange";
-  children: React.ReactNode;
-}) {
+function Callout({ title, accent = "green", children }: { title: string; accent?: "green" | "orange"; children: React.ReactNode }) {
   const border = accent === "green" ? "border-emerald-500/25" : "border-orange-500/25";
   const bg = accent === "green" ? "bg-emerald-500/[0.05]" : "bg-orange-500/[0.05]";
   return (
@@ -22,17 +14,12 @@ function Callout({
 
 function BrowserFrame({ glow, children }: { glow: string; children: React.ReactNode }) {
   return (
-    <div
-      className="rounded-2xl border border-border overflow-hidden bg-card"
-      style={{ boxShadow: `0 0 70px ${glow}, 0 20px 50px -12px rgba(0,0,0,0.5)` }}
-    >
+    <div className="rounded-2xl border border-border overflow-hidden bg-card" style={{ boxShadow: `0 0 70px ${glow}, 0 20px 50px -12px rgba(0,0,0,0.5)` }}>
       <div className="flex items-center gap-1.5 px-4 py-3 border-b border-border bg-muted/40">
         <span className="w-3 h-3 rounded-full bg-red-400/70" />
         <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
         <span className="w-3 h-3 rounded-full bg-green-400/70" />
-        <div className="ml-3 rounded-md border border-border bg-background/50 px-3 py-1 text-xs text-muted-foreground">
-          feeduro.com
-        </div>
+        <div className="ml-3 rounded-md border border-border bg-background/50 px-3 py-1 text-xs text-muted-foreground">feeduro.com</div>
       </div>
       {children}
     </div>
@@ -40,74 +27,109 @@ function BrowserFrame({ glow, children }: { glow: string; children: React.ReactN
 }
 
 const ANALYTICS_STEPS = [
-  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663162/step_1_lirohu.png", label: "Traffic and views per board" },
-  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663163/step_2_tgis6y.png", label: "Voting patterns and demand" },
-  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663164/step_3_znomdk.png", label: "Resolution rates and trends" },
+  {
+    src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663162/step_1_lirohu.png",
+    label: "Traffic and views per board",
+    views: "1,284", trend: "+12%",
+    sparkline: "0,18 15,13 28,8 42,11 57,5 72,3 80,4",
+    backlog: [{ label: "> 60 days", count: 3, color: "bg-red-400" }, { label: "30–60 days", count: 8, color: "bg-amber-400" }, { label: "< 30 days", count: 24, color: "bg-emerald-400" }],
+    resolution: { pct: 78, avg: "3.2" },
+    votes: [{ label: "Dark mode", votes: 42, pct: 90 }, { label: "CSV export", votes: 31, pct: 66 }, { label: "API access", votes: 18, pct: 38 }],
+  },
+  {
+    src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663163/step_2_tgis6y.png",
+    label: "Voting patterns and demand",
+    views: "1,312", trend: "+14%",
+    sparkline: "0,15 15,10 28,6 42,9 57,3 72,2 80,1",
+    backlog: [{ label: "> 60 days", count: 2, color: "bg-red-400" }, { label: "30–60 days", count: 11, color: "bg-amber-400" }, { label: "< 30 days", count: 26, color: "bg-emerald-400" }],
+    resolution: { pct: 82, avg: "2.8" },
+    votes: [{ label: "Dark mode", votes: 45, pct: 96 }, { label: "CSV export", votes: 28, pct: 60 }, { label: "API access", votes: 22, pct: 47 }],
+  },
+  {
+    src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663164/step_3_znomdk.png",
+    label: "Resolution rates and trends",
+    views: "1,267", trend: "+9%",
+    sparkline: "0,16 15,14 28,10 42,13 57,7 72,5 80,6",
+    backlog: [{ label: "> 60 days", count: 4, color: "bg-red-400" }, { label: "30–60 days", count: 7, color: "bg-amber-400" }, { label: "< 30 days", count: 22, color: "bg-emerald-400" }],
+    resolution: { pct: 74, avg: "4.1" },
+    votes: [{ label: "Dark mode", votes: 38, pct: 81 }, { label: "CSV export", votes: 34, pct: 72 }, { label: "API access", votes: 15, pct: 32 }],
+  },
+];
+
+const SEG_CHIPS = ["Paying", "Enterprise", "Churned"];
+const SEG_TRAITS = [
+  { key: "Plan", values: ["Pro", "Enterprise", "Free"] },
+  { key: "Role", values: ["Admin", "Member", "Owner"] },
+  { key: "Seats", values: ["≥ 50", "≥ 10", "≥ 100"] },
+];
+
+const SEG_STEPS = [
+  {
+    src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_1_vyexp8.png",
+    label: "Create plan catalog",
+    activeChip: 0, activeFilter: 0,
+    features: [{ label: "API access", plan: "Enterprise", votes: 24 }, { label: "SSO login", plan: "Pro", votes: 18 }],
+  },
+  {
+    src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_2_u4hefj.png",
+    label: "Import your customers",
+    activeChip: 1, activeFilter: 1,
+    features: [{ label: "Custom reports", plan: "Enterprise", votes: 31 }, { label: "Bulk export", plan: "Pro", votes: 22 }],
+  },
+  {
+    src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_3_mwfb9o.png",
+    label: "Create your first segment",
+    activeChip: 2, activeFilter: 2,
+    features: [{ label: "Webhook API", plan: "Enterprise", votes: 19 }, { label: "SAML SSO", plan: "Enterprise", votes: 27 }],
+  },
 ];
 
 function AnalyticsShowcaseCard() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setStep((s) => (s + 1) % ANALYTICS_STEPS.length), 2000);
+    const id = setInterval(() => setStep((s) => (s + 1) % ANALYTICS_STEPS.length), 2500);
     return () => clearInterval(id);
   }, []);
 
+  const s = ANALYTICS_STEPS[step];
+
   return (
-    <div
-      className="rounded-3xl px-4 py-10 lg:px-6"
-      style={{ background: "radial-gradient(ellipse 80% 65% at 50% 50%, rgba(16,185,129,0.07) 0%, transparent 100%)" }}
-    >
+    <div className="rounded-3xl px-4 py-10 lg:px-6" style={{ background: "radial-gradient(ellipse 80% 65% at 50% 50%, rgba(16,185,129,0.07) 0%, transparent 100%)" }}>
       <div className="text-center max-w-2xl mx-auto mb-14">
-        <span
-          className="inline-block text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-4"
-          style={{ background: "rgba(16,185,129,0.12)" }}
-        >
-          Analytics
-        </span>
+        <span className="inline-block text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-4" style={{ background: "rgba(16,185,129,0.12)" }}>Analytics</span>
         <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
           See exactly what is{" "}
           <span style={{ background: "linear-gradient(135deg, #6ee7b7, #34d399, #5eead4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>driving demand</span>
         </h3>
-        <p className="text-muted-foreground leading-relaxed">
-          Traffic trends, voting patterns, and resolution rates across every board. Know what your users want before they have to ask twice.
-        </p>
+        <p className="text-muted-foreground leading-relaxed">Traffic trends, voting patterns, and resolution rates across every board. Know what your users want before they have to ask twice.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[270px_1fr_270px] gap-6 lg:gap-8 items-center">
         <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
           <Callout title="Unique visitors and total views per board">
             <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-xl font-bold text-emerald-400">1,284</span>
+              <span className="text-xl font-bold text-emerald-400 tabular-nums">{s.views}</span>
               <span className="text-xs text-muted-foreground">views this week</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-emerald-400 mb-3">
               <TrendingUp className="w-3 h-3" />
-              <span>+12% from last week</span>
+              <span>{s.trend} from last week</span>
             </div>
             <svg viewBox="0 0 80 20" className="w-full h-5 opacity-70" aria-hidden>
-              <polyline
-                points="0,18 15,13 28,8 42,11 57,5 72,3 80,4"
-                fill="none"
-                stroke="rgb(16,185,129)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              {ANALYTICS_STEPS.map((frame, i) => (
+                <polyline key={i} points={frame.sparkline} fill="none" stroke="rgb(16,185,129)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-opacity duration-500 ${step === i ? "opacity-100" : "opacity-0"}`} />
+              ))}
             </svg>
           </Callout>
 
           <Callout title="Backlog aging to catch stale feedback early">
             <div className="space-y-2">
-              {[
-                { label: "> 60 days", count: 3, color: "bg-red-400" },
-                { label: "30–60 days", count: 8, color: "bg-amber-400" },
-                { label: "< 30 days", count: 24, color: "bg-emerald-400" },
-              ].map((row) => (
+              {s.backlog.map((row) => (
                 <div key={row.label} className="flex items-center gap-2 text-xs">
                   <span className={`w-2 h-2 rounded-full shrink-0 ${row.color}`} />
                   <span className="text-muted-foreground flex-1">{row.label}</span>
-                  <span className="font-semibold text-foreground">{row.count}</span>
+                  <span className="font-semibold text-foreground tabular-nums">{row.count}</span>
                 </div>
               ))}
             </div>
@@ -118,28 +140,13 @@ function AnalyticsShowcaseCard() {
           <BrowserFrame glow="rgba(16,185,129,0.18)">
             <div className="relative aspect-[16/10]">
               {ANALYTICS_STEPS.map(({ src }, i) => (
-                <img
-                  key={src}
-                  src={src}
-                  alt={`Feeduro analytics step ${i + 1}`}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  className={[
-                    "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
-                    step === i ? "opacity-100" : "opacity-0",
-                  ].join(" ")}
-                />
+                <img key={src} src={src} alt={`Feeduro analytics step ${i + 1}`} loading={i === 0 ? "eager" : "lazy"} className={["absolute inset-0 w-full h-full object-cover transition-opacity duration-500", step === i ? "opacity-100" : "opacity-0"].join(" ")} />
               ))}
             </div>
           </BrowserFrame>
           <div className="mt-4 flex justify-center gap-2">
             {ANALYTICS_STEPS.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setStep(i)}
-                aria-label={`Step ${i + 1}`}
-                className={`w-2 h-2 rounded-full transition-colors duration-300 ${step === i ? "bg-emerald-400" : "bg-border hover:bg-muted-foreground/40"}`}
-              />
+              <button key={i} type="button" onClick={() => setStep(i)} aria-label={`Step ${i + 1}`} className={`w-2 h-2 rounded-full transition-colors duration-300 ${step === i ? "bg-emerald-400" : "bg-border hover:bg-muted-foreground/40"}`} />
             ))}
           </div>
         </div>
@@ -150,31 +157,27 @@ function AnalyticsShowcaseCard() {
               <div className="relative w-11 h-11 shrink-0">
                 <svg viewBox="0 0 36 36" className="w-11 h-11 -rotate-90" aria-hidden>
                   <circle cx="18" cy="18" r="15.9" fill="none" strokeWidth="3" className="stroke-border" />
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgb(16,185,129)" strokeWidth="3" strokeDasharray="78 22" strokeLinecap="round" />
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgb(16,185,129)" strokeWidth="3" strokeLinecap="round" style={{ strokeDasharray: `${s.resolution.pct} ${100 - s.resolution.pct}`, transition: "stroke-dasharray 0.7s ease" }} />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-emerald-400">78%</span>
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-emerald-400 tabular-nums">{s.resolution.pct}%</span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">78% resolved</p>
-                <p className="text-xs text-muted-foreground">Avg. 3.2 day response</p>
+                <p className="text-sm font-semibold text-foreground tabular-nums">{s.resolution.pct}% resolved</p>
+                <p className="text-xs text-muted-foreground">Avg. {s.resolution.avg} day response</p>
               </div>
             </div>
           </Callout>
 
           <Callout title="Voting patterns across boards">
             <div className="space-y-2">
-              {[
-                { label: "Dark mode", votes: 42, pct: 90 },
-                { label: "CSV export", votes: 31, pct: 66 },
-                { label: "API access", votes: 18, pct: 38 },
-              ].map((row) => (
+              {s.votes.map((row) => (
                 <div key={row.label} className="space-y-1">
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">{row.label}</span>
-                    <span className="font-medium text-foreground">{row.votes}</span>
+                    <span className="font-medium text-foreground tabular-nums">{row.votes}</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-border">
-                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.pct}%` }} />
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.pct}%`, transition: "width 0.7s ease" }} />
                   </div>
                 </div>
               ))}
@@ -186,54 +189,36 @@ function AnalyticsShowcaseCard() {
   );
 }
 
-const SEG_STEPS = [
-  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_1_vyexp8.png", label: "Create plan catalog" },
-  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_2_u4hefj.png", label: "Import your customers" },
-  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_3_mwfb9o.png", label: "Create your first segment" },
-];
-
 function SegmentationShowcaseCard() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setStep((s) => (s + 1) % SEG_STEPS.length), 2000);
+    const id = setInterval(() => setStep((s) => (s + 1) % SEG_STEPS.length), 2500);
     return () => clearInterval(id);
   }, []);
 
+  const s = SEG_STEPS[step];
+
   return (
-    <div
-      className="rounded-3xl px-4 py-10 lg:px-6"
-      style={{ background: "radial-gradient(ellipse 80% 65% at 50% 50%, rgba(249,115,22,0.07) 0%, transparent 100%)" }}
-    >
+    <div className="rounded-3xl px-4 py-10 lg:px-6" style={{ background: "radial-gradient(ellipse 80% 65% at 50% 50%, rgba(249,115,22,0.07) 0%, transparent 100%)" }}>
       <div className="text-center max-w-2xl mx-auto mb-14">
-        <span
-          className="inline-block text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-4"
-          style={{ background: "rgba(249,115,22,0.12)" }}
-        >
-          Segmentation
-        </span>
+        <span className="inline-block text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-4" style={{ background: "rgba(249,115,22,0.12)" }}>Segmentation</span>
         <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
           What are your{" "}
           <span style={{ background: "linear-gradient(135deg, #fdba74, #fb923c, #fcd34d)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>paying users</span> asking for?
         </h3>
-        <p className="text-muted-foreground leading-relaxed">
-          Group users by plan, role, or company size. Filter boards instantly to separate what free users want from what enterprise accounts need.
-        </p>
+        <p className="text-muted-foreground leading-relaxed">Group users by plan, role, or company size. Filter boards instantly to separate what free users want from what enterprise accounts need.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[270px_1fr_270px] gap-6 lg:gap-8 items-center">
         <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
           <Callout title="Create segments from any user trait" accent="orange">
             <div className="space-y-1.5">
-              {[
-                { key: "Plan", value: "Pro" },
-                { key: "Role", value: "Admin" },
-                { key: "Seats", value: "≥ 50" },
-              ].map((row) => (
-                <div key={row.key} className="flex items-center gap-2 text-xs bg-muted/40 rounded-md px-2 py-1">
-                  <span className="text-muted-foreground w-10 shrink-0">{row.key}</span>
+              {SEG_TRAITS.map((trait, i) => (
+                <div key={trait.key} className={`flex items-center gap-2 text-xs rounded-md px-2 py-1 transition-colors duration-500 ${s.activeFilter === i ? "bg-orange-400/10" : "bg-muted/40"}`}>
+                  <span className="text-muted-foreground w-10 shrink-0">{trait.key}</span>
                   <span className="text-muted-foreground">=</span>
-                  <span className="font-medium text-orange-400">{row.value}</span>
+                  <span className={`font-medium transition-colors duration-500 ${s.activeFilter === i ? "text-orange-400" : "text-foreground/60"}`}>{trait.values[step]}</span>
                 </div>
               ))}
             </div>
@@ -241,11 +226,8 @@ function SegmentationShowcaseCard() {
 
           <Callout title="Filter boards by segment instantly" accent="orange">
             <div className="flex flex-wrap gap-1.5">
-              {["Paying", "Enterprise", "Churned"].map((label, i) => (
-                <span
-                  key={label}
-                  className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${i === 0 ? "border-orange-400/50 text-orange-400 bg-orange-400/10" : "border-border text-muted-foreground"}`}
-                >
+              {SEG_CHIPS.map((label, i) => (
+                <span key={label} className={`text-[10px] font-medium px-2 py-0.5 rounded-full border transition-all duration-500 ${s.activeChip === i ? "border-orange-400/50 text-orange-400 bg-orange-400/10" : "border-border text-muted-foreground"}`}>
                   {label}
                 </span>
               ))}
@@ -258,34 +240,16 @@ function SegmentationShowcaseCard() {
           <BrowserFrame glow="rgba(249,115,22,0.18)">
             <div className="relative aspect-[16/10]">
               {SEG_STEPS.map(({ src }, i) => (
-                <img
-                  key={src}
-                  src={src}
-                  alt={`Feeduro segmentation step ${i + 1}`}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  className={[
-                    "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
-                    step === i ? "opacity-100" : "opacity-0",
-                  ].join(" ")}
-                />
+                <img key={src} src={src} alt={`Feeduro segmentation step ${i + 1}`} loading={i === 0 ? "eager" : "lazy"} className={["absolute inset-0 w-full h-full object-cover transition-opacity duration-500", step === i ? "opacity-100" : "opacity-0"].join(" ")} />
               ))}
               <div className="absolute inset-0 bg-orange-500/10 mix-blend-soft-light pointer-events-none" />
             </div>
           </BrowserFrame>
           <div className="mt-4 flex flex-col gap-1.5">
             {SEG_STEPS.map(({ label }, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setStep(i)}
-                className="flex items-center gap-2.5 text-left transition-colors group"
-              >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors ${step === i ? "bg-orange-400/20 text-orange-400" : "bg-border text-muted-foreground group-hover:text-foreground/70"}`}>
-                  {i + 1}
-                </span>
-                <span className={`text-xs transition-colors ${step === i ? "text-orange-400 font-medium" : "text-muted-foreground group-hover:text-foreground/70"}`}>
-                  {label}
-                </span>
+              <button key={i} type="button" onClick={() => setStep(i)} className="flex items-center gap-2.5 text-left transition-colors group">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors ${step === i ? "bg-orange-400/20 text-orange-400" : "bg-border text-muted-foreground group-hover:text-foreground/70"}`}>{i + 1}</span>
+                <span className={`text-xs transition-colors ${step === i ? "text-orange-400 font-medium" : "text-muted-foreground group-hover:text-foreground/70"}`}>{label}</span>
               </button>
             ))}
           </div>
@@ -294,16 +258,11 @@ function SegmentationShowcaseCard() {
         <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
           <Callout title="Find what your most valuable users need" accent="orange">
             <div className="space-y-2">
-              {[
-                { label: "API access", plan: "Enterprise", votes: 24 },
-                { label: "SSO login", plan: "Pro", votes: 18 },
-              ].map((row) => (
+              {s.features.map((row) => (
                 <div key={row.label} className="flex items-center gap-2 text-xs">
                   <span className="text-foreground flex-1 font-medium">{row.label}</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-orange-400/10 text-orange-400 border border-orange-400/20">
-                    {row.plan}
-                  </span>
-                  <span className="text-muted-foreground">▲ {row.votes}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-orange-400/10 text-orange-400 border border-orange-400/20">{row.plan}</span>
+                  <span className="text-muted-foreground tabular-nums">▲ {row.votes}</span>
                 </div>
               ))}
             </div>
@@ -313,7 +272,7 @@ function SegmentationShowcaseCard() {
             <div className="grid grid-cols-2 gap-2 text-xs">
               {[
                 { tier: "Free", color: "text-muted-foreground", items: ["Dark mode", "UI tweaks"] },
-                { tier: "Paid", color: "text-orange-400", items: ["API access", "SSO login"] },
+                { tier: "Paid", color: "text-orange-400", items: s.features.map((f) => f.label) },
               ].map((col) => (
                 <div key={col.tier}>
                   <p className={`font-semibold mb-1.5 ${col.color}`}>{col.tier}</p>

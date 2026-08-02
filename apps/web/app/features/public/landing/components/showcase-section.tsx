@@ -39,7 +39,20 @@ function BrowserFrame({ glow, children }: { glow: string; children: React.ReactN
   );
 }
 
+const ANALYTICS_STEPS = [
+  { src: "/analytics/step_1.png", label: "Traffic and views per board" },
+  { src: "/analytics/step_2.png", label: "Voting patterns and demand" },
+  { src: "/analytics/step_3.png", label: "Resolution rates and trends" },
+];
+
 function AnalyticsShowcaseCard() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setStep((s) => (s + 1) % ANALYTICS_STEPS.length), 2000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div
       className="rounded-3xl px-4 py-10 lg:px-6"
@@ -104,15 +117,37 @@ function AnalyticsShowcaseCard() {
         <div className="order-first lg:order-none">
           <BrowserFrame glow="rgba(16,185,129,0.18)">
             <div className="relative">
-              <img src="/screenshots/analytics.png" alt="Feeduro analytics dashboard" className="w-full h-auto block animate-crossfade-a" />
-              <img
-                src="/screenshots/analytics-second.png"
-                alt="Feeduro analytics dashboard"
-                className="absolute inset-0 w-full h-full object-cover animate-crossfade-b"
-                loading="lazy"
-              />
+              {ANALYTICS_STEPS.map(({ src }, i) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt={`Feeduro analytics step ${i + 1}`}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  className={[
+                    "w-full h-auto block transition-opacity duration-500",
+                    i > 0 ? "absolute inset-0 object-cover" : "",
+                    step === i ? "opacity-100" : "opacity-0",
+                  ].join(" ")}
+                />
+              ))}
             </div>
           </BrowserFrame>
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <p className="text-xs text-muted-foreground tabular-nums">
+              Step {step + 1} of {ANALYTICS_STEPS.length} — {ANALYTICS_STEPS[step].label}
+            </p>
+            <div className="flex gap-2">
+              {ANALYTICS_STEPS.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setStep(i)}
+                  aria-label={`Step ${i + 1}`}
+                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${step === i ? "bg-emerald-400" : "bg-border hover:bg-muted-foreground/40"}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
@@ -158,9 +193,9 @@ function AnalyticsShowcaseCard() {
 }
 
 const SEG_STEPS = [
-  { src: "/segmentation/segment_step_1.png", label: "Define your segment" },
-  { src: "/segmentation/segment_step_2.png", label: "Apply filters to your board" },
-  { src: "/segmentation/segment_step_3.png", label: "See exactly what they need" },
+  { src: "/segmentation/step_1.png", label: "Define your segment" },
+  { src: "/segmentation/step_2.png", label: "Apply filters to your board" },
+  { src: "/segmentation/step_3.png", label: "See exactly what they need" },
 ];
 
 function SegmentationShowcaseCard() {

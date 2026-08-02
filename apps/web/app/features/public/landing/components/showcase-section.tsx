@@ -40,9 +40,9 @@ function BrowserFrame({ glow, children }: { glow: string; children: React.ReactN
 }
 
 const ANALYTICS_STEPS = [
-  { src: "/analytics/step_1.png", label: "Traffic and views per board" },
-  { src: "/analytics/step_2.png", label: "Voting patterns and demand" },
-  { src: "/analytics/step_3.png", label: "Resolution rates and trends" },
+  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663162/step_1_lirohu.png", label: "Traffic and views per board" },
+  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663163/step_2_tgis6y.png", label: "Voting patterns and demand" },
+  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663164/step_3_znomdk.png", label: "Resolution rates and trends" },
 ];
 
 function AnalyticsShowcaseCard() {
@@ -187,9 +187,9 @@ function AnalyticsShowcaseCard() {
 }
 
 const SEG_STEPS = [
-  { src: "/segmentation/step_1.png", label: "Create plan catalog" },
-  { src: "/segmentation/step_2.png", label: "Import your customers" },
-  { src: "/segmentation/step_3.png", label: "Create your first segment" },
+  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_1_vyexp8.png", label: "Create plan catalog" },
+  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_2_u4hefj.png", label: "Import your customers" },
+  { src: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1785663199/step_3_mwfb9o.png", label: "Create your first segment" },
 ];
 
 function SegmentationShowcaseCard() {

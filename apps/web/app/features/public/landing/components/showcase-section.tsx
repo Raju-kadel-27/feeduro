@@ -13,7 +13,7 @@ function Callout({
   const border = accent === "green" ? "border-emerald-500/25" : "border-orange-500/25";
   const bg = accent === "green" ? "bg-emerald-500/[0.05]" : "bg-orange-500/[0.05]";
   return (
-    <div className={`rounded-xl border ${border} ${bg} p-4 shadow-lg min-w-[170px] lg:min-w-0`}>
+    <div className={`rounded-xl border ${border} ${bg} p-4 shadow-lg min-w-[220px] lg:min-w-0`}>
       <p className="text-xs font-semibold text-foreground/90 mb-3 leading-tight">{title}</p>
       {children}
     </div>
@@ -31,7 +31,7 @@ function BrowserFrame({ glow, children }: { glow: string; children: React.ReactN
         <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
         <span className="w-3 h-3 rounded-full bg-green-400/70" />
         <div className="ml-3 rounded-md border border-border bg-background/50 px-3 py-1 text-xs text-muted-foreground">
-          app.feeduro.com
+          feeduro.com
         </div>
       </div>
       {children}
@@ -74,7 +74,7 @@ function AnalyticsShowcaseCard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[210px_1fr_210px] gap-6 lg:gap-8 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-[270px_1fr_270px] gap-6 lg:gap-8 items-center">
         <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
           <Callout title="Unique visitors and total views per board">
             <div className="flex items-baseline gap-1.5 mb-2">
@@ -116,7 +116,7 @@ function AnalyticsShowcaseCard() {
 
         <div className="order-first lg:order-none">
           <BrowserFrame glow="rgba(16,185,129,0.18)">
-            <div className="relative">
+            <div className="relative aspect-[16/10]">
               {ANALYTICS_STEPS.map(({ src }, i) => (
                 <img
                   key={src}
@@ -124,29 +124,23 @@ function AnalyticsShowcaseCard() {
                   alt={`Feeduro analytics step ${i + 1}`}
                   loading={i === 0 ? "eager" : "lazy"}
                   className={[
-                    "w-full h-auto block transition-opacity duration-500",
-                    i > 0 ? "absolute inset-0 object-cover" : "",
+                    "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
                     step === i ? "opacity-100" : "opacity-0",
                   ].join(" ")}
                 />
               ))}
             </div>
           </BrowserFrame>
-          <div className="mt-4 flex flex-col items-center gap-2">
-            <p className="text-xs text-muted-foreground tabular-nums">
-              Step {step + 1} of {ANALYTICS_STEPS.length} — {ANALYTICS_STEPS[step].label}
-            </p>
-            <div className="flex gap-2">
-              {ANALYTICS_STEPS.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setStep(i)}
-                  aria-label={`Step ${i + 1}`}
-                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${step === i ? "bg-emerald-400" : "bg-border hover:bg-muted-foreground/40"}`}
-                />
-              ))}
-            </div>
+          <div className="mt-4 flex justify-center gap-2">
+            {ANALYTICS_STEPS.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setStep(i)}
+                aria-label={`Step ${i + 1}`}
+                className={`w-2 h-2 rounded-full transition-colors duration-300 ${step === i ? "bg-emerald-400" : "bg-border hover:bg-muted-foreground/40"}`}
+              />
+            ))}
           </div>
         </div>
 
@@ -193,9 +187,9 @@ function AnalyticsShowcaseCard() {
 }
 
 const SEG_STEPS = [
-  { src: "/segmentation/step_1.png", label: "Define your segment" },
-  { src: "/segmentation/step_2.png", label: "Apply filters to your board" },
-  { src: "/segmentation/step_3.png", label: "See exactly what they need" },
+  { src: "/segmentation/step_1.png", label: "Create plan catalog" },
+  { src: "/segmentation/step_2.png", label: "Import your customers" },
+  { src: "/segmentation/step_3.png", label: "Create your first segment" },
 ];
 
 function SegmentationShowcaseCard() {
@@ -227,7 +221,7 @@ function SegmentationShowcaseCard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[210px_1fr_210px] gap-6 lg:gap-8 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-[270px_1fr_270px] gap-6 lg:gap-8 items-center">
         <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
           <Callout title="Create segments from any user trait" accent="orange">
             <div className="space-y-1.5">
@@ -262,7 +256,7 @@ function SegmentationShowcaseCard() {
 
         <div className="order-first lg:order-none">
           <BrowserFrame glow="rgba(249,115,22,0.18)">
-            <div className="relative">
+            <div className="relative aspect-[16/10]">
               {SEG_STEPS.map(({ src }, i) => (
                 <img
                   key={src}
@@ -270,8 +264,7 @@ function SegmentationShowcaseCard() {
                   alt={`Feeduro segmentation step ${i + 1}`}
                   loading={i === 0 ? "eager" : "lazy"}
                   className={[
-                    "w-full h-auto block transition-opacity duration-500",
-                    i > 0 ? "absolute inset-0 object-cover" : "",
+                    "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
                     step === i ? "opacity-100" : "opacity-0",
                   ].join(" ")}
                 />
@@ -279,21 +272,22 @@ function SegmentationShowcaseCard() {
               <div className="absolute inset-0 bg-orange-500/10 mix-blend-soft-light pointer-events-none" />
             </div>
           </BrowserFrame>
-          <div className="mt-4 flex flex-col items-center gap-2">
-            <p className="text-xs text-muted-foreground tabular-nums">
-              Step {step + 1} of {SEG_STEPS.length} — {SEG_STEPS[step].label}
-            </p>
-            <div className="flex gap-2">
-              {SEG_STEPS.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setStep(i)}
-                  aria-label={`Step ${i + 1}`}
-                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${step === i ? "bg-orange-400" : "bg-border hover:bg-muted-foreground/40"}`}
-                />
-              ))}
-            </div>
+          <div className="mt-4 flex flex-col gap-1.5">
+            {SEG_STEPS.map(({ label }, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setStep(i)}
+                className="flex items-center gap-2.5 text-left transition-colors group"
+              >
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors ${step === i ? "bg-orange-400/20 text-orange-400" : "bg-border text-muted-foreground group-hover:text-foreground/70"}`}>
+                  {i + 1}
+                </span>
+                <span className={`text-xs transition-colors ${step === i ? "text-orange-400 font-medium" : "text-muted-foreground group-hover:text-foreground/70"}`}>
+                  {label}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -339,7 +333,7 @@ function SegmentationShowcaseCard() {
 export function ShowcaseSection() {
   return (
     <section id="showcase" className="py-24 px-6 border-t border-border">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="space-y-16">
           <AnalyticsShowcaseCard />
           <SegmentationShowcaseCard />

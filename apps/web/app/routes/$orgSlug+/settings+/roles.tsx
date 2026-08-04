@@ -9,14 +9,13 @@ import { RoleFormDialog } from "@features/internal/roles/components/role-form-di
 import { RolesTable } from "@features/internal/roles/components/roles-table";
 import type { OrgRole } from "@features/internal/roles/types";
 import { authClient } from "@lib/auth/client";
-import { getAuth } from "@lib/auth/server";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { Plus, ShieldCheck, Star } from "lucide-react";
 import { Suspense, useState } from "react";
 import { Await, Link, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { member } from "@/db/schema";
+import { member, organizationRole } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/roles";
 
@@ -37,12 +36,14 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
       columns: { role: true },
     }),
-    // biome-ignore lint/suspicious/noExplicitAny: Better Auth organization plugin endpoints are not statically inferred
-    (getAuth(db).api as any).listOrgRoles({ headers: request.headers, query: { organizationId } }),
+    db.query.organizationRole.findMany({
+      where: eq(organizationRole.organizationId, organizationId),
+      columns: { id: true, role: true, organizationId: true, permission: true, createdAt: true, updatedAt: true },
+    }),
   ]).then(([planLimits, memberRecord, rolesResult]) => {
     if (!planLimits.customRoles) return { planLocked: true as const };
     return {
-      roles: (Array.isArray(rolesResult) ? rolesResult : []) as OrgRole[],
+      roles: rolesResult.map((r) => ({ ...r, permission: JSON.parse(r.permission as string) as Record<string, string[]> })) as OrgRole[],
       isAdmin: memberRecord?.role === "admin",
       organizationId,
     };

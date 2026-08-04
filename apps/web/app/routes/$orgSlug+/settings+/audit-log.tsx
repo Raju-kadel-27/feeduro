@@ -1,22 +1,26 @@
+import { AdminOnlyWall } from "@components/common/admin-only-wall";
 import { PageHeader } from "@components/common/page-header";
 import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
-import { requireAdmin, requireOrgBySlug } from "@features/auth/server/guards";
+import { requireOrgBySlug } from "@features/auth/server/guards";
 import { AuditLogPage } from "@features/internal/audit/components/audit-log-page";
 import type { AuditCategory } from "@features/internal/audit/constants";
 import { AUDIT_CATEGORIES } from "@features/internal/audit/constants";
 import { listAuditLogs } from "@features/internal/audit/server/queries";
 import { UpgradeWall } from "@features/internal/billing/components/upgrade-wall";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
+import { and, eq } from "drizzle-orm";
 import { ScrollText } from "lucide-react";
 import { Suspense } from "react";
 import { Await, useParams } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/audit-log";
 
 type AuditData =
   | { planLocked: true }
+  | { adminLocked: true }
   | (Awaited<ReturnType<typeof listAuditLogs>> & { page: number; category: AuditCategory | undefined });
 
 export function meta() {
@@ -26,7 +30,6 @@ export function meta() {
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
-  await requireAdmin(db, organizationId, session.user.id);
 
   const url = new URL(request.url);
   const rawPage = Number(url.searchParams.get("page"));
@@ -39,10 +42,18 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
   const dataPromise: Promise<AuditData> = Promise.all([
     getOrgPlanLimits(db, organizationId),
-    listAuditLogs(db, organizationId, page, category),
-  ]).then(([planLimits, auditData]) => {
+    db.query.member.findFirst({
+      where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+      columns: { role: true },
+    }),
+  ]).then(([planLimits, memberRecord]) => {
     if (!planLimits.auditLog) return { planLocked: true as const };
-    return { ...auditData, page, category };
+    if (memberRecord?.role !== "admin") return { adminLocked: true as const };
+    return listAuditLogs(db, organizationId, page, category).then((auditData) => ({
+      ...auditData,
+      page,
+      category,
+    }));
   });
   return { dataPromise };
 }
@@ -67,6 +78,18 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
           {(pageData) => {
             if ("planLocked" in pageData) {
               return <UpgradeWall feature="auditLog" orgSlug={orgSlug!} />;
+            }
+            if ("adminLocked" in pageData) {
+              return (
+                <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+                  <PageHeader
+                    title="Audit Log"
+                    icon={ScrollText}
+                    description="A record of security-relevant actions taken by members of this workspace."
+                  />
+                  <AdminOnlyWall message="Only workspace admins can view the audit log." />
+                </main>
+              );
             }
             return (
               <main className="p-6 space-y-8">

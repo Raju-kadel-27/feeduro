@@ -47,6 +47,9 @@ export function getAuth(db: Db): Auth {
       "http://localhost:3000",
       "http://localhost:8788",
       "http://192.168.1.68:3000",
+      // Allow any HTTPS OIDC provider (Auth0, Okta, Entra, etc.).
+      // The SSO plugin's assertEndpointResolvesPublic already blocks private/loopback hosts.
+      "https://*",
     ],
 
     advanced: isOnAppDomain()

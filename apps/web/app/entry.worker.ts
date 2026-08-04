@@ -2,6 +2,26 @@ import { createRequestHandler, RouterContextProvider } from "react-router";
 import { createDb } from "@/db";
 import { CloudflareContext } from "./middleware/cloudflare.server";
 
+// TODO: remove once @better-auth/sso ships the redirect:"manual" fix (tracked in
+// https://github.com/better-auth/better-auth/issues/10052). The SSO plugin calls
+// fetch() with redirect:"error" during OIDC discovery which Cloudflare Workers
+// reject. Convert to redirect:"manual" and throw on 3xx to preserve the same
+// semantics betterFetch expects.
+const _nativeFetch = globalThis.fetch.bind(globalThis);
+globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+  if (init?.redirect === "error") {
+    return _nativeFetch(input, { ...init, redirect: "manual" }).then((res) => {
+      if (res.status >= 300 && res.status < 400) {
+        throw new TypeError(
+          `redirect:"error" — unexpected redirect to ${res.headers.get("location")}`,
+        );
+      }
+      return res;
+    });
+  }
+  return _nativeFetch(input, init);
+}) as typeof fetch;
+
 const handler = createRequestHandler(
   () => import("virtual:react-router/server-build"),
   import.meta.env.MODE,

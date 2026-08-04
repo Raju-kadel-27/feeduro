@@ -8,14 +8,13 @@ import { CopyButton } from "@features/oauth-clients/components/copy-button";
 import { DeleteAppDialog } from "@features/oauth-clients/components/delete-app-dialog";
 import { RotateConfirmDialog } from "@features/oauth-clients/components/rotate-confirm-dialog";
 import { useMutation } from "@tanstack/react-query";
-import { and, count, gt, inArray, isNull, or } from "drizzle-orm";
+import { and, count, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { AppWindow, Download } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
-import { getAuth } from "@/app/lib/auth/server";
-import { oauthAccessToken } from "@/db/schema";
+import { member, oauthAccessToken, oauthClient } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/index";
@@ -42,14 +41,42 @@ function toStringArray(value: unknown): string[] {
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  await requireOrgBySlug(db, request, params.orgSlug);
+  const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
   const appOrigin = new URL(request.url).origin;
-  const result = await getAuth(db).api.getOAuthClients({ headers: request.headers });
-  const raw = (result ?? []) as Omit<OAuthClientRow, "activeTokens">[];
-  const clients = raw.map((c) => ({ ...c, redirect_uris: toStringArray(c.redirect_uris) }));
 
-  if (clients.length === 0) return { clients: [] as OAuthClientRow[], appOrigin };
+  const memberRecord = await db.query.member.findFirst({
+    where: and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)),
+    columns: { role: true },
+  });
+
+  if (memberRecord?.role !== "admin") {
+    return { adminLocked: true as const, clients: [] as OAuthClientRow[], appOrigin };
+  }
+
+  const rawClients = await db
+    .select({
+      client_id: oauthClient.clientId,
+      client_name: oauthClient.name,
+      redirect_uris: oauthClient.redirectUris,
+      token_endpoint_auth_method: oauthClient.tokenEndpointAuthMethod,
+      client_id_issued_at: oauthClient.createdAt,
+      disabled: oauthClient.disabled,
+      public: oauthClient.public,
+      icon: oauthClient.icon,
+    })
+    .from(oauthClient)
+    .where(eq(oauthClient.referenceId, organizationId));
+
+  const clients = rawClients.map((c) => ({
+    ...c,
+    client_id_issued_at: c.client_id_issued_at
+      ? Math.floor(new Date(c.client_id_issued_at).getTime() / 1000)
+      : undefined,
+    redirect_uris: toStringArray(c.redirect_uris),
+  }));
+
+  if (clients.length === 0) return { adminLocked: false as const, clients: [] as OAuthClientRow[], appOrigin };
 
   const clientIds = clients.map((c) => c.client_id);
 
@@ -66,6 +93,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
   const countMap = Object.fromEntries(tokenCounts.map((r) => [r.clientId, r.total]));
   return {
+    adminLocked: false as const,
     clients: clients.map((c) => ({ ...c, activeTokens: countMap[c.client_id] ?? 0 })),
     appOrigin,
   };
@@ -100,7 +128,11 @@ function downloadEndpoints(appOrigin: string) {
 }
 
 export default function OAuthClientsSettings({ loaderData }: Route.ComponentProps) {
-  const { clients, appOrigin } = loaderData as { clients: OAuthClientRow[]; appOrigin: string };
+  const { clients, appOrigin, adminLocked } = loaderData as {
+    clients: OAuthClientRow[];
+    appOrigin: string;
+    adminLocked: boolean;
+  };
   const revalidator = useRevalidator();
   const navigate = useNavigate();
 
@@ -125,7 +157,6 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
     onSuccess: () => {
       toast.success("OAuth app deleted");
       setDeleteTarget(null);
-      setView({ type: "list" });
       revalidator.revalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -154,6 +185,22 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
   function handleRotateConfirm() {
     if (!rotateTarget) return;
     rotateSecret(rotateTarget.clientId);
+  }
+
+  if (adminLocked) {
+    return (
+      <>
+        <header className="flex h-14 shrink-0 items-center px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="p-6 max-w-[975px] mx-auto w-full space-y-8">
+          <PageHeader title="OAuth Apps" icon={AppWindow} description="Register apps that authenticate users via your workspace." />
+          <div className="rounded-lg border bg-muted/30 p-6 text-center">
+            <p className="text-sm text-muted-foreground">Only workspace admins can manage OAuth apps.</p>
+          </div>
+        </main>
+      </>
+    );
   }
 
   return (

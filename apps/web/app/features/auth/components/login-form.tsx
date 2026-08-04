@@ -11,20 +11,21 @@ import {
 import { Input } from "@components/ui/input";
 import { Spinner } from "@components/ui/spinner";
 import { cn } from "@lib/utils";
-import { Fingerprint } from "lucide-react";
+import { Fingerprint, ShieldCheck } from "lucide-react";
 import { Link } from "react-router";
 
 interface LoginFormProps extends Omit<React.ComponentProps<"div">, "onSubmit"> {
   email: string;
   password: string;
   error: string;
-  loadingMethod: "email" | "google" | "passkey" | null;
+  loadingMethod: "email" | "google" | "passkey" | "sso" | null;
   lastMethod?: string | null;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onSubmit: (e: React.SyntheticEvent<HTMLFormElement>) => void;
   onGoogle: () => void;
   onPasskey: () => void;
+  onSSO: () => void;
 }
 
 export function LoginForm({
@@ -39,6 +40,7 @@ export function LoginForm({
   onSubmit,
   onGoogle,
   onPasskey,
+  onSSO,
   ...props
 }: LoginFormProps) {
   const busy = loadingMethod !== null;
@@ -72,6 +74,13 @@ export function LoginForm({
                     Last used
                   </Badge>
                 )}
+              </Button>
+            </Field>
+
+            <Field>
+              <Button variant="outline" type="button" onClick={onSSO} disabled={busy}>
+                {loadingMethod === "sso" ? <Spinner /> : <ShieldCheck className="size-4" />}
+                Sign in with SSO
               </Button>
             </Field>
 

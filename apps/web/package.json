@@ -38,10 +38,10 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@better-auth/api-key": "^1.6.18",
-    "@better-auth/oauth-provider": "^1.6.18",
-    "@better-auth/passkey": "^1.6.18",
-    "@better-auth/sso": "^1.6.18",
+    "@better-auth/api-key": "^1.6.25",
+    "@better-auth/oauth-provider": "^1.6.25",
+    "@better-auth/passkey": "^1.6.25",
+    "@better-auth/sso": "^1.6.25",
     "@dnd-kit/abstract": "^0.4.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/dom": "^0.4.0",
@@ -72,7 +72,7 @@
     "@tanstack/react-query": "^5.90.9",
     "@tanstack/react-table": "^8.21.3",
     "@types/qrcode": "^1.5.6",
-    "better-auth": "^1.6.18",
+    "better-auth": "^1.6.25",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

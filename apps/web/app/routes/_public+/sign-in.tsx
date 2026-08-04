@@ -36,7 +36,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   const [email, setEmail] = useState(import.meta.env.DEV ? "johndoe@gmail.com" : "");
   const [password, setPassword] = useState(import.meta.env.DEV ? "password" : "");
   const [error, setError] = useState("");
-  const [loadingMethod, setLoadingMethod] = useState<"email" | "google" | "passkey" | null>(null);
+  const [loadingMethod, setLoadingMethod] = useState<"email" | "google" | "passkey" | "sso" | null>(null);
   const lastMethod = authClient.getLastUsedLoginMethod();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -70,6 +70,23 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
     });
     if (oauthError) {
       setError(oauthError.message ?? "Google sign-in failed. Please try again.");
+      setLoadingMethod(null);
+    }
+  }
+
+  async function handleSSO() {
+    if (!email) {
+      setError("Enter your work email first, then click Sign in with SSO.");
+      return;
+    }
+    setLoadingMethod("sso");
+    setError("");
+    const { error: ssoError } = await authClient.signIn.sso({
+      email,
+      callbackURL: redirectTo,
+    });
+    if (ssoError) {
+      setError(ssoError.message ?? "No SSO provider found for this email domain.");
       setLoadingMethod(null);
     }
   }
@@ -122,6 +139,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
               onSubmit={handleSubmit}
               onGoogle={handleGoogle}
               onPasskey={handlePasskey}
+              onSSO={handleSSO}
             />
           </div>
         </div>

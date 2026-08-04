@@ -1,3 +1,4 @@
+import { AdminOnlyWall } from "@components/common/admin-only-wall";
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import {
@@ -195,9 +196,7 @@ export default function OAuthClientsSettings({ loaderData }: Route.ComponentProp
         </header>
         <main className="p-6 max-w-[975px] mx-auto w-full space-y-8">
           <PageHeader title="OAuth Apps" icon={AppWindow} description="Register apps that authenticate users via your workspace." />
-          <div className="rounded-lg border bg-muted/30 p-6 text-center">
-            <p className="text-sm text-muted-foreground">Only workspace admins can manage OAuth apps.</p>
-          </div>
+          <AdminOnlyWall message="Only workspace admins can manage OAuth apps." />
         </main>
       </>
     );

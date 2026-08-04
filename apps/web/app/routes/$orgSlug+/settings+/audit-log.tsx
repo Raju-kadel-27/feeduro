@@ -1,3 +1,4 @@
+import { AdminOnlyWall } from "@components/common/admin-only-wall";
 import { PageHeader } from "@components/common/page-header";
 import { RouteErrorMessage } from "@components/common/route-error";
 import { SettingsContentSkeleton } from "@components/common/settings-skeleton";
@@ -86,9 +87,7 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
                     icon={ScrollText}
                     description="A record of security-relevant actions taken by members of this workspace."
                   />
-                  <div className="rounded-lg border bg-muted/30 p-6 text-center">
-                    <p className="text-sm text-muted-foreground">Only workspace admins can view the audit log.</p>
-                  </div>
+                  <AdminOnlyWall message="Only workspace admins can view the audit log." />
                 </main>
               );
             }

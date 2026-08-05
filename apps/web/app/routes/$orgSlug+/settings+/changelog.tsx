@@ -47,6 +47,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export function ErrorBoundary() {
   return <RouteErrorMessage resource="changelog settings" />;
 }

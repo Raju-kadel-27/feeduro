@@ -100,6 +100,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   };
 }
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export function ErrorBoundary() {
   return (
     <div className="p-6 text-sm text-destructive">

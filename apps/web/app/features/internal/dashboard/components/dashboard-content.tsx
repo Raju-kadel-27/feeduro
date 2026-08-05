@@ -40,7 +40,7 @@ export function DashboardContent({ data }: { data: DashboardLoaderData }) {
 		},
 		initialData: { posts: data.posts },
 		initialDataUpdatedAt: data.fetchedAt,
-		staleTime: 30_000,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const { data: boardsData } = useQuery({
@@ -55,7 +55,7 @@ export function DashboardContent({ data }: { data: DashboardLoaderData }) {
 			limit: data.boardsLimit,
 		},
 		initialDataUpdatedAt: data.fetchedAt,
-		staleTime: 30_000,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const { data: viewsData } = useQuery({
@@ -66,7 +66,7 @@ export function DashboardContent({ data }: { data: DashboardLoaderData }) {
 		},
 		initialData: { views: data.views },
 		initialDataUpdatedAt: data.fetchedAt,
-		staleTime: 30_000,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const { data: segmentsData } = useQuery({
@@ -75,7 +75,7 @@ export function DashboardContent({ data }: { data: DashboardLoaderData }) {
 			const res = await fetch("/api/segments");
 			return res.json() as Promise<{ segments: Segment[] }>;
 		},
-		staleTime: 60_000,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const { data: tagsData } = useQuery({
@@ -86,7 +86,7 @@ export function DashboardContent({ data }: { data: DashboardLoaderData }) {
 		},
 		initialData: { tags: data.tags },
 		initialDataUpdatedAt: data.fetchedAt,
-		staleTime: 60_000,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const { data: categoriesData } = useQuery({
@@ -95,7 +95,7 @@ export function DashboardContent({ data }: { data: DashboardLoaderData }) {
 			const res = await fetch("/api/categories");
 			return res.json() as Promise<{ categories: Category[] }>;
 		},
-		staleTime: 60_000,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const { data: orgMembersData } = useQuery({
@@ -106,7 +106,7 @@ export function DashboardContent({ data }: { data: DashboardLoaderData }) {
 		},
 		initialData: { orgMembers: data.orgMembers },
 		initialDataUpdatedAt: data.fetchedAt,
-		staleTime: 60_000,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const allPosts = postsData?.posts ?? [];

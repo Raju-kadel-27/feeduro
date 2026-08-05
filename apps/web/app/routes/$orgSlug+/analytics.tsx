@@ -23,9 +23,8 @@ export function meta() {
 	return [{ title: "Analytics – Feeduro" }];
 }
 
-export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate }: Route.ShouldRevalidateArgs) {
-	if (currentUrl.pathname === nextUrl.pathname) return false;
-	return defaultShouldRevalidate;
+export function shouldRevalidate({ currentUrl, nextUrl }: Route.ShouldRevalidateArgs) {
+	return currentUrl.search !== nextUrl.search;
 }
 
 type OverviewData = Awaited<ReturnType<typeof loadAnalyticsOverview>>;

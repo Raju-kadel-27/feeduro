@@ -19,6 +19,10 @@ export function meta() {
   return [{ title: "Widget Settings — Feeduro" }];
 }
 
+export function shouldRevalidate({ formAction }: { formAction?: string }) {
+  return !!formAction;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { org } = await requireOrgBySlug(db, request, params.orgSlug);

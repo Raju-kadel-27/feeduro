@@ -26,6 +26,10 @@ const ALL_EVENTS = [
   { id: "changelog.published", label: "Changelog published" },
 ] as const;
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);

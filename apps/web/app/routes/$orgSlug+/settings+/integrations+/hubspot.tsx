@@ -19,6 +19,10 @@ export function meta() {
   return [{ title: "HubSpot Integration — Feeduro" }];
 }
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);

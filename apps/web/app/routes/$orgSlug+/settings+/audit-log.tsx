@@ -58,6 +58,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   return { dataPromise };
 }
 
+export function shouldRevalidate({ currentUrl, nextUrl }: { currentUrl: URL; nextUrl: URL }) {
+  return currentUrl.search !== nextUrl.search;
+}
+
 export function ErrorBoundary() {
   return <RouteErrorMessage resource="the audit log" />;
 }

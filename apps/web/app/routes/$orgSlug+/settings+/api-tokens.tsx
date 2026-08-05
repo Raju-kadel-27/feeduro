@@ -106,6 +106,10 @@ function formatDate(date: Date | null) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(date));
 }
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export function ErrorBoundary() {
   return <RouteErrorMessage resource="API tokens" />;
 }

@@ -18,9 +18,8 @@ export function meta() {
 	return [{ title: "Requests – Feeduro" }];
 }
 
-export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate }: ShouldRevalidateFunctionArgs) {
-	if (currentUrl.pathname === nextUrl.pathname) return false;
-	return defaultShouldRevalidate;
+export function shouldRevalidate() {
+	return false;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

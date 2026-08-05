@@ -24,6 +24,12 @@ Push a polished PR title and description to the open GitHub PR for the current b
    ```
    If no open PR exists for the branch yet, create one first with `gh pr create --title "<title>" --body "<body>" --draft`, then edit with the REST call above.
 
+5. **Switch back to main** — after the PR is pushed, always run:
+   ```
+   git checkout main
+   ```
+   Report the branch you switched back to so the user knows they are on main.
+
 ---
 
 ## PR Format

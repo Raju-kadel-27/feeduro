@@ -1,4 +1,5 @@
 import { Button } from "@components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -55,6 +56,7 @@ export function FeedbackSettingsPanel({
   const [showBoardDialog, setShowBoardDialog] = useState(false);
   const [showTagDialog, setShowTagDialog] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [taxonomyTab, setTaxonomyTab] = useState<"tags" | "categories">("tags");
 
   const boards: FeedbackBoard[] = rawBoards.map((b, i) => ({
     ...b,
@@ -139,28 +141,7 @@ export function FeedbackSettingsPanel({
 
   return (
     <div className="w-full space-y-10">
-      {/* General */}
-      <section className="space-y-1">
-        <h3 className="text-base font-semibold text-foreground mb-1">General</h3>
-        <div className="rounded-lg border border-border bg-card divide-y divide-border px-4">
-          <ToggleRow
-            label="Enable Roadmap"
-            hint="Show a public roadmap page so users can track what you're working on."
-            checked={enableRoadmap}
-            onChange={handleRoadmapChange}
-            disabled={savingToggles}
-          />
-          <ToggleRow
-            label="Weekly Digest Emails"
-            hint="Send a weekly summary of new feedback and votes to workspace admins."
-            checked={weeklyDigest}
-            onChange={handleDigestChange}
-            disabled={savingToggles}
-          />
-        </div>
-      </section>
-
-      {/* Boards */}
+      {/* Boards — most important, comes first */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -182,50 +163,74 @@ export function FeedbackSettingsPanel({
           onUpdateSmartReplies={(id, enabled, instructions) =>
             updateSmartReplies({ id, enabled, instructions })
           }
-          onUpdateAnonymizeUsers={(id, anonymizeUsers) => updateAnonymizeUsers({ id, anonymizeUsers })}
+          onUpdateAnonymizeUsers={(id, anonymizeUsers) =>
+            updateAnonymizeUsers({ id, anonymizeUsers })
+          }
         />
       </section>
 
-      {/* Tags */}
+      {/* Taxonomy — Tags and Categories share the same card/structure, tabbed */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-foreground">Feedback Tags</h3>
+            <h3 className="text-base font-semibold text-foreground">Taxonomy</h3>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Tags help team members categorize and filter feedback posts.
+              Tags filter and classify posts internally. Categories are shown to submitters.
             </p>
           </div>
           {isAdmin && (
-            <Button variant="default" className="px-3" onClick={() => setShowTagDialog(true)}>
+            <Button
+              variant="default"
+              className="px-3"
+              onClick={() =>
+                taxonomyTab === "tags" ? setShowTagDialog(true) : setShowCategoryDialog(true)
+              }
+            >
               <Plus size={14} />
-              New tag
+              {taxonomyTab === "tags" ? "New tag" : "New category"}
             </Button>
           )}
         </div>
-        <TagsTable tags={tags} isAdmin={isAdmin} onDelete={(id) => deleteTag(id)} />
+        <Tabs
+          value={taxonomyTab}
+          onValueChange={(v) => setTaxonomyTab(v as "tags" | "categories")}
+        >
+          <TabsList className="mb-3">
+            <TabsTrigger value="tags">Tags</TabsTrigger>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
+          </TabsList>
+          <TabsContent value="tags">
+            <TagsTable tags={tags} isAdmin={isAdmin} onDelete={(id) => deleteTag(id)} />
+          </TabsContent>
+          <TabsContent value="categories">
+            <CategoriesTable
+              categories={categories}
+              isAdmin={isAdmin}
+              onDelete={(id) => deleteCategory(id)}
+            />
+          </TabsContent>
+        </Tabs>
       </section>
 
-      {/* Categories */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Feedback Categories</h3>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Users can select a category when submitting new feedback.
-            </p>
-          </div>
-          {isAdmin && (
-            <Button variant="default" className="px-3" onClick={() => setShowCategoryDialog(true)}>
-              <Plus size={14} />
-              New category
-            </Button>
-          )}
+      {/* General — org-level toggles, least frequently changed */}
+      <section className="space-y-1">
+        <h3 className="text-base font-semibold text-foreground mb-1">General</h3>
+        <div className="rounded-lg border border-border bg-card divide-y divide-border px-4">
+          <ToggleRow
+            label="Enable Roadmap"
+            hint="Show a public roadmap page so users can track what you're working on."
+            checked={enableRoadmap}
+            onChange={handleRoadmapChange}
+            disabled={savingToggles}
+          />
+          <ToggleRow
+            label="Weekly Digest Emails"
+            hint="Send a weekly summary of new feedback and votes to workspace admins."
+            checked={weeklyDigest}
+            onChange={handleDigestChange}
+            disabled={savingToggles}
+          />
         </div>
-        <CategoriesTable
-          categories={categories}
-          isAdmin={isAdmin}
-          onDelete={(id) => deleteCategory(id)}
-        />
       </section>
 
       <NewBoardDialog open={showBoardDialog} onOpenChange={setShowBoardDialog} />

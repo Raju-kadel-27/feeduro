@@ -47,6 +47,10 @@ function validateDomain(val: string): string | null {
 
 type DomainData = { planLocked: true } | { domain: DomainRecord | null; isAdmin: boolean };
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);

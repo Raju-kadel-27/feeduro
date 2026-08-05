@@ -1,9 +1,9 @@
 import { PageHeader } from "@components/common/page-header";
 import { ChangePasswordForm } from "@features/auth/components/change-password-form";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getDb } from "~/middleware/cloudflare.server";
 import { Lock, LogOut, ShieldCheck } from "lucide-react";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/password";
 
@@ -17,6 +17,10 @@ export function ErrorBoundary() {
 
 export function meta() {
   return [{ title: "Change Password — Feeduro" }];
+}
+
+export function shouldRevalidate() {
+  return false;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

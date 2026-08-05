@@ -15,6 +15,10 @@ import type { Route } from "./+types/index";
 
 type IntegrationsData = IntegrationsLoaderData | { planLocked: true };
 
+export function shouldRevalidate({ formAction }: { formAction?: string }) {
+  return !!formAction;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);

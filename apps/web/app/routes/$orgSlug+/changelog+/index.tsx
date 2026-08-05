@@ -23,7 +23,7 @@ import { cn } from "@lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, FileText, Globe, Plus, Trash2 } from "lucide-react";
 import { Suspense, useState } from "react";
-import { Await, Link, type ShouldRevalidateFunctionArgs, useNavigate, useOutlet, useParams } from "react-router";
+import { Await, Link, useNavigate, useOutlet, useParams } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -33,13 +33,8 @@ export function meta() {
   return [{ title: "Changelog – Feeduro" }];
 }
 
-export function shouldRevalidate({
-  currentUrl,
-  nextUrl,
-  defaultShouldRevalidate,
-}: ShouldRevalidateFunctionArgs) {
-  if (currentUrl.pathname === nextUrl.pathname) return false;
-  return defaultShouldRevalidate;
+export function shouldRevalidate() {
+  return false;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
@@ -122,7 +117,7 @@ function ChangelogContent({
     },
     initialData: { changelogs: initialChangelogs },
     initialDataUpdatedAt: fetchedAt,
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { mutate: deleteEntry, isPending: deleting } = useMutation({

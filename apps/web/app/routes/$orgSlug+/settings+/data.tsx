@@ -1,16 +1,20 @@
 import { PageHeader } from "@components/common/page-header";
 import { Button } from "@components/ui/button";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getDb } from "~/middleware/cloudflare.server";
 import { Database, DownloadIcon, FileSpreadsheetIcon, UploadIcon } from "lucide-react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/data";
 
 export function meta() {
   return [{ title: "Data & Import — Feeduro" }];
+}
+
+export function shouldRevalidate() {
+  return false;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

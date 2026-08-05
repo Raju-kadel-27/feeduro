@@ -27,6 +27,10 @@ const FILTER_TABS = [
 
 type FilterValue = (typeof FILTER_TABS)[number]["value"];
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrganization(db, request);

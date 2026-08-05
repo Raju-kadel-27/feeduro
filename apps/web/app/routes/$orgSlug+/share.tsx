@@ -58,6 +58,10 @@ export function meta({ data: d }: Route.MetaArgs) {
 
 // ─── Loader ───────────────────────────────────────────────────────────────────
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);

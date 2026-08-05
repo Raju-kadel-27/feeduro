@@ -22,6 +22,10 @@ export function meta() {
   return [{ title: "Passkeys — Feeduro" }];
 }
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   await requireOrgBySlug(db, request, params.orgSlug);

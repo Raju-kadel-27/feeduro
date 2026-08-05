@@ -2,18 +2,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Post, Status } from "../types";
 
-export function useRoadmap(initialPosts: Post[], fetchedAt: number) {
+export function useRoadmap(initialPosts: Post[], fetchedAt: number, orgSlug: string) {
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["roadmap"],
+    queryKey: ["roadmap", orgSlug],
     queryFn: async () => {
       const res = await fetch("/api/feedback");
       return res.json() as Promise<{ posts: Post[] }>;
     },
     initialData: { posts: initialPosts },
     initialDataUpdatedAt: fetchedAt,
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { mutate: updateStatus } = useMutation({
@@ -28,13 +28,13 @@ export function useRoadmap(initialPosts: Post[], fetchedAt: number) {
       return json;
     },
     onSuccess: (_, { id, status }) => {
-      qc.setQueryData<{ posts: Post[] }>(["roadmap"], (old) => {
+      qc.setQueryData<{ posts: Post[] }>(["roadmap", orgSlug], (old) => {
         if (!old) return old;
         return { posts: old.posts.map((p) => (p.id === id ? { ...p, status } : p)) };
       });
     },
     onError: (err) => {
-      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      qc.invalidateQueries({ queryKey: ["roadmap", orgSlug] });
       toast.error(err instanceof Error ? err.message : "Failed to update status");
     },
   });
@@ -51,7 +51,7 @@ export function useRoadmap(initialPosts: Post[], fetchedAt: number) {
       return json;
     },
     onSuccess: (_, { orderedIds }) => {
-      qc.setQueryData<{ posts: Post[] }>(["roadmap"], (old) => {
+      qc.setQueryData<{ posts: Post[] }>(["roadmap", orgSlug], (old) => {
         if (!old) return old;
         const rankMap = new Map(orderedIds.map((id, i) => [id, i]));
         return {
@@ -60,12 +60,12 @@ export function useRoadmap(initialPosts: Post[], fetchedAt: number) {
       });
     },
     onError: () => {
-      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      qc.invalidateQueries({ queryKey: ["roadmap", orgSlug] });
     },
   });
 
   function patchGithubIssue(postId: string, issueNumber: number, issueUrl: string) {
-    qc.setQueryData<{ posts: Post[] }>(["roadmap"], (old) => {
+    qc.setQueryData<{ posts: Post[] }>(["roadmap", orgSlug], (old) => {
       if (!old) return old;
       return {
         posts: old.posts.map((p) =>

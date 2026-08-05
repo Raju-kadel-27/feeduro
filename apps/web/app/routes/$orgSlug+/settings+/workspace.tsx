@@ -9,17 +9,21 @@ import {
 } from "@components/ui/dialog";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { isAdmin } from "@features/internal/roles/server/queries";
-import { getDb } from "~/middleware/cloudflare.server";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/workspace";
 
 export function meta() {
   return [{ title: "Workspace Settings — Feeduro" }];
+}
+
+export function shouldRevalidate() {
+  return false;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

@@ -1,5 +1,4 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { getDb } from "~/middleware/cloudflare.server";
 import { CopyButton } from "@features/oauth-clients/components/copy-button";
 import { OAuthClientForm } from "@features/oauth-clients/components/oauth-client-form";
 import type { OAuthClientFormData } from "@features/oauth-clients/schemas/oauth-client";
@@ -9,11 +8,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/new";
 
 export function meta() {
   return [{ title: "Register OAuth App — Feeduro" }];
+}
+
+export function shouldRevalidate() {
+  return false;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

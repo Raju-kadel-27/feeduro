@@ -23,9 +23,8 @@ export function meta() {
   return [{ title: "Roadmap – Feeduro" }];
 }
 
-export function shouldRevalidate({ currentUrl, nextUrl, defaultShouldRevalidate }: Route.ShouldRevalidateArgs) {
-  if (currentUrl.pathname === nextUrl.pathname) return false;
-  return defaultShouldRevalidate;
+export function shouldRevalidate() {
+  return false;
 }
 
 type RoadmapData = Awaited<ReturnType<typeof loadRoadmapData>>;
@@ -75,6 +74,7 @@ function RoadmapContent({ data }: { data: RoadmapData }) {
   const { posts, isLoading, updateStatus, updateRank } = useRoadmap(
     data.posts as Post[],
     data.fetchedAt,
+    orgSlug ?? "",
   );
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const dragScroll = useDragToScroll();
@@ -110,7 +110,7 @@ function RoadmapContent({ data }: { data: RoadmapData }) {
             postId={selectedPostId}
             orgSlug={orgSlug}
             onClose={() => setSelectedPostId(null)}
-            onDataChange={() => qc.invalidateQueries({ queryKey: ["roadmap"] })}
+            onDataChange={() => qc.invalidateQueries({ queryKey: ["roadmap", orgSlug] })}
             onOpenPost={(id) => setSelectedPostId(id)}
           />
         </Suspense>

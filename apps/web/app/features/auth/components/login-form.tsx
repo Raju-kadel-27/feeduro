@@ -54,11 +54,11 @@ export function LoginForm({
         <form onSubmit={onSubmit}>
           <FieldGroup>
             <Field>
-              <Button variant="outline" type="button" onClick={onGoogle} disabled={busy}>
+              <Button variant="outline" type="button" onClick={onGoogle} disabled={busy} className="relative">
                 {loadingMethod === "google" ? <Spinner /> : <GoogleIcon />}
                 Login with Google
                 {lastMethod === "google" && (
-                  <Badge variant="secondary" className="ml-auto bg-yellow-100 text-yellow-700 border-yellow-200">
+                  <Badge variant="secondary" className="absolute right-3 bg-yellow-100 text-yellow-700 border-yellow-200">
                     Last used
                   </Badge>
                 )}
@@ -66,11 +66,11 @@ export function LoginForm({
             </Field>
 
             <Field>
-              <Button variant="outline" type="button" onClick={onPasskey} disabled={busy}>
+              <Button variant="outline" type="button" onClick={onPasskey} disabled={busy} className="relative">
                 {loadingMethod === "passkey" ? <Spinner /> : <Fingerprint className="size-4" />}
                 Sign in with Passkey
                 {lastMethod === "passkey" && (
-                  <Badge variant="secondary" className="ml-auto bg-yellow-100 text-yellow-700 border-yellow-200">
+                  <Badge variant="secondary" className="absolute right-3 bg-yellow-100 text-yellow-700 border-yellow-200">
                     Last used
                   </Badge>
                 )}

@@ -69,9 +69,10 @@ export default function SignUp() {
   return (
     <div className="flex h-svh">
       <AuthLeftPanel
-        imageUrl="https://plus.unsplash.com/premium_photo-1738894549244-cb88c55f7784?q=90&w=1400&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        quote="Setup took less than an hour. Within a week we had real user feedback shaping our entire roadmap. I wish we had done this sooner."
-        author="Priya Mehta, CTO at Launchpad"
+        quote="Setup took less than an hour. Within a week we had structured feedback from our top customers shaping the entire roadmap. I wish we had started this at launch."
+        author="Priya Mehta"
+        authorTitle="CTO at Launchpad"
+        avatarInitials="PM"
       />
 
       {/* Right panel */}

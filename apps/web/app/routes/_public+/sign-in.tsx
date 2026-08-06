@@ -111,9 +111,10 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex h-svh">
       <AuthLeftPanel
-        imageUrl="https://plus.unsplash.com/premium_vector-1773432167566-0c97ed520d49?w=1200&auto=format&fit=crop&q=80&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8ZmVlZGJhY2slMjBsb29wfGVufDB8fDB8fHww"
-        quote="Feeduro changed how we prioritise. We finally know which requests come from our highest-value customers and act on them first."
-        author="Alex Rivera, Head of Product at Orbit"
+        quote="We went from a chaotic Notion board to a clear, prioritised backlog in one afternoon. Every sprint decision now points back to actual customer data — not whoever shouted loudest in the meeting."
+        author="Alex Rivera"
+        authorTitle="Head of Product at Orbit"
+        avatarInitials="AR"
       />
 
       {/* Right panel */}

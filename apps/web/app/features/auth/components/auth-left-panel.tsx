@@ -36,42 +36,39 @@ export function AuthLeftPanel({
         Feeduro
       </Link>
 
-      <div className="relative z-10 flex flex-col items-center text-center gap-5">
-        <div className="w-20 h-20 rounded-full border border-white/10 overflow-hidden shrink-0">
+      <div className="relative z-10 flex flex-col items-center text-center gap-6">
+        <div className="w-24 h-24 rounded-full border border-white/10 overflow-hidden shrink-0">
           {avatarUrl ? (
             <img src={avatarUrl} alt={author} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-white/[0.06] flex items-center justify-center">
-              <span className="text-lg font-medium tracking-wide text-white/35">
+              <span className="text-xl font-medium tracking-wide text-white/40">
                 {avatarInitials}
               </span>
             </div>
           )}
         </div>
 
-        <blockquote className="space-y-3 max-w-xs">
-          <p className="text-[15px] leading-relaxed text-white/80">
+        <blockquote className="space-y-4 max-w-sm">
+          <p className="text-[17px] leading-[1.75] text-white/85">
             &ldquo;{quote}&rdquo;
           </p>
           <footer>
-            <p className="text-sm font-semibold text-white/70">{author}</p>
-            <p className="text-xs text-white/35 mt-0.5">{authorTitle}</p>
+            <p className="text-sm font-semibold text-white/75">{author}</p>
+            <p className="text-xs text-white/45 mt-1">{authorTitle}</p>
           </footer>
         </blockquote>
       </div>
 
-      <div className="relative z-10 space-y-4">
-        <p className="text-center text-[10px] uppercase tracking-[0.15em] text-white/20">
+      <div className="relative z-10 border-t border-white/[0.08] pt-6 space-y-4">
+        <p className="text-center text-[10px] uppercase tracking-[0.14em] text-white/35">
           Trusted by teams at
         </p>
-        <div className="grid grid-cols-3 gap-x-4 gap-y-3">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
           {placeholderLogos.map((name) => (
-            <div
-              key={name}
-              className="flex items-center justify-center py-1.5 rounded border border-white/[0.06]"
-            >
-              <span className="text-xs font-semibold tracking-wide text-white/20">{name}</span>
-            </div>
+            <span key={name} className="text-sm font-medium text-white/45">
+              {name}
+            </span>
           ))}
         </div>
       </div>

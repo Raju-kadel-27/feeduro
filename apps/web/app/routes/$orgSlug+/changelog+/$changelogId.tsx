@@ -277,9 +277,9 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
           <button
             type="button"
             onClick={() => navigate(`/${orgSlug}/changelog`)}
-            className="absolute top-8 left-14 flex items-center gap-2 text-base font-medium text-muted-foreground/40 hover:text-foreground transition-colors duration-150"
+            className="absolute top-8 left-14 flex items-center gap-1.5 text-sm font-medium text-muted-foreground/40 hover:text-foreground transition-colors duration-150"
           >
-            <ArrowLeft className="h-8 w-8" />
+            <ArrowLeft className="h-4 w-4" />
             Back
           </button>
           <div className="max-w-3xl mx-auto w-full px-6 py-8 flex flex-col gap-4">

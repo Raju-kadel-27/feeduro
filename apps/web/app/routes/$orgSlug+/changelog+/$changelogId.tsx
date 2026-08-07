@@ -215,16 +215,8 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-14 shrink-0 items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
-          <button
-            type="button"
-            onClick={() => navigate(`/${orgSlug}/changelog`)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Changelog
-          </button>
           <div className="flex-1" />
 
           <div className="flex items-center gap-3">
@@ -281,7 +273,15 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
           </div>
         </header>
 
-        <main className="flex flex-col h-[calc(100vh-3.5rem)] overflow-y-auto">
+        <main className="relative flex flex-col h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <button
+            type="button"
+            onClick={() => navigate(`/${orgSlug}/changelog`)}
+            className="absolute top-10 left-6 flex items-center gap-1 text-[13px] font-medium text-muted-foreground/40 hover:text-foreground transition-colors duration-150"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back
+          </button>
           <div className="max-w-3xl mx-auto w-full px-6 py-8 flex flex-col gap-4">
             <input
               type="text"

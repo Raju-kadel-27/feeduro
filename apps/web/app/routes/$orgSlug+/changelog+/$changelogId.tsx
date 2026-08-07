@@ -1,4 +1,5 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
+import { Skeleton } from "@components/ui/skeleton";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { PublishConfirmPopover } from "@features/changelog/components/internal/publish-confirm-popover";
@@ -6,7 +7,7 @@ import { parseChangelogSettings } from "@features/changelog/server/changelog-set
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { ArrowLeft, Check, Clock, Globe } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { changelogs, organization } from "@/db/schema";
@@ -14,19 +15,11 @@ import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/$changelogId";
 
-function tryExtractText(raw: string): string {
-  try {
-    const blocks = JSON.parse(raw) as Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
-    if (!Array.isArray(blocks)) return raw;
-    return blocks
-      .flatMap((b) => (Array.isArray(b.content) ? b.content : []))
-      .filter((c) => c.type === "text" && c.text)
-      .map((c) => c.text)
-      .join("\n");
-  } catch {
-    return raw;
-  }
-}
+const ChangelogEditorWidget = lazy(() =>
+  import("@features/changelog/components/internal/changelog-editor.client").then((m) => ({
+    default: m.ChangelogEditor,
+  })),
+);
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -67,7 +60,7 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
 
   const rawBody = loaderData.changelog?.body ?? "";
   const [title, setTitle] = useState(loaderData.changelog?.title ?? "");
-  const [body, setBody] = useState(() => tryExtractText(rawBody));
+  const [body, setBody] = useState(rawBody);
   const [status, setStatus] = useState<"draft" | "published">(
     (loaderData.changelog?.status as "draft" | "published") ?? "draft",
   );
@@ -298,12 +291,9 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
               className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 resize-none"
             />
 
-            <textarea
-              value={body}
-              onChange={(e) => handleBodyChange(e.target.value)}
-              placeholder="Write your changelog…"
-              className="w-full min-h-[400px] bg-transparent border-none outline-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground/50"
-            />
+            <Suspense fallback={<Skeleton className="w-full h-[400px] rounded-md" />}>
+              <ChangelogEditorWidget initialBody={body} onChange={handleBodyChange} />
+            </Suspense>
           </div>
         </main>
     </>

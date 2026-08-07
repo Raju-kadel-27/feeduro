@@ -99,6 +99,9 @@ export default defineConfig({
       "sonner",
       "unique-names-generator",
       "zod",
+      "@blocknote/core",
+      "@blocknote/react",
+      "@blocknote/shadcn",
     ],
   },
 });

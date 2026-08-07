@@ -1,4 +1,5 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
+import { Skeleton } from "@components/ui/skeleton";
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { PublishConfirmPopover } from "@features/changelog/components/internal/publish-confirm-popover";
@@ -6,7 +7,7 @@ import { parseChangelogSettings } from "@features/changelog/server/changelog-set
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { ArrowLeft, Check, Clock, Globe } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { changelogs, organization } from "@/db/schema";
@@ -14,19 +15,11 @@ import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/$changelogId";
 
-function tryExtractText(raw: string): string {
-  try {
-    const blocks = JSON.parse(raw) as Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
-    if (!Array.isArray(blocks)) return raw;
-    return blocks
-      .flatMap((b) => (Array.isArray(b.content) ? b.content : []))
-      .filter((c) => c.type === "text" && c.text)
-      .map((c) => c.text)
-      .join("\n");
-  } catch {
-    return raw;
-  }
-}
+const ChangelogEditorWidget = lazy(() =>
+  import("@features/changelog/components/internal/changelog-editor.client").then((m) => ({
+    default: m.ChangelogEditor,
+  })),
+);
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -67,7 +60,7 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
 
   const rawBody = loaderData.changelog?.body ?? "";
   const [title, setTitle] = useState(loaderData.changelog?.title ?? "");
-  const [body, setBody] = useState(() => tryExtractText(rawBody));
+  const [body, setBody] = useState(rawBody);
   const [status, setStatus] = useState<"draft" | "published">(
     (loaderData.changelog?.status as "draft" | "published") ?? "draft",
   );
@@ -222,16 +215,8 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-14 shrink-0 items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
-          <button
-            type="button"
-            onClick={() => navigate(`/${orgSlug}/changelog`)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Changelog
-          </button>
           <div className="flex-1" />
 
           <div className="flex items-center gap-3">
@@ -288,7 +273,15 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
           </div>
         </header>
 
-        <main className="flex flex-col h-[calc(100vh-3.5rem)] overflow-y-auto">
+        <main className="relative flex flex-col h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <button
+            type="button"
+            onClick={() => navigate(`/${orgSlug}/changelog`)}
+            className="absolute top-10 left-6 flex items-center gap-1 text-[13px] font-medium text-muted-foreground/40 hover:text-foreground transition-colors duration-150"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back
+          </button>
           <div className="max-w-3xl mx-auto w-full px-6 py-8 flex flex-col gap-4">
             <input
               type="text"
@@ -298,12 +291,9 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
               className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 resize-none"
             />
 
-            <textarea
-              value={body}
-              onChange={(e) => handleBodyChange(e.target.value)}
-              placeholder="Write your changelog…"
-              className="w-full min-h-[400px] bg-transparent border-none outline-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground/50"
-            />
+            <Suspense fallback={<Skeleton className="w-full h-[400px] rounded-md" />}>
+              <ChangelogEditorWidget initialBody={body} onChange={handleBodyChange} />
+            </Suspense>
           </div>
         </main>
     </>

@@ -1,7 +1,6 @@
 import { PageHeader } from "@components/common/page-header";
 import { RouteErrorMessage } from "@components/common/route-error";
 import { ColumnSkeleton } from "@features/roadmap/components/internal/column-skeleton";
-import { KanbanBoard } from "@features/roadmap/components/internal/kanban-board";
 import { useRoadmap } from "@features/roadmap/hooks/use-roadmap";
 import { loadRoadmapData } from "@features/roadmap/server/queries";
 import type { Post } from "@features/roadmap/types";
@@ -11,6 +10,12 @@ import { lazy, Suspense, useState } from "react";
 import { Await, useParams } from "react-router";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/roadmap";
+
+const KanbanBoard = lazy(() =>
+  import("@features/roadmap/components/internal/kanban-board").then((m) => ({
+    default: m.KanbanBoard,
+  })),
+);
 
 const PostDetailPanel = lazy(() =>
   import("@features/internal/post-detail-panel/components/post-detail-panel").then((m) => ({
@@ -88,16 +93,18 @@ function RoadmapContent({ data }: { data: RoadmapData }) {
           onMouseUp={dragScroll.onMouseUp}
           onMouseLeave={dragScroll.onMouseLeave}
         >
-          {isLoading ? (
-            <ColumnSkeleton />
-          ) : (
-            <KanbanBoard
-              posts={posts}
-              onStatusChange={(id, status) => updateStatus({ id, status })}
-              onRankChange={(status, orderedIds) => updateRank({ status, orderedIds })}
-              onOpen={setSelectedPostId}
-            />
-          )}
+          <Suspense fallback={<ColumnSkeleton />}>
+            {isLoading ? (
+              <ColumnSkeleton />
+            ) : (
+              <KanbanBoard
+                posts={posts}
+                onStatusChange={(id, status) => updateStatus({ id, status })}
+                onRankChange={(status, orderedIds) => updateRank({ status, orderedIds })}
+                onOpen={setSelectedPostId}
+              />
+            )}
+          </Suspense>
         </div>
       </div>
 

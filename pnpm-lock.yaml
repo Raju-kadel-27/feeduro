@@ -74,6 +74,9 @@ importers:
       '@feeduro/data-access':
         specifier: workspace:*
         version: link:../../packages/data-access
+      '@feeduro/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@feeduro/errors':
         specifier: workspace:*
         version: link:../../packages/errors
@@ -144,7 +147,7 @@ importers:
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 'catalog:'
-        version: 1.42.4(vite@8.1.2(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260722.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))
+        version: 1.42.4(vite@8.1.2(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260630.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))
       '@react-router/dev':
         specifier: 'catalog:'
         version: 8.0.0(react-router@8.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(typescript@5.9.3)(vite@8.1.2(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))
@@ -267,6 +270,9 @@ importers:
       '@feeduro/data-access':
         specifier: workspace:*
         version: link:../../packages/data-access
+      '@feeduro/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@feeduro/errors':
         specifier: workspace:*
         version: link:../../packages/errors
@@ -423,7 +429,7 @@ importers:
         version: 2.5.2
       '@cloudflare/vite-plugin':
         specifier: 'catalog:'
-        version: 1.42.4(vite@8.1.2(@types/node@22.20.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260630.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))
+        version: 1.42.4(vite@8.1.2(@types/node@22.20.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260722.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))
       '@react-router/dev':
         specifier: 'catalog:'
         version: 8.0.0(react-router@8.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(typescript@5.9.3)(vite@8.1.2(@types/node@22.20.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0))(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))
@@ -508,6 +514,9 @@ importers:
 
   packages/data-access:
     dependencies:
+      '@feeduro/db':
+        specifier: workspace:*
+        version: link:../db
       '@paralleldrive/cuid2':
         specifier: ^2.2.2
         version: 2.3.1
@@ -517,6 +526,22 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.4.3
+
+  packages/db:
+    dependencies:
+      '@neondatabase/serverless':
+        specifier: ^1.1.0
+        version: 1.1.0
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@cloudflare/workers-types@4.20260701.1)(@neondatabase/serverless@1.1.0)(@types/pg@8.20.0)(kysely@0.29.2)(pg@8.22.0)(postgres@3.4.9)
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
+    devDependencies:
+      drizzle-kit:
+        specifier: ^0.31.10
+        version: 0.31.10
 
   packages/errors: {}
 
@@ -1075,11 +1100,11 @@ packages:
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
@@ -7570,9 +7595,9 @@ snapshots:
     optionalDependencies:
       workerd: 1.20260722.1
 
-  '@cloudflare/vite-plugin@1.42.4(vite@8.1.2(@types/node@22.20.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260630.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))':
+  '@cloudflare/vite-plugin@1.42.4(vite@8.1.2(@types/node@22.20.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260722.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))':
     dependencies:
-      '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260630.1)
+      '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260722.1)
       miniflare: 4.20260630.0
       unenv: 2.0.0-rc.24
       vite: 8.1.2(@types/node@22.20.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0)
@@ -7583,9 +7608,9 @@ snapshots:
       - utf-8-validate
       - workerd
 
-  '@cloudflare/vite-plugin@1.42.4(vite@8.1.2(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260722.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))':
+  '@cloudflare/vite-plugin@1.42.4(vite@8.1.2(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260630.1)(wrangler@4.106.0(@cloudflare/workers-types@4.20260701.1))':
     dependencies:
-      '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260722.1)
+      '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260630.1)
       miniflare: 4.20260630.0
       unenv: 2.0.0-rc.24
       vite: 8.1.2(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)

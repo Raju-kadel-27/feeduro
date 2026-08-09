@@ -32,8 +32,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     return data({ changelog: entry });
   }
 
-  const entries = await listChangelogEntries(db, organizationId);
-  return data({ changelogs: entries });
+  const url = new URL(request.url);
+  const cursor = url.searchParams.get("cursor") ?? undefined;
+  const search = url.searchParams.get("search") ?? undefined;
+  const limit = Math.min(Number(url.searchParams.get("limit") ?? "20"), 100);
+
+  const result = await listChangelogEntries(db, organizationId, { limit, cursor, search });
+  return data({ changelogs: result.entries, nextCursor: result.nextCursor, hasMore: result.hasMore });
 }
 
 export async function action({ request, context }: Route.ActionArgs) {

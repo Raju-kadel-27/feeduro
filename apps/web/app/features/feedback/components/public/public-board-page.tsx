@@ -24,6 +24,7 @@ type Props = {
     boards: PublicBoard[];
     posts: PublicPost[];
     changelogEntries: PublicChangelog[];
+    changelogNextCursor?: string | null;
     upNextPosts: { id: string; title: string; voteCount: number }[];
     votedPostIds: string[] | null;
     sessionUser: SessionUser | null;
@@ -189,6 +190,7 @@ export function PublicBoardPage({ loaderData }: Props) {
         {currentTab === "updates" && (
           <UpdatesView
             entries={changelogEntries ?? []}
+            initialNextCursor={loaderData.changelogNextCursor ?? null}
             orgId={org.id}
             orgSlug={org.slug}
             subscriptionsEnabled={loaderData.emailSubscriptionsEnabled ?? false}

@@ -1,13 +1,21 @@
 import { extractBlockNoteText } from "@features/feedback/utils";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, lt } from "drizzle-orm";
 import type { Db } from "@/db";
 import { changelogs } from "@/db/schema";
 
-// The list UI only shows one truncated line of the body, but the BlockNote JSON
-// bodies dominate the payload — compute the excerpt here and never ship the body.
-export async function listChangelogEntries(db: Db, organizationId: string) {
-  const entries = await db.query.changelogs.findMany({
-    where: eq(changelogs.organizationId, organizationId),
+const PAGE_SIZE = 20;
+
+export async function listChangelogEntries(
+  db: Db,
+  organizationId: string,
+  { limit = PAGE_SIZE, cursor, search }: { limit?: number; cursor?: string; search?: string } = {},
+) {
+  const rows = await db.query.changelogs.findMany({
+    where: and(
+      eq(changelogs.organizationId, organizationId),
+      cursor ? lt(changelogs.createdAt, new Date(cursor)) : undefined,
+      search?.trim() ? ilike(changelogs.title, `%${search.trim()}%`) : undefined,
+    ),
     orderBy: [desc(changelogs.createdAt)],
     columns: {
       id: true,
@@ -19,10 +27,19 @@ export async function listChangelogEntries(db: Db, organizationId: string) {
       updatedAt: true,
       body: true,
     },
+    limit: limit + 1,
   });
 
-  return entries.map(({ body, ...rest }) => ({
-    ...rest,
-    excerpt: body ? extractBlockNoteText(body, 160) : "",
-  }));
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+  const nextCursor = hasMore ? page[page.length - 1].createdAt.toISOString() : null;
+
+  return {
+    entries: page.map(({ body, ...rest }) => ({
+      ...rest,
+      excerpt: body ? extractBlockNoteText(body, 160) : "",
+    })),
+    nextCursor,
+    hasMore,
+  };
 }

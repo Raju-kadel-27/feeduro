@@ -11,6 +11,7 @@ import {
 } from "@components/ui/alert-dialog";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
+import { Spinner } from "@components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -18,12 +19,13 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { listChangelogEntries } from "@features/changelog/server/list-entries";
+import { ChangelogSearchInput } from "@features/changelog/components/changelog-search-input";
+import { useInfiniteScroll } from "@hooks/use-infinite-scroll";
 import { cn } from "@lib/utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clock, FileText, Globe, Plus, Trash2 } from "lucide-react";
-import { Suspense, useState } from "react";
-import { Await, Link, useNavigate, useOutlet, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useOutlet, useParams } from "react-router";
 import { toast } from "sonner";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -39,17 +41,30 @@ export function shouldRevalidate() {
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  const { session, org } = await requireOrgBySlug(db, request, params.orgSlug);
-  const changelogs: Promise<ChangelogEntries> = listChangelogEntries(db, org.id);
-  return { user: session.user, changelogs, fetchedAt: Date.now() };
+  await requireOrgBySlug(db, request, params.orgSlug);
+  return {};
 }
 
 export function ErrorBoundary() {
   return <RouteErrorMessage resource="the changelog" />;
 }
 
-type ChangelogEntries = Awaited<ReturnType<typeof listChangelogEntries>>;
-type ChangelogEntry = ChangelogEntries[number];
+type ChangelogEntry = {
+  id: string;
+  title: string;
+  slug: string | null;
+  status: string;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  excerpt: string;
+};
+
+type PageResult = {
+  changelogs: ChangelogEntry[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
 
 const STATUS_BADGE: Record<string, string> = {
   draft: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
@@ -82,42 +97,30 @@ function ChangelogEntriesSkeleton() {
   );
 }
 
-function ChangelogContentSkeleton() {
-  return (
-    <main className="p-6 max-w-3xl mx-auto w-full">
-      <div className="flex items-center justify-between mb-6">
-        <div className="space-y-2">
-          <Skeleton className="h-6 w-24" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <Skeleton className="h-9 w-28 rounded-md" />
-      </div>
-      <ChangelogEntriesSkeleton />
-    </main>
-  );
-}
-
-function ChangelogContent({
-  initialChangelogs,
-  fetchedAt,
-}: {
-  initialChangelogs: ChangelogEntries;
-  fetchedAt: number;
-}) {
+function ChangelogContent() {
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["changelogs"],
-    queryFn: async () => {
-      const res = await fetch("/api/changelogs");
-      return res.json() as Promise<{ changelogs: ChangelogEntry[] }>;
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
+    queryKey: ["changelogs", debouncedSearch],
+    queryFn: async ({ pageParam }) => {
+      const params = new URLSearchParams({ limit: "20" });
+      if (pageParam) params.set("cursor", pageParam);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const res = await fetch(`/api/changelogs?${params}`);
+      return res.json() as Promise<PageResult>;
     },
-    initialData: { changelogs: initialChangelogs },
-    initialDataUpdatedAt: fetchedAt,
-    staleTime: 5 * 60 * 1000,
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
   });
 
   const { mutate: deleteEntry, isPending: deleting } = useMutation({
@@ -140,30 +143,38 @@ function ChangelogContent({
     },
   });
 
-  const entries = data?.changelogs ?? [];
+  const entries = data?.pages.flatMap((p) => p.changelogs) ?? [];
+
+  const sentinelRef = useInfiniteScroll(
+    () => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); },
+    { enabled: !!hasNextPage && !isFetchingNextPage },
+  );
 
   return (
     <>
       <main className="p-6 max-w-3xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-semibold">Changelog</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               Announce new features and updates to your customers.
             </p>
           </div>
-          <Link
-            to={`/${orgSlug}/changelog/new`}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            New Entry
-          </Link>
+          <div className="flex items-center gap-2">
+            <ChangelogSearchInput value={search} onChange={setSearch} size="md" className="w-56" />
+            <Link
+              to={`/${orgSlug}/changelog/new`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              New Entry
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
           <ChangelogEntriesSkeleton />
-        ) : entries.length === 0 ? (
+        ) : entries.length === 0 && !debouncedSearch ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText className="h-10 w-10 text-muted-foreground/40 mb-3" />
             <p className="text-sm font-medium">No changelog entries yet</p>
@@ -177,6 +188,12 @@ function ChangelogContent({
               <Plus className="h-3.5 w-3.5" />
               New Entry
             </Link>
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <FileText className="h-10 w-10 text-muted-foreground/40 mb-3" />
+            <p className="text-sm font-medium">No entries match your search</p>
+            <p className="text-xs text-muted-foreground mt-1">Try a different keyword.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -232,6 +249,12 @@ function ChangelogContent({
                 </TooltipProvider>
               </div>
             ))}
+            <div ref={sentinelRef} />
+            {isFetchingNextPage && (
+              <div className="flex justify-center py-4">
+                <Spinner className="size-4" />
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -265,29 +288,15 @@ function ChangelogContent({
   );
 }
 
-export default function Changelog({ loaderData }: Route.ComponentProps) {
+export default function Changelog() {
   const outlet = useOutlet();
   if (outlet) return <>{outlet}</>;
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+      <header className="flex h-14 shrink-0 items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
-        <div className="flex-1" />
-        <span className="text-sm text-muted-foreground">
-          {loaderData.user.name ?? loaderData.user.email}
-        </span>
       </header>
-
-      <Suspense fallback={<ChangelogContentSkeleton />}>
-        <Await
-          resolve={loaderData.changelogs as unknown as Promise<ChangelogEntries>}
-          errorElement={<RouteErrorMessage resource="the changelog" />}
-        >
-          {(entries) => (
-            <ChangelogContent initialChangelogs={entries} fetchedAt={loaderData.fetchedAt} />
-          )}
-        </Await>
-      </Suspense>
+      <ChangelogContent />
     </>
   );
 }

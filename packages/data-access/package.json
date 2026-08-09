@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "@feeduro/db": "workspace:*"
+  },
   "peerDependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
     "drizzle-orm": "^0.45.2",

@@ -7,8 +7,8 @@
     "skipLibCheck": true,
     "lib": ["ESNext"],
     "paths": {
-      "@/db": ["../../apps/web/db/index.ts"],
-      "@/db/*": ["../../apps/web/db/*"],
+      "@feeduro/db": ["../db/src/index.ts"],
+      "@feeduro/db/schema": ["../db/src/schema/index.ts"],
       "@lib/*": ["../../apps/web/app/lib/*"]
     }
   },

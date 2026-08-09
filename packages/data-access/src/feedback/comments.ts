@@ -2,8 +2,8 @@ import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { createId } from "@paralleldrive/cuid2";
 import { and, asc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { comments, feedbackPosts, user } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { comments, feedbackPosts, user } from "@feeduro/db/schema";
 
 export const ListCommentsSchema = z.object({
   postId: z.string().min(1),

@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
-import type { Db } from "@/db";
-import { companies, companyMembers, userProfiles } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { companies, companyMembers, userProfiles } from "@feeduro/db/schema";
 import type { IdentifyCompanyInput, IdentifyUserInput } from "./identify-schema";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];

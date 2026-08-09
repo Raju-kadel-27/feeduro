@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, isNull, lt } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { feedbackPosts, feedbackTags, postTags } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { feedbackPosts, feedbackTags, postTags } from "@feeduro/db/schema";
 
 export const ListPostsSchema = z.object({
   boardId: z.string().optional(),

@@ -1,7 +1,7 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { feedbackPosts } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { feedbackPosts } from "@feeduro/db/schema";
 
 const STATUS_VALUES = ["open", "reviewing", "planned", "in-progress", "completed", "closed"] as const;
 type StatusValue = (typeof STATUS_VALUES)[number];

@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { feedbackCategories } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { feedbackCategories } from "@feeduro/db/schema";
 
 export async function getOrgCategories(db: Db, organizationId: string) {
   return db.query.feedbackCategories.findMany({

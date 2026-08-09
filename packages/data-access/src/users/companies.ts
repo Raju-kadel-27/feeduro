@@ -1,8 +1,8 @@
 import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { companies, companyMembers, userProfiles } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { companies, companyMembers, userProfiles } from "@feeduro/db/schema";
 
 export const ListCompaniesSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(25),

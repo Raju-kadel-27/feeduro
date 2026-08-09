@@ -1,6 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
-import type { Db } from "@/db";
-import { member, webhookEndpoints } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { member, webhookEndpoints } from "@feeduro/db/schema";
 
 export const EP_COLS = {
   id: true,

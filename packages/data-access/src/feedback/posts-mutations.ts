@@ -1,8 +1,8 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { feedbackBoards, feedbackPosts } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { feedbackBoards, feedbackPosts } from "@feeduro/db/schema";
 import { CreatePostSchema, getPost, UpdatePostSchema } from "./posts";
 
 export async function createPost(db: Db, organizationId: string, input: z.infer<typeof CreatePostSchema>) {

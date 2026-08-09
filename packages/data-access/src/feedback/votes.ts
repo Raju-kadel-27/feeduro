@@ -1,8 +1,8 @@
 import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { user, userProfiles, votes } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { user, userProfiles, votes } from "@feeduro/db/schema";
 
 export const ListVotesSchema = z.object({
   postId: z.string().optional(),

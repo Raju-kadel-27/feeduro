@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { changelogAuthors, changelogs, user } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { changelogAuthors, changelogs, user } from "@feeduro/db/schema";
 
 export const AddChangelogAuthorSchema = z.object({
   userId: z.string().min(1),

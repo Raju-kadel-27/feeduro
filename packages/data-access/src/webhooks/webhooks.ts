@@ -1,8 +1,8 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 import type { z } from "zod";
-import type { Db } from "@/db";
-import { webhookEndpoints } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { webhookEndpoints } from "@feeduro/db/schema";
 import { CreateWebhookSchema, MAX_PER_ORG, UpdateWebhookSchema } from "./schemas";
 
 export { CreateWebhookSchema, UpdateWebhookSchema } from "./schemas";

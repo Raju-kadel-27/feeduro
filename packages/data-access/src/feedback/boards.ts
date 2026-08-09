@@ -1,7 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq, sql } from "drizzle-orm";
-import type { Db } from "@/db";
-import { feedbackBoards, feedbackPosts } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { feedbackBoards, feedbackPosts } from "@feeduro/db/schema";
 
 export async function listBoards(db: Db, organizationId: string) {
   const [boards, counts] = await Promise.all([

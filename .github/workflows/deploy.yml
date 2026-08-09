@@ -53,7 +53,7 @@ jobs:
       #    Point DATABASE_URL at the Neon DIRECT (non-pooled) URL for this branch —
       #    pooled/pgbouncer chokes on DDL + advisory locks.
       - name: Apply migrations (${{ env.TARGET }})
-        working-directory: apps/web
+        working-directory: packages/db
         env:
           DATABASE_URL: ${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_DATABASE_URL || secrets.STAGING_DATABASE_URL }}
         run: pnpm run db:migrate:deploy

@@ -8,10 +8,8 @@
     "lib": ["ESNext"],
     "types": ["./worker-configuration.d.ts", "node"],
     "paths": {
-      "@/*": ["../web/*"],
-      "~/*": ["../web/app/*"],
-      "@lib/*": ["../web/app/lib/*"],
-      "@utils/*": ["../web/app/utils/*"],
+      "@feeduro/db": ["../../packages/db/src/index.ts"],
+      "@feeduro/db/schema": ["../../packages/db/src/schema/index.ts"],
       "@feeduro/errors": ["../../packages/errors/src/index.ts"],
       "@feeduro/data-access/*": ["../../packages/data-access/src/*"]
     }

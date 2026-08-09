@@ -1,8 +1,8 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { feedbackPosts, user, votes } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { feedbackPosts, user, votes } from "@feeduro/db/schema";
 
 export const CreateVoteSchema = z.object({
   postId: z.string().min(1),

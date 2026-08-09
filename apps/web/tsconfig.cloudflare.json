@@ -17,6 +17,11 @@
     "types": ["@total-typescript/ts-reset", "vite/client"],
     "rootDirs": [".", "./.react-router/types"],
     "paths": {
+      "@feeduro/db": ["../../packages/db/src/index.ts"],
+      "@feeduro/db/schema": ["../../packages/db/src/schema/index.ts"],
+      "@/db": ["../../packages/db/src/index.ts"],
+      "@/db/schema": ["../../packages/db/src/schema/index.ts"],
+      "@/db/*": ["../../packages/db/src/*"],
       "@/*": ["./*"],
       "~/*": ["./app/*"],
       "@components/*": ["./app/components/*"],

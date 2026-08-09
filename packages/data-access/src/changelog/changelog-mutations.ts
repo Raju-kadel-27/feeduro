@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { changelogs } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { changelogs } from "@feeduro/db/schema";
 
 export const UpdateChangelogSchema = z.object({
   title: z.string().min(1).max(500).trim().optional(),

@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { feedbackPosts, feedbackTags, postTags } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { feedbackPosts, feedbackTags, postTags } from "@feeduro/db/schema";
 
 export async function getOrgTags(db: Db, organizationId: string) {
   return db.query.feedbackTags.findMany({

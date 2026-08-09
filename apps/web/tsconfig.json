@@ -4,6 +4,11 @@
   "references": [{ "path": "./tsconfig.cloudflare.json" }],
   "compilerOptions": {
     "paths": {
+      "@feeduro/db": ["../../packages/db/src/index.ts"],
+      "@feeduro/db/schema": ["../../packages/db/src/schema/index.ts"],
+      "@/db": ["../../packages/db/src/index.ts"],
+      "@/db/schema": ["../../packages/db/src/schema/index.ts"],
+      "@/db/*": ["../../packages/db/src/*"],
       "@/*": ["./*"],
       "~/*": ["./app/*"],
       "@components/*": ["./app/components/*"],

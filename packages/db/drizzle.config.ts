@@ -1,4 +1,10 @@
 import { defineConfig } from "drizzle-kit";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Resolve paths relative to this config file so drizzle-kit works regardless
+// of which directory it is invoked from (apps/web, packages/db, CI, etc.).
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const rawUrl =
   process.env.DATABASE_URL ??
@@ -13,8 +19,8 @@ const url = isDevelopment
   : rawUrl;
 
 export default defineConfig({
-  out: "./db/migrations",
-  schema: ["./db/schema/index.ts"],
+  out: path.join(__dirname, "migrations"),
+  schema: [path.join(__dirname, "src/schema/index.ts")],
   dialect: "postgresql",
   dbCredentials: {
     url,

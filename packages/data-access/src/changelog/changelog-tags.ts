@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { changelogs, changelogTagItems, changelogTags } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { changelogs, changelogTagItems, changelogTags } from "@feeduro/db/schema";
 
 // ============ Tag Catalog (org-level) ============
 

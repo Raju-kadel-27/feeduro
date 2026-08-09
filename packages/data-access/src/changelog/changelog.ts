@@ -2,8 +2,8 @@ import { decodeCursor, encodeCursor } from "@lib/api/cursor";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import type { Db } from "@/db";
-import { changelogs } from "@/db/schema";
+import type { Db } from "@feeduro/db";
+import { changelogs } from "@feeduro/db/schema";
 
 export const ListChangelogSchema = z.object({
   status: z.enum(["draft", "published"]).optional(),

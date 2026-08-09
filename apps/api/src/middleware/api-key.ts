@@ -1,7 +1,7 @@
 import { apiError } from "@feeduro/errors";
 import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
-import { apikey } from "@/db/schema";
+import { apikey } from "@feeduro/db/schema";
 import { getDb } from "../db";
 import type { Env } from "../env";
 

@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { createDb } from "@/db";
+import { createDb } from "@feeduro/db";
 import type { Env } from "./env";
 
 type DbInstance = ReturnType<typeof createDb>["db"];

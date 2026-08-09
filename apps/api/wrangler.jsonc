@@ -21,7 +21,7 @@
 			"name": "feeduro-api-staging",
 			"workers_dev": false,
 			"routes": [
-				{ "pattern": "api-staging.feeduro.com", "custom_domain": true }
+				{ "pattern": "api-staging.feeduro.com/*", "zone_name": "feeduro.com" }
 			],
 			"hyperdrive": [
 				{
@@ -34,7 +34,7 @@
 			"name": "feeduro-api-production",
 			"workers_dev": false,
 			"routes": [
-				{ "pattern": "api.feeduro.com", "custom_domain": true }
+				{ "pattern": "api.feeduro.com/*", "zone_name": "feeduro.com" }
 			],
 			"hyperdrive": [
 				{

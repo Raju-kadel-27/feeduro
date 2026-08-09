@@ -18,6 +18,12 @@ export const API_ERRORS = {
     cause: "The target comment is itself a reply — nesting is limited to one level",
     fix: "Reply to the top-level comment instead",
   },
+  cannot_delete_default_board: {
+    status: 400,
+    message: "Cannot delete the default board",
+    cause: "The default board cannot be deleted; it is required to receive migrated posts",
+    fix: "Set a different board as the default before deleting this one",
+  },
   // 401
   missing_api_key: {
     status: 401,
@@ -75,6 +81,12 @@ export const API_ERRORS = {
     message: "User has already voted on this post",
     cause: "The identified user already cast a vote on this post",
     fix: "Check votes first with `GET /v1/votes?postId=...` or treat as a no-op",
+  },
+  already_member: {
+    status: 409,
+    message: "User is already a member of this company",
+    cause: "The user profile is already linked to this company",
+    fix: "Check members first with `GET /v1/companies/:id/members` or treat as a no-op",
   },
   // 422
   validation_error: {

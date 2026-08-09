@@ -156,6 +156,72 @@ export async function deleteCompany(
   return result.length > 0;
 }
 
+export type AddMemberResult =
+  | { data: { companyId: string; userProfileId: string } }
+  | { error: "company_not_found" | "user_not_found" | "already_member" };
+
+export async function addCompanyMember(
+  db: Db,
+  organizationId: string,
+  companyId: string,
+  userProfileId: string,
+): Promise<AddMemberResult> {
+  const [company, user] = await Promise.all([
+    db.query.companies.findFirst({
+      where: and(eq(companies.id, companyId), eq(companies.organizationId, organizationId)),
+      columns: { id: true },
+    }),
+    db.query.userProfiles.findFirst({
+      where: and(eq(userProfiles.id, userProfileId), eq(userProfiles.organizationId, organizationId)),
+      columns: { id: true },
+    }),
+  ]);
+  if (!company) return { error: "company_not_found" };
+  if (!user) return { error: "user_not_found" };
+
+  const existing = await db.query.companyMembers.findFirst({
+    where: and(
+      eq(companyMembers.companyId, companyId),
+      eq(companyMembers.userProfileId, userProfileId),
+    ),
+    columns: { companyId: true },
+  });
+  if (existing) return { error: "already_member" };
+
+  await db.insert(companyMembers).values({ companyId, userProfileId, organizationId });
+  return { data: { companyId, userProfileId } };
+}
+
+export type RemoveMemberResult =
+  | { success: true }
+  | { error: "company_not_found" | "not_member" };
+
+export async function removeCompanyMember(
+  db: Db,
+  organizationId: string,
+  companyId: string,
+  userProfileId: string,
+): Promise<RemoveMemberResult> {
+  const company = await db.query.companies.findFirst({
+    where: and(eq(companies.id, companyId), eq(companies.organizationId, organizationId)),
+    columns: { id: true },
+  });
+  if (!company) return { error: "company_not_found" };
+
+  const result = await db
+    .delete(companyMembers)
+    .where(
+      and(
+        eq(companyMembers.companyId, companyId),
+        eq(companyMembers.userProfileId, userProfileId),
+        eq(companyMembers.organizationId, organizationId),
+      ),
+    )
+    .returning({ companyId: companyMembers.companyId });
+
+  return result.length > 0 ? { success: true } : { error: "not_member" };
+}
+
 export async function listCompanyMembers(
   db: Db,
   organizationId: string,

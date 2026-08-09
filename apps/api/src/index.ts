@@ -4,8 +4,11 @@ import type { Env } from "./env";
 import { boardsRouter } from "./routes/boards";
 import { categoriesRouter } from "./routes/categories";
 import { changelogRouter } from "./routes/changelog";
+import { changelogSubRouter } from "./routes/changelog-sub";
+import { commentsRouter } from "./routes/comments";
 import { companiesRouter } from "./routes/companies";
 import { postsRouter } from "./routes/posts";
+import { postsSubRouter } from "./routes/posts-sub";
 import { roadmapRouter } from "./routes/roadmap";
 import { tagsRouter } from "./routes/tags";
 import { usersRouter } from "./routes/users";
@@ -14,8 +17,11 @@ import { webhooksRouter } from "./routes/webhooks";
 
 const app = new OpenAPIHono<Env>();
 
+app.route("/v1/posts", postsSubRouter);
 app.route("/v1/posts", postsRouter);
+app.route("/v1/comments", commentsRouter);
 app.route("/v1/boards", boardsRouter);
+app.route("/v1/changelog", changelogSubRouter);
 app.route("/v1/tags", tagsRouter);
 app.route("/v1/votes", votesRouter);
 app.route("/v1/categories", categoriesRouter);
@@ -87,7 +93,12 @@ All errors follow a consistent envelope:
     {
       name: "Boards",
       description:
-        "Read feedback boards. Boards group related posts (e.g. 'Feature Requests', 'Bug Reports'). Board creation and deletion is managed in the Feeduro dashboard.",
+        "Create, read, update, and delete feedback boards. Boards group related posts (e.g. 'Feature Requests', 'Bug Reports').",
+    },
+    {
+      name: "Comments",
+      description:
+        "Create, read, update, delete, and pin public comments on feedback posts. `userId` must be a profile ID from `POST /v1/users/identify`. Replies are one level deep — you cannot reply to a reply.",
     },
     {
       name: "Categories",

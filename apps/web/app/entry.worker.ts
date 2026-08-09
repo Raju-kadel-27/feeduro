@@ -1,5 +1,6 @@
 import { createRequestHandler, RouterContextProvider } from "react-router";
 import { createDb } from "@/db";
+import { APP_DOMAIN, RESERVED_SUBDOMAINS } from "./features/domains/constants";
 import { CloudflareContext } from "./middleware/cloudflare.server";
 
 // TODO: remove once @better-auth/sso ships the redirect:"manual" fix (tracked in
@@ -29,6 +30,16 @@ const handler = createRequestHandler(
 
 export default {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
+    // Guard: reject reserved subdomains (e.g. api.feeduro.com) that have their
+    // own dedicated worker. The wildcard *.feeduro.com/* route would otherwise
+    // intercept those requests because Cloudflare Worker Routes beat Custom Domains.
+    const hostname = new URL(request.url).hostname;
+    const subdomain = hostname.endsWith(`.${APP_DOMAIN}`)
+      ? hostname.slice(0, -(APP_DOMAIN.length + 1))
+      : null;
+    if (subdomain && RESERVED_SUBDOMAINS.has(subdomain)) {
+      return new Response("Not Found", { status: 404 });
+    }
 
     if (!env.HYPERDRIVE) {
       throw new Error(

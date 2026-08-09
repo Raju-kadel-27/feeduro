@@ -1,14 +1,13 @@
 import { parseBranding } from "@features/branding/server/parse-branding";
 import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
+import { listPublicChangelogEntries } from "@features/changelog/server/list-public-entries";
 import { verifyIdentityToken } from "@lib/identity-token";
 import { getSession } from "@lib/session";
 import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { data } from "react-router";
 import type { Db } from "@/db";
 import {
-  changelogLikes,
   changelogSubscribers,
-  changelogs as changelogsTable,
   comments,
   feedbackBoards,
   feedbackPosts,
@@ -201,46 +200,8 @@ export async function publicPageLoader(
     };
   });
 
-  const rawChangelogs = await db.query.changelogs.findMany({
-    where: and(eq(changelogsTable.organizationId, org.id), eq(changelogsTable.status, "published")),
-    orderBy: [desc(changelogsTable.publishedAt)],
-    columns: { id: true, title: true, slug: true, body: true, publishedAt: true },
-  });
-
-  const changelogIds = rawChangelogs.map((c) => c.id);
-
-  const [likeCounts, userLikes] = await Promise.all([
-    changelogIds.length > 0
-      ? db
-          .select({ changelogId: changelogLikes.changelogId, likeCount: count() })
-          .from(changelogLikes)
-          .where(inArray(changelogLikes.changelogId, changelogIds))
-          .groupBy(changelogLikes.changelogId)
-      : Promise.resolve([]),
-    changelogIds.length > 0 && sessionUser
-      ? db
-          .select({ changelogId: changelogLikes.changelogId })
-          .from(changelogLikes)
-          .where(and(
-            inArray(changelogLikes.changelogId, changelogIds),
-            eq(changelogLikes.userId, sessionUser.id),
-          ))
-      : Promise.resolve([]),
-  ]);
-
-  const likeCountMap = Object.fromEntries(likeCounts.map((r) => [r.changelogId, r.likeCount]));
-  const likedSet = new Set(userLikes.map((r) => r.changelogId));
-
-  const changelogEntries: PublicChangelog[] = rawChangelogs.map((c) => ({
-    id: c.id,
-    title: c.title,
-    slug: c.slug ?? c.id,
-    publishedAt: c.publishedAt?.toISOString() ?? c.id,
-    body: c.body,
-    authorName: "Team",
-    voteCount: likeCountMap[c.id] ?? 0,
-    voted: likedSet.has(c.id),
-  }));
+  const { entries: changelogEntries, nextCursor: changelogNextCursor } =
+    await listPublicChangelogEntries(db, org.id, sessionUser?.id ?? null);
 
   const upNextPosts = posts
     .filter((p) => p.status === "planned")
@@ -257,6 +218,7 @@ export async function publicPageLoader(
     boards: publicBoards,
     posts,
     changelogEntries,
+    changelogNextCursor,
     upNextPosts,
     votedPostIds,
     customDomain,

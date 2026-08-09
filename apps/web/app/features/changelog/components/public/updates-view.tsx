@@ -1,15 +1,18 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
+import { ChangelogSearchInput } from "@features/changelog/components/changelog-search-input";
 import type { PublicChangelog } from "@features/feedback/schemas/public";
+import { useInfiniteScroll } from "@hooks/use-infinite-scroll";
 import { cn } from "@lib/utils";
-import { Check, CheckCircle2, ChevronDown, Loader2, MailIcon, Search, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { Check, CheckCircle2, ChevronDown, Loader2, MailIcon, SlidersHorizontal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { UpdateEntry } from "./update-entry";
 
-type ChangelogFilter = 'All' | 'Features' | 'Improvements' | 'Fixes' | 'API';
-const FILTERS: ChangelogFilter[] = ['All', 'Features', 'Improvements', 'Fixes', 'API'];
+type ChangelogFilter = "All" | "Features" | "Improvements" | "Fixes" | "API";
+const FILTERS: ChangelogFilter[] = ["All", "Features", "Improvements", "Fixes", "API"];
 
 interface Props {
   entries: PublicChangelog[];
+  initialNextCursor: string | null;
   orgId: string;
   orgSlug: string;
   subscriptionsEnabled: boolean;
@@ -18,52 +21,109 @@ interface Props {
   onAuthRequired: () => void;
 }
 
-function applyFilters(entries: PublicChangelog[], filter: ChangelogFilter, search: string): PublicChangelog[] {
-  let result = entries;
-  if (filter !== 'All') {
-    result = result.filter((e) => {
-      const tags = (e.tags ?? []).map((t) => t.toLowerCase());
-      if (filter === 'Features') return tags.includes('feature');
-      if (filter === 'Improvements') return tags.includes('improvement');
-      if (filter === 'Fixes') return tags.includes('fix');
-      if (filter === 'API') return tags.includes('api');
-      return true;
-    });
-  }
-  if (search.trim()) {
-    const q = search.toLowerCase();
-    result = result.filter((e) => e.title.toLowerCase().includes(q));
-  }
-  return result;
+function applyTagFilter(entries: PublicChangelog[], filter: ChangelogFilter): PublicChangelog[] {
+  if (filter === "All") return entries;
+  return entries.filter((e) => {
+    const tags = (e.tags ?? []).map((t) => t.toLowerCase());
+    if (filter === "Features") return tags.includes("feature");
+    if (filter === "Improvements") return tags.includes("improvement");
+    if (filter === "Fixes") return tags.includes("fix");
+    if (filter === "API") return tags.includes("api");
+    return true;
+  });
 }
 
-export function UpdatesView({ entries, orgId, orgSlug, subscriptionsEnabled, isSubscribed, userEmail, onAuthRequired }: Props) {
-  const [filter, setFilter] = useState<ChangelogFilter>('All');
-  const [search, setSearch] = useState('');
-  const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(isSubscribed ? 'success' : 'idle');
-  const visible = applyFilters(entries, filter, search);
+export function UpdatesView({
+  entries,
+  initialNextCursor,
+  orgId,
+  orgSlug,
+  subscriptionsEnabled,
+  isSubscribed,
+  userEmail,
+  onAuthRequired,
+}: Props) {
+  const [filter, setFilter] = useState<ChangelogFilter>("All");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [allEntries, setAllEntries] = useState<PublicChangelog[]>(entries);
+  const [cursor, setCursor] = useState<string | null>(initialNextCursor);
+  const [isFetching, setIsFetching] = useState(false);
+  const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "error">(
+    isSubscribed ? "success" : "idle",
+  );
 
-  const pillClass = "inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed";
+  const initialEntriesRef = useRef(entries);
+  const initialCursorRef = useRef(initialNextCursor);
 
-  async function handleSubscribe() {
-    if (!userEmail) {
-      onAuthRequired();
+  // Debounce search input
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Server-side search: reset + fetch when debounced search changes
+  useEffect(() => {
+    if (debouncedSearch === "") {
+      setAllEntries(initialEntriesRef.current);
+      setCursor(initialCursorRef.current);
       return;
     }
-    if (subStatus === 'loading' || subStatus === 'success') return;
-    setSubStatus('loading');
+    let cancelled = false;
+    setIsFetching(true);
+    const params = new URLSearchParams({ orgSlug, search: debouncedSearch });
+    fetch(`/api/public-changelogs?${params}`)
+      .then((r) => r.json() as Promise<{ entries: PublicChangelog[]; nextCursor: string | null }>)
+      .then((d) => {
+        if (!cancelled) {
+          setAllEntries(d.entries);
+          setCursor(d.nextCursor);
+          setIsFetching(false);
+        }
+      })
+      .catch(() => { if (!cancelled) setIsFetching(false); });
+    return () => { cancelled = true; };
+  }, [debouncedSearch, orgSlug]);
+
+  async function loadMore() {
+    if (!cursor || isFetching) return;
+    setIsFetching(true);
     try {
-      const res = await fetch('/api/changelog-subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const params = new URLSearchParams({ orgSlug, limit: "10" });
+      params.set("cursor", cursor);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const res = await fetch(`/api/public-changelogs?${params}`);
+      const d = (await res.json()) as { entries: PublicChangelog[]; nextCursor: string | null };
+      setAllEntries((prev) => [...prev, ...d.entries]);
+      setCursor(d.nextCursor);
+    } finally {
+      setIsFetching(false);
+    }
+  }
+
+  const sentinelRef = useInfiniteScroll(loadMore, { enabled: !!cursor && !isFetching });
+
+  const visible = applyTagFilter(allEntries, filter);
+
+  const pillClass =
+    "inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed";
+
+  async function handleSubscribe() {
+    if (!userEmail) { onAuthRequired(); return; }
+    if (subStatus === "loading" || subStatus === "success") return;
+    setSubStatus("loading");
+    try {
+      const res = await fetch("/api/changelog-subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, orgSlug }),
       });
       const json = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(json.error ?? 'Failed to subscribe');
-      setSubStatus('success');
+      if (!res.ok) throw new Error(json.error ?? "Failed to subscribe");
+      setSubStatus("success");
     } catch {
-      setSubStatus('error');
-      setTimeout(() => setSubStatus('idle'), 3000);
+      setSubStatus("error");
+      setTimeout(() => setSubStatus("idle"), 3000);
     }
   }
 
@@ -78,26 +138,18 @@ export function UpdatesView({ entries, orgId, orgSlug, subscriptionsEnabled, isS
               <button
                 type="button"
                 onClick={handleSubscribe}
-                disabled={subStatus === 'loading' || subStatus === 'success'}
-                className={cn(pillClass, subStatus === 'success' && "text-emerald-600 border-emerald-200 hover:text-emerald-600")}
+                disabled={subStatus === "loading" || subStatus === "success"}
+                className={cn(pillClass, subStatus === "success" && "text-emerald-600 border-emerald-200 hover:text-emerald-600")}
               >
-                {subStatus === 'loading' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                {subStatus === 'success' && <CheckCircle2 className="h-3.5 w-3.5" />}
-                {subStatus === 'idle' && <MailIcon className="h-3.5 w-3.5" />}
-                {subStatus === 'error' && <MailIcon className="h-3.5 w-3.5 text-destructive" />}
-                {subStatus === 'success' ? 'Subscribed' : subStatus === 'error' ? 'Try again' : 'Subscribe'}
+                {subStatus === "loading" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {subStatus === "success" && <CheckCircle2 className="h-3.5 w-3.5" />}
+                {subStatus === "idle" && <MailIcon className="h-3.5 w-3.5" />}
+                {subStatus === "error" && <MailIcon className="h-3.5 w-3.5 text-destructive" />}
+                {subStatus === "success" ? "Subscribed" : subStatus === "error" ? "Try again" : "Subscribe"}
               </button>
             )}
           </div>
-          <div className="relative mt-1 w-80">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search changelogs..."
-              className="h-7 w-full rounded-md border border-border bg-background pl-7 pr-3 text-[12px] placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-          </div>
+          <ChangelogSearchInput value={search} onChange={setSearch} size="sm" className="mt-1 w-80" />
         </div>
 
         <Popover>
@@ -106,14 +158,14 @@ export function UpdatesView({ entries, orgId, orgSlug, subscriptionsEnabled, isS
               type="button"
               className={cn(
                 "inline-flex items-center gap-1 h-7 px-2.5 rounded-md border text-[12px] font-medium transition-colors",
-                filter !== 'All'
+                filter !== "All"
                   ? "border-foreground/40 bg-muted text-foreground"
                   : "border-border bg-background text-foreground hover:bg-muted",
               )}
             >
               <SlidersHorizontal className="h-3 w-3" />
               Filter
-              {filter !== 'All' && (
+              {filter !== "All" && (
                 <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold">1</span>
               )}
               <ChevronDown className="h-3 w-3 text-muted-foreground" />
@@ -138,7 +190,11 @@ export function UpdatesView({ entries, orgId, orgSlug, subscriptionsEnabled, isS
         </Popover>
       </div>
 
-      {visible.length === 0 ? (
+      {isFetching && allEntries.length === 0 ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : visible.length === 0 ? (
         <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
           No changelogs found.
         </div>
@@ -148,13 +204,19 @@ export function UpdatesView({ entries, orgId, orgSlug, subscriptionsEnabled, isS
             <UpdateEntry
               key={entry.id}
               entry={entry}
-              isLast={i === visible.length - 1}
+              isLast={i === visible.length - 1 && !cursor}
               orgId={orgId}
               orgSlug={orgSlug}
               userEmail={userEmail}
               onAuthRequired={onAuthRequired}
             />
           ))}
+          <div ref={sentinelRef} />
+          {isFetching && (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          )}
         </div>
       )}
     </section>

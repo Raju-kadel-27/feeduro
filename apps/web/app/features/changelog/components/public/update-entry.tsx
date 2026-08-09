@@ -37,7 +37,7 @@ export function UpdateEntry({ entry, isLast, orgId, orgSlug, userEmail, onAuthRe
         <div
           style={{
             fontFamily: MONO,
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 600,
             color: 'var(--cl-text-muted)',
             letterSpacing: 0.6,
@@ -47,7 +47,7 @@ export function UpdateEntry({ entry, isLast, orgId, orgSlug, userEmail, onAuthRe
           {formatDateShort(publishedAt)}
         </div>
         <div
-          style={{ fontFamily: MONO, fontSize: 12, color: 'var(--cl-text-muted)', opacity: 0.7, marginTop: 2 }}
+          style={{ fontFamily: MONO, fontSize: 13, color: 'var(--cl-text-muted)', opacity: 0.7, marginTop: 2 }}
           suppressHydrationWarning
         >
           {formatRelative(publishedAt)}

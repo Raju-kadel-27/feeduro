@@ -1,7 +1,4 @@
 import { getOrgSubdomain } from "@features/domains/server/subdomain-routing";
-import { PublicBoardPage } from "@features/feedback/components/public/public-board-page";
-import { buildPublicBoardMeta } from "@features/feedback/public-board-meta";
-import { publicPageLoader } from "@features/feedback/server/public-loader";
 import { resolveOrgRedirect } from "@features/internal/workspace/server/queries";
 import { LandingPage } from "@features/public/landing/landing-page";
 import { getSession } from "@lib/session";
@@ -13,14 +10,9 @@ import type { Route } from "./+types/_index";
 export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
 
-  // Org subdomains serve the public board at `/`. The branch happens here, on
-  // the host, so the server and the hydrating client match the same route —
-  // a worker-level URL rewrite breaks hydration because the client router
-  // matches from the browser URL. Never redirect signed-in members to the
-  // dashboard on a subdomain; they are viewing their own public board.
   const orgSlug = getOrgSubdomain(new URL(request.url).hostname);
   if (orgSlug) {
-    return publicPageLoader(db, { request, orgSlug });
+    return redirect("/portal/feedback");
   }
 
   const session = await getSession(db, request);
@@ -31,11 +23,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return null;
 }
 
-export function meta({ data, location }: Route.MetaArgs) {
-  if (data && "org" in data) return buildPublicBoardMeta(data, location.search);
-  return [];
-}
-
 export function ErrorBoundary() {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -44,9 +31,6 @@ export function ErrorBoundary() {
   );
 }
 
-export default function IndexRoute({ loaderData }: Route.ComponentProps) {
-  if (loaderData && "org" in loaderData) {
-    return <PublicBoardPage loaderData={loaderData} />;
-  }
+export default function IndexRoute() {
   return <LandingPage />;
 }

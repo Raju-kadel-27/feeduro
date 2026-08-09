@@ -90,7 +90,7 @@ export function InlineFeedbackForm({
         onClick={() => setCollapsed(false)}
         className="w-full flex items-center justify-between gap-3 rounded-xl border border-border bg-card shadow-sm mb-4 px-4 h-12 hover:bg-muted/30 transition-colors group"
       >
-        <span className="text-[14px] text-muted-foreground/50">Share your feedback...</span>
+        <span className="text-[15px] text-muted-foreground/50">Share your feedback...</span>
         <span className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0 group-hover:bg-primary/90 transition-colors">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 5v14M5 12h14" />
@@ -114,14 +114,14 @@ export function InlineFeedbackForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Submission title"
-          className="w-full bg-transparent text-[15px] font-medium text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
+          className="w-full bg-transparent text-[16px] font-medium text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
         />
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add details"
           rows={1}
-          className="mt-2 w-full resize-none bg-transparent text-[12.5px] text-muted-foreground placeholder:text-muted-foreground/35 focus:outline-none"
+          className="mt-2 w-full resize-none bg-transparent text-[13.5px] text-muted-foreground placeholder:text-muted-foreground/35 focus:outline-none"
         />
       </div>
 
@@ -131,7 +131,7 @@ export function InlineFeedbackForm({
           <select
             value={boardId}
             onChange={(e) => setBoardId(e.target.value)}
-            className="bg-muted/30 border border-border rounded-full text-[13px] font-medium text-foreground pl-3 pr-7 py-1 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer hover:bg-muted transition-colors"
+            className="bg-muted/30 border border-border rounded-full text-[14px] font-medium text-foreground pl-3 pr-7 py-1 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer hover:bg-muted transition-colors"
           >
             {boards.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
@@ -139,7 +139,7 @@ export function InlineFeedbackForm({
           </select>
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <Paperclip className="h-3.5 w-3.5" />
             Attach
@@ -149,7 +149,7 @@ export function InlineFeedbackForm({
           type="button"
           onClick={handleSubmit}
           disabled={!title.trim() || submitting}
-          className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary/90 disabled:opacity-40 transition-colors"
+          className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-primary text-primary-foreground text-[14px] font-semibold hover:bg-primary/90 disabled:opacity-40 transition-colors"
         >
           Give Feedback
         </button>

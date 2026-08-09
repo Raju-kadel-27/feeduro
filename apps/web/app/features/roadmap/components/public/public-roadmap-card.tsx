@@ -49,14 +49,14 @@ export function PublicRoadmapCard({
   return (
     <article className="flex items-center gap-3 py-2 border-b border-border/30 last:border-0 hover:bg-accent/20 transition-colors -mx-1 px-1">
       <div className="min-w-0 flex-1">
-        <h3 className="text-[14px] font-medium leading-snug text-foreground">
+        <h3 className="text-[15px] font-medium leading-snug text-foreground">
           {post.title}
         </h3>
         <div className="mt-0.5 flex items-center gap-1 text-muted-foreground">
           <MessageSquare className="h-2.5 w-2.5" />
-          <span className="text-[11px]">{post.commentCount}</span>
+          <span className="text-[12px]">{post.commentCount}</span>
           <span className="mx-0.5 text-border">·</span>
-          <span className="text-[11px] truncate">{post.boardName}</span>
+          <span className="text-[12px] truncate">{post.boardName}</span>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ export function PublicRoadmapCard({
         )}
       >
         <ChevronUp className="h-3.5 w-3.5 transition-transform duration-150 group-hover/vote:-translate-y-0.5" strokeWidth={2} />
-        <span className="text-[11px] font-bold leading-none mt-0.5">{voteCount}</span>
+        <span className="text-[12px] font-bold leading-none mt-0.5">{voteCount}</span>
       </button>
     </article>
   );

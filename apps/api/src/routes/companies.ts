@@ -1,8 +1,10 @@
 import {
+  addCompanyMember,
   deleteCompany,
   getCompany,
   listCompanies,
   listCompanyMembers,
+  removeCompanyMember,
   updateCompany,
   upsertCompany,
 } from "@feeduro/data-access/users/companies";
@@ -345,6 +347,100 @@ const deleteRoute = createRoute({
   },
 });
 
+const addMemberRoute = createRoute({
+  method: "post",
+  path: "/:id/members",
+  tags: ["Companies"],
+  summary: "Add a member to a company",
+  description: `Links an existing user profile to a company. Both the company and the user profile must already exist in your organization.
+
+Use this endpoint when you want to associate a user with a company without going through \`POST /v1/users/identify\` — for example when backfilling associations or managing memberships directly.
+
+Returns **409** if the user is already a member of this company.`,
+  security,
+  request: {
+    params: z.object({
+      id: z.string().openapi({
+        example: "cmp_01j9k2m3n4p5q6r7s8t9u0v1w",
+        description: "The Feeduro internal company ID.",
+      }),
+    }),
+    body: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              userId: z.string().openapi({
+                example: "up_01j8h2k3m4n5p6q7r8s9t0u1v",
+                description: "The Feeduro internal user profile ID (returned by `POST /v1/users/identify`).",
+              }),
+            })
+            .openapi("AddCompanyMemberRequest"),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "User was successfully added to the company.",
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              data: z.object({
+                companyId: z.string().openapi({ example: "cmp_01j9k2m3n4p5q6r7s8t9u0v1w" }),
+                userId: z.string().openapi({ example: "up_01j8h2k3m4n5p6q7r8s9t0u1v" }),
+              }),
+            })
+            .openapi("AddCompanyMemberResponse"),
+        },
+      },
+    },
+    404: Res404,
+    409: {
+      description: "User is already a member of this company.",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...sharedErrors,
+  },
+});
+
+const removeMemberRoute = createRoute({
+  method: "delete",
+  path: "/:id/members/:memberId",
+  tags: ["Companies"],
+  summary: "Remove a member from a company",
+  description: `Removes the link between a user profile and a company. This does **not** delete the user profile itself — only the association.
+
+Returns **404** if the company doesn't exist or the user is not a member of this company.`,
+  security,
+  request: {
+    params: z.object({
+      id: z.string().openapi({
+        example: "cmp_01j9k2m3n4p5q6r7s8t9u0v1w",
+        description: "The Feeduro internal company ID.",
+      }),
+      memberId: z.string().openapi({
+        example: "up_01j8h2k3m4n5p6q7r8s9t0u1v",
+        description: "The Feeduro internal user profile ID of the member to remove.",
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Member was successfully removed from the company.",
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.literal(true) }).openapi("RemoveCompanyMemberResponse"),
+        },
+      },
+    },
+    404: Res404,
+    ...sharedErrors,
+  },
+});
+
 const listMembersRoute = createRoute({
   method: "get",
   path: "/:id/members",
@@ -418,4 +514,20 @@ export const companiesRouter = new OpenAPIHono<Env>()
     );
     if (!members) return c.json(apiError("not_found").body, 404);
     return c.json({ data: members } as never, 200);
+  })
+  .openapi(addMemberRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { userId } = c.req.valid("json");
+    const result = await addCompanyMember(getDb(c), c.get("organizationId"), id, userId);
+    if ("error" in result) {
+      if (result.error === "already_member") return c.json(apiError("already_member").body, 409);
+      return c.json(apiError("not_found").body, 404);
+    }
+    return c.json({ data: { companyId: result.data.companyId, userId: result.data.userProfileId } }, 200);
+  })
+  .openapi(removeMemberRoute, async (c) => {
+    const { id, memberId } = c.req.valid("param");
+    const result = await removeCompanyMember(getDb(c), c.get("organizationId"), id, memberId);
+    if ("error" in result) return c.json(apiError("not_found").body, 404);
+    return c.json({ success: true as const }, 200);
   });

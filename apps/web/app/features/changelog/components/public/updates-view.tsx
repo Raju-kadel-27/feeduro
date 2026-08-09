@@ -106,7 +106,7 @@ export function UpdatesView({
   const visible = applyTagFilter(allEntries, filter);
 
   const pillClass =
-    "inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed";
 
   async function handleSubscribe() {
     if (!userEmail) { onAuthRequired(); return; }
@@ -133,7 +133,7 @@ export function UpdatesView({
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Changelogs</h1>
           <div className="flex items-center gap-3 mt-1 mb-2">
-            <p className="text-sm text-muted-foreground">Follow up on the latest improvements and updates.</p>
+            <p className="text-base text-muted-foreground">Follow up on the latest improvements and updates.</p>
             {subscriptionsEnabled && (
               <button
                 type="button"
@@ -157,7 +157,7 @@ export function UpdatesView({
             <button
               type="button"
               className={cn(
-                "inline-flex items-center gap-1 h-7 px-2.5 rounded-md border text-[12px] font-medium transition-colors",
+                "inline-flex items-center gap-1 h-7 px-2.5 rounded-md border text-[13px] font-medium transition-colors",
                 filter !== "All"
                   ? "border-foreground/40 bg-muted text-foreground"
                   : "border-border bg-background text-foreground hover:bg-muted",
@@ -166,19 +166,19 @@ export function UpdatesView({
               <SlidersHorizontal className="h-3 w-3" />
               Filter
               {filter !== "All" && (
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold">1</span>
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[11px] font-bold">1</span>
               )}
               <ChevronDown className="h-3 w-3 text-muted-foreground" />
             </button>
           </PopoverTrigger>
           <PopoverContent align="end" sideOffset={6} className="p-1 w-40">
-            <p className="px-2.5 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Category</p>
+            <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Category</p>
             {FILTERS.map((f) => (
               <button
                 key={f}
                 type="button"
                 onClick={() => setFilter(f)}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[12.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <span className={cn("h-3 w-3 rounded-sm border flex items-center justify-center shrink-0 transition-colors", filter === f ? "bg-foreground border-foreground" : "border-border")}>
                   {filter === f && <Check className="h-2 w-2 text-background" />}
@@ -195,7 +195,7 @@ export function UpdatesView({
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : visible.length === 0 ? (
-        <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center py-20 text-base text-muted-foreground">
           No changelogs found.
         </div>
       ) : (

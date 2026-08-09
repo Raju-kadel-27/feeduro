@@ -44,7 +44,7 @@ export function PublicRoadmapView({
               <button
                 type="button"
                 className={cn(
-                  "inline-flex items-center gap-1 h-7 px-2.5 rounded-md border text-[12px] font-medium transition-colors",
+                  "inline-flex items-center gap-1 h-7 px-2.5 rounded-md border text-[13px] font-medium transition-colors",
                   selectedBoardId !== "all"
                     ? "border-foreground/40 bg-muted text-foreground"
                     : "border-border bg-background text-foreground hover:bg-muted",
@@ -53,7 +53,7 @@ export function PublicRoadmapView({
                 <SlidersHorizontal className="h-3 w-3" />
                 Filter
                 {selectedBoardId !== "all" && (
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold">
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[11px] font-bold">
                     1
                   </span>
                 )}
@@ -61,13 +61,13 @@ export function PublicRoadmapView({
               </button>
             </PopoverTrigger>
             <PopoverContent align="end" sideOffset={6} className="p-1 w-44">
-              <p className="px-2.5 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Board
               </p>
               <button
                 type="button"
                 onClick={() => setSelectedBoardId("all")}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[12.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <span
                   className={cn(
@@ -84,7 +84,7 @@ export function PublicRoadmapView({
                   key={board.id}
                   type="button"
                   onClick={() => setSelectedBoardId(board.id)}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[12.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   <span
                     className={cn(
@@ -110,9 +110,9 @@ export function PublicRoadmapView({
             <div key={col.label}>
               <div className="flex items-center gap-2.5 px-1 pb-3">
                 <StatusCircleIcon status={col.icon} size={18} />
-                <h2 className="text-[14px] font-semibold text-foreground">{col.label}</h2>
+                <h2 className="text-[15px] font-semibold text-foreground">{col.label}</h2>
                 <span
-                  className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                  className="text-[12px] font-semibold px-2 py-0.5 rounded-full"
                   style={{ background: colors.bg, color: colors.ink }}
                 >
                   {colPosts.length}
@@ -132,7 +132,7 @@ export function PublicRoadmapView({
                   />
                 ))}
                 {colPosts.length === 0 && (
-                  <div className="rounded-lg border border-dashed border-border py-10 text-center text-[12.5px] text-muted-foreground">
+                  <div className="rounded-lg border border-dashed border-border py-10 text-center text-[13.5px] text-muted-foreground">
                     Nothing here yet.
                   </div>
                 )}

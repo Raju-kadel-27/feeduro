@@ -1,4 +1,3 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
 import {
   Tooltip,
   TooltipContent,
@@ -83,7 +82,6 @@ export default function Members({ loaderData }: Route.ComponentProps) {
   return (
         <>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
         </header>
         <main className="p-6 max-w-3xl mx-auto w-full">
           <div className="flex items-center justify-between mb-6">

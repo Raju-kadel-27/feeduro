@@ -13,7 +13,6 @@ import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/workspace";
@@ -94,7 +93,6 @@ export default function WorkspaceSettings({ loaderData }: Route.ComponentProps) 
   return (
         <>
         <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">

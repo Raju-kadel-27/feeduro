@@ -11,7 +11,6 @@ import {
 } from "@features/widget/server/settings-actions";
 import { getWidgetSettings } from "@features/widget/server/settings-queries";
 import { data } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/widget";
 
@@ -72,7 +71,6 @@ export default function WidgetSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <WidgetSettingsPage loaderData={loaderData} />
     </>

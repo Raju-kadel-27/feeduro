@@ -1,6 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
 import { RouteErrorMessage } from "@components/common/route-error";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { ColumnSkeleton } from "@features/roadmap/components/internal/column-skeleton";
 import { KanbanBoard } from "@features/roadmap/components/internal/kanban-board";
 import { useRoadmap } from "@features/roadmap/hooks/use-roadmap";
@@ -43,7 +42,6 @@ export default function RoadmapPage({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex flex-col h-svh">
       <header className="flex shrink-0 items-center gap-3 px-8 pt-3 pb-4">
-        <SidebarTrigger className="-ml-1" />
         <PageHeader title="Roadmap" />
       </header>
       <Suspense fallback={<RoadmapBoardSkeleton />}>

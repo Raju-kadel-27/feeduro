@@ -9,7 +9,6 @@ import { getWebhooksLoaderData } from "@features/internal/webhooks/server/querie
 import { Star, Webhook } from "lucide-react";
 import { Suspense } from "react";
 import { Await, Link } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/index";
@@ -47,7 +46,6 @@ export default function WebhooksRoute({ loaderData, params }: Route.ComponentPro
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await

@@ -25,7 +25,6 @@ import { Layers, Pencil, Plus, Star, Trash2, Upload, Users2 } from "lucide-react
 import { useRef, useState } from "react";
 import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { member, segmentsSetup, userProfiles } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/segments";
@@ -82,7 +81,6 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
     return (
       <>
         <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
         </header>
         <main className="p-6 space-y-6">
           <div className="max-w-[840px] mx-auto w-full">
@@ -253,7 +251,6 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
 
       {showWizard ? (

@@ -7,7 +7,6 @@ import { AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/new";
@@ -98,7 +97,6 @@ export default function NewOAuthClientPage() {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
 
       <main className="p-6 max-w-[975px] mx-auto w-full">

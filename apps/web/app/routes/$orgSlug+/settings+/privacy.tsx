@@ -7,7 +7,6 @@ import { eq } from "drizzle-orm";
 import { EyeOff, Shield, ShieldCheck, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { organization } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import {
@@ -173,7 +172,6 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
 
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">

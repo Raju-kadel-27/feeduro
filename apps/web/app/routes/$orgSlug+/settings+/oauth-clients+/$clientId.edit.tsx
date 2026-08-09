@@ -6,7 +6,6 @@ import { and, eq } from "drizzle-orm";
 import { ArrowLeft } from "lucide-react";
 import { isRouteErrorResponse, Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { oauthClient } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -126,7 +125,6 @@ export default function EditOAuthClientPage({ loaderData }: Route.ComponentProps
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
 
       <main className="p-6 max-w-[975px] mx-auto w-full">

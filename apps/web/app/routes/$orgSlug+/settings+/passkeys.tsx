@@ -13,7 +13,6 @@ import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tan
 import { Fingerprint, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/passkeys";
@@ -145,7 +144,6 @@ export default function PasskeysSettings() {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
 
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">

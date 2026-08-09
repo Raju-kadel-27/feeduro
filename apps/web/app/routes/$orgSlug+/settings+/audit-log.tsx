@@ -13,7 +13,6 @@ import { and, eq } from "drizzle-orm";
 import { ScrollText } from "lucide-react";
 import { Suspense } from "react";
 import { Await, useParams } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/audit-log";
@@ -72,7 +71,6 @@ export default function AuditLogSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await

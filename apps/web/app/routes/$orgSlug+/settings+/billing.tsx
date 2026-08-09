@@ -17,7 +17,6 @@ import { CheckIcon, CreditCard, ExternalLinkIcon, SparklesIcon } from "lucide-re
 import { useEffect, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { z } from "zod";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { subscription } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -335,7 +334,6 @@ export default function BillingSettings({ loaderData }: Route.ComponentProps) {
   return (
         <>
         <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
         </header>
 
         <main className="px-6 pt-2 pb-6 max-w-[840px] mx-auto w-full space-y-8">

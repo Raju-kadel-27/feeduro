@@ -8,7 +8,6 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { isRouteErrorResponse, useLocation, useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { oauthAccessToken, oauthClient } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -156,7 +155,6 @@ export default function OAuthClientDetailPage({ loaderData }: Route.ComponentPro
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
 
       <main className="px-6 pb-6">

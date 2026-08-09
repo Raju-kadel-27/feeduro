@@ -14,7 +14,6 @@ import { and, eq } from "drizzle-orm";
 import { Plus, ShieldCheck, Star } from "lucide-react";
 import { Suspense, useState } from "react";
 import { Await, Link, useParams } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { member, organizationRole } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/roles";
@@ -65,7 +64,6 @@ export default function RolesSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await

@@ -9,7 +9,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
 import { Spinner } from "@components/ui/spinner";
 import {
@@ -294,7 +293,6 @@ export default function Changelog() {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center gap-2 px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <ChangelogContent />
     </>

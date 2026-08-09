@@ -25,7 +25,6 @@ import { and, eq } from "drizzle-orm";
 import { Crown, Mail, Plus, Star, UserMinus, Users, X } from "lucide-react";
 import { Suspense, useState } from "react";
 import { Await, Link, useParams } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { invitation } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -114,7 +113,6 @@ export default function TeamSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await

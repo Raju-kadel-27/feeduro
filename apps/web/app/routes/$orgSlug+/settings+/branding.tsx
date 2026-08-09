@@ -1,13 +1,19 @@
 import { PageHeader } from "@components/common/page-header";
 import { requireOrgBySlug } from "@features/auth/server/guards";
-import { BrandingForm } from "@features/branding/components/branding-form";
 import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
+import { lazy, Suspense } from "react";
 import { organization } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/branding";
+
+const BrandingForm = lazy(() =>
+  import("@features/branding/components/branding-form").then((m) => ({
+    default: m.BrandingForm,
+  })),
+);
 
 export function meta() {
   return [{ title: "Branding — Feeduro" }];
@@ -19,21 +25,22 @@ export function shouldRevalidate() {
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+  // requireOrgBySlug already fetches name + logo (KV-cached); only fetch metadata here.
+  const { organizationId, org: guardOrg } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const [org, planLimits] = await Promise.all([
+  const [orgRow, planLimits] = await Promise.all([
     db.query.organization.findFirst({
       where: eq(organization.id, organizationId),
-      columns: { logo: true, name: true, metadata: true },
+      columns: { metadata: true },
     }),
     getOrgPlanLimits(db, organizationId),
   ]);
 
   let brandingOverrides: Partial<BrandingFormValues> = {};
 
-  if (org?.metadata) {
+  if (orgRow?.metadata) {
     try {
-      const parsed = JSON.parse(org.metadata) as Record<string, unknown>;
+      const parsed = JSON.parse(orgRow.metadata) as Record<string, unknown>;
       if (parsed.branding && typeof parsed.branding === "object") {
         const result = brandingSchema.partial().safeParse(parsed.branding);
         if (result.success) {
@@ -44,8 +51,8 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   }
 
   const defaultValues = {
-    logo: org?.logo ?? "",
-    name: org?.name ?? "",
+    logo: guardOrg.logo ?? "",
+    name: guardOrg.name ?? "",
     primaryColor: "indigo" as const,
     theme: "dynamic" as const,
     language: "auto" as const,
@@ -66,7 +73,9 @@ export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
         />
       </div>
 
-      <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
+      <Suspense>
+        <BrandingForm defaultValues={loaderData.defaultValues} canHidePoweredBy={loaderData.canHidePoweredBy} />
+      </Suspense>
     </main>
   );
 }

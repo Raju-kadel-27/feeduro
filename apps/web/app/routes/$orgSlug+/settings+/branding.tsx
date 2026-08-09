@@ -5,7 +5,6 @@ import { brandingSchema } from "@features/branding/schemas/branding.schema";
 import type { BrandingFormValues } from "@features/branding/types/branding.types";
 import { getOrgPlanLimits } from "@features/internal/billing/server/plan-limits";
 import { eq } from "drizzle-orm";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { organization } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/branding";
@@ -61,7 +60,6 @@ export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
   return (
     <main className="pb-6 pl-14 pr-10 w-full space-y-8">
       <div className="flex items-center gap-3 pt-4">
-        <SidebarTrigger className="-ml-1 shrink-0" />
         <PageHeader
           title="Branding"
           description="Customize how your workspace looks to your users — logo, colors, and more."

@@ -10,7 +10,6 @@ import { and, eq } from "drizzle-orm";
 import { AlertCircle, Check, CheckCircle2, Clock, Copy, Globe, RefreshCw, Star, Trash2 } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { Await, Link, useParams, useRevalidator } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { customDomains, member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -94,7 +93,6 @@ export default function DomainSettings({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await

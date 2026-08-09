@@ -1,5 +1,4 @@
 import { RouteErrorMessage } from "@components/common/route-error";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { Skeleton } from "@components/ui/skeleton";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { BoardFilter } from "@features/internal/analytics/components/board-filter";
@@ -67,7 +66,6 @@ function AnalyticsContent({ data }: { data: AnalyticsData }) {
 		<>
 			<div className="flex items-center justify-between px-6 py-3 border-b shrink-0">
 				<div className="flex items-center gap-3">
-					<SidebarTrigger className="-ml-1" />
 					<h1 className="text-lg font-bold">Analytics</h1>
 				</div>
 				{!isDemo && (
@@ -117,7 +115,6 @@ function AnalyticsPageSkeleton() {
 		<>
 			<div className="flex items-center px-6 py-3 border-b shrink-0">
 				<div className="flex items-center gap-3">
-					<SidebarTrigger className="-ml-1" />
 					<h1 className="text-lg font-bold">Analytics</h1>
 				</div>
 			</div>

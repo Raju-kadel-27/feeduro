@@ -12,7 +12,6 @@ import { FileText } from "lucide-react";
 import { Suspense, useState } from "react";
 import { Await, useLoaderData } from "react-router";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { changelogTags, organization } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/changelog";
@@ -61,7 +60,6 @@ export default function ChangelogSettings() {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await

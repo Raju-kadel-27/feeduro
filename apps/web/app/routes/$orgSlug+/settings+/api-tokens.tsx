@@ -18,7 +18,6 @@ import { AlertCircle, Check, Code, Copy, Key, Plus, Terminal, Trash2 } from "luc
 import { Suspense, useMemo, useState } from "react";
 import { Await, useRevalidator } from "react-router";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { apikey, member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 
@@ -118,7 +117,6 @@ export default function ApiTokensSettings({ loaderData }: Route.ComponentProps) 
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <Suspense fallback={<SettingsContentSkeleton />}>
         <Await

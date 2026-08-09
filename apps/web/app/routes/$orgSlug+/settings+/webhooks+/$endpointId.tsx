@@ -3,7 +3,6 @@ import { getDb } from "~/middleware/cloudflare.server";
 import { EndpointDetail } from "@features/internal/webhooks/components/endpoint-detail";
 import { getWebhookDetailLoaderData } from "@features/internal/webhooks/server/queries";
 import { data } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import type { Route } from "./+types/$endpointId";
 
 export function meta() {
@@ -26,7 +25,6 @@ export default function WebhookDetailRoute({ loaderData }: Route.ComponentProps)
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
       <EndpointDetail endpoint={loaderData.endpoint} isAdmin={loaderData.isAdmin} />
     </>

@@ -4,7 +4,6 @@ import { requireOrgBySlug } from "@features/auth/server/guards";
 import { Database, DownloadIcon, FileSpreadsheetIcon, UploadIcon } from "lucide-react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/data";
@@ -91,7 +90,6 @@ export default function DataImport(_: Route.ComponentProps) {
   return (
         <>
         <header className="flex h-14 shrink-0 items-center px-4">
-          <SidebarTrigger className="-ml-1" />
         </header>
 
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">

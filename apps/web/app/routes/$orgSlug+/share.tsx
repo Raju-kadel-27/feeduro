@@ -43,7 +43,6 @@ function RedditIcon({ className }: { className?: string }) {
   );
 }
 
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { requireOrgBySlug } from "@features/auth/server/guards";
 import { getPublicBoardUrl } from "@features/domains/public-board-url";
 import { cn } from "@lib/utils";
@@ -227,7 +226,6 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
       </header>
 
       <div className="flex flex-col flex-1 overflow-hidden">

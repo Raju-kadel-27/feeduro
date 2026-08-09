@@ -1176,3 +1176,69 @@ export const importJobs = pgTable(
     orgCreatedAtIdx: index("ij_org_created_at_idx").on(t.organizationId, t.createdAt),
   }),
 );
+
+// ============ Changelog Tag Items (junction: which tags are on a specific changelog entry) ============
+
+export const changelogTagItems = pgTable(
+  "changelog_tag_items",
+  {
+    changelogId: varchar("changelog_id", { length: 128 })
+      .notNull()
+      .references(() => changelogs.id, { onDelete: "cascade" }),
+    tagId: varchar("tag_id", { length: 128 })
+      .notNull()
+      .references(() => changelogTags.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.changelogId, t.tagId] }),
+    changelogIdIdx: index("cti_changelog_id_idx").on(t.changelogId),
+    tagIdIdx: index("cti_tag_id_idx").on(t.tagId),
+  }),
+);
+
+// ============ Changelog Authors (junction: team members credited on a changelog entry) ============
+
+export const changelogAuthors = pgTable(
+  "changelog_authors",
+  {
+    changelogId: varchar("changelog_id", { length: 128 })
+      .notNull()
+      .references(() => changelogs.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.changelogId, t.userId] }),
+    changelogIdIdx: index("cauth_changelog_id_idx").on(t.changelogId),
+    orgIdIdx: index("cauth_org_id_idx").on(t.organizationId),
+  }),
+);
+
+// ============ Changelog Requests (junction: feedback posts resolved/announced in a changelog) ============
+
+export const changelogRequests = pgTable(
+  "changelog_requests",
+  {
+    changelogId: varchar("changelog_id", { length: 128 })
+      .notNull()
+      .references(() => changelogs.id, { onDelete: "cascade" }),
+    postId: varchar("post_id", { length: 128 })
+      .notNull()
+      .references(() => feedbackPosts.id, { onDelete: "cascade" }),
+    organizationId: varchar("organization_id", { length: 36 })
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.changelogId, t.postId] }),
+    changelogIdIdx: index("creq_changelog_id_idx").on(t.changelogId),
+    orgIdIdx: index("creq_org_id_idx").on(t.organizationId),
+  }),
+);

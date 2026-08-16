@@ -159,6 +159,7 @@
   /* Font */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: "EB Garamond", Georgia, "Times New Roman", serif;
 
   /* Border radius */
   --radius-lg: var(--radius);

@@ -60,38 +60,44 @@ const DEVELOPER_ITEMS = [
   {
     icon: <BookOpen className="w-5 h-5 text-blue-500" />,
     label: "Documentation",
-    description: "Full guides, quickstarts, and API reference.",
+    description: "Setup guides and technical reference for every feature.",
     href: "/docs",
   },
   {
     icon: <Code2 className="w-5 h-5 text-violet-500" />,
     label: "REST API",
-    description: "Integrate feedback data into your own stack.",
-    href: "/docs/api",
+    description: "Interactive API reference with full endpoint docs.",
+    href: "https://api.feeduro.com/docs",
+  },
+  {
+    icon: <Zap className="w-5 h-5 text-teal-500" />,
+    label: "Widget SDK",
+    description: "Embed the feedback widget anywhere in minutes.",
+    href: "/docs",
   },
   {
     icon: <Plug className="w-5 h-5 text-teal-500" />,
-    label: "Widget SDK",
-    description: "Embed the feedback widget anywhere in minutes.",
-    href: "/docs/widget",
-  },
-  {
-    icon: <Webhook className="w-5 h-5 text-amber-500" />,
-    label: "Webhooks",
-    description: "React to feedback events in real time.",
-    href: "/docs/webhooks",
-  },
-  {
-    icon: <Zap className="w-5 h-5 text-rose-500" />,
-    label: "Zapier & n8n",
-    description: "Connect to thousands of apps without code.",
+    label: "Integrations",
+    description: "Connect GitHub, Linear, Jira, Asana, and more.",
     href: "/integrations",
   },
   {
-    icon: <Globe className="w-5 h-5 text-indigo-500" />,
-    label: "Status Page",
-    description: "Live system uptime and incident history.",
-    href: "/status",
+    icon: <Webhook className="w-5 h-5 text-amber-500" />,
+    label: "SSO & Passkeys",
+    description: "SAML, OIDC, and passwordless auth for your team.",
+    href: "/docs",
+  },
+  {
+    icon: <Globe className="w-5 h-5 text-rose-500" />,
+    label: "Branding & Domains",
+    description: "White-label your portal with your own look and domain.",
+    href: "/docs",
+  },
+  {
+    icon: <TrendingUp className="w-5 h-5 text-indigo-500" />,
+    label: "Changelog & Roadmap",
+    description: "Publish updates and show users what's coming.",
+    href: "/docs",
   },
 ];
 
@@ -200,6 +206,7 @@ function NavDropdown({
 const PLAIN_LINKS = [
   { label: "Integrations", href: "/integrations" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Docs", href: "/docs" },
   { label: "Blog", href: "/blog" },
 ];
 

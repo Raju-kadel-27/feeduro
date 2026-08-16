@@ -1,4 +1,5 @@
 import { ChurnSection } from "./components/churn-section";
+import { FaqSection } from "./components/faq-section";
 import { FeaturesSection } from "./components/features-section";
 import { HeroSection } from "./components/hero-section";
 import { LandingFooter } from "./components/landing-footer";
@@ -26,6 +27,7 @@ export function LandingPage() {
         <ShowcaseSection />
         <FeaturesSection />
         <TestimonialSection />
+        <FaqSection />
       </main>
       <LandingFooter />
     </div>

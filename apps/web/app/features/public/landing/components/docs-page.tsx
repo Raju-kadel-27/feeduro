@@ -1,6 +1,6 @@
 import { LandingFooter } from "@features/public/landing/components/landing-footer";
 import { LandingNav } from "@features/public/landing/components/landing-nav";
-import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { DocsContent } from "./docs-content";
 import { NAV, PAGES } from "./docs-data";
 
@@ -79,8 +79,12 @@ function MobileNav({
 }
 
 export function DocsPage() {
-  const [activeId, setActiveId] = useState("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const topicParam = searchParams.get("topic") ?? "overview";
+  const activeId = PAGES[topicParam] ? topicParam : "overview";
   const page = PAGES[activeId];
+
+  const handleSelect = (id: string) => setSearchParams({ topic: id });
 
   const currentIndex = FLAT_PAGES.findIndex((p) => p.id === activeId);
   const currentGroup = FLAT_PAGES[currentIndex]?.group ?? "";
@@ -101,16 +105,16 @@ export function DocsPage() {
           </p>
         </header>
         <div className="flex gap-12 py-8">
-          <DocsSidebar activeId={activeId} onSelect={setActiveId} />
+          <DocsSidebar activeId={activeId} onSelect={handleSelect} />
           <main className="min-w-0 flex-1 pb-20">
-            <MobileNav activeId={activeId} onSelect={setActiveId} />
+            <MobileNav activeId={activeId} onSelect={handleSelect} />
             {page && (
               <DocsContent
                 page={page}
                 groupLabel={currentGroup}
                 prevPage={prevPage}
                 nextPage={nextPage}
-                onNavigate={setActiveId}
+                onNavigate={handleSelect}
               />
             )}
           </main>

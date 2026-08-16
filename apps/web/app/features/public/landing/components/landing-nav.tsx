@@ -1,16 +1,12 @@
 import {
-  BarChart3,
   Bell,
   BookOpen,
   ChevronDown,
   Code2,
   GitMerge,
-  Globe,
   MessageSquare,
   Plug,
-  ShieldCheck,
   TrendingUp,
-  Webhook,
   Zap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -28,31 +24,19 @@ const WHY_FEEDURO_ITEMS = [
     icon: <TrendingUp className="w-5 h-5 text-blue-500" />,
     label: "Revenue Intelligence",
     description: "See the MRR behind every feature request.",
-  },
-  {
-    icon: <ShieldCheck className="w-5 h-5 text-rose-500" />,
-    label: "Churn Risk Detection",
-    description: "Spot at-risk customers before they cancel.",
-  },
-  {
-    icon: <BarChart3 className="w-5 h-5 text-violet-500" />,
-    label: "Priority Scoring",
-    description: "Build what retains customers, not what wins votes.",
+    href: "/#showcase",
   },
   {
     icon: <Bell className="w-5 h-5 text-amber-500" />,
     label: "Smart Changelog",
     description: "Close the loop automatically when you ship.",
-  },
-  {
-    icon: <MessageSquare className="w-5 h-5 text-teal-500" />,
-    label: "Feedback Analytics",
-    description: "Understand trends across all your boards.",
+    href: "/docs?topic=changelog-overview",
   },
   {
     icon: <GitMerge className="w-5 h-5 text-indigo-500" />,
     label: "Two-way Sync",
     description: "Push to Jira, Linear, Asana — status flows back.",
+    href: "/integrations",
   },
 ];
 
@@ -61,7 +45,7 @@ const DEVELOPER_ITEMS = [
     icon: <BookOpen className="w-5 h-5 text-blue-500" />,
     label: "Documentation",
     description: "Setup guides and technical reference for every feature.",
-    href: "/docs",
+    href: "/docs?topic=overview",
   },
   {
     icon: <Code2 className="w-5 h-5 text-violet-500" />,
@@ -73,31 +57,13 @@ const DEVELOPER_ITEMS = [
     icon: <Zap className="w-5 h-5 text-teal-500" />,
     label: "Widget SDK",
     description: "Embed the feedback widget anywhere in minutes.",
-    href: "/docs",
+    href: "/docs?topic=widget-install",
   },
   {
     icon: <Plug className="w-5 h-5 text-teal-500" />,
     label: "Integrations",
     description: "Connect GitHub, Linear, Jira, Asana, and more.",
     href: "/integrations",
-  },
-  {
-    icon: <Webhook className="w-5 h-5 text-amber-500" />,
-    label: "SSO & Passkeys",
-    description: "SAML, OIDC, and passwordless auth for your team.",
-    href: "/docs",
-  },
-  {
-    icon: <Globe className="w-5 h-5 text-rose-500" />,
-    label: "Branding & Domains",
-    description: "White-label your portal with your own look and domain.",
-    href: "/docs",
-  },
-  {
-    icon: <TrendingUp className="w-5 h-5 text-indigo-500" />,
-    label: "Changelog & Roadmap",
-    description: "Publish updates and show users what's coming.",
-    href: "/docs",
   },
 ];
 

@@ -33,9 +33,9 @@ export function DocsToc({ page }: { page: DocPage }) {
   if (!steps.length) return null;
 
   return (
-    <aside className="hidden xl:block w-44 shrink-0">
+    <aside className="hidden xl:block w-36 shrink-0">
       <div className="sticky top-8">
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           On this page
         </p>
         <ul className="space-y-0.5 border-l border-border">
@@ -52,7 +52,7 @@ export function DocsToc({ page }: { page: DocPage }) {
                       block: "start",
                     })
                   }
-                  className={`-ml-px w-full border-l-2 py-1 pl-3 text-left text-[12px] leading-snug transition-colors ${
+                  className={`-ml-px w-full border-l-2 py-1.5 pl-3 text-left text-sm leading-snug transition-colors ${
                     active
                       ? "border-primary font-medium text-foreground"
                       : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"

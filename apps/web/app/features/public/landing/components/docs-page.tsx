@@ -24,8 +24,8 @@ function DocsSidebar({
   onSearchOpen: () => void;
 }) {
   return (
-    <aside className="hidden lg:flex w-52 shrink-0 flex-col border-r border-border">
-      <div className="sticky top-8 flex flex-col gap-6 overflow-y-auto pb-12 pr-6 max-h-[calc(100vh-4rem)]">
+    <aside className="hidden lg:flex w-56 shrink-0 flex-col border-r border-border">
+      <div className="sticky top-0 flex h-screen flex-col gap-5 overflow-y-hidden hover:overflow-y-auto px-4 pt-6 pb-12">
         {/* Search trigger */}
         <button
           type="button"
@@ -140,48 +140,51 @@ export function DocsPage() {
   const nextPage = FLAT_PAGES[currentIndex + 1] ?? null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-[1080px] px-4 sm:px-6">
-        <header className="mt-8 flex items-end justify-between gap-4 border-b border-border py-8">
-          <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Feeduro
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight">Docs</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Configuration guides and technical reference.
-            </p>
-          </div>
-          <ThemeToggle className="mb-1 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground" />
-        </header>
+    <div className="min-h-screen bg-background text-foreground lg:flex">
+      <DocsSidebar
+        activeId={activeId}
+        onSelect={handleSelect}
+        onSearchOpen={() => setSearchOpen(true)}
+      />
 
-        <div className="flex gap-8 py-8">
-          <DocsSidebar
-            activeId={activeId}
-            onSelect={handleSelect}
-            onSearchOpen={() => setSearchOpen(true)}
-          />
-          <main className="min-w-0 flex-1 pb-20">
-            <MobileNav
-              activeId={activeId}
-              onSelect={handleSelect}
-              onSearchOpen={() => setSearchOpen(true)}
-            />
-            {page && (
-              <DocsContent
-                page={page}
-                groupLabel={currentGroup}
-                prevPage={prevPage}
-                nextPage={nextPage}
-                onNavigate={handleSelect}
+      <div className="min-w-0 flex-1">
+        <div className="mx-auto max-w-[1024px] px-4 sm:px-6">
+          <header className="mt-8 flex items-end justify-between gap-4 border-b border-border py-8">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Feeduro
+              </p>
+              <h1 className="text-3xl font-bold tracking-tight">Docs</h1>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Configuration guides and technical reference.
+              </p>
+            </div>
+            <ThemeToggle large className="mb-1 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground" />
+          </header>
+
+          <div className="flex gap-8 py-8">
+            <main className="min-w-0 flex-1 pb-20">
+              <MobileNav
+                activeId={activeId}
+                onSelect={handleSelect}
+                onSearchOpen={() => setSearchOpen(true)}
               />
-            )}
-          </main>
-          {page && <DocsToc page={page} />}
+              {page && (
+                <DocsContent
+                  page={page}
+                  groupLabel={currentGroup}
+                  prevPage={prevPage}
+                  nextPage={nextPage}
+                  onNavigate={handleSelect}
+                />
+              )}
+            </main>
+            {page && <DocsToc page={page} />}
+          </div>
         </div>
-      </div>
 
-      <LandingFooter />
+        <LandingFooter />
+      </div>
 
       <DocsSearch
         open={searchOpen}

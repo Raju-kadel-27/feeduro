@@ -1,8 +1,13 @@
 import { createContext, useContext } from "react";
 
+import type { TawkConfig } from "~/types/tawk";
+
+export type { TawkConfig };
+
 export type AppConfig = {
   baseUrl: string;
   environment: "development" | "staging" | "production";
+  tawk: TawkConfig | null;
 };
 
 const AppConfigContext = createContext<AppConfig | null>(null);

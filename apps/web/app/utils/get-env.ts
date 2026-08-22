@@ -49,6 +49,9 @@ const envSchema = z.object({
   GROQ_API_KEY: z.string().optional(),
   // Comma-separated list of user IDs with platform-admin access (impersonation, admin-users page)
   PLATFORM_ADMIN_USER_IDS: z.string().optional(),
+  // tawk.to live chat — set both to enable the widget; omit to disable (e.g. local dev)
+  TAWK_PROPERTY_ID: z.string().optional(),
+  TAWK_WIDGET_ID: z.string().optional(),
 }).refine(
   (data) => !(data.DODO_PAYMENTS_API_KEY && !data.DODO_PAYMENTS_WEBHOOK_SECRET),
   {

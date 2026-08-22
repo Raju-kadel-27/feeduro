@@ -1,6 +1,7 @@
 import { PageTransition } from "@components/page-transition";
 import { createI18nInstance, detectLocale } from "@lib/i18n";
 import { AppConfigProvider } from "@providers/app-config-provider";
+import { TawkProvider } from "@providers/tawk-provider";
 import { ThemeProvider } from "@providers/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getEnv } from "@utils/get-env";
@@ -29,6 +30,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     appConfig: {
       baseUrl: env.BASE_URL,
       environment: env.ENVIRONMENT,
+      tawk: env.TAWK_PROPERTY_ID
+        ? { propertyId: env.TAWK_PROPERTY_ID, widgetId: env.TAWK_WIDGET_ID ?? "default" }
+        : null,
     },
   });
 }
@@ -84,9 +88,11 @@ export default function App({ loaderData }: Route.ComponentProps) {
 
   return (
     <AppConfigProvider config={appConfig}>
-      <I18nextProvider i18n={i18nInstance} defaultNS="translation">
+      <TawkProvider>
+        <I18nextProvider i18n={i18nInstance} defaultNS="translation">
           <Outlet />
-      </I18nextProvider>
+        </I18nextProvider>
+      </TawkProvider>
     </AppConfigProvider>
   );
 }

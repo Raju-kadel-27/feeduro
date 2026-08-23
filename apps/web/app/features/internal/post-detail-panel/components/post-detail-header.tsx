@@ -29,6 +29,7 @@ export function PostDetailHeader({
   orgSlug,
   postId,
   postTitle,
+  publicPostUrl,
   isAdmin,
   hasMergedInto,
   vote,
@@ -41,6 +42,8 @@ export function PostDetailHeader({
   orgSlug: string;
   postId: string;
   postTitle: string;
+  /** Absolute URL to the public board post (handles custom domains). Copied by the Share button. */
+  publicPostUrl: string;
   isAdmin: boolean;
   hasMergedInto: boolean;
   vote: VoteState;
@@ -54,8 +57,7 @@ export function PostDetailHeader({
   const [copied, setCopied] = useState(false);
 
   function copyLink() {
-    const url = `${window.location.origin}/${orgSlug}/feedback/${postId}`;
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(publicPostUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });

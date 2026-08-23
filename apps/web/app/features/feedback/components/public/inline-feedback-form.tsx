@@ -121,7 +121,7 @@ export function InlineFeedbackForm({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add details"
           rows={1}
-          className="mt-2 w-full resize-none bg-transparent text-[14.5px] text-muted-foreground placeholder:text-muted-foreground/35 focus:outline-none"
+          className="mt-2 w-full resize-none rounded-none bg-transparent text-[14.5px] text-muted-foreground placeholder:text-muted-foreground/35 focus:outline-none"
         />
       </div>
 

@@ -27,7 +27,7 @@ import {
 } from "./client";
 import { mondayOAuth } from "./oauth";
 
-const CALLBACK_PATH = "/api/monday";
+const CALLBACK_PATH = "/api/oauth2/integrations/monday";
 const LOG = "[monday-service]";
 
 function callbackUrl() {

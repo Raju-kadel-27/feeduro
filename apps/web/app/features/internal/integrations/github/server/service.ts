@@ -33,7 +33,7 @@ import { githubOAuth } from "./oauth";
 import type { GithubSettings } from "./schemas";
 import { GithubActionSchema } from "./schemas";
 
-const CALLBACK_PATH = "/api/github";
+const CALLBACK_PATH = "/api/oauth2/integrations/github";
 
 function callbackUrl(): string {
   return `${getBaseUrl()}${CALLBACK_PATH}`;

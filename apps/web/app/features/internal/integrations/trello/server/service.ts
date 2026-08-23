@@ -23,7 +23,7 @@ import {
   trelloAuthUrl,
 } from "./client";
 
-const CALLBACK_PATH = "/api/trello";
+const CALLBACK_PATH = "/api/oauth2/integrations/trello";
 
 function callbackUrl(orgId: string) {
   return `${getBaseUrl()}${CALLBACK_PATH}?orgId=${orgId}`;

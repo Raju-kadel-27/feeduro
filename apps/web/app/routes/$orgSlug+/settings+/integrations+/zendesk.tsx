@@ -166,7 +166,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
             <div className="p-4 space-y-3">
               {connected ? (
                 <a
-                  href={`/api/zendesk?intent=connect&subdomain=${subdomain}`}
+                  href={`/api/oauth2/integrations/zendesk?intent=connect&subdomain=${subdomain}`}
                   className="text-sm text-muted-foreground hover:text-foreground underline"
                 >
                   Reconnect
@@ -224,7 +224,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
                     <a
                       href={
                         inputSubdomain
-                          ? `/api/zendesk?intent=connect&subdomain=${encodeURIComponent(inputSubdomain)}`
+                          ? `/api/oauth2/integrations/zendesk?intent=connect&subdomain=${encodeURIComponent(inputSubdomain)}`
                           : "#"
                       }
                       onClick={(e) => {

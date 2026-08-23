@@ -251,7 +251,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
                   )}
 
                   <a
-                    href="/api/trello?intent=connect"
+                    href="/api/oauth2/integrations/trello?intent=connect"
                     className="text-sm text-muted-foreground hover:text-foreground underline"
                   >
                     Reconnect
@@ -264,7 +264,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
                     login page.
                   </p>
                   <a
-                    href="/api/trello?intent=connect"
+                    href="/api/oauth2/integrations/trello?intent=connect"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white transition-colors"
                     style={{ backgroundColor: "#0052CC" }}
                   >

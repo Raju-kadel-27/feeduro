@@ -318,7 +318,7 @@ export default function LinearIntegrationSettings({ loaderData }: Route.Componen
                 ) : (
                   isAdmin && (
                     <a
-                      href="/api/linear?intent=connect"
+                      href="/api/oauth2/integrations/linear?intent=connect"
                       className="flex items-center gap-1.5 rounded-md border border-border bg-secondary px-3 py-1.5 text-sm font-medium hover:bg-secondary/80 transition-colors"
                     >
                       <LinearIcon className="h-3 w-3" />

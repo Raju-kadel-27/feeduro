@@ -46,7 +46,7 @@ export function SocialLoginIntegrations({ loaderData }: Props) {
       enabled: discord.enabled,
       connected: discord.connected,
       channel: notifications.discordChannelId,
-      connectPath: "/api/discord?intent=connect",
+      connectPath: "/api/oauth2/integrations/discord?intent=connect",
       disconnectProvider: "discord",
     },
     {
@@ -57,7 +57,7 @@ export function SocialLoginIntegrations({ loaderData }: Props) {
       enabled: slack.enabled,
       connected: slack.connected,
       channel: notifications.slackChannel,
-      connectPath: "/api/slack?intent=connect",
+      connectPath: "/api/oauth2/integrations/slack?intent=connect",
       disconnectProvider: "slack",
     },
   ];
@@ -76,7 +76,7 @@ export function SocialLoginIntegrations({ loaderData }: Props) {
   function renderAction(item: NotificationItem) {
     if (item.connected) {
       return (
-        <fetcher.Form method="POST" action={`/api/${item.disconnectProvider}`}>
+        <fetcher.Form method="POST" action={`/api/oauth2/integrations/${item.disconnectProvider}`}>
           <input type="hidden" name="intent" value="disconnect" />
           <button
             type="submit"

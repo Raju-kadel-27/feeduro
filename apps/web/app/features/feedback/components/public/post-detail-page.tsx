@@ -78,7 +78,7 @@ export function PostDetailPage({
           <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
               <StatusPill id={post.status} />
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-muted font-medium text-foreground/60">
+              <span className="px-1.5 py-0.5 rounded-full text-[11px] bg-muted font-medium text-foreground/60">
                 {post.boardName}
               </span>
             </div>
@@ -106,7 +106,7 @@ export function PostDetailPage({
                 voted ? "stroke-[2.5]" : "stroke-[1.75]",
               )}
             />
-            <span className="text-[11px] font-semibold leading-none tabular-nums">{voteCount}</span>
+            <span className="text-[12px] font-semibold leading-none tabular-nums">{voteCount}</span>
           </button>
         </div>
 
@@ -117,7 +117,7 @@ export function PostDetailPage({
         )}
 
         <div className="pt-4 border-t space-y-3">
-          <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <h2 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">
             Comments
             {post.commentCount > 0 && (
               <span className="ml-1.5 normal-case font-normal">· {post.commentCount}</span>

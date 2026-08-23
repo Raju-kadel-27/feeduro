@@ -8,7 +8,7 @@ export const publicCommentsQueryKey = (postId: string, orgSlug: string) =>
   ["public-comments", postId, orgSlug] as const;
 
 function TeamBadge() {
-  return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 leading-none">Team</Badge>;
+  return <Badge variant="secondary" className="text-[11px] px-1.5 py-0 leading-none">Team</Badge>;
 }
 
 function CommentRow({ comment }: { comment: PublicComment }) {
@@ -21,7 +21,7 @@ function CommentRow({ comment }: { comment: PublicComment }) {
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
             <span className="text-xs font-semibold">{displayName}</span>
             {comment.isTeamMember && <TeamBadge />}
-            <span className="text-[11px] text-muted-foreground">{timeAgo(comment.createdAt)}</span>
+            <span className="text-[12px] text-muted-foreground">{timeAgo(comment.createdAt)}</span>
           </div>
           <p className="text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
             {comment.body}
@@ -41,7 +41,7 @@ function CommentRow({ comment }: { comment: PublicComment }) {
                         {reply.authorName ?? "Anonymous"}
                       </span>
                       {reply.isTeamMember && <TeamBadge />}
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-[12px] text-muted-foreground">
                         {timeAgo(reply.createdAt)}
                       </span>
                     </div>

@@ -91,7 +91,7 @@ export function DetailPanel({
                 <FeedbackAvatar name={post.authorName} size={16} />
                 <span className="font-medium text-foreground/80">{post.authorName}</span>
                 <span>·</span>
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-muted font-medium text-foreground/60">
+                <span className="px-1.5 py-0.5 rounded-full text-[11px] bg-muted font-medium text-foreground/60">
                   {post.boardName}
                 </span>
               </div>
@@ -113,7 +113,7 @@ export function DetailPanel({
                     voted ? "stroke-[2.5]" : "stroke-[1.75]",
                   )}
                 />
-                <span className="text-[10px] font-semibold leading-none tabular-nums">
+                <span className="text-[11px] font-semibold leading-none tabular-nums">
                   {voteCount}
                 </span>
               </button>
@@ -129,7 +129,7 @@ export function DetailPanel({
             </div>
 
             <div className="pt-3 space-y-3">
-              <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <h3 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Comments
                 {post.commentCount > 0 && (
                   <span className="ml-1.5 normal-case font-normal">· {post.commentCount}</span>

@@ -110,12 +110,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="flex h-svh">
-      <AuthLeftPanel
-        quote="We went from a chaotic Notion board to a clear, prioritised backlog in one afternoon. Every sprint decision now points back to actual customer data — not whoever shouted loudest in the meeting."
-        author="Alex Rivera"
-        authorTitle="Head of Product at Orbit"
-        avatarInitials="AR"
-      />
+      <AuthLeftPanel />
 
       {/* Right panel */}
       <div className="flex flex-1 flex-col bg-background relative overflow-hidden">

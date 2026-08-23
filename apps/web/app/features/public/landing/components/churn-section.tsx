@@ -17,7 +17,7 @@ export function ChurnSection() {
         </div>
 
         {/* The math */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16">
           <div className="p-6 rounded-2xl border border-white/10 bg-white/5 text-center">
             <p className="text-xs font-semibold uppercase tracking-wide text-white/50 mb-3">
               What you spent to get them
@@ -31,13 +31,6 @@ export function ChurnSection() {
             </p>
             <p className="text-4xl font-black text-white/80 mb-1">$600+</p>
             <p className="text-sm text-white/50">per churned customer per year</p>
-          </div>
-          <div className="p-6 rounded-2xl border border-white/10 bg-white/5 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/50 mb-3">
-              What Feeduro costs
-            </p>
-            <p className="text-4xl font-black text-white/80 mb-1">$20</p>
-            <p className="text-sm text-white/50">a month to make users feel heard</p>
           </div>
         </div>
 

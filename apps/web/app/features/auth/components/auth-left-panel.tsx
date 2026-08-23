@@ -1,26 +1,5 @@
-import { Layers, Megaphone, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { Link } from "react-router";
-
-const features = [
-  {
-    Icon: MessageSquare,
-    title: "One place for all feedback",
-    description:
-      "A public board your users actually visit. No more digging through emails, Slack, or spreadsheets.",
-  },
-  {
-    Icon: Layers,
-    title: "Prioritize with real data",
-    description:
-      "See what customers actually want, ranked by votes and business impact — not whoever shouted loudest in the meeting.",
-  },
-  {
-    Icon: Megaphone,
-    title: "Close the loop",
-    description:
-      "Publish a changelog and auto-notify everyone who asked. Turn feature reporters into loyal advocates.",
-  },
-];
 
 export function AuthLeftPanel() {
   return (
@@ -41,43 +20,18 @@ export function AuthLeftPanel() {
         Feeduro
       </Link>
 
-      <div className="relative z-10 flex flex-col gap-8 max-w-sm">
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold tracking-tight text-white leading-snug">
-            Turn feedback into features, not noise
-          </h2>
-          <p className="text-sm text-white/50 leading-relaxed">
-            Everything your product team needs to collect, prioritize, and ship — without the chaos.
-          </p>
-        </div>
-
-        <div className="border-l-2 border-white/20 pl-4 space-y-1">
-          <p className="text-sm font-medium text-white/80 leading-snug">
-            Silence is your biggest churn driver.
-          </p>
-          <p className="text-sm text-white/45 leading-relaxed">
-            Most customers don't leave over pricing or bugs — they leave because they asked for
-            something, heard nothing, and quietly moved on. Feeduro fixes that.
-          </p>
-        </div>
-
-        <ul className="space-y-6">
-          {features.map(({ Icon, title, description }) => (
-            <li key={title} className="flex gap-4">
-              <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.06]">
-                <Icon className="size-4 text-white/60" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white/85">{title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-white/45">{description}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+      <div className="relative z-10 max-w-xs space-y-4">
+        <h2 className="text-3xl font-semibold tracking-tight text-white leading-snug">
+          Feedback that actually gets shipped.
+        </h2>
+        <p className="text-sm text-white/45 leading-relaxed">
+          Most customers don't leave over pricing — they leave because they asked for something,
+          heard nothing, and moved on. Feeduro closes that gap.
+        </p>
       </div>
 
       <div className="relative z-10 border-t border-white/[0.08] pt-6">
-        <p className="text-xs text-white/30">Free to start. No credit card required.</p>
+        <p className="text-xs text-white/30">Free to start · No credit card required</p>
       </div>
     </div>
   );

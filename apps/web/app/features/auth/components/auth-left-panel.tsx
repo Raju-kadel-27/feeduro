@@ -1,23 +1,28 @@
-import { MessageSquare } from "lucide-react";
+import { Layers, Megaphone, MessageSquare } from "lucide-react";
 import { Link } from "react-router";
 
-interface AuthLeftPanelProps {
-  quote: string;
-  author: string;
-  authorTitle: string;
-  avatarInitials: string;
-  avatarUrl?: string;
-}
+const features = [
+  {
+    Icon: MessageSquare,
+    title: "One place for all feedback",
+    description:
+      "A public board your users actually visit. No more digging through emails, Slack, or spreadsheets.",
+  },
+  {
+    Icon: Layers,
+    title: "Prioritize with real data",
+    description:
+      "See what customers actually want, ranked by votes and business impact — not whoever shouted loudest in the meeting.",
+  },
+  {
+    Icon: Megaphone,
+    title: "Close the loop",
+    description:
+      "Publish a changelog and auto-notify everyone who asked. Turn feature reporters into loyal advocates.",
+  },
+];
 
-const placeholderLogos = ["Orbit", "Launchpad", "Nexus", "Foundry", "Meridian", "Arcane"];
-
-export function AuthLeftPanel({
-  quote,
-  author,
-  authorTitle,
-  avatarInitials,
-  avatarUrl,
-}: AuthLeftPanelProps) {
+export function AuthLeftPanel() {
   return (
     <div className="hidden lg:flex w-1/2 flex-col justify-between p-10 relative bg-[#111214] overflow-hidden">
       <div
@@ -36,41 +41,43 @@ export function AuthLeftPanel({
         Feeduro
       </Link>
 
-      <div className="relative z-10 flex flex-col items-center text-center gap-6">
-        <div className="w-24 h-24 rounded-full border border-white/10 overflow-hidden shrink-0">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={author} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-white/[0.06] flex items-center justify-center">
-              <span className="text-xl font-medium tracking-wide text-white/40">
-                {avatarInitials}
-              </span>
-            </div>
-          )}
+      <div className="relative z-10 flex flex-col gap-8 max-w-sm">
+        <div className="space-y-3">
+          <h2 className="text-2xl font-semibold tracking-tight text-white leading-snug">
+            Turn feedback into features, not noise
+          </h2>
+          <p className="text-sm text-white/50 leading-relaxed">
+            Everything your product team needs to collect, prioritize, and ship — without the chaos.
+          </p>
         </div>
 
-        <blockquote className="space-y-4 max-w-sm">
-          <p className="text-[17px] leading-[1.75] text-white/85">
-            &ldquo;{quote}&rdquo;
+        <div className="border-l-2 border-white/20 pl-4 space-y-1">
+          <p className="text-sm font-medium text-white/80 leading-snug">
+            Silence is your biggest churn driver.
           </p>
-          <footer>
-            <p className="text-sm font-semibold text-white/75">{author}</p>
-            <p className="text-xs text-white/45 mt-1">{authorTitle}</p>
-          </footer>
-        </blockquote>
+          <p className="text-sm text-white/45 leading-relaxed">
+            Most customers don't leave over pricing or bugs — they leave because they asked for
+            something, heard nothing, and quietly moved on. Feeduro fixes that.
+          </p>
+        </div>
+
+        <ul className="space-y-6">
+          {features.map(({ Icon, title, description }) => (
+            <li key={title} className="flex gap-4">
+              <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.06]">
+                <Icon className="size-4 text-white/60" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white/85">{title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-white/45">{description}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <div className="relative z-10 border-t border-white/[0.08] pt-6 space-y-4">
-        <p className="text-center text-[10px] uppercase tracking-[0.14em] text-white/35">
-          Trusted by teams at
-        </p>
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-          {placeholderLogos.map((name) => (
-            <span key={name} className="text-sm font-medium text-white/45">
-              {name}
-            </span>
-          ))}
-        </div>
+      <div className="relative z-10 border-t border-white/[0.08] pt-6">
+        <p className="text-xs text-white/30">Free to start. No credit card required.</p>
       </div>
     </div>
   );

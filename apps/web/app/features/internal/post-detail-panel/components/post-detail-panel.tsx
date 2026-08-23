@@ -143,6 +143,7 @@ export function PostDetailPanel({
           orgSlug={orgSlug}
           postId={postId}
           postTitle={post.title}
+          publicPostUrl={`${window.location.origin}/${orgSlug}/portal?postId=${postId}`}
           isAdmin={isAdmin}
           hasMergedInto={!!post.mergedIntoPostId}
           vote={vote}

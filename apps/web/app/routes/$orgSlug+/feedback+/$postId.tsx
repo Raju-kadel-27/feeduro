@@ -1,4 +1,5 @@
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { getPublicBoardUrl } from "@features/domains/public-board-url";
 import type { AdminStatus } from "@features/feedback/schemas/admin";
 import type { FeedItem } from "@features/internal/post-detail-panel/components/post-activity-feed";
 import { PostDetailBody, type Tab } from "@features/internal/post-detail-panel/components/post-detail-body";
@@ -17,39 +18,74 @@ import { and, eq } from "drizzle-orm";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { feedbackPosts } from "@/db/schema";
+import { customDomains, feedbackPosts } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/$postId";
 
 export const handle = { hideSidebar: true };
 
 export function meta({ data }: Route.MetaArgs) {
-  return [{ title: `${data?.postTitle ?? "Feedback"} — Feeduro` }];
+  if (!data) return [{ title: "Feedback — Feeduro" }];
+  const ogImage = `${data.origin}/api/og?orgSlug=${encodeURIComponent(data.orgSlug)}&postId=${encodeURIComponent(data.postId)}`;
+  const desc =
+    data.voteCount > 0
+      ? `${data.voteCount} vote${data.voteCount === 1 ? "" : "s"} · Share your feedback.`
+      : "Share your feedback and ideas.";
+  return [
+    { title: `${data.postTitle} — Feeduro` },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: data.publicPostUrl },
+    { property: "og:title", content: data.postTitle },
+    { property: "og:description", content: desc },
+    { property: "og:image", content: ogImage },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: data.postTitle },
+    { name: "twitter:description", content: desc },
+    { name: "twitter:image", content: ogImage },
+  ];
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
 
-  const post = await db.query.feedbackPosts.findFirst({
-    where: and(
-      eq(feedbackPosts.id, params.postId),
-      eq(feedbackPosts.organizationId, organizationId),
-    ),
-    columns: { title: true },
-  });
+  const [post, activeDomain] = await Promise.all([
+    db.query.feedbackPosts.findFirst({
+      where: and(
+        eq(feedbackPosts.id, params.postId),
+        eq(feedbackPosts.organizationId, organizationId),
+      ),
+      columns: { title: true, voteCount: true },
+    }),
+    db.query.customDomains.findFirst({
+      where: and(
+        eq(customDomains.organizationId, organizationId),
+        eq(customDomains.status, "active"),
+      ),
+      columns: { domain: true },
+    }),
+  ]);
 
   if (!post) throw new Response("Not found", { status: 404 });
 
+  const boardBase = activeDomain
+    ? `https://${activeDomain.domain}`
+    : getPublicBoardUrl(params.orgSlug);
+
   return {
     postTitle: post.title,
+    voteCount: post.voteCount ?? 0,
     orgSlug: params.orgSlug,
     postId: params.postId,
+    publicPostUrl: `${boardBase}/?postId=${params.postId}`,
+    origin: new URL(request.url).origin,
   };
 }
 
 export default function FeedbackDetailPage({ loaderData }: Route.ComponentProps) {
-  const { orgSlug, postId } = loaderData;
+  const { orgSlug, postId, publicPostUrl } = loaderData;
   const navigate = useNavigate();
   const qc = useQueryClient();
   const initializedRef = useRef(false);
@@ -146,6 +182,7 @@ export default function FeedbackDetailPage({ loaderData }: Route.ComponentProps)
         orgSlug={orgSlug}
         postId={postId}
         postTitle={post.title}
+        publicPostUrl={publicPostUrl}
         isAdmin={isAdmin}
         hasMergedInto={!!post.mergedIntoPostId}
         vote={vote}

@@ -75,8 +75,8 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     publicBoardUrl,
     links: {
       feedback: publicBoardUrl,
-      roadmap: `${publicBoardUrl}/roadmap`,
-      changelog: `${publicBoardUrl}/changelog`,
+      roadmap: `${publicBoardUrl}/portal/roadmap`,
+      changelog: `${publicBoardUrl}/portal/updates`,
     },
   });
 }
@@ -137,10 +137,6 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
   const redditTitle = encodeURIComponent(
     `${org.name} now has a public feedback board — vote on what gets built next`,
   );
-  const linkedInText = encodeURIComponent(
-    `We've opened a public feedback board for ${org.name}.\n\nHave a feature request, spotted a bug, or just have thoughts on where we should go? This is the place:\n\n${publicBoardUrl}\n\nWe go through every submission. Highest-voted ideas get prioritized first.`,
-  );
-
   const socials = [
     {
       label: "Twitter / X",
@@ -154,7 +150,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
       description: "Announce it to your professional network",
       icon: LinkedinIcon,
       color: "#0a66c2",
-      href: `https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&summary=${linkedInText}&title=${encodeURIComponent(`Feedback board for ${org.name}`)}`,
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`,
     },
     {
       label: "Facebook",

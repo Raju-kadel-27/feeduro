@@ -1,11 +1,13 @@
 import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
 import { cn } from "@lib/utils";
-import { ChevronUp, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ChevronUp, ExternalLink, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 import type { PublicPost, SessionUser } from "../../schemas/public";
 import { VoteResponseSchema } from "../../schemas/public";
 import { StatusPill } from "../status-pill";
-import { PublicCommentsSection } from "./public-comments-section";
+import { PublicCommentsSection, publicCommentsQueryKey } from "./public-comments-section";
 import { PublicComposeFooter } from "./public-compose-footer";
 
 export function DetailPanel({
@@ -23,10 +25,10 @@ export function DetailPanel({
   sessionUser: SessionUser | null;
   onAuthRequired: () => void;
 }) {
+  const queryClient = useQueryClient();
   const [voted, setVoted] = useState(initialVoted);
   const [voteCount, setVoteCount] = useState(post?.voteCount ?? 0);
   const [voting, setVoting] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   if (!post) return null;
   const postId = post.id;
@@ -64,6 +66,15 @@ export function DetailPanel({
         <header className="flex items-center h-12 px-4 border-b shrink-0 gap-2">
           <StatusPill id={post.status} />
           <div className="flex-1" />
+          <Link
+            to={`/${orgSlug}/portal/post/${postId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title="Open in full page"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Link>
           <button
             type="button"
             onClick={onClose}
@@ -80,7 +91,7 @@ export function DetailPanel({
                 <FeedbackAvatar name={post.authorName} size={16} />
                 <span className="font-medium text-foreground/80">{post.authorName}</span>
                 <span>·</span>
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-muted font-medium text-foreground/60">
+                <span className="px-1.5 py-0.5 rounded-full text-[11px] bg-muted font-medium text-foreground/60">
                   {post.boardName}
                 </span>
               </div>
@@ -102,7 +113,7 @@ export function DetailPanel({
                     voted ? "stroke-[2.5]" : "stroke-[1.75]",
                   )}
                 />
-                <span className="text-[10px] font-semibold leading-none tabular-nums">
+                <span className="text-[11px] font-semibold leading-none tabular-nums">
                   {voteCount}
                 </span>
               </button>
@@ -118,13 +129,13 @@ export function DetailPanel({
             </div>
 
             <div className="pt-3 space-y-3">
-              <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <h3 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Comments
                 {post.commentCount > 0 && (
                   <span className="ml-1.5 normal-case font-normal">· {post.commentCount}</span>
                 )}
               </h3>
-              <PublicCommentsSection postId={postId} orgSlug={orgSlug} refreshKey={refreshKey} />
+              <PublicCommentsSection postId={postId} orgSlug={orgSlug} />
             </div>
           </div>
         </div>
@@ -134,7 +145,9 @@ export function DetailPanel({
           orgSlug={orgSlug}
           sessionUser={sessionUser}
           onAuthRequired={onAuthRequired}
-          onCommentPosted={() => setRefreshKey((k) => k + 1)}
+          onCommentPosted={() =>
+            queryClient.invalidateQueries({ queryKey: publicCommentsQueryKey(postId, orgSlug) })
+          }
         />
       </div>
     </>

@@ -3,8 +3,10 @@ import { FeedbackCard } from "@features/feedback/components/public/feedback-card
 import { FilterRow } from "@features/feedback/components/public/filter-row";
 import { InlineFeedbackForm } from "@features/feedback/components/public/inline-feedback-form";
 import type { PortalOutletContext } from "@features/feedback/components/public/portal-layout";
+import { publicCommentsQueryKey } from "@features/feedback/components/public/public-comments-section";
 import { PublicSidebar } from "@features/feedback/components/public/public-sidebar";
 import type { PublicPost, StatusKey } from "@features/feedback/schemas/public";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useOutletContext, useSearchParams } from "react-router";
 
@@ -20,8 +22,23 @@ export function PortalFeedbackTab() {
     setAuthModal,
   } = useOutletContext<PortalOutletContext>();
 
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedPostId = searchParams.get("postId");
+
+  function prefetchComments(postId: string) {
+    queryClient.prefetchQuery({
+      queryKey: publicCommentsQueryKey(postId, org.slug),
+      queryFn: async () => {
+        const r = await fetch(
+          `/api/public-comments?postId=${postId}&orgSlug=${encodeURIComponent(org.slug)}`,
+        );
+        const json = (await r.json()) as { comments?: unknown[] };
+        return json.comments ?? [];
+      },
+      staleTime: 60_000,
+    });
+  }
 
   function setSelectedPostId(id: string | null) {
     setSearchParams(
@@ -119,6 +136,7 @@ export function PortalFeedbackTab() {
                   if (!sessionUser) setAuthModal("sign-in");
                 }}
                 onSelectPost={() => setSelectedPostId(post.id)}
+                onMouseEnter={() => prefetchComments(post.id)}
               />
             ))}
             {filtered.length === 0 && (

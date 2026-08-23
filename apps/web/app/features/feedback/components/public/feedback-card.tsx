@@ -12,6 +12,7 @@ export function FeedbackCard({
   sessionUser,
   onAuthRequired,
   onSelectPost,
+  onMouseEnter,
 }: {
   post: PublicPost;
   orgSlug: string;
@@ -19,6 +20,7 @@ export function FeedbackCard({
   sessionUser: SessionUser | null;
   onAuthRequired: () => void;
   onSelectPost: () => void;
+  onMouseEnter?: () => void;
 }) {
   const [voted, setVoted] = useState(initialVoted);
   const [voteCount, setVoteCount] = useState(post.voteCount);
@@ -56,23 +58,24 @@ export function FeedbackCard({
   return (
     <article
       onClick={onSelectPost}
+      onMouseEnter={onMouseEnter}
       className="group flex items-center gap-3 py-2 px-4 -mx-4 border-b border-border/30 last:border-0 cursor-pointer hover:bg-accent/30 transition-colors"
     >
       <div className="min-w-0 flex-1">
-        <h3 className="text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
+        <h3 className="text-[16px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
           {post.title}
         </h3>
         {post.description && (
-          <p className="mt-0.5 text-[14.5px] leading-relaxed text-muted-foreground line-clamp-1">
+          <p className="mt-0.5 text-[15.5px] leading-relaxed text-muted-foreground line-clamp-1">
             {post.description}
           </p>
         )}
-        <div className="mt-1 flex items-center gap-1 text-[12px] text-muted-foreground">
+        <div className="mt-1 flex items-center gap-1 text-[13px] text-muted-foreground">
           <MessageSquare className="h-2.5 w-2.5" />
-          <span className="text-[12px]">{post.commentCount}</span>
+          <span className="text-[13px]">{post.commentCount}</span>
           <span className="mx-0.5 text-border">·</span>
           <span
-            className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[12px] font-medium"
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[13px] font-medium"
             style={{ background: STATUS[post.status].bg, color: STATUS[post.status].fg }}
           >
             <span className="h-1 w-1 rounded-full" style={{ background: STATUS[post.status].dot }} />
@@ -98,7 +101,7 @@ export function FeedbackCard({
         )}
       >
         <ChevronUp className="h-3.5 w-3.5 transition-transform duration-150 group-hover/vote:-translate-y-0.5" strokeWidth={2} />
-        <span className="text-[12px] font-bold leading-none mt-0.5">{voteCount}</span>
+        <span className="text-[13px] font-bold leading-none mt-0.5">{voteCount}</span>
       </button>
     </article>
   );

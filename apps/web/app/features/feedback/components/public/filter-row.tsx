@@ -51,7 +51,7 @@ export function FilterRow({
         <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
         <input
           placeholder="Search posts..."
-          className="h-7 w-full rounded-md border border-border bg-background pl-7 pr-3 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          className="h-7 w-full rounded-md border border-border bg-background pl-7 pr-3 text-[14px] placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
         />
       </div>
 
@@ -61,7 +61,7 @@ export function FilterRow({
           <PopoverTrigger asChild>
             <button
               type="button"
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-border bg-background text-[13px] font-medium text-foreground hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-border bg-background text-[14px] font-medium text-foreground hover:bg-muted transition-colors"
             >
               Sort: {sortLabel}
               <ChevronDown className="h-3 w-3 text-muted-foreground" />
@@ -74,7 +74,7 @@ export function FilterRow({
                 type="button"
                 onClick={() => setSort(o.value)}
                 className={cn(
-                  "w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded text-[13.5px] transition-colors",
+                  "w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded text-[14.5px] transition-colors",
                   sort === o.value
                     ? "text-foreground font-medium bg-muted"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted",
@@ -93,7 +93,7 @@ export function FilterRow({
             <button
               type="button"
               className={cn(
-                "inline-flex items-center gap-1 h-7 px-2.5 rounded-md border text-[13px] font-medium transition-colors",
+                "inline-flex items-center gap-1 h-7 px-2.5 rounded-md border text-[14px] font-medium transition-colors",
                 activeCount > 0
                   ? "border-foreground/40 bg-muted text-foreground"
                   : "border-border bg-background text-foreground hover:bg-muted",
@@ -102,7 +102,7 @@ export function FilterRow({
               <SlidersHorizontal className="h-3 w-3" />
               Filter
               {activeCount > 0 && (
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[11px] font-bold">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[12px] font-bold">
                   {activeCount}
                 </span>
               )}
@@ -110,7 +110,7 @@ export function FilterRow({
             </button>
           </PopoverTrigger>
           <PopoverContent align="end" sideOffset={6} className="p-1 w-40">
-            <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="px-2.5 pt-1 pb-0.5 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
               Status
             </p>
             {STATUS_FILTERS.map((f) => (
@@ -118,7 +118,7 @@ export function FilterRow({
                 key={f.id}
                 type="button"
                 onClick={() => toggle(f.id)}
-                className="w-full flex items-center gap-2 px-2 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="w-full flex items-center gap-2 px-2 py-1 rounded text-[14px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <span
                   className={cn(
@@ -132,7 +132,7 @@ export function FilterRow({
               </button>
             ))}
             <div className="my-1 mx-2 h-px bg-border" />
-            <p className="px-2 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="px-2 pt-1 pb-0.5 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
               Scope
             </p>
             {SCOPE_FILTERS.map((label) => (
@@ -140,7 +140,7 @@ export function FilterRow({
                 key={label}
                 type="button"
                 onClick={() => toggleScope(label)}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[13.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[14.5px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <span
                   className={cn(

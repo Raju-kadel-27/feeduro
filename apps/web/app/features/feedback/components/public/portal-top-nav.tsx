@@ -37,11 +37,11 @@ export function PortalTopNav({
             {orgLogo ? (
               <img src={orgLogo} alt={orgName} className="h-7 w-7 rounded-md object-cover" />
             ) : (
-              <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground text-[13px] font-bold">
+              <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground text-[14px] font-bold">
                 {orgName[0]?.toUpperCase() ?? "?"}
               </span>
             )}
-            <span className="text-[15px] font-semibold tracking-tight">{orgName}</span>
+            <span className="text-[16px] font-semibold tracking-tight">{orgName}</span>
           </a>
         </div>
 
@@ -54,7 +54,7 @@ export function PortalTopNav({
               end
               className={({ isActive }) =>
                 cn(
-                  "relative px-3 h-11 text-[16px] inline-flex items-center transition-colors",
+                  "relative px-3 h-11 text-[17px] inline-flex items-center transition-colors",
                   isActive
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -92,14 +92,14 @@ export function PortalTopNav({
               <button
                 type="button"
                 onClick={onSignIn}
-                className="px-3 h-8 rounded-md border border-border text-[13.5px] font-medium text-foreground/80 hover:text-foreground hover:bg-muted transition-colors inline-flex items-center"
+                className="px-3 h-8 rounded-md border border-border text-[14.5px] font-medium text-foreground/80 hover:text-foreground hover:bg-muted transition-colors inline-flex items-center"
               >
                 Sign in
               </button>
               <button
                 type="button"
                 onClick={onSignUp}
-                className="px-3 h-8 rounded-md bg-primary text-primary-foreground text-[13.5px] font-medium hover:bg-primary/90 transition-colors inline-flex items-center"
+                className="px-3 h-8 rounded-md bg-primary text-primary-foreground text-[14.5px] font-medium hover:bg-primary/90 transition-colors inline-flex items-center"
               >
                 Sign up
               </button>

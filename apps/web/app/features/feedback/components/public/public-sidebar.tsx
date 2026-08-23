@@ -24,7 +24,7 @@ return (
     <aside className="w-[240px] shrink-0 pr-0">
       {boards.length > 0 && (
         <div>
-          <div className="px-2 text-[13px] tracking-wider text-muted-foreground/80 uppercase">
+          <div className="px-2 text-[14px] tracking-wider text-muted-foreground/80 uppercase">
             Boards
           </div>
           <ul className="mt-2 flex flex-col">
@@ -51,14 +51,14 @@ return (
       )}
 
       <div className="mt-7">
-        <div className="px-2 text-[13px] tracking-wider text-muted-foreground/80 uppercase">
+        <div className="px-2 text-[14px] tracking-wider text-muted-foreground/80 uppercase">
           Actions
         </div>
         <ul className="mt-2 flex flex-col">
           <li>
             <button
               onClick={handleCopyLink}
-              className="w-full flex items-center gap-2.5 rounded-md px-2.5 h-9 text-[14px] text-foreground/80 hover:bg-muted/60 hover:text-foreground"
+              className="w-full flex items-center gap-2.5 rounded-md px-2.5 h-9 text-[15px] text-foreground/80 hover:bg-muted/60 hover:text-foreground"
             >
               <Link2 className="h-3.5 w-3.5" />
               Copy link
@@ -72,7 +72,7 @@ return (
           href="https://feeduro.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[14px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          className="text-[15px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
         >
           Powered by Feeduro
         </a>

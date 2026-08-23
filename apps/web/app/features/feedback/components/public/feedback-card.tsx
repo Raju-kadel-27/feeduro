@@ -12,6 +12,7 @@ export function FeedbackCard({
   sessionUser,
   onAuthRequired,
   onSelectPost,
+  onMouseEnter,
 }: {
   post: PublicPost;
   orgSlug: string;
@@ -19,6 +20,7 @@ export function FeedbackCard({
   sessionUser: SessionUser | null;
   onAuthRequired: () => void;
   onSelectPost: () => void;
+  onMouseEnter?: () => void;
 }) {
   const [voted, setVoted] = useState(initialVoted);
   const [voteCount, setVoteCount] = useState(post.voteCount);
@@ -56,6 +58,7 @@ export function FeedbackCard({
   return (
     <article
       onClick={onSelectPost}
+      onMouseEnter={onMouseEnter}
       className="group flex items-center gap-3 py-2 px-4 -mx-4 border-b border-border/30 last:border-0 cursor-pointer hover:bg-accent/30 transition-colors"
     >
       <div className="min-w-0 flex-1">

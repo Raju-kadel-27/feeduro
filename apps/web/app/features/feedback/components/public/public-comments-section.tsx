@@ -1,8 +1,11 @@
 import { Badge } from "@components/ui/badge";
 import { FeedbackAvatar } from "@features/feedback/components/feedback-avatar";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { PublicComment } from "../../schemas/public";
 import { timeAgo } from "../../utils";
+
+export const publicCommentsQueryKey = (postId: string, orgSlug: string) =>
+  ["public-comments", postId, orgSlug] as const;
 
 function TeamBadge() {
   return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 leading-none">Team</Badge>;
@@ -56,36 +59,28 @@ function CommentRow({ comment }: { comment: PublicComment }) {
   );
 }
 
+async function fetchPublicComments(postId: string, orgSlug: string): Promise<PublicComment[]> {
+  const r = await fetch(
+    `/api/public-comments?postId=${postId}&orgSlug=${encodeURIComponent(orgSlug)}`,
+  );
+  const json = (await r.json()) as { comments?: PublicComment[] };
+  return json.comments ?? [];
+}
+
 export function PublicCommentsSection({
   postId,
   orgSlug,
-  refreshKey,
 }: {
   postId: string;
   orgSlug: string;
-  refreshKey: number;
 }) {
-  const [commentList, setCommentList] = useState<PublicComment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: commentList = [], isLoading } = useQuery({
+    queryKey: publicCommentsQueryKey(postId, orgSlug),
+    queryFn: () => fetchPublicComments(postId, orgSlug),
+    staleTime: 60_000,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    fetch(`/api/public-comments?postId=${postId}&orgSlug=${encodeURIComponent(orgSlug)}`)
-      .then((r) => r.json())
-      .then((json: { comments?: PublicComment[] }) => {
-        if (!cancelled) setCommentList(json.comments ?? []);
-      })
-      .catch((err) => console.error("[public-comments] failed to load", err))
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [postId, orgSlug, refreshKey]);
-
-  if (loading) {
+  if (isLoading) {
     return <p className="py-4 text-center text-xs text-muted-foreground">Loading…</p>;
   }
   if (commentList.length === 0) {

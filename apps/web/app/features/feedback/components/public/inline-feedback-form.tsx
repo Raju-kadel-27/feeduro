@@ -88,7 +88,7 @@ export function InlineFeedbackForm({
       <button
         type="button"
         onClick={() => setCollapsed(false)}
-        className="w-full flex items-center justify-between gap-3 rounded-xl border border-border bg-card shadow-sm mb-4 px-4 h-12 hover:bg-muted/30 transition-colors group"
+        className="w-full flex items-center justify-between gap-3 border border-border bg-card shadow-sm mb-4 px-4 h-12 hover:bg-muted/30 transition-colors group"
       >
         <span className="text-[16px] text-muted-foreground/50">Share your feedback...</span>
         <span className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0 group-hover:bg-primary/90 transition-colors">
@@ -98,7 +98,7 @@ export function InlineFeedbackForm({
         </span>
       </button>
     ) : (
-    <div className="relative rounded-xl border border-border bg-card shadow-sm mb-4 overflow-hidden animate-fade-in">
+    <div className="relative border border-border bg-card shadow-sm mb-4 overflow-hidden animate-fade-in">
       {/* Clear button */}
       <button
         type="button"
@@ -121,7 +121,7 @@ export function InlineFeedbackForm({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add details"
           rows={1}
-          className="mt-2 w-full resize-none rounded-none bg-transparent text-[14.5px] text-muted-foreground placeholder:text-muted-foreground/35 focus:outline-none"
+          className="mt-2 w-full resize-none bg-transparent text-[14.5px] text-muted-foreground placeholder:text-muted-foreground/35 focus:outline-none"
         />
       </div>
 

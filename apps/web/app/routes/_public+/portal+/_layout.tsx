@@ -12,6 +12,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return publicPageLoader(getDb(context), { request, orgSlug });
 }
 
+// Portal data is stable per session — mutations use local state or window.location.reload().
+// Prevent re-fetching 8+ DB queries on every tab navigation.
+export function shouldRevalidate() {
+  return false;
+}
+
 export function meta({ data, location }: Route.MetaArgs) {
   return buildPublicBoardMeta(data, location.search);
 }

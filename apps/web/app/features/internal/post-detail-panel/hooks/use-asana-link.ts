@@ -10,7 +10,7 @@ export function useAsanaLink(postId: string) {
 
   const { mutate: createAsanaTask, isPending: creatingAsanaTask } = useMutation({
     mutationFn: async (params?: { name?: string; notes?: string }) => {
-      const res = await fetch("/api/asana", {
+      const res = await fetch("/api/oauth2/integrations/asana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "create_task", postId, ...params }),
@@ -33,7 +33,7 @@ export function useAsanaLink(postId: string) {
 
   const { mutate: linkAsanaTask, isPending: linkingAsanaTask } = useMutation({
     mutationFn: async (taskInput: string) => {
-      const res = await fetch("/api/asana", {
+      const res = await fetch("/api/oauth2/integrations/asana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "link_task", postId, taskInput }),
@@ -57,7 +57,7 @@ export function useAsanaLink(postId: string) {
 
   const { mutate: unlinkAsanaTask, isPending: unlinkingAsanaTask } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/asana", {
+      const res = await fetch("/api/oauth2/integrations/asana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "unlink_task", postId }),

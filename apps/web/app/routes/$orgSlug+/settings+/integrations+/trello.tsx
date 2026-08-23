@@ -101,7 +101,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
   const { data: boardsData, isLoading: loadingBoards } = useQuery({
     queryKey: ["trello-boards"],
     queryFn: async () => {
-      const res = await fetch("/api/trello", {
+      const res = await fetch("/api/oauth2/integrations/trello", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_boards" }),
@@ -116,7 +116,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
   const { data: listsData, isLoading: loadingLists } = useQuery({
     queryKey: ["trello-lists", selectedBoardId],
     queryFn: async () => {
-      const res = await fetch("/api/trello", {
+      const res = await fetch("/api/oauth2/integrations/trello", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_lists", boardId: selectedBoardId }),
@@ -140,7 +140,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
           feeduroStatus: statusMappings[l.id],
         }));
 
-      const res = await fetch("/api/trello", {
+      const res = await fetch("/api/oauth2/integrations/trello", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -169,7 +169,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/trello", {
+      const res = await fetch("/api/oauth2/integrations/trello", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

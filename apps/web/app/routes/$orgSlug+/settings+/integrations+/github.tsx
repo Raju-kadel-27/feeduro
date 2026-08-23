@@ -75,7 +75,7 @@ interface GithubRepo {
 }
 
 async function callApi(body: object) {
-  const res = await fetch("/api/github", {
+  const res = await fetch("/api/oauth2/integrations/github", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

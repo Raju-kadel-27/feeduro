@@ -69,7 +69,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
 
   const { mutate: saveSettings, isPending: saving } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/zendesk", {
+      const res = await fetch("/api/oauth2/integrations/zendesk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "update_settings", autoCreateTickets: autoCreate }),
@@ -91,7 +91,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/zendesk", {
+      const res = await fetch("/api/oauth2/integrations/zendesk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

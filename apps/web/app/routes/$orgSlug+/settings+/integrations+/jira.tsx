@@ -132,7 +132,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
   const { data: projectsData, isLoading: loadingProjects } = useQuery({
     queryKey: ["jira-projects"],
     queryFn: async () => {
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_projects" }),
@@ -150,7 +150,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
   const { data: statusesData, isLoading: loadingStatuses } = useQuery({
     queryKey: ["jira-project-statuses", selectedProjectKey],
     queryFn: async () => {
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_project_statuses", projectKey: selectedProjectKey }),
@@ -177,7 +177,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
           feeduroStatus: statusMappings[s.id],
         }));
 
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -201,7 +201,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
   const { mutate: selectCloud } = useMutation({
     mutationFn: async (newCloudId: string) => {
       setSelectingCloud(true);
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "select_cloud", cloudId: newCloudId }),
@@ -222,7 +222,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

@@ -10,7 +10,7 @@ export function useJiraLink(postId: string) {
 
   const { mutate: createJiraIssue, isPending: creatingJiraIssue } = useMutation({
     mutationFn: async (params?: { summary?: string; description?: string; projectKey?: string }) => {
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "create_issue", postId, ...params }),
@@ -33,7 +33,7 @@ export function useJiraLink(postId: string) {
 
   const { mutate: linkJiraIssue, isPending: linkingJiraIssue } = useMutation({
     mutationFn: async (issueKeyOrId: string) => {
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "link_issue", postId, issueKeyOrId }),
@@ -57,7 +57,7 @@ export function useJiraLink(postId: string) {
 
   const { mutate: unlinkJiraIssue, isPending: unlinkingJiraIssue } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/oauth2/integrations/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "unlink_issue", postId }),

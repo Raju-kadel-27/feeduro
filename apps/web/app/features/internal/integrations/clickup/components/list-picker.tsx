@@ -7,7 +7,7 @@ import { useState } from "react";
 interface Item { id: string; name: string; folder?: string }
 
 async function callClickupApi(body: object) {
-  const res = await fetch("/api/clickup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const res = await fetch("/api/oauth2/integrations/clickup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const json = (await res.json()) as { error?: string; [k: string]: unknown };
   if (!res.ok) throw new Error(json.error ?? "Request failed");
   return json;

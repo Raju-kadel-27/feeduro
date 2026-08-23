@@ -184,9 +184,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
   }
 
   return (
-        <>
-        <IntegrationPageHeader title="Monday.com" />
-
+        <IntegrationPageHeader title="Monday.com">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
@@ -479,6 +477,6 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
             </section>
           )}
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

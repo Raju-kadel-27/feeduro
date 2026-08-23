@@ -260,9 +260,7 @@ export default function LinearIntegrationSettings({ loaderData }: Route.Componen
   });
 
   return (
-        <>
-        <IntegrationPageHeader title="Linear Integration" />
-
+        <IntegrationPageHeader title="Linear Integration">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Linear</h2>
@@ -494,6 +492,6 @@ export default function LinearIntegrationSettings({ loaderData }: Route.Componen
           )}
 
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

@@ -187,9 +187,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
   }
 
   return (
-        <>
-        <IntegrationPageHeader title="Asana" />
-
+        <IntegrationPageHeader title="Asana">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
@@ -484,6 +482,6 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
             </section>
           )}
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

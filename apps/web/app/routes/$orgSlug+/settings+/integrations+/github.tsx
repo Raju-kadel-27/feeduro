@@ -231,9 +231,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
       : null;
 
   return (
-        <>
-        <IntegrationPageHeader title="GitHub Integration" />
-
+        <IntegrationPageHeader title="GitHub Integration">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>
             <h2 className="text-sm font-semibold text-foreground">GitHub Issues</h2>
@@ -444,6 +442,6 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
           )}
 
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

@@ -257,9 +257,7 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
   });
 
   return (
-        <>
-        <IntegrationPageHeader title="Shortcut Integration" />
-
+        <IntegrationPageHeader title="Shortcut Integration">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Shortcut</h2>
@@ -523,6 +521,6 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
           )}
 
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

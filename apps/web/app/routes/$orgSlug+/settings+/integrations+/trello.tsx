@@ -184,9 +184,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
   }
 
   return (
-        <>
-        <IntegrationPageHeader title="Trello" />
-
+        <IntegrationPageHeader title="Trello">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
@@ -481,6 +479,6 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
             </section>
           )}
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

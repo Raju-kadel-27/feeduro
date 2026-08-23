@@ -61,8 +61,7 @@ export function ClickupSettingsPage({ integration, isAdmin }: Props) {
   });
 
   return (
-    <>
-      <IntegrationPageHeader title="ClickUp Integration" />
+    <IntegrationPageHeader title="ClickUp Integration">
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <div>
           <h2 className="text-sm font-semibold text-foreground">ClickUp</h2>
@@ -144,6 +143,6 @@ export function ClickupSettingsPage({ integration, isAdmin }: Props) {
           </p>
         )}
       </main>
-    </>
+    </IntegrationPageHeader>
   );
 }

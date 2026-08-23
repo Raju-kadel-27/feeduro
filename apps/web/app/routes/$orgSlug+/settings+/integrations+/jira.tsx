@@ -237,9 +237,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
   }
 
   return (
-        <>
-        <IntegrationPageHeader title="Jira" />
-
+        <IntegrationPageHeader title="Jira">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
@@ -528,6 +526,6 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
             </section>
           )}
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

@@ -106,9 +106,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
   }
 
   return (
-        <>
-        <IntegrationPageHeader title="Zendesk" />
-
+        <IntegrationPageHeader title="Zendesk">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted">
@@ -305,6 +303,6 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
             </section>
           )}
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

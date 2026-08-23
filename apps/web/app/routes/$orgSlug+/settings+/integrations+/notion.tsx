@@ -132,9 +132,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
   }
 
   return (
-        <>
-        <IntegrationPageHeader title="Notion" />
-
+        <IntegrationPageHeader title="Notion">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted">
@@ -327,6 +325,6 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
             </section>
           )}
         </main>
-        </>
+        </IntegrationPageHeader>
   );
 }

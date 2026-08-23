@@ -50,6 +50,7 @@ export function PortalTopNav({
             <NavLink
               key={tab.id}
               to={`${tabBasePath}/${tab.id}`}
+              prefetch="intent"
               end
               className={({ isActive }) =>
                 cn(

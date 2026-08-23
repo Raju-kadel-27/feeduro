@@ -49,10 +49,20 @@ export async function publicPageLoader(
   let publicUser: { id: string; email: string; name?: string } | null = null;
   let widgetToken: string | null = null;
 
-  const widgetConfig = await db.query.widgetConfigs.findFirst({
-    where: eq(widgetConfigs.organizationId, org.id),
-    columns: { signingSecret: true, token: true },
-  });
+  // Round 2: all org-level queries in parallel (none depend on each other)
+  const [widgetConfig, boards, { entries: changelogEntries, nextCursor: changelogNextCursor }] =
+    await Promise.all([
+      db.query.widgetConfigs.findFirst({
+        where: eq(widgetConfigs.organizationId, org.id),
+        columns: { signingSecret: true, token: true },
+      }),
+      db.query.feedbackBoards.findMany({
+        where: and(eq(feedbackBoards.organizationId, org.id), eq(feedbackBoards.visibility, "public")),
+        orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
+        columns: { id: true, name: true, slug: true, isDefault: true, anonymizeUsers: true },
+      }),
+      listPublicChangelogEntries(db, org.id, sessionUser?.id ?? null),
+    ]);
 
   if (widgetConfig) {
     widgetToken = widgetConfig.token;
@@ -60,12 +70,6 @@ export async function publicPageLoader(
       publicUser = await verifyIdentityToken(fdyToken, widgetConfig.signingSecret);
     }
   }
-
-  const boards = await db.query.feedbackBoards.findMany({
-    where: and(eq(feedbackBoards.organizationId, org.id), eq(feedbackBoards.visibility, "public")),
-    orderBy: [desc(feedbackBoards.isDefault), desc(feedbackBoards.createdAt)],
-    columns: { id: true, name: true, slug: true, isDefault: true, anonymizeUsers: true },
-  });
 
   const boardIds = boards.map((b) => b.id);
   const boardMap = Object.fromEntries(boards.map((b) => [b.id, b.name]));
@@ -108,6 +112,7 @@ export async function publicPageLoader(
     });
   }
 
+  // Round 3: posts (needs boardIds from round 2)
   const rawPosts = await db.query.feedbackPosts.findMany({
     where: and(eq(feedbackPosts.organizationId, org.id), inArray(feedbackPosts.boardId, boardIds)),
     orderBy: [desc(feedbackPosts.createdAt)],
@@ -123,8 +128,12 @@ export async function publicPageLoader(
   });
 
   const postIds = rawPosts.map((p) => p.id);
+  const uniqueUserIds = [
+    ...new Set(rawPosts.map((p) => p.createdBy).filter((id): id is string => id != null)),
+  ];
 
-  const [allVotes, commentCountRows] = await Promise.all([
+  // Round 4: all post-level queries in parallel (votes, comments, users, admins)
+  const [allVotes, commentCountRows, users, adminMembers] = await Promise.all([
     postIds.length > 0
       ? db
           .select({ postId: votes.postId, userId: votes.userId })
@@ -141,17 +150,6 @@ export async function publicPageLoader(
           .where(inArray(comments.postId, postIds))
           .groupBy(comments.postId)
       : Promise.resolve([]),
-  ]);
-
-  const voteCountMap = allVotes.reduce<Record<string, number>>((acc, v) => {
-    acc[v.postId] = (acc[v.postId] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  const uniqueUserIds = [
-    ...new Set(rawPosts.map((p) => p.createdBy).filter((id): id is string => id != null)),
-  ];
-  const [users, adminMembers] = await Promise.all([
     uniqueUserIds.length > 0
       ? db.query.user.findMany({
           where: inArray(userTable.id, uniqueUserIds),
@@ -170,6 +168,11 @@ export async function publicPageLoader(
           )
       : Promise.resolve([]),
   ]);
+
+  const voteCountMap = allVotes.reduce<Record<string, number>>((acc, v) => {
+    acc[v.postId] = (acc[v.postId] ?? 0) + 1;
+    return acc;
+  }, {});
   const userMap = Object.fromEntries(users.map((u) => [u.id, u.name]));
   const adminUserIds = new Set(adminMembers.map((m) => m.userId));
   const commentCountMap = Object.fromEntries(commentCountRows.map((r) => [r.postId, r.count]));
@@ -199,9 +202,6 @@ export async function publicPageLoader(
       commentCount: commentCountMap[post.id] ?? 0,
     };
   });
-
-  const { entries: changelogEntries, nextCursor: changelogNextCursor } =
-    await listPublicChangelogEntries(db, org.id, sessionUser?.id ?? null);
 
   const upNextPosts = posts
     .filter((p) => p.status === "planned")

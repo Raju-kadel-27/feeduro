@@ -79,7 +79,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
   const { data: dbData, isLoading: loadingDbs } = useQuery({
     queryKey: ["notion-databases"],
     queryFn: async () => {
-      const res = await fetch("/api/notion", {
+      const res = await fetch("/api/oauth2/integrations/notion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_databases" }),
@@ -92,7 +92,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
 
   const { mutate: saveSettings, isPending: saving } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/notion", {
+      const res = await fetch("/api/oauth2/integrations/notion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,7 +117,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/notion", {
+      const res = await fetch("/api/oauth2/integrations/notion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

@@ -31,7 +31,7 @@ export function CreateJiraIssueModal({
     setSummary(defaultSummary);
     setDescription(defaultDescription);
     setLoadingProjects(true);
-    fetch("/api/jira", {
+    fetch("/api/oauth2/integrations/jira", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ intent: "list_projects" }),

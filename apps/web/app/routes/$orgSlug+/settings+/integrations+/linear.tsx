@@ -92,7 +92,7 @@ const FEEDURO_STATUSES = [
 ] as const;
 
 async function callApi(body: object) {
-  const res = await fetch("/api/linear", {
+  const res = await fetch("/api/oauth2/integrations/linear", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

@@ -78,7 +78,7 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
 
   const { mutate: saveSettings, isPending: saving } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/hubspot", {
+      const res = await fetch("/api/oauth2/integrations/hubspot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "update_settings", autoCreateDeals: autoCreate }),
@@ -98,7 +98,7 @@ export default function HubSpotIntegrationSettings({ loaderData }: Route.Compone
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/hubspot", {
+      const res = await fetch("/api/oauth2/integrations/hubspot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

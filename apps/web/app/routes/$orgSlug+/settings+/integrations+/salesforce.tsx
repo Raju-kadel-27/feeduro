@@ -72,7 +72,7 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
 
   const { mutate: saveSettings, isPending: saving } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/salesforce", {
+      const res = await fetch("/api/oauth2/integrations/salesforce", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -99,7 +99,7 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/salesforce", {
+      const res = await fetch("/api/oauth2/integrations/salesforce", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

@@ -8,7 +8,7 @@ import { getOrgSlugFromId, upsertNotificationSettings } from "../../server/queri
 
 const SLACK_AUTHORIZE_URL = "https://slack.com/oauth/v2/authorize";
 const SLACK_TOKEN_URL = "https://slack.com/api/oauth.v2.access";
-const CALLBACK_PATH = "/api/oauth/slack/callback";
+const CALLBACK_PATH = "/api/oauth2/integrations/slack";
 
 function callbackUrl(): string {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
@@ -55,7 +55,16 @@ async function exchangeSlackCode(
   return { webhookUrl: incomingWebhook.url, channel: incomingWebhook.channel ?? null };
 }
 
-// GET /api/slack?intent=connect
+// GET /api/oauth2/integrations/slack?intent=connect OR ?code=...&state=...
+export async function handleSlackLoader(db: Db, request: Request) {
+  const url = new URL(request.url);
+  const intent = url.searchParams.get("intent");
+  return intent === "connect"
+    ? handleSlackConnect(db, request)
+    : handleSlackCallback(db, request);
+}
+
+// GET /api/oauth2/integrations/slack?intent=connect
 export async function handleSlackConnect(db: Db, request: Request) {
   const { organizationId } = await requireOrganization(db, request);
   const { clientId } = requireEnv();

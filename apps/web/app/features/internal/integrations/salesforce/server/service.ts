@@ -16,20 +16,18 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
-import { integrations, member } from "@/db/schema";
-import { getDb } from "~/middleware/cloudflare.server";
-import type { Route } from "./+types/salesforce";
+import type { Db } from "@/db";
+import { integrations } from "@/db/schema";
 
-const CALLBACK_PATH = "/api/salesforce";
+const CALLBACK_PATH = "/api/oauth2/integrations/salesforce";
 
 function callbackUrl() {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
 }
 
-// GET /api/salesforce?intent=connect  → OAuth redirect
-// GET /api/salesforce?code=...&state=... → OAuth callback
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const db = getDb(context);
+// GET /oauth2/integrations/salesforce?intent=connect → initiates OAuth
+// GET /oauth2/integrations/salesforce?code=...&state=... → OAuth callback
+export async function handleSalesforceLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -102,53 +100,37 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/salesforce` : "/");
   }
 
-  return data({});
+  return redirect("/");
 }
 
-const actionSchema = z.discriminatedUnion("intent", [
-  z.object({
-    intent: z.literal("update_settings"),
-    autoCreateOpportunities: z.boolean(),
-  }),
+const salesforceActionSchema = z.discriminatedUnion("intent", [
+  z.object({ intent: z.literal("update_settings"), autoCreateOpportunities: z.boolean() }),
   z.object({ intent: z.literal("disconnect") }),
 ]);
 
-export async function action({ request, context }: Route.ActionArgs) {
-  const db = getDb(context);
+export async function handleSalesforceAction(db: Db, request: Request) {
   const { session, organizationId } = await requireOrganization(db, request);
-
   await requirePermission(db, organizationId, session.user.id, { integrations: ["update"] });
 
-  const raw = await request.json();
-  const parsed = actionSchema.safeParse(raw);
-  if (!parsed.success) {
+  const parsed = salesforceActionSchema.safeParse(await request.json());
+  if (!parsed.success)
     return data({ error: parsed.error.issues[0].message }, { status: 400 });
-  }
 
   if (parsed.data.intent === "update_settings") {
     const integration = await getIntegration(db, organizationId, "salesforce");
-    if (!integration?.accessToken) {
+    if (!integration?.accessToken)
       return data({ error: "Salesforce not connected" }, { status: 400 });
-    }
-
     const existing = parseSettings<SalesforceSettings>(integration.settings ?? null);
     if (!existing) return data({ error: "Invalid settings" }, { status: 400 });
-
-    const updated: SalesforceSettings = {
-      ...existing,
-      autoCreateOpportunities: parsed.data.autoCreateOpportunities,
-    };
-
     await db
       .update(integrations)
-      .set({ settings: JSON.stringify(updated), updatedAt: new Date() })
+      .set({
+        settings: JSON.stringify({ ...existing, autoCreateOpportunities: parsed.data.autoCreateOpportunities }),
+        updatedAt: new Date(),
+      })
       .where(
-        and(
-          eq(integrations.organizationId, organizationId),
-          eq(integrations.provider, "salesforce"),
-        ),
+        and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "salesforce")),
       );
-
     return data({ success: true });
   }
 
@@ -156,10 +138,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     await db
       .delete(integrations)
       .where(
-        and(
-          eq(integrations.organizationId, organizationId),
-          eq(integrations.provider, "salesforce"),
-        ),
+        and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "salesforce")),
       );
     return data({ success: true });
   }

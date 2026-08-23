@@ -5,7 +5,10 @@ import {
   getNotionPage,
   parseNotionPageInput,
 } from "@features/internal/integrations/notion/server/client";
-import { exchangeNotionCode, notionAuthUrl } from "@features/internal/integrations/notion/server/oauth";
+import {
+  exchangeNotionCode,
+  notionAuthUrl,
+} from "@features/internal/integrations/notion/server/oauth";
 import type { NotionSettings } from "@features/internal/integrations/notion/server/schemas";
 import {
   getIntegration,
@@ -18,20 +21,18 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
-import { feedbackPosts, integrations, member, postExternalLinks } from "@/db/schema";
-import { getDb } from "~/middleware/cloudflare.server";
-import type { Route } from "./+types/notion";
+import type { Db } from "@/db";
+import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 
-const CALLBACK_PATH = "/api/notion";
+const CALLBACK_PATH = "/api/oauth2/integrations/notion";
 
 function callbackUrl() {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
 }
 
-// GET /api/notion?intent=connect → initiates OAuth
-// GET /api/notion?code=...&state=... → OAuth callback from Notion
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const db = getDb(context);
+// GET /oauth2/integrations/notion?intent=connect → initiates OAuth
+// GET /oauth2/integrations/notion?code=...&state=... → OAuth callback from Notion
+export async function handleNotionLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -96,7 +97,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/notion` : "/");
   }
 
-  return data({});
+  return redirect("/");
 }
 
 const actionSchema = z.discriminatedUnion("intent", [
@@ -117,10 +118,8 @@ const actionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("unlink_page"), postId: z.string().min(1) }),
 ]);
 
-export async function action({ request, context }: Route.ActionArgs) {
-  const db = getDb(context);
+export async function handleNotionAction(db: Db, request: Request) {
   const { session, organizationId } = await requireOrganization(db, request);
-
   await requirePermission(db, organizationId, session.user.id, { integrations: ["update"] });
 
   const parsed = actionSchema.safeParse(await request.json());
@@ -188,14 +187,12 @@ export async function action({ request, context }: Route.ActionArgs) {
         { status: 400 },
       );
     if (!post) return data({ error: "Post not found" }, { status: 404 });
-
     const existingLink = await db.query.postExternalLinks.findFirst({
       where: and(eq(postExternalLinks.postId, postId), eq(postExternalLinks.provider, "notion")),
       columns: { id: true },
     });
     if (existingLink)
       return data({ error: "Post already linked to a Notion page" }, { status: 400 });
-
     try {
       const content = post.description
         ? `${post.description}\n\nCreated from Feeduro feedback #${post.id}`
@@ -229,7 +226,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (body.intent === "link_page") {
     const { postId, pageInput } = body;
     const pageId = parseNotionPageInput(pageInput);
-
     const [integration, post] = await Promise.all([
       getIntegration(db, organizationId, "notion"),
       db.query.feedbackPosts.findFirst({
@@ -239,7 +235,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     ]);
     if (!integration?.accessToken) return data({ error: "Notion not connected" }, { status: 400 });
     if (!post) return data({ error: "Post not found" }, { status: 404 });
-
     try {
       const page = await getNotionPage(integration.accessToken, pageId);
       await db

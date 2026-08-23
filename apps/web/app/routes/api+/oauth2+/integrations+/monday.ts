@@ -1,17 +1,16 @@
 import {
-  handleClickupAction,
-  handleClickupLoader,
-} from "@features/internal/integrations/clickup/server/service";
+  handleMondayAction,
+  handleMondayLoader,
+} from "@features/internal/integrations/monday/server/service";
 import { getDb } from "~/middleware/cloudflare.server";
-
-import type { Route } from "./+types/clickup";
+import type { Route } from "./+types/monday";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  return handleClickupLoader(db, request);
+  return handleMondayLoader(db, request);
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
   const db = getDb(context);
-  return handleClickupAction(db, request);
+  return handleMondayAction(db, request);
 }

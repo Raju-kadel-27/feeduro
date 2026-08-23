@@ -13,7 +13,7 @@ import { ClickupActionSchema, type ClickupSettings } from "./schemas";
 import { handleClickupConfigAction } from "./service-settings";
 import { handleClickupTaskAction } from "./service-tasks";
 
-const CALLBACK_PATH = "/api/clickup";
+const CALLBACK_PATH = "/api/oauth2/integrations/clickup";
 const LOG = "[clickup-service]";
 
 function requireClickupEnv() {

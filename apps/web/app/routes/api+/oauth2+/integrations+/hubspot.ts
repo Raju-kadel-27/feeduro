@@ -1,14 +1,13 @@
-import { handleAsanaAction, handleAsanaLoader } from "@features/internal/integrations/asana/server/service";
+import { handleHubSpotAction, handleHubSpotLoader } from "@features/internal/integrations/hubspot/server/service";
 import { getDb } from "~/middleware/cloudflare.server";
-
-import type { Route } from "./+types/asana";
+import type { Route } from "./+types/hubspot";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  return handleAsanaLoader(db, request);
+  return handleHubSpotLoader(db, request);
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
   const db = getDb(context);
-  return handleAsanaAction(db, request);
+  return handleHubSpotAction(db, request);
 }

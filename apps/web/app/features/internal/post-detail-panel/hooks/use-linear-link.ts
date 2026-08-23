@@ -10,7 +10,7 @@ export function useLinearLink(postId: string) {
 
   const { mutate: createLinearIssue, isPending: creatingLinearIssue } = useMutation({
     mutationFn: async (params?: { title?: string; description?: string }) => {
-      const res = await fetch("/api/linear", {
+      const res = await fetch("/api/oauth2/integrations/linear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "create_issue", postId, ...params }),
@@ -32,7 +32,7 @@ export function useLinearLink(postId: string) {
 
   const { mutate: linkLinearIssue, isPending: linkingLinearIssue } = useMutation({
     mutationFn: async (issueId: string) => {
-      const res = await fetch("/api/linear", {
+      const res = await fetch("/api/oauth2/integrations/linear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "link_issue", postId, issueId }),
@@ -55,7 +55,7 @@ export function useLinearLink(postId: string) {
 
   const { mutate: unlinkLinearIssue, isPending: unlinkingLinearIssue } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/linear", {
+      const res = await fetch("/api/oauth2/integrations/linear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "unlink_issue", postId }),

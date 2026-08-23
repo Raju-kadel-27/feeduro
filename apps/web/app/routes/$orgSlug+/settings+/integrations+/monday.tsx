@@ -100,7 +100,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
   const { data: boardsData, isLoading: loadingBoards } = useQuery({
     queryKey: ["monday-boards"],
     queryFn: async () => {
-      const res = await fetch("/api/monday", {
+      const res = await fetch("/api/oauth2/integrations/monday", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_boards" }),
@@ -115,7 +115,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
   const { data: groupsData, isLoading: loadingGroups } = useQuery({
     queryKey: ["monday-groups", selectedBoardId],
     queryFn: async () => {
-      const res = await fetch("/api/monday", {
+      const res = await fetch("/api/oauth2/integrations/monday", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_groups", boardId: selectedBoardId }),
@@ -139,7 +139,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
           feeduroStatus: statusMappings[g.id],
         }));
 
-      const res = await fetch("/api/monday", {
+      const res = await fetch("/api/oauth2/integrations/monday", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -169,7 +169,7 @@ export default function MondayIntegrationSettings({ loaderData }: Route.Componen
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/monday", {
+      const res = await fetch("/api/oauth2/integrations/monday", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

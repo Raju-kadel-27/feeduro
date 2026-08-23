@@ -1,14 +1,13 @@
-import { handleJiraAction, handleJiraLoader } from "@features/internal/integrations/jira/server/service";
+import { handleNotionAction, handleNotionLoader } from "@features/internal/integrations/notion/server/service";
 import { getDb } from "~/middleware/cloudflare.server";
-
-import type { Route } from "./+types/jira";
+import type { Route } from "./+types/notion";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  return handleJiraLoader(db, request);
+  return handleNotionLoader(db, request);
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
   const db = getDb(context);
-  return handleJiraAction(db, request);
+  return handleNotionAction(db, request);
 }

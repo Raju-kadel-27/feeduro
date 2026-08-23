@@ -9,7 +9,7 @@ import { getOrgSlugFromId, upsertNotificationSettings } from "../../server/queri
 
 const DISCORD_AUTHORIZE_URL = "https://discord.com/api/oauth2/authorize";
 const DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token";
-const CALLBACK_PATH = "/api/oauth/discord/callback";
+const CALLBACK_PATH = "/api/oauth2/integrations/discord";
 
 function callbackUrl(): string {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
@@ -49,7 +49,16 @@ async function exchangeDiscordCode(
   return { webhookUrl: webhook.url, channelId: webhook.channel_id ?? null };
 }
 
-// GET /api/discord?intent=connect
+// GET /api/oauth2/integrations/discord?intent=connect OR ?code=...&state=...
+export async function handleDiscordLoader(db: Db, request: Request) {
+  const url = new URL(request.url);
+  const intent = url.searchParams.get("intent");
+  return intent === "connect"
+    ? handleDiscordConnect(db, request)
+    : handleDiscordCallback(db, request);
+}
+
+// GET /api/oauth2/integrations/discord?intent=connect
 export async function handleDiscordConnect(db: Db, request: Request) {
   const { organizationId } = await requireOrganization(db, request);
   const { clientId } = requireEnv();

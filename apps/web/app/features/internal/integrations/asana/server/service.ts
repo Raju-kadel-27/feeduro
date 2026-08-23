@@ -30,7 +30,7 @@ import {
 import { asanaOAuth } from "./oauth";
 import { AsanaActionSchema, type AsanaSettings } from "./schemas";
 
-const CALLBACK_PATH = "/api/asana";
+const CALLBACK_PATH = "/api/oauth2/integrations/asana";
 
 function callbackUrl(): string {
   return `${getBaseUrl()}${CALLBACK_PATH}`;

@@ -32,7 +32,7 @@ import { JiraActionSchema, type JiraSettings } from "./schemas";
 
 const LOG = "[jira-service]";
 
-const CALLBACK_PATH = "/api/jira";
+const CALLBACK_PATH = "/api/oauth2/integrations/jira";
 
 function callbackUrl(): string {
   return `${getBaseUrl()}${CALLBACK_PATH}`;

@@ -14,20 +14,18 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
-import { integrations, member } from "@/db/schema";
-import { getDb } from "~/middleware/cloudflare.server";
-import type { Route } from "./+types/hubspot";
+import type { Db } from "@/db";
+import { integrations } from "@/db/schema";
 
-const CALLBACK_PATH = "/api/hubspot";
+const CALLBACK_PATH = "/api/oauth2/integrations/hubspot";
 
 function callbackUrl() {
   return `${getBaseUrl()}${CALLBACK_PATH}`;
 }
 
-// GET /api/hubspot?intent=connect  → OAuth redirect
-// GET /api/hubspot?code=...&state=... → OAuth callback
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const db = getDb(context);
+// GET /oauth2/integrations/hubspot?intent=connect → OAuth redirect
+// GET /oauth2/integrations/hubspot?code=...&state=... → OAuth callback
+export async function handleHubSpotLoader(db: Db, request: Request) {
   const url = new URL(request.url);
   const intent = url.searchParams.get("intent");
   const code = url.searchParams.get("code");
@@ -96,50 +94,37 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     return redirect(orgSlug ? `/${orgSlug}/settings/integrations/hubspot` : "/");
   }
 
-  return data({});
+  return redirect("/");
 }
 
-const actionSchema = z.discriminatedUnion("intent", [
-  z.object({
-    intent: z.literal("update_settings"),
-    autoCreateDeals: z.boolean(),
-  }),
+const hubspotActionSchema = z.discriminatedUnion("intent", [
+  z.object({ intent: z.literal("update_settings"), autoCreateDeals: z.boolean() }),
   z.object({ intent: z.literal("disconnect") }),
 ]);
 
-export async function action({ request, context }: Route.ActionArgs) {
-  const db = getDb(context);
+export async function handleHubSpotAction(db: Db, request: Request) {
   const { session, organizationId } = await requireOrganization(db, request);
-
   await requirePermission(db, organizationId, session.user.id, { integrations: ["update"] });
 
-  const raw = await request.json();
-  const parsed = actionSchema.safeParse(raw);
-  if (!parsed.success) {
+  const parsed = hubspotActionSchema.safeParse(await request.json());
+  if (!parsed.success)
     return data({ error: parsed.error.issues[0].message }, { status: 400 });
-  }
 
   if (parsed.data.intent === "update_settings") {
     const integration = await getIntegration(db, organizationId, "hubspot");
-    if (!integration?.accessToken) {
+    if (!integration?.accessToken)
       return data({ error: "HubSpot not connected" }, { status: 400 });
-    }
-
     const existing = parseSettings<HubSpotSettings>(integration.settings ?? null);
     if (!existing) return data({ error: "Invalid settings" }, { status: 400 });
-
-    const updated: HubSpotSettings = {
-      ...existing,
-      autoCreateDeals: parsed.data.autoCreateDeals,
-    };
-
     await db
       .update(integrations)
-      .set({ settings: JSON.stringify(updated), updatedAt: new Date() })
+      .set({
+        settings: JSON.stringify({ ...existing, autoCreateDeals: parsed.data.autoCreateDeals }),
+        updatedAt: new Date(),
+      })
       .where(
         and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "hubspot")),
       );
-
     return data({ success: true });
   }
 

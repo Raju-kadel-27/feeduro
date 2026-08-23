@@ -34,7 +34,7 @@ import {
 import { linearOAuth } from "./oauth";
 import { LinearActionSchema, type LinearSettings } from "./schemas";
 
-const CALLBACK_PATH = "/api/linear";
+const CALLBACK_PATH = "/api/oauth2/integrations/linear";
 const LOG = "[linear-service]";
 
 const RECONNECT_MSG =

@@ -1,17 +1,16 @@
 import {
-  handleMondayAction,
-  handleMondayLoader,
-} from "@features/internal/integrations/monday/server/service";
+  handleDiscordAction,
+  handleDiscordLoader,
+} from "@features/internal/integrations/discord/server/oauth-handler";
 import { getDb } from "~/middleware/cloudflare.server";
-
-import type { Route } from "./+types/monday";
+import type { Route } from "./+types/discord";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const db = getDb(context);
-  return handleMondayLoader(db, request);
+  return handleDiscordLoader(db, request);
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
   const db = getDb(context);
-  return handleMondayAction(db, request);
+  return handleDiscordAction(db, request);
 }

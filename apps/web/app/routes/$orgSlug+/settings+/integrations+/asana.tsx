@@ -97,7 +97,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
   const { data: projectsData, isLoading: loadingProjects } = useQuery({
     queryKey: ["asana-projects"],
     queryFn: async () => {
-      const res = await fetch("/api/asana", {
+      const res = await fetch("/api/oauth2/integrations/asana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_projects" }),
@@ -112,7 +112,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
   const { data: sectionsData, isLoading: loadingSections } = useQuery({
     queryKey: ["asana-sections", selectedProjectGid],
     queryFn: async () => {
-      const res = await fetch("/api/asana", {
+      const res = await fetch("/api/oauth2/integrations/asana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "list_sections", projectGid: selectedProjectGid }),
@@ -145,7 +145,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
         });
       }
 
-      const res = await fetch("/api/asana", {
+      const res = await fetch("/api/oauth2/integrations/asana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -172,7 +172,7 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
       return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/asana", {
+      const res = await fetch("/api/oauth2/integrations/asana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intent: "disconnect" }),

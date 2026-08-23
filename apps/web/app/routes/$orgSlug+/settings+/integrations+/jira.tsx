@@ -328,7 +328,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                   )}
 
                   <a
-                    href="/api/jira?intent=connect"
+                    href="/api/oauth2/integrations/jira?intent=connect"
                     className="text-sm text-muted-foreground hover:text-foreground underline"
                   >
                     Reconnect
@@ -341,7 +341,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                     Atlassian's login page.
                   </p>
                   <a
-                    href="/api/jira?intent=connect"
+                    href="/api/oauth2/integrations/jira?intent=connect"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[#2684FF] hover:bg-[#2684FF]/90 text-white transition-colors"
                   >
                     <JiraIcon size={14} />

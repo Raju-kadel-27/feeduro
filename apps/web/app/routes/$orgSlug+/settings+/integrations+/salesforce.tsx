@@ -176,7 +176,7 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
             <div className="p-4 space-y-3">
               {connected ? (
                 <a
-                  href="/api/salesforce?intent=connect"
+                  href="/api/oauth2/integrations/salesforce?intent=connect"
                   className="text-sm text-muted-foreground hover:text-foreground underline"
                 >
                   Reconnect
@@ -207,7 +207,7 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
                     </p>
                   )}
                   <a
-                    href={isAdmin && configured ? "/api/salesforce?intent=connect" : "#"}
+                    href={isAdmin && configured ? "/api/oauth2/integrations/salesforce?intent=connect" : "#"}
                     onClick={(e) => {
                       if (!isAdmin || !configured) e.preventDefault();
                     }}

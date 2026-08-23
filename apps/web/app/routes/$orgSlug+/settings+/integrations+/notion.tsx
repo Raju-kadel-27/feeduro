@@ -187,7 +187,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
             <div className="p-4 space-y-3">
               {connected ? (
                 <a
-                  href="/api/notion?intent=connect"
+                  href="/api/oauth2/integrations/notion?intent=connect"
                   className="text-sm text-muted-foreground hover:text-foreground underline"
                 >
                   Reconnect
@@ -199,7 +199,7 @@ export default function NotionIntegrationSettings({ loaderData }: Route.Componen
                     Notion's authorization page.
                   </p>
                   <a
-                    href="/api/notion?intent=connect"
+                    href="/api/oauth2/integrations/notion?intent=connect"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     <NotionIcon size={14} />

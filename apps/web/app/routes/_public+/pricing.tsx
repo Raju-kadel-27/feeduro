@@ -161,7 +161,7 @@ export default function PricingPage() {
             >
               Yearly
               <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-500 border border-orange-200">
-                Save up to 35%
+                Save up to 33%
               </span>
             </button>
           </div>

@@ -87,7 +87,7 @@ const FEATURES: Feature[] = [
   {
     icon: ScrollText,
     title: "Audit Logs",
-    description: "Every action, every change, every access — logged with who did it and when. Compliance and accountability without extra tooling.",
+    description: "Every action, every change, every access. Logged with who did it and when. Compliance and accountability without extra tooling.",
     iconBg: "rgba(245,158,11,0.12)",
     iconColor: "rgb(245,158,11)",
   },

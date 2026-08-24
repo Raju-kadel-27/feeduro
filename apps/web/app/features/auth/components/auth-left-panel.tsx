@@ -25,7 +25,7 @@ export function AuthLeftPanel() {
           Feedback that actually gets shipped.
         </h2>
         <p className="text-sm text-white/45 leading-relaxed">
-          Most customers don't leave over pricing — they leave because they asked for something,
+          Most customers don't leave over pricing. They leave because they asked for something,
           heard nothing, and moved on. Feeduro closes that gap.
         </p>
       </div>

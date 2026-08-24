@@ -39,7 +39,7 @@ export default function IntegrationsPage() {
             Integrate with your favourite apps
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            Built-in <strong className="text-foreground">2-way sync</strong> with the tools your team already lives in — no copy-paste, no manual updates.
+            Built-in <strong className="text-foreground">2-way sync</strong> with the tools your team already lives in. No copy-paste, no manual updates.
           </p>
         </div>
       </div>

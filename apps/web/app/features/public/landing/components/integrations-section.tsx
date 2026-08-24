@@ -58,7 +58,7 @@ export function IntegrationsSection({ hideHeader }: { hideHeader?: boolean }) {
             <p className="text-muted-foreground max-w-lg mx-auto">
               We offer built-in integrations supporting{" "}
               <strong className="text-foreground">2-way sync</strong> with the
-              apps you already use — no copy-paste required.
+              apps you already use. No copy-paste required.
             </p>
           </div>
         )}
@@ -74,7 +74,7 @@ export function IntegrationsSection({ hideHeader }: { hideHeader?: boolean }) {
                   Coming soon
                 </span>
               )}
-              <div className="flex items-center justify-center w-16 h-16 mb-2 mx-auto [&_svg]:w-full [&_svg]:h-full">
+              <div className="flex items-center justify-center w-12 h-12 mb-2 mx-auto [&_svg]:w-full [&_svg]:h-full">
                 {item.icon}
               </div>
               <p className="text-base font-bold mb-1 text-center">{item.name}</p>

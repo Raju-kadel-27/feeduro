@@ -6,7 +6,6 @@ import { LandingFooter } from "./components/landing-footer";
 import { LandingNav } from "./components/landing-nav";
 import { OutcomesSection } from "./components/outcomes-section";
 import { ShowcaseSection } from "./components/showcase-section";
-import { TestimonialSection } from "./components/testimonial-section";
 
 export function LandingPage() {
   return (
@@ -26,8 +25,7 @@ export function LandingPage() {
 <OutcomesSection />
         <ShowcaseSection />
         <FeaturesSection />
-        <TestimonialSection />
-        <FaqSection />
+<FaqSection />
       </main>
       <LandingFooter />
     </div>

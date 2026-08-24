@@ -46,7 +46,7 @@ export function HeroSection() {
             style={{ animationDelay: "180ms" }}
           >
             Know the revenue, churn risk, and customer value hiding behind every request.{" "}
-            <strong className="text-foreground">Build what retains — not what trends.</strong>
+            <strong className="text-foreground">Build what retains, not what trends.</strong>
           </p>
 
         </div>

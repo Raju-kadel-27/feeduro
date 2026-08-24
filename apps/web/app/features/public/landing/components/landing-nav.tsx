@@ -4,8 +4,10 @@ import {
   ChevronDown,
   Code2,
   GitMerge,
+  Map,
   MessageSquare,
   Plug,
+  ThumbsUp,
   TrendingUp,
   Zap,
 } from "lucide-react";
@@ -19,24 +21,42 @@ function getScrollParent(el: Element | null): Element | null {
   return getScrollParent(el.parentElement);
 }
 
-const WHY_FEEDURO_ITEMS = [
+const PRODUCT_ITEMS = [
   {
-    icon: <TrendingUp className="w-5 h-5 text-blue-500" />,
+    icon: <ThumbsUp className="w-5 h-5 text-blue-500" />,
+    label: "Feature Voting",
+    description: "Let users vote on what to build next — signal over noise.",
+    href: "/#features",
+  },
+  {
+    icon: <TrendingUp className="w-5 h-5 text-emerald-500" />,
     label: "Revenue Intelligence",
-    description: "See the MRR behind every feature request.",
+    description: "See the MRR behind every request. Prioritize by impact, not volume.",
     href: "/#showcase",
+  },
+  {
+    icon: <Map className="w-5 h-5 text-violet-500" />,
+    label: "Public Roadmap",
+    description: "Show users what's coming next. Build trust, reduce support tickets.",
+    href: "/#features",
   },
   {
     icon: <Bell className="w-5 h-5 text-amber-500" />,
     label: "Smart Changelog",
-    description: "Close the loop automatically when you ship.",
+    description: "Auto-notify voters the moment you ship. Zero manual work.",
     href: "/docs?topic=changelog-overview",
   },
   {
     icon: <GitMerge className="w-5 h-5 text-indigo-500" />,
     label: "Two-way Sync",
-    description: "Push to Jira, Linear, Asana — status flows back.",
+    description: "Push to Jira, Linear, or Asana. Status flows back automatically.",
     href: "/integrations",
+  },
+  {
+    icon: <Zap className="w-5 h-5 text-teal-500" />,
+    label: "Feedback Widget",
+    description: "Embed in your app in minutes. Capture feedback in context.",
+    href: "/docs?topic=widget-install",
   },
 ];
 
@@ -54,15 +74,15 @@ const DEVELOPER_ITEMS = [
     href: "https://api.feeduro.com/docs",
   },
   {
-    icon: <Zap className="w-5 h-5 text-teal-500" />,
+    icon: <Zap className="w-5 h-5 text-amber-500" />,
     label: "Widget SDK",
-    description: "Embed the feedback widget anywhere in minutes.",
+    description: "Drop one script tag. Works in any stack.",
     href: "/docs?topic=widget-install",
   },
   {
     icon: <Plug className="w-5 h-5 text-teal-500" />,
     label: "Integrations",
-    description: "Connect GitHub, Linear, Jira, Asana, and more.",
+    description: "Connect GitHub, Linear, Jira, Asana, Slack, and more.",
     href: "/integrations",
   },
 ];
@@ -120,7 +140,7 @@ function NavDropdown({
           </div>
 
           <div
-            className="bg-white rounded-2xl shadow-xl border border-border p-5 w-[480px]"
+            className="bg-white rounded-2xl shadow-xl border border-border p-5 w-[560px]"
             style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
           >
             <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4 px-1">
@@ -172,8 +192,6 @@ function NavDropdown({
 const PLAIN_LINKS = [
   { label: "Integrations", href: "/integrations" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Docs", href: "/docs" },
-  { label: "Blog", href: "/blog" },
 ];
 
 export function LandingNav() {
@@ -213,8 +231,8 @@ export function LandingNav() {
           <nav className="hidden md:flex items-center gap-6">
             <NavDropdown
               label="Why Feeduro?"
-              heading="Why teams choose Feeduro"
-              items={WHY_FEEDURO_ITEMS}
+              heading="Everything you need to close the feedback loop"
+              items={PRODUCT_ITEMS}
               cta={{ label: "See all features →", href: "#features" }}
             />
 
@@ -239,7 +257,7 @@ export function LandingNav() {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               to="/sign-in"
-              className="hidden sm:block text-sm text-black hover:text-black/70 transition-colors"
+              className="hidden sm:block text-sm text-black transition-colors px-3 py-1.5 rounded-lg hover:bg-black/5"
             >
               Sign in
             </Link>

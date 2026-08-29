@@ -11,6 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { FEEDURO_LOGO_URL } from "@utils/brand";
 import { Link } from "react-router";
 
 function getScrollParent(el: Element | null): Element | null {
@@ -222,7 +223,7 @@ export function LandingNav() {
         >
           <Link to="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
             <img
-              src="https://res.cloudinary.com/dlimsxfkf/image/upload/v1787991786/hat_icon_1_bu11be.png"
+              src={FEEDURO_LOGO_URL}
               alt="Feeduro"
               className="w-7 h-7 rounded-lg"
             />

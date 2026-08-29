@@ -4,6 +4,7 @@ import { AppConfigProvider } from "@providers/app-config-provider";
 import { TawkProvider } from "@providers/tawk-provider";
 import { ThemeProvider } from "@providers/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FEEDURO_LOGO_URL } from "@utils/brand";
 import { getEnv } from "@utils/get-env";
 import { useEffect, useState } from "react";
 import { I18nextProvider } from "react-i18next";
@@ -41,7 +42,7 @@ export const links: Route.LinksFunction = () => [
   {
     rel: "icon",
     type: "image/png",
-    href: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1787991786/hat_icon_1_bu11be.png",
+    href: FEEDURO_LOGO_URL,
   },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },

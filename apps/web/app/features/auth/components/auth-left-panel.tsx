@@ -1,3 +1,4 @@
+import { FEEDURO_LOGO_URL } from "@utils/brand";
 import { Link } from "react-router";
 
 export function AuthLeftPanel() {
@@ -14,7 +15,7 @@ export function AuthLeftPanel() {
 
       <Link to="/" className="relative z-10 flex items-center gap-2 font-semibold text-white">
         <img
-          src="https://res.cloudinary.com/dlimsxfkf/image/upload/v1787991786/hat_icon_1_bu11be.png"
+          src={FEEDURO_LOGO_URL}
           alt="Feeduro"
           className="size-7 rounded-lg"
         />

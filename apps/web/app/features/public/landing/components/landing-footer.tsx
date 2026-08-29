@@ -1,3 +1,4 @@
+import { FEEDURO_LOGO_URL } from "@utils/brand";
 import { Link } from "react-router";
 
 const FOOTER_LINKS = {
@@ -28,7 +29,7 @@ export function LandingFooter() {
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 font-bold text-lg mb-3 text-white">
               <img
-                src="https://res.cloudinary.com/dlimsxfkf/image/upload/v1787991786/hat_icon_1_bu11be.png"
+                src={FEEDURO_LOGO_URL}
                 alt="Feeduro"
                 className="w-7 h-7 rounded-lg"
               />

@@ -17,7 +17,7 @@ export async function autoCreateShortcutStory(
   const settings = parseSettings<ShortcutSettings>(integration.settings);
   if (!settings?.autoCreateStories || !settings.defaultWorkflowStateId) return;
 
-  if (await isAlreadyLinked(post.id, "shortcut")) return;
+  if (await isAlreadyLinked(db, post.id, "shortcut")) return;
 
   const description = post.description
     ? `${post.description}\n\n---\n*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`

@@ -26,6 +26,7 @@ import {
   createGithubIssue,
   deleteGithubWebhook,
   getGithubIssueByUrl,
+  getGithubUser,
   listGithubRepos,
   registerGithubWebhook,
 } from "./client";
@@ -71,6 +72,9 @@ export async function handleGithubLoader(db: Db, request: Request) {
 
     const { clientId, clientSecret } = requireGithubEnv();
 
+    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
+    const settingsPath = orgSlug ? `/${orgSlug}/settings/integrations/github` : "/";
+
     try {
       const { accessToken } = await exchangeCode(
         githubOAuth,
@@ -91,12 +95,21 @@ export async function handleGithubLoader(db: Db, request: Request) {
         accessToken,
         JSON.stringify(defaultSettings),
       );
-    } catch {
-      // Redirect even on error — the UI will show "not connected"
+      try {
+        const connectedAs = await getGithubUser(accessToken);
+        await updateIntegrationSettings(db, parsed.orgId, "github", {
+          ...defaultSettings,
+          connectedAs,
+        });
+      } catch {
+        // non-fatal — connected status is already saved
+      }
+    } catch (err) {
+      console.error("[github-oauth] token exchange failed:", err instanceof Error ? err.message : String(err));
+      return redirect(`${settingsPath}?oauth_error=${encodeURIComponent(err instanceof Error ? err.message : "OAuth exchange failed")}`);
     }
 
-    const orgSlug = await getOrgSlugFromId(db, parsed.orgId);
-    return redirect(orgSlug ? `/${orgSlug}/settings/integrations/github` : "/");
+    return redirect(settingsPath);
   }
 
   // Normal data load (settings page)
@@ -112,6 +125,7 @@ export async function handleGithubLoader(db: Db, request: Request) {
           autoCreateIssues: settings?.autoCreateIssues ?? false,
         }
       : null,
+    connectedAs: settings?.connectedAs ?? null,
     githubConnected: !!integration?.accessToken,
   });
 }

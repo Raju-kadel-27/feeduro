@@ -13,17 +13,41 @@ async function githubFetch<T>(
       Authorization: `Bearer ${accessToken}`,
       Accept: "application/vnd.github.v3+json",
       "Content-Type": "application/json",
+      "User-Agent": "Feeduro/1.0",
       ...(options?.headers ?? {}),
     },
   });
   if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { message?: string };
-    throw new Error(err.message ?? `GitHub API error: ${res.status}`);
+    const rawText = await res.text().catch(() => "");
+    let message: string | undefined;
+    try {
+      const err = JSON.parse(rawText) as { message?: string };
+      message = err.message;
+    } catch {
+      // non-JSON body (e.g. CDN/WAF HTML response)
+    }
+    console.error(`[github-client] ${res.status} on ${path}: message="${message}" body="${rawText.slice(0, 200)}"`);
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(message ?? `GitHub returned ${res.status} — the stored token may be revoked or require SAML SSO authorization. Please disconnect and reconnect GitHub.`);
+    }
+    throw new Error(message ?? `GitHub API error: ${res.status}`);
   }
   return res.json() as Promise<T>;
 }
 
+export async function getGithubUser(
+  accessToken: string,
+): Promise<{ login: string; avatarUrl: string }> {
+  const user = await githubFetch<{ login: string; avatar_url: string }>(accessToken, "/user");
+  return { login: user.login, avatarUrl: user.avatar_url };
+}
+
+export async function validateGithubToken(accessToken: string): Promise<void> {
+  await getGithubUser(accessToken);
+}
+
 export async function listGithubRepos(accessToken: string): Promise<GithubRepo[]> {
+  await getGithubUser(accessToken);
   const results: GithubRepo[] = [];
   let page = 1;
   while (true) {
@@ -31,7 +55,12 @@ export async function listGithubRepos(accessToken: string): Promise<GithubRepo[]
       accessToken,
       `/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`,
     );
-    results.push(...batch.map((r) => GithubRepoSchema.parse(r)));
+    const parsed: GithubRepo[] = [];
+    for (const raw of batch) {
+      const result = GithubRepoSchema.safeParse(raw);
+      if (result.success) parsed.push(result.data);
+    }
+    results.push(...parsed);
     if (batch.length < 100) break;
     page++;
   }

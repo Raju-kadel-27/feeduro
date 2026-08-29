@@ -64,8 +64,8 @@ export async function handleShortcutAction(db: Db, request: Request) {
 
       const settings: ShortcutSettings = {
         memberId: sc.id,
-        memberName: sc.profile.name,
-        mentionName: sc.profile.mention_name,
+        memberName: sc.name,
+        mentionName: sc.mention_name,
         defaultWorkflowId: existingSettings?.defaultWorkflowId,
         defaultWorkflowName: existingSettings?.defaultWorkflowName,
         defaultWorkflowStateId: existingSettings?.defaultWorkflowStateId,
@@ -92,7 +92,7 @@ export async function handleShortcutAction(db: Db, request: Request) {
           },
         });
 
-      return data({ success: true, memberName: sc.profile.name });
+      return data({ success: true, memberName: sc.name });
     } catch (err) {
       return data(
         { error: err instanceof Error ? err.message : "Invalid API token" },

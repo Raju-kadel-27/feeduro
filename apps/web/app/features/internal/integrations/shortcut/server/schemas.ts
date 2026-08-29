@@ -4,7 +4,8 @@ import { z } from "zod";
 
 export const ShortcutMemberSchema = z.object({
   id: z.string(),
-  profile: z.object({ name: z.string(), mention_name: z.string() }),
+  name: z.string(),
+  mention_name: z.string(),
 });
 
 export const ShortcutWorkflowStateSchema = z.object({

@@ -1,4 +1,4 @@
-import type { ShortcutMember, ShortcutStory, ShortcutWebhook, ShortcutWorkflow } from "./schemas";
+import { type ShortcutMember, ShortcutMemberSchema, type ShortcutStory, type ShortcutWebhook, type ShortcutWorkflow } from "./schemas";
 
 const SC_BASE = "https://api.app.shortcut.com/api/v3";
 
@@ -26,7 +26,8 @@ async function scFetch<T>(token: string, path: string, options?: RequestInit): P
 }
 
 export async function getShortcutMember(token: string): Promise<ShortcutMember> {
-  return scFetch<ShortcutMember>(token, "/member");
+  const raw = await scFetch<unknown>(token, "/member");
+  return ShortcutMemberSchema.parse(raw);
 }
 
 export async function getShortcutWorkflows(token: string): Promise<ShortcutWorkflow[]> {

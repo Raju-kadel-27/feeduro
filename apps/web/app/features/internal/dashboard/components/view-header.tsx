@@ -1,4 +1,3 @@
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { cn } from "@lib/utils";
 import { Plus, Search } from "lucide-react";
 import type { View } from "../types";
@@ -25,7 +24,6 @@ export function ViewHeader({
   return (
     <div className={cn("border-b shrink-0", className)}>
       <div className="flex items-center gap-3 px-[18px] py-3.5">
-        <SidebarTrigger className="-ml-1 shrink-0" />
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {activeView && <span className="text-xl leading-none shrink-0">{activeView.emoji}</span>}
           <h1 className="text-[17px] font-semibold tracking-tight truncate">

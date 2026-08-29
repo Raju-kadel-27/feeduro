@@ -9,7 +9,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/data";
 
 export function meta() {
-  return [{ title: "Data & Import — Feeduro" }];
+  return [{ title: "Data & Import | Feeduro" }];
 }
 
 export function shouldRevalidate() {

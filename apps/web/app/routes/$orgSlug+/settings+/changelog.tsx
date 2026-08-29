@@ -22,7 +22,7 @@ type ChangelogData = ReturnType<typeof parseChangelogSettings> & {
 };
 
 export function meta() {
-  return [{ title: "Changelog Settings — Feeduro" }];
+  return [{ title: "Changelog Settings | Feeduro" }];
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

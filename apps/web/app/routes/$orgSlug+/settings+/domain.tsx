@@ -16,7 +16,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/domain";
 
 export function meta() {
-  return [{ title: "Domain Settings — Feeduro" }];
+  return [{ title: "Domain Settings | Feeduro" }];
 }
 
 type DomainRecord = {
@@ -40,7 +40,7 @@ const APEX_RE = /^[^.]+\.[^.]+$/;
 function validateDomain(val: string): string | null {
   if (val.startsWith("http")) return "Enter the domain only, without https://";
   if (!DOMAIN_RE.test(val)) return "Enter a valid domain like feedback.company.com";
-  if (APEX_RE.test(val)) return "Apex domains need CNAME flattening — use a subdomain (e.g. feedback.company.com) if unsure";
+  if (APEX_RE.test(val)) return "Apex domains need CNAME flattening | use a subdomain (e.g. feedback.company.com) if unsure";
   return null;
 }
 
@@ -151,7 +151,7 @@ function DomainContent({ domain: initialDomain, isAdmin }: { domain: DomainRecor
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   // Background-poll while pending: checks DNS every 30s and revalidates the loader only on success.
-  // Uses auto:true so the server never writes "failed" — it only transitions pending→active silently.
+  // Uses auto:true so the server never writes "failed" | it only transitions pending→active silently.
   useEffect(() => {
     if (domain?.status !== "pending") return;
     const id = setInterval(async () => {
@@ -159,7 +159,7 @@ function DomainContent({ domain: initialDomain, isAdmin }: { domain: DomainRecor
         const result = await callDomainApi({ intent: "verify_domain", auto: true });
         if (result.verified) revalidator.revalidate();
       } catch {
-        // silent — network errors during polling are non-fatal
+        // silent | network errors during polling are non-fatal
       }
     }, 30_000);
     return () => clearInterval(id);

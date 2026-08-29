@@ -3,7 +3,7 @@ import { LandingNav } from "@features/public/landing/components/landing-nav";
 
 export function meta() {
   return [
-    { title: "Blog — Feeduro" },
+    { title: "Blog | Feeduro" },
     { name: "description", content: "Product updates, tips, and stories from the Feeduro team." },
   ];
 }

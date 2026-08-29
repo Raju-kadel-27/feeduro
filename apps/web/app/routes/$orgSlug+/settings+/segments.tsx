@@ -30,7 +30,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/segments";
 
 export function meta() {
-  return [{ title: "Segments — Feeduro" }];
+  return [{ title: "Segments | Feeduro" }];
 }
 
 export function shouldRevalidate() {
@@ -113,7 +113,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
   const [editingSegment, setEditingSegment] = useState<Segment | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
-  // Optimistic local state — seeded from DB, immediately flipped on skip so the
+  // Optimistic local state | seeded from DB, immediately flipped on skip so the
   // UI responds without waiting for the revalidation round-trip.
   const [wizardSkipped, setWizardSkipped] = useState(loaderData.segmentsWizardSkipped);
 
@@ -332,7 +332,7 @@ export default function SegmentsSettings({ loaderData }: Route.ComponentProps) {
             </div>
           )}
 
-          {/* API reference — collapsed by default */}
+          {/* API reference | collapsed by default */}
           <details className="rounded-lg border border-border bg-muted/30 group">
             <summary className="flex items-center justify-between p-4 cursor-pointer list-none text-base font-medium text-foreground select-none">
               <span>Identify users via API</span>
@@ -356,8 +356,8 @@ Authorization: Bearer <your-api-key>
   "externalId": "cus_abc123",
   "traits": {
     "plan": "starter",            // matches a name in your plan catalog
-    "billingInterval": "annual",  // "monthly" | "annual" — picks monthly or annual price
-    "mrr": 80,                    // explicit $/mo override — beats plan price entirely
+    "billingInterval": "annual",  // "monthly" | "annual" | picks monthly or annual price
+    "mrr": 80,                    // explicit $/mo override | beats plan price entirely
     "role": "founder",
     "companySize": 12,
     "industry": "SaaS",
@@ -366,7 +366,7 @@ Authorization: Bearer <your-api-key>
   "companies": [{
     "externalId": "bigco",
     "name": "BigCo",
-    "monthlySpend": 500           // company MRR — counted once per company per post
+    "monthlySpend": 500           // company MRR | counted once per company per post
   }]
 }`}</pre>
             </div>

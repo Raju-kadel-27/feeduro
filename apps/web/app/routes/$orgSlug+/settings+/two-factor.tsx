@@ -5,7 +5,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/two-factor";
 
 export function meta() {
-  return [{ title: "Two-Factor Authentication — Feeduro" }];
+  return [{ title: "Two-Factor Authentication | Feeduro" }];
 }
 
 export function shouldRevalidate() {

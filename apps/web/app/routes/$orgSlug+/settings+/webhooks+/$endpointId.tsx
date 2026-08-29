@@ -6,7 +6,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/$endpointId";
 
 export function meta() {
-  return [{ title: "Webhook — Feeduro" }];
+  return [{ title: "Webhook | Feeduro" }];
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

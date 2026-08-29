@@ -13,7 +13,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/members";
 
 export function meta() {
-  return [{ title: "Members — Feeduro" }];
+  return [{ title: "Members | Feeduro" }];
 }
 
 export function shouldRevalidate() {

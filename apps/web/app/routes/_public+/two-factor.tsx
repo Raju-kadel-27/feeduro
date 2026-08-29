@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 
 export function meta() {
-  return [{ title: "Two-Factor Verification — Feeduro" }];
+  return [{ title: "Two-Factor Verification | Feeduro" }];
 }
 
 type Method = "totp" | "backup";

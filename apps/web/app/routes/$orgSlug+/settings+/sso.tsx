@@ -17,7 +17,7 @@ import type { Route } from "./+types/sso";
 type SSOData = Awaited<ReturnType<typeof loadSSOSettings>> | { planLocked: true };
 
 export function meta() {
-  return [{ title: "Login & SSO — Feeduro" }];
+  return [{ title: "Login & SSO | Feeduro" }];
 }
 
 export function shouldRevalidate() {

@@ -23,7 +23,7 @@ type AuditData =
   | (Awaited<ReturnType<typeof listAuditLogs>> & { page: number; category: AuditCategory | undefined });
 
 export function meta() {
-  return [{ title: "Audit Log — Feeduro" }];
+  return [{ title: "Audit Log | Feeduro" }];
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

@@ -23,7 +23,7 @@ type RolesData =
   | { roles: OrgRole[]; isAdmin: boolean; organizationId: string };
 
 export function meta() {
-  return [{ title: "Roles — Feeduro" }];
+  return [{ title: "Roles | Feeduro" }];
 }
 
 export function shouldRevalidate() {

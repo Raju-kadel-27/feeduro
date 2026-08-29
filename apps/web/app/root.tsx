@@ -38,6 +38,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export const links: Route.LinksFunction = () => [
+  {
+    rel: "icon",
+    type: "image/png",
+    href: "https://res.cloudinary.com/dlimsxfkf/image/upload/v1787991786/hat_icon_1_bu11be.png",
+  },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
   {

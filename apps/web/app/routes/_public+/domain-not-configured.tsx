@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 export function meta() {
-  return [{ title: "Domain Not Configured — Feeduro" }];
+  return [{ title: "Domain Not Configured | Feeduro" }];
 }
 
 export default function DomainNotConfigured() {

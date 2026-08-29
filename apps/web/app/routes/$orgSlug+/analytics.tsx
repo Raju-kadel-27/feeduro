@@ -82,7 +82,7 @@ function AnalyticsContent({ data }: { data: AnalyticsData }) {
 							Example
 						</span>
 						<p className="text-sm text-amber-800 dark:text-amber-300">
-							This is example data — upgrade to see your real analytics.
+							This is example data | upgrade to see your real analytics.
 						</p>
 					</div>
 					<div className="flex shrink-0 items-center gap-3">

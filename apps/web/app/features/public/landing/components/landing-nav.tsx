@@ -5,7 +5,6 @@ import {
   Code2,
   GitMerge,
   Map,
-  MessageSquare,
   Plug,
   ThumbsUp,
   TrendingUp,
@@ -222,9 +221,11 @@ export function LandingNav() {
           }}
         >
           <Link to="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <MessageSquare className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <img
+              src="https://res.cloudinary.com/dlimsxfkf/image/upload/v1787991786/hat_icon_1_bu11be.png"
+              alt="Feeduro"
+              className="w-7 h-7 rounded-lg"
+            />
             <span>Feeduro</span>
           </Link>
 

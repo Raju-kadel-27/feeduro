@@ -16,7 +16,7 @@ import {
 import type { Route } from "./+types/privacy";
 
 export function meta() {
-  return [{ title: "Board Access Controls — Feeduro" }];
+  return [{ title: "Board Access Controls | Feeduro" }];
 }
 
 export function shouldRevalidate() {
@@ -187,7 +187,7 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
             icon={<Users className="h-4 w-4" />}
             label="Allow Guest Submissions"
             description="Let visitors submit feedback and vote without creating an account."
-            hint={`When on: visitors see a "Submit as guest" option — no sign-up required.`}
+            hint={`When on: visitors see a "Submit as guest" option | no sign-up required.`}
             checked={settings.allowGuestSubmissions}
             onCheckedChange={(v) => update("allowGuestSubmissions", v)}
             disabled={!loaderData.canGuestPost}
@@ -200,7 +200,7 @@ export default function PrivacySettings({ loaderData }: Route.ComponentProps) {
             icon={<ShieldCheck className="h-4 w-4" />}
             label="Moderate Submissions"
             description="New submissions are held for review before appearing publicly."
-            hint="When on: new posts enter a private queue — invisible until you approve them."
+            hint="When on: new posts enter a private queue | invisible until you approve them."
             checked={settings.moderateSubmissions}
             onCheckedChange={(v) => update("moderateSubmissions", v)}
             saving={savingId === "moderateSubmissions"}

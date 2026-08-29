@@ -9,13 +9,13 @@ import type { Route } from "./+types/_index";
 
 export function meta(): Route.MetaDescriptors {
   return [
-    { title: "Feeduro — Turn Customer Feedback into Revenue" },
+    { title: "Feeduro | Turn Customer Feedback into Revenue" },
     {
       name: "description",
       content:
         "Feeduro helps SaaS teams capture customer feedback, prioritize by MRR impact, and close the loop automatically. Sync voted features to Jira, Linear, and Asana.",
     },
-    { property: "og:title", content: "Feeduro — Turn Customer Feedback into Revenue" },
+    { property: "og:title", content: "Feeduro | Turn Customer Feedback into Revenue" },
     {
       property: "og:description",
       content:
@@ -24,7 +24,7 @@ export function meta(): Route.MetaDescriptors {
     { property: "og:type", content: "website" },
     { property: "og:site_name", content: "Feeduro" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Feeduro — Turn Customer Feedback into Revenue" },
+    { name: "twitter:title", content: "Feeduro | Turn Customer Feedback into Revenue" },
     {
       name: "twitter:description",
       content:

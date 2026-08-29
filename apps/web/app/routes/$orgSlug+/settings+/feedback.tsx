@@ -26,7 +26,7 @@ type FeedbackData = {
 };
 
 export function meta() {
-  return [{ title: "Feedback Settings — Feeduro" }];
+  return [{ title: "Feedback Settings | Feeduro" }];
 }
 
 export function shouldRevalidate() {

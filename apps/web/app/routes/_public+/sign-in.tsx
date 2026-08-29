@@ -8,7 +8,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/sign-in";
 
 export function meta() {
-  return [{ title: "Sign In — Feeduro" }];
+  return [{ title: "Sign In | Feeduro" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

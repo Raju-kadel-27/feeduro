@@ -24,7 +24,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/api-tokens";
 
 export function meta() {
-  return [{ title: "API Tokens — Feeduro" }];
+  return [{ title: "API Tokens | Feeduro" }];
 }
 
 interface ApiKeyRow {
@@ -315,7 +315,7 @@ function ApiTokensContent({ keys, isAdmin }: ApiTokensData) {
             <div className="flex items-center gap-3 text-amber-600">
               <AlertCircle size={16} />
               <span className="text-sm font-semibold">
-                Copy your API key now — it won't be shown again
+                Copy your API key now | it won't be shown again
               </span>
             </div>
             <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3">

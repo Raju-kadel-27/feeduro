@@ -15,7 +15,7 @@ export function ErrorBoundary() {
 }
 
 export function meta() {
-  return [{ title: "Change Password — Feeduro" }];
+  return [{ title: "Change Password | Feeduro" }];
 }
 
 export function shouldRevalidate() {

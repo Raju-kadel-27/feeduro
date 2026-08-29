@@ -4,8 +4,8 @@ import { IntegrationsSection } from "@features/public/landing/components/integra
 
 export function meta() {
   return [
-    { title: "Integrations — Feeduro" },
-    { name: "description", content: "Connect Feeduro with your favourite tools — Jira, Linear, Asana, Slack, GitHub, and more." },
+    { title: "Integrations | Feeduro" },
+    { name: "description", content: "Connect Feeduro with your favourite tools | Jira, Linear, Asana, Slack, GitHub, and more." },
   ];
 }
 

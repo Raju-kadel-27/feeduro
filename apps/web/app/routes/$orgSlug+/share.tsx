@@ -51,8 +51,8 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/share";
 
 export function meta({ data: d }: Route.MetaArgs) {
-  if (!d) return [{ title: "Share — Feeduro" }];
-  return [{ title: `Share ${d.org.name} — Feeduro` }];
+  if (!d) return [{ title: "Share | Feeduro" }];
+  return [{ title: `Share ${d.org.name} | Feeduro` }];
 }
 
 // ─── Loader ───────────────────────────────────────────────────────────────────
@@ -132,10 +132,10 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
 
   const shareUrl = encodeURIComponent(publicBoardUrl);
   const tweetText = encodeURIComponent(
-    `We opened up our feedback board for ${org.name} — drop your ideas, vote on what matters, and help shape what we build next.`,
+    `We opened up our feedback board for ${org.name} | drop your ideas, vote on what matters, and help shape what we build next.`,
   );
   const redditTitle = encodeURIComponent(
-    `${org.name} now has a public feedback board — vote on what gets built next`,
+    `${org.name} now has a public feedback board | vote on what gets built next`,
   );
   const socials = [
     {
@@ -175,7 +175,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
       icon: MessageSquare,
       label: "Team chat",
       description: "Paste into Slack, Discord, or Teams",
-      message: `Hey team 👋\n\nWe set up a place to collect product ideas — drop anything in:\n\n${publicBoardUrl}\n\nFeature requests, bugs, things that annoy you, things you love — it all helps. Upvote what matters most and we'll build from the top.`,
+      message: `Hey team 👋\n\nWe set up a place to collect product ideas | drop anything in:\n\n${publicBoardUrl}\n\nFeature requests, bugs, things that annoy you, things you love | it all helps. Upvote what matters most and we'll build from the top.`,
     },
     {
       icon: Mail,
@@ -193,7 +193,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
       icon: LifeBuoy,
       label: "Support response",
       description: "Add to your helpdesk as a canned reply",
-      message: `Thanks for writing in!\n\nOne more thing — if you have a feature request or idea, our feedback board is the fastest way to get it in front of us:\n\n${publicBoardUrl}\n\nYour idea might already have votes, or you can add a new one. We check it regularly and it directly influences what we build.`,
+      message: `Thanks for writing in!\n\nOne more thing | if you have a feature request or idea, our feedback board is the fastest way to get it in front of us:\n\n${publicBoardUrl}\n\nYour idea might already have votes, or you can add a new one. We check it regularly and it directly influences what we build.`,
     },
     {
       icon: Send,
@@ -325,7 +325,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
           {tab === "footer" && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Add this to the bottom of your emails — every outbound message carries a quiet invite.
+                Add this to the bottom of your emails | every outbound message carries a quiet invite.
               </p>
               <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-1.5">
                 <p className="text-sm font-medium">
@@ -346,7 +346,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
           {tab === "links" && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Wire these into your product — help menus, footers, docs. Paste once and they work forever.
+                Wire these into your product | help menus, footers, docs. Paste once and they work forever.
               </p>
               <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                 {[
@@ -378,7 +378,7 @@ export default function SharePage({ loaderData }: Route.ComponentProps) {
               {!userName && (
                 <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-2.5 text-sm text-amber-800 dark:text-amber-300">
                   <AlertCircle className="h-4 w-4 shrink-0" />
-                  Some messages include <strong className="mx-0.5">[Your name]</strong> — fill that in via
+                  Some messages include <strong className="mx-0.5">[Your name]</strong> | fill that in via
                   account settings first.
                 </div>
               )}

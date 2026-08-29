@@ -454,9 +454,9 @@ export default function LinearIntegrationSettings({ loaderData }: Route.Componen
                     type="button"
                     disabled={saving}
                     onClick={() => saveSettings()}
-                    className="flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-5 py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
-                    {saving ? <Spinner className="size-3" /> : <Check size={12} />}
+                    {saving ? <Spinner className="size-3.5" /> : <Check size={14} />}
                     Save settings
                   </button>
                 </div>

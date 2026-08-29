@@ -60,7 +60,7 @@ export function LandingFooter() {
         </div>
 
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-white/40">
-          <p>© 2025 Feeduro. All rights reserved.</p>
+          <p>© 2026 Feeduro. All rights reserved.</p>
           <p>Built for product teams who ship.</p>
         </div>
       </div>

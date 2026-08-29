@@ -1,5 +1,5 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { getHubSpotPortalInfo } from "@features/internal/integrations/hubspot/server/client";
+import { getHubSpotDealById, getHubSpotPortalInfo, parseHubSpotDealInput } from "@features/internal/integrations/hubspot/server/client";
 import { hubspotOAuth } from "@features/internal/integrations/hubspot/server/oauth";
 import type { HubSpotSettings } from "@features/internal/integrations/hubspot/server/schemas";
 import {
@@ -15,7 +15,7 @@ import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
 import type { Db } from "@/db";
-import { integrations } from "@/db/schema";
+import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 
 const CALLBACK_PATH = "/api/oauth2/integrations/hubspot";
 
@@ -100,6 +100,8 @@ export async function handleHubSpotLoader(db: Db, request: Request) {
 const hubspotActionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("update_settings"), autoCreateDeals: z.boolean() }),
   z.object({ intent: z.literal("disconnect") }),
+  z.object({ intent: z.literal("link_deal"), postId: z.string().min(1), dealInput: z.string().min(1) }),
+  z.object({ intent: z.literal("unlink_deal"), postId: z.string().min(1) }),
 ]);
 
 export async function handleHubSpotAction(db: Db, request: Request) {
@@ -134,6 +136,60 @@ export async function handleHubSpotAction(db: Db, request: Request) {
       .where(
         and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "hubspot")),
       );
+    return data({ success: true });
+  }
+
+  if (parsed.data.intent === "link_deal") {
+    const { postId, dealInput } = parsed.data;
+    const dealId = parseHubSpotDealInput(dealInput);
+    const [integration, post] = await Promise.all([
+      getIntegration(db, organizationId, "hubspot"),
+      db.query.feedbackPosts.findFirst({
+        where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
+        columns: { id: true },
+      }),
+    ]);
+    if (!integration?.accessToken) return data({ error: "HubSpot not connected" }, { status: 400 });
+    if (!post) return data({ error: "Post not found" }, { status: 404 });
+    const settings = parseSettings<HubSpotSettings>(integration.settings ?? null);
+    try {
+      const deal = await getHubSpotDealById(integration.accessToken, dealId, settings?.portalId);
+      await db
+        .insert(postExternalLinks)
+        .values({
+          postId,
+          organizationId,
+          provider: "hubspot",
+          externalId: deal.id,
+          externalUrl: deal.dealUrl,
+          identifier: deal.id,
+          externalTitle: deal.dealname,
+          externalStatus: deal.dealstage,
+          linkedByUserId: session.user.id,
+          lastSyncedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [postExternalLinks.postId, postExternalLinks.provider],
+          set: {
+            externalId: deal.id,
+            externalUrl: deal.dealUrl,
+            identifier: deal.id,
+            externalTitle: deal.dealname,
+            externalStatus: deal.dealstage,
+            lastSyncedAt: new Date(),
+          },
+        });
+      return data({ success: true, deal });
+    } catch (err) {
+      return data({ error: err instanceof Error ? err.message : "Failed to link deal" }, { status: 400 });
+    }
+  }
+
+  if (parsed.data.intent === "unlink_deal") {
+    const { postId } = parsed.data;
+    await db
+      .delete(postExternalLinks)
+      .where(and(eq(postExternalLinks.postId, postId), eq(postExternalLinks.provider, "hubspot"), eq(postExternalLinks.organizationId, organizationId)));
     return data({ success: true });
   }
 

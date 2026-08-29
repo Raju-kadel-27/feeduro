@@ -32,6 +32,32 @@ export interface ZendeskTicket {
   status: string;
 }
 
+export function parseZendeskTicketInput(input: string): string {
+  const trimmed = input.replace(/^#/, "").trim();
+  const urlMatch = trimmed.match(/\/tickets\/(\d+)/);
+  return urlMatch?.[1] ?? trimmed;
+}
+
+export async function getZendeskTicketById(
+  accessToken: string,
+  subdomain: string,
+  ticketId: string,
+): Promise<ZendeskTicket> {
+  const res = await fetch(
+    `https://${subdomain}.zendesk.com/api/v2/tickets/${ticketId}.json`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+  if (!res.ok) throw new Error(`Zendesk ticket ${ticketId} not found`);
+  const json = (await res.json()) as { ticket: ZendeskTicket };
+  const t = json.ticket;
+  return {
+    id: t.id,
+    url: `https://${subdomain}.zendesk.com/agent/tickets/${t.id}`,
+    subject: t.subject,
+    status: t.status,
+  };
+}
+
 export async function createZendeskTicket(
   accessToken: string,
   subdomain: string,

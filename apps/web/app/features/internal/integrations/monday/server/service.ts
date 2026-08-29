@@ -6,7 +6,7 @@ import {
   parseSettings,
 } from "@features/internal/integrations/server/queries";
 import { createId } from "@paralleldrive/cuid2";
-import { buildAuthUrl, exchangeCode } from "@services/oauth/flow.server";
+import { buildAuthUrl, buildCodeChallenge, exchangeCode, generateCodeVerifier } from "@services/oauth/flow.server";
 import { buildOAuthState, parseOAuthState } from "@services/oauth/state.server";
 import { getBaseUrl } from "@utils/base-url";
 import { getEnv } from "@utils/get-env";
@@ -55,8 +55,17 @@ export async function handleMondayLoader(db: Db, request: Request) {
     if (!env.MONDAY_CLIENT_ID || !env.MONDAY_CLIENT_SECRET) {
       throw new Response("Monday.com OAuth not configured", { status: 501 });
     }
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = await buildCodeChallenge(codeVerifier);
     const oauthState = buildOAuthState(organizationId);
-    return redirect(buildAuthUrl(mondayOAuth, env.MONDAY_CLIENT_ID, callbackUrl(), oauthState));
+    const authUrl = buildAuthUrl(mondayOAuth, env.MONDAY_CLIENT_ID, callbackUrl(), oauthState, codeChallenge);
+    const res = redirect(authUrl);
+    const isSecure = callbackUrl().startsWith("https");
+    res.headers.set(
+      "Set-Cookie",
+      `monday_pkce=${codeVerifier}; HttpOnly; ${isSecure ? "Secure; " : ""}SameSite=Lax; Path=/; Max-Age=600`,
+    );
+    return res;
   }
 
   if (error) return redirect("/");
@@ -71,6 +80,9 @@ export async function handleMondayLoader(db: Db, request: Request) {
     const env = getEnv();
     if (!env.MONDAY_CLIENT_ID || !env.MONDAY_CLIENT_SECRET) return redirect("/");
 
+    const cookies = request.headers.get("Cookie") ?? "";
+    const codeVerifier = cookies.match(/monday_pkce=([^;]+)/)?.[1];
+
     console.log(`${LOG} OAuth callback started orgId=${parsed.orgId}`);
     try {
       const { accessToken, tokenExpiresAt } = await exchangeCode(
@@ -79,10 +91,8 @@ export async function handleMondayLoader(db: Db, request: Request) {
         env.MONDAY_CLIENT_ID,
         env.MONDAY_CLIENT_SECRET,
         callbackUrl(),
+        codeVerifier,
       );
-
-      const me = await getMondayMe(accessToken);
-      console.log(`${LOG} token exchanged accountId=${me.account.id} name="${me.account.name}"`);
 
       const existing = await getIntegration(db, parsed.orgId, "monday");
       const existingSettings = parseSettings<MondaySettings>(existing?.settings ?? null);
@@ -98,9 +108,11 @@ export async function handleMondayLoader(db: Db, request: Request) {
 
       const webhookSecret = existingSettings?.webhookSecret ?? createId();
 
-      const settings: MondaySettings = {
-        accountId: me.account.id,
-        accountName: me.account.name,
+      // Save token immediately with preserved settings so the integration shows
+      // as connected even if the account-details fetch below fails.
+      const initialSettings: MondaySettings = {
+        accountId: existingSettings?.accountId,
+        accountName: existingSettings?.accountName,
         defaultBoardId: existingSettings?.defaultBoardId,
         defaultBoardName: existingSettings?.defaultBoardName,
         defaultGroupId: existingSettings?.defaultGroupId,
@@ -118,17 +130,37 @@ export async function handleMondayLoader(db: Db, request: Request) {
           provider: "monday",
           accessToken,
           tokenExpiresAt: tokenExpiresAt ?? null,
-          settings: JSON.stringify(settings),
+          settings: JSON.stringify(initialSettings),
         })
         .onConflictDoUpdate({
           target: [integrations.organizationId, integrations.provider],
           set: {
             accessToken,
             tokenExpiresAt: tokenExpiresAt ?? null,
-            settings: JSON.stringify(settings),
+            settings: JSON.stringify(initialSettings),
             updatedAt: new Date(),
           },
         });
+
+      // Non-fatal: enrich with account name from Monday.com API.
+      getMondayMe(accessToken)
+        .then(async (me) => {
+          console.log(`${LOG} account resolved accountId=${me.account.id} name="${me.account.name}"`);
+          const enriched: MondaySettings = { ...initialSettings, accountId: String(me.account.id), accountName: me.account.name };
+          await db
+            .update(integrations)
+            .set({ settings: JSON.stringify(enriched), updatedAt: new Date() })
+            .where(
+              and(
+                eq(integrations.organizationId, parsed.orgId),
+                eq(integrations.provider, "monday"),
+              ),
+            );
+        })
+        .catch((err) =>
+          console.warn(`${LOG} account fetch failed (non-fatal):`, err instanceof Error ? err.message : err),
+        );
+
       console.log(`${LOG} OAuth callback complete orgId=${parsed.orgId}`);
     } catch (err) {
       console.error(

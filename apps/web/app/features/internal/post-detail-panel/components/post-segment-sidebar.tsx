@@ -117,7 +117,7 @@ export function PostSegmentSidebar({
   const { orgSlug } = useParams<{ orgSlug: string }>();
 
   const hasAnyIntegration =
-    detailData.linearConnected || detailData.jiraConnected || detailData.asanaConnected;
+    detailData.linearConnected || detailData.jiraConnected || detailData.asanaConnected || detailData.githubConnected || detailData.clickupConnected || detailData.shortcutConnected;
 
   const slices = useMemo<Slice[]>(() => {
     if (!segments.length || !profiledCount) return [];

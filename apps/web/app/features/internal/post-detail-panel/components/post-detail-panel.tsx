@@ -78,6 +78,15 @@ export function PostDetailPanel({
       integrations.setLinearLink(detailData?.linearLink ?? null);
       integrations.setJiraLink(detailData?.jiraLink ?? null);
       integrations.setAsanaLink(detailData?.asanaLink ?? null);
+      integrations.setGithubLink(detailData?.githubLink ?? null);
+      integrations.setClickupLink(detailData?.clickupLink ?? null);
+      integrations.setShortcutLink(detailData?.shortcutLink ?? null);
+      integrations.setNotionLink(detailData?.notionLink ?? null);
+      integrations.setTrelloLink(detailData?.trelloLink ?? null);
+      integrations.setMondayLink(detailData?.mondayLink ?? null);
+      integrations.setZendeskLink(detailData?.zendeskLink ?? null);
+      integrations.setHubspotLink(detailData?.hubspotLink ?? null);
+      integrations.setSalesforceLink(detailData?.salesforceLink ?? null);
       comments.setSummary(post.aiSummary ?? null);
       comments.setSummaryGeneratedAt(post.aiSummaryGeneratedAt ?? null);
       owner.setOwnerId(post.ownerId ?? null);

@@ -89,6 +89,8 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
 
       connected: jira.connected,
 
+      comingSoon: true,
+
       description:
         jira.connected && jira.cloudName
           ? `Connected to ${jira.cloudName}. Create Jira issues directly from roadmap cards.`
@@ -166,6 +168,8 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
       icon: <MondayIcon size={40} />,
 
       connected: monday.connected,
+
+      comingSoon: true,
 
       description:
         monday.connected && monday.accountName

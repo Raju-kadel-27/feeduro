@@ -6,7 +6,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@components/ui/empty";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import type { Board, Category, Sort, Tag, View, ViewFilters } from "@features/internal/dashboard/types";
 import type { Segment } from "@features/internal/segmentation/types";
 import { useMutation } from "@tanstack/react-query";
@@ -99,9 +98,6 @@ export function ViewsSettingsPage({ loaderData }: { loaderData: LoaderData }) {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
-      </header>
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Views"

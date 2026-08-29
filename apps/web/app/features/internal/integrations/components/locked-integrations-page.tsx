@@ -18,7 +18,6 @@ import {
 } from "@components/icons";
 import { PlanBanner } from "@features/internal/billing/components/plan-banner";
 import { useNavigate, useParams } from "react-router";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
 import { IntegrationSection } from "./integration-section";
 import { IntegrationTile } from "./integration-tile";
 import { IntegrationsPageHeader } from "./page-header";
@@ -62,11 +61,7 @@ export function LockedIntegrationsPage() {
 	const goToBilling = () => navigate(billingPath);
 
 	return (
-		<>
-			<header className="flex h-14 shrink-0 items-center px-4">
-				<SidebarTrigger className="-ml-1" />
-			</header>
-			<main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
+		<main className="p-6 max-w-[840px] mx-auto w-full space-y-6">
 				<IntegrationsPageHeader />
 
 				<PlanBanner upgradeTo={billingPath}>
@@ -144,7 +139,6 @@ export function LockedIntegrationsPage() {
 						))}
 					</div>
 				</section>
-			</main>
-		</>
+		</main>
 	);
 }

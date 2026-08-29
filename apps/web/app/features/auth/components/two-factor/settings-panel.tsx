@@ -1,6 +1,5 @@
 import { PageHeader } from "@components/common/page-header";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
-import { SidebarTrigger } from "@components/ui/sidebar";
 import { BackupCodesStep } from "@features/auth/components/two-factor/backup-codes-step";
 import { ConfigureTotpStep } from "@features/auth/components/two-factor/configure-totp-step";
 import { TwoFactorManageSection } from "@features/auth/components/two-factor/manage-section";
@@ -56,10 +55,6 @@ export function TwoFactorSettingsPanel() {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center px-4">
-        <SidebarTrigger className="-ml-1" />
-      </header>
-
       <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
         <PageHeader
           title="Two-Factor Authentication"

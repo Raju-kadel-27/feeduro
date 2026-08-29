@@ -356,14 +356,14 @@ export default function AsanaIntegrationSettings({ loaderData }: Route.Component
                     aria-checked={autoCreate}
                     onClick={() => setAutoCreate((v) => !v)}
                     className={cn(
-                      "relative shrink-0 h-5 w-9 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
+                      "relative inline-flex shrink-0 h-5 w-9 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
                       autoCreate ? "bg-primary" : "bg-muted",
                     )}
                   >
                     <span
                       className={cn(
-                        "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform",
-                        autoCreate ? "translate-x-4" : "translate-x-0.5",
+                        "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg transition-transform",
+                        autoCreate ? "translate-x-4" : "translate-x-0",
                       )}
                     />
                   </button>

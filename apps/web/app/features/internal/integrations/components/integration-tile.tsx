@@ -7,10 +7,11 @@ interface Props {
   connected: boolean;
   comingSoon?: boolean;
   locked?: boolean;
+  footer?: React.ReactNode;
   onClick?: () => void;
 }
 
-export function IntegrationTile({ name, icon, connected, comingSoon, locked, onClick }: Props) {
+export function IntegrationTile({ name, icon, connected, comingSoon, locked, footer, onClick }: Props) {
   const isDisabled = comingSoon && !locked;
   return (
     <button
@@ -22,6 +23,7 @@ export function IntegrationTile({ name, icon, connected, comingSoon, locked, onC
         "transition-colors",
         isDisabled ? "opacity-60 cursor-not-allowed" : locked ? "hover:bg-orange-500/5 hover:border-orange-300/50" : "hover:bg-accent/50",
         connected && !locked ? "border-green-500/30" : "border-border",
+        footer ? "pb-3" : "",
       )}
     >
       {connected && !locked && (
@@ -36,6 +38,11 @@ export function IntegrationTile({ name, icon, connected, comingSoon, locked, onC
       )}
       <div className="flex h-10 w-10 items-center justify-center">{icon}</div>
       <span className="text-sm font-medium text-foreground leading-tight">{name}</span>
+      {footer && (
+        <div className="mt-1 flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
+          {footer}
+        </div>
+      )}
     </button>
   );
 }

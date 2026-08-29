@@ -26,6 +26,7 @@ export function ProjectManagementIntegrations({ loaderData }: Props) {
           name={integration.name}
           icon={integration.icon}
           connected={integration.connected}
+          footer={integration.footer}
           onClick={integration.onClick}
         />
       ))}

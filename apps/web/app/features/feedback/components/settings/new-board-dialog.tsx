@@ -4,7 +4,7 @@ import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Bug, Globe, Lock, MessageSquare, Milestone, Sparkles } from "lucide-react";
+import { Bug, ChevronLeft, Globe, Lock, MessageSquare, Milestone, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -179,9 +179,9 @@ export function NewBoardDialog({ open, onOpenChange }: Props) {
               <button
                 type="button"
                 onClick={() => setStep("template")}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
               {activeTemplate && (
                 <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", activeTemplate.iconBg)}>

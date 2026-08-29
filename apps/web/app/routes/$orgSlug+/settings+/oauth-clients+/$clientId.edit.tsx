@@ -3,7 +3,7 @@ import { OAuthClientForm } from "@features/oauth-clients/components/oauth-client
 import type { OAuthClientFormData } from "@features/oauth-clients/schemas/oauth-client";
 import { useMutation } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { isRouteErrorResponse, Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { oauthClient } from "@/db/schema";
@@ -12,7 +12,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/$clientId.edit";
 
 export function meta() {
-  return [{ title: "Edit OAuth App — Feeduro" }];
+  return [{ title: "Edit OAuth App | Feeduro" }];
 }
 
 function parseUris(raw: string): string[] {
@@ -135,10 +135,10 @@ export default function EditOAuthClientPage({ loaderData }: Route.ComponentProps
               <Link
                 to="../.."
                 relative="path"
-                className="group inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border transition-all"
+                aria-label="Back"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
               >
-                <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-                Back
+                <ChevronLeft className="h-5 w-5" />
               </Link>
             </div>
           </div>

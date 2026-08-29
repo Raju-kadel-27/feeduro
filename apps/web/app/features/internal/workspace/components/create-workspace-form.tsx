@@ -1,7 +1,7 @@
 import { Spinner } from "@components/ui/spinner";
 import { useCreateWorkspace } from "@features/internal/workspace/hooks/use-create-workspace";
 import { cn } from "@lib/utils";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 interface CreateWorkspaceFormProps {
@@ -34,9 +34,9 @@ export function CreateWorkspaceForm({
             <button
               type="button"
               onClick={onBack}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
+              <ChevronLeft className="h-3.5 w-3.5" />
             </button>
           )}
           <span className="text-xs font-semibold">New workspace</span>

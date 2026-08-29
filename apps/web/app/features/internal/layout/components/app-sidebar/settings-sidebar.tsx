@@ -10,7 +10,7 @@ import {
 } from "@components/ui/sidebar";
 import { usePlanLimits } from "@features/internal/billing/hooks/use-plan-limits";
 import { usePendingPathname } from "@hooks/use-pending-pathname";
-import { ArrowLeft, Crown } from "lucide-react";
+import { ChevronLeft, Crown } from "lucide-react";
 import { Link } from "react-router";
 import { makeSettingsSections } from "./settings-sections";
 
@@ -29,7 +29,7 @@ export function SettingsSidebar({ base }: Props) {
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="text-base">
                 <Link to={`${base}/dashboard`}>
-                  <ArrowLeft />
+                  <ChevronLeft />
                   <span>Back to dashboard</span>
                 </Link>
               </SidebarMenuButton>

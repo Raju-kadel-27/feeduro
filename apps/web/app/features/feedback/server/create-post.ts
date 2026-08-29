@@ -62,7 +62,7 @@ export async function handleCreatePost(
   // Notifications are fast (DB inserts only) — await so they complete before
   // the pool is closed, but don't let a failure affect the response.
   try {
-    await notifyNewPost({
+    await notifyNewPost(db, {
       postId: post.id,
       postTitle: post.title,
       actorId: session.user.id,
@@ -91,12 +91,13 @@ export async function handleCreatePost(
           triggerSmartReply(db, postData, GROQ_API_KEY).catch((err) =>
             console.error("[smart-reply]", err),
           ),
-          runDuplicateDetection(postData, GROQ_API_KEY).catch((err) =>
+          runDuplicateDetection(db, postData, GROQ_API_KEY).catch((err) =>
             console.error("[duplicate-detection]", err),
           ),
         ]);
       }
       await fireAutoCreateIntegrations(
+        db,
         organizationId,
         { id: post.id, title: post.title, description: description ?? null },
         session.user.id,

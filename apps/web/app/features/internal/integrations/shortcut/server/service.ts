@@ -52,14 +52,19 @@ export async function handleShortcutAction(db: Db, request: Request) {
       if (!isLocal) {
         try {
           if (existingSettings?.webhookId) {
-            await deleteShortcutWebhook(input.apiToken, existingSettings.webhookId).catch(() => {});
+            await deleteShortcutWebhook(input.apiToken, existingSettings.webhookId).catch((e) =>
+              console.warn("[shortcut-connect] delete old webhook failed:", e),
+            );
           }
           const hook = await registerShortcutWebhook(input.apiToken, webhookUrl);
           webhookId = hook.id;
           webhookSecret = hook.secret;
-        } catch {
-          /* Non-fatal — integration works without webhook */
+          console.log("[shortcut-connect] webhook registered", { webhookId, hasSecret: !!webhookSecret, webhookUrl });
+        } catch (e) {
+          console.error("[shortcut-connect] webhook registration failed:", e);
         }
+      } else {
+        console.log("[shortcut-connect] skipping webhook (localhost)");
       }
 
       const settings: ShortcutSettings = {

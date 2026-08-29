@@ -5,32 +5,34 @@ import { syncStatusToLinear } from "@features/internal/integrations/linear/serve
 import { syncStatusToMonday } from "@features/internal/integrations/monday/server/sync-status";
 import { syncStatusToShortcut } from "@features/internal/integrations/shortcut/server/sync-status";
 import { syncStatusToTrello } from "@features/internal/integrations/trello/server/sync-status";
+import type { Db } from "@/db";
 
 export async function fireStatusSyncIntegrations(
+  db: Db,
   organizationId: string,
   postId: string,
   newStatus: string,
 ): Promise<void> {
   await Promise.allSettled([
-    syncStatusToClickup(organizationId, postId, newStatus).catch((err) =>
+    syncStatusToClickup(db, organizationId, postId, newStatus).catch((err) =>
       console.error("[clickup-sync-status]", err),
     ),
-    syncStatusToLinear(organizationId, postId, newStatus).catch((err) =>
+    syncStatusToLinear(db, organizationId, postId, newStatus).catch((err) =>
       console.error("[linear-sync-status]", err),
     ),
-    syncStatusToJira(organizationId, postId, newStatus).catch((err) =>
+    syncStatusToJira(db, organizationId, postId, newStatus).catch((err) =>
       console.error("[jira-sync-status]", err),
     ),
-    syncStatusToAsana(organizationId, postId, newStatus).catch((err) =>
+    syncStatusToAsana(db, organizationId, postId, newStatus).catch((err) =>
       console.error("[asana-sync-status]", err),
     ),
-    syncStatusToMonday(organizationId, postId, newStatus).catch((err) =>
+    syncStatusToMonday(db, organizationId, postId, newStatus).catch((err) =>
       console.error("[monday-sync-status]", err),
     ),
-    syncStatusToShortcut(organizationId, postId, newStatus).catch((err) =>
+    syncStatusToShortcut(db, organizationId, postId, newStatus).catch((err) =>
       console.error("[shortcut-sync-status]", err),
     ),
-    syncStatusToTrello(organizationId, postId, newStatus).catch((err) =>
+    syncStatusToTrello(db, organizationId, postId, newStatus).catch((err) =>
       console.error("[trello-sync-status]", err),
     ),
   ]);

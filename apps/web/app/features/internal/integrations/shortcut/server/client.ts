@@ -2,11 +2,19 @@ import { type ShortcutMember, ShortcutMemberSchema, type ShortcutStory, type Sho
 
 const SC_BASE = "https://api.app.shortcut.com/api/v3";
 
+function scAuthHeader(token: string): Record<string, string> {
+  // OAuth access tokens start with "sct_" and require Bearer auth.
+  // Personal API keys (UUID format) use the Shortcut-Token header.
+  return token.startsWith("sct_")
+    ? { Authorization: `Bearer ${token}` }
+    : { "Shortcut-Token": token };
+}
+
 async function scFetch<T>(token: string, path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${SC_BASE}${path}`, {
     ...options,
     headers: {
-      "Shortcut-Token": token,
+      ...scAuthHeader(token),
       "Content-Type": "application/json",
       ...(options?.headers ?? {}),
     },

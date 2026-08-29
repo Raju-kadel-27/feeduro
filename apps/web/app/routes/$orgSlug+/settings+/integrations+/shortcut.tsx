@@ -18,7 +18,7 @@ import {
   RefreshCw,
   Unplug,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { member } from "@/db/schema";
@@ -92,6 +92,14 @@ interface ShortcutWorkflow {
   name: string;
   states: ShortcutWorkflowState[];
 }
+
+const DEFAULT_STATUS_MAPPINGS: Record<string, string> = {
+  Backlog: "open",
+  "To Do": "reviewing",
+  "In Progress": "in-progress",
+  "In Review": "reviewing",
+  Done: "completed",
+};
 
 const FEEDURO_STATUSES = [
   { value: "open", label: "Open" },
@@ -211,6 +219,20 @@ export default function ShortcutIntegrationSettings({ loaderData }: Route.Compon
   });
 
   const selectedWorkflow = (workflows ?? []).find((w) => w.id === selectedWorkflowId);
+
+  useEffect(() => {
+    if (!selectedWorkflow) return;
+    const newDefaults: Record<number, string> = {};
+    for (const state of selectedWorkflow.states) {
+      const defaultStatus = DEFAULT_STATUS_MAPPINGS[state.name];
+      if (defaultStatus && !statusMappings[state.id]) {
+        newDefaults[state.id] = defaultStatus;
+      }
+    }
+    if (Object.keys(newDefaults).length === 0) return;
+    setStatusMappings((prev) => ({ ...prev, ...newDefaults }));
+    setSettingsDirty(true);
+  }, [selectedWorkflow]); // intentional: only run when selected workflow changes
 
   const { mutate: connect, isPending: connecting } = useMutation({
     mutationFn: () => callApi({ intent: "connect", apiToken }),

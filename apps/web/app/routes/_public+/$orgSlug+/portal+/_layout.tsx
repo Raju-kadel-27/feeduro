@@ -9,7 +9,7 @@ export function loader({ request, params, context }: Route.LoaderArgs) {
   return publicPageLoader(getDb(context), { request, orgSlug: params.orgSlug });
 }
 
-// Portal data is stable per session — mutations use local state or window.location.reload().
+// Portal data is stable per session | mutations use local state or window.location.reload().
 // Prevent re-fetching 8+ DB queries on every tab navigation.
 export function shouldRevalidate() {
   return false;

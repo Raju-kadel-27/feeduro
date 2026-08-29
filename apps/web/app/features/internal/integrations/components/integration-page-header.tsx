@@ -1,5 +1,5 @@
 import { SidebarTrigger } from "@components/ui/sidebar";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useParams } from "react-router";
 
@@ -14,10 +14,10 @@ export function IntegrationPageHeader({ title, children }: { title: string; chil
       <div className="relative h-[calc(100vh-3.5rem)] overflow-y-auto">
         <Link
           to={`/${orgSlug}/settings/integrations`}
-          className="absolute top-[1.4370rem] left-14 flex items-center gap-1.5 text-sm font-medium text-muted-foreground/60 hover:text-foreground transition-colors duration-150"
+          aria-label="Back to integrations"
+          className="absolute top-[1.4370rem] left-14 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-150"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back
+          <ChevronLeft className="h-5 w-5" />
         </Link>
         {children}
       </div>

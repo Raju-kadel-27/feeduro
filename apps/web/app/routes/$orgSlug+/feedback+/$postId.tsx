@@ -25,14 +25,14 @@ import type { Route } from "./+types/$postId";
 export const handle = { hideSidebar: true };
 
 export function meta({ data }: Route.MetaArgs) {
-  if (!data) return [{ title: "Feedback — Feeduro" }];
+  if (!data) return [{ title: "Feedback | Feeduro" }];
   const ogImage = `${data.origin}/api/og?orgSlug=${encodeURIComponent(data.orgSlug)}&postId=${encodeURIComponent(data.postId)}`;
   const desc =
     data.voteCount > 0
       ? `${data.voteCount} vote${data.voteCount === 1 ? "" : "s"} · Share your feedback.`
       : "Share your feedback and ideas.";
   return [
-    { title: `${data.postTitle} — Feeduro` },
+    { title: `${data.postTitle} | Feeduro` },
     { property: "og:type", content: "website" },
     { property: "og:url", content: data.publicPostUrl },
     { property: "og:title", content: data.postTitle },

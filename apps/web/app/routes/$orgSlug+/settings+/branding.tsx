@@ -16,7 +16,7 @@ const BrandingForm = lazy(() =>
 );
 
 export function meta() {
-  return [{ title: "Branding — Feeduro" }];
+  return [{ title: "Branding | Feeduro" }];
 }
 
 export function shouldRevalidate() {
@@ -69,7 +69,7 @@ export default function BrandingSettings({ loaderData }: Route.ComponentProps) {
       <div className="flex items-center gap-3 pt-4">
         <PageHeader
           title="Branding"
-          description="Customize how your workspace looks to your users — logo, colors, and more."
+          description="Customize how your workspace looks to your users | logo, colors, and more."
         />
       </div>
 

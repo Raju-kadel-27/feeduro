@@ -3,7 +3,7 @@ import { CopyButton } from "@features/oauth-clients/components/copy-button";
 import { OAuthClientForm } from "@features/oauth-clients/components/oauth-client-form";
 import type { OAuthClientFormData } from "@features/oauth-clients/schemas/oauth-client";
 import { useMutation } from "@tanstack/react-query";
-import { AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/new";
 
 export function meta() {
-  return [{ title: "Register OAuth App — Feeduro" }];
+  return [{ title: "Register OAuth App | Feeduro" }];
 }
 
 export function shouldRevalidate() {
@@ -31,15 +31,15 @@ type PageState =
 
 function BackButton() {
   return (
-    <div className="hidden lg:block w-28 shrink-0 pt-1">
+    <div className="hidden lg:block shrink-0 pt-1">
       <div className="sticky top-[76px]">
         <Link
           to=".."
           relative="path"
-          className="group inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border transition-all"
+          aria-label="Back"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
         >
-          <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-          Back
+          <ChevronLeft className="h-5 w-5" />
         </Link>
       </div>
     </div>

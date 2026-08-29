@@ -11,7 +11,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/views";
 
 export function meta() {
-  return [{ title: "Views — Feeduro" }];
+  return [{ title: "Views | Feeduro" }];
 }
 
 export function shouldRevalidate() {

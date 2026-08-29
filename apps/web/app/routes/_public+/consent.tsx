@@ -20,7 +20,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/consent";
 
 export function meta() {
-  return [{ title: "Authorize Application — Feeduro" }];
+  return [{ title: "Authorize Application | Feeduro" }];
 }
 
 const SCOPE_DEFS: Record<
@@ -29,7 +29,7 @@ const SCOPE_DEFS: Record<
 > = {
   openid: {
     label: "Verify your identity",
-    description: "Confirm who you are — no other data is shared",
+    description: "Confirm who you are | no other data is shared",
     Icon: Fingerprint,
     color: "text-violet-500 bg-violet-500/10",
   },
@@ -41,7 +41,7 @@ const SCOPE_DEFS: Record<
   },
   email: {
     label: "Read your email address",
-    description: "Your primary email — never used to send you mail",
+    description: "Your primary email | never used to send you mail",
     Icon: Mail,
     color: "text-sky-500 bg-sky-500/10",
   },

@@ -12,7 +12,7 @@ import {
 import { parseChangelogSettings } from "@features/changelog/server/changelog-settings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { ArrowLeft, Check, Clock, Globe } from "lucide-react";
+import { Check, ChevronLeft, Clock, Globe } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -235,9 +235,8 @@ export default function ChangelogEditor({ loaderData }: Route.ComponentProps) {
 
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
         <main className="relative flex-1 overflow-y-auto">
-          <button type="button" onClick={() => navigate(`/${orgSlug}/changelog`)} className="absolute top-[1.4370rem] left-14 flex items-center gap-1.5 text-sm font-medium text-muted-foreground/60 hover:text-foreground transition-colors duration-150">
-            <ArrowLeft className="h-4 w-4" />
-            Back
+          <button type="button" onClick={() => navigate(`/${orgSlug}/changelog`)} aria-label="Back to changelog" className="absolute top-[1.4370rem] left-14 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-150">
+            <ChevronLeft className="h-5 w-5" />
           </button>
           <div className="max-w-3xl mx-auto w-full px-6 pt-4 pb-8 flex flex-col gap-4">
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Changelog title…" className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 resize-none" />

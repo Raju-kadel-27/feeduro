@@ -4,7 +4,7 @@ import type { OAuthClientRow } from "@features/oauth-clients/components/clients-
 import { DeleteAppDialog } from "@features/oauth-clients/components/delete-app-dialog";
 import { useMutation } from "@tanstack/react-query";
 import { and, count, eq, gt, isNull, or } from "drizzle-orm";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { isRouteErrorResponse, useLocation, useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/$clientId";
 
 export function meta() {
-  return [{ title: "OAuth App — Feeduro" }];
+  return [{ title: "OAuth App | Feeduro" }];
 }
 
 function parseUris(raw: string): string[] {
@@ -165,13 +165,10 @@ export default function OAuthClientDetailPage({ loaderData }: Route.ComponentPro
               <button
                 type="button"
                 onClick={() => navigate("..", { relative: "path" })}
-                className="group inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-foreground hover:bg-muted/50 border border-transparent hover:border-border transition-all whitespace-nowrap"
+                aria-label="Back"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
               >
-                <ArrowLeft
-                  size={14}
-                  className="transition-transform group-hover:-translate-x-0.5"
-                />
-                Back
+                <ChevronLeft className="h-5 w-5" />
               </button>
             </div>
           </div>

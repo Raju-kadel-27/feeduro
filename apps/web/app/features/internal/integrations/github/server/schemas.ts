@@ -22,6 +22,9 @@ export const GithubSettingsSchema = z.object({
   autoCreateIssues: z.boolean(),
   webhookId: z.string().optional(),
   webhookSecret: z.string().optional(),
+  connectedAs: z
+    .object({ login: z.string(), avatarUrl: z.string() })
+    .optional(),
 });
 
 export type GithubRepo = z.infer<typeof GithubRepoSchema>;

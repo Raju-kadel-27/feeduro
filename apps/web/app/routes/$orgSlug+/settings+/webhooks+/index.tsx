@@ -16,7 +16,7 @@ import type { Route } from "./+types/index";
 type WebhooksData = Awaited<ReturnType<typeof getWebhooksLoaderData>> | { planLocked: true };
 
 export function meta() {
-  return [{ title: "Webhooks — Feeduro" }];
+  return [{ title: "Webhooks | Feeduro" }];
 }
 
 export function shouldRevalidate() {

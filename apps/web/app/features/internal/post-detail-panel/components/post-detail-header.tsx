@@ -13,7 +13,7 @@ import { buttonVariants } from "@components/ui/button";
 import { ADMIN_STATUS_CONFIG } from "@features/feedback/constants";
 import type { AdminStatus } from "@features/feedback/schemas/admin";
 import { cn } from "@lib/utils";
-import { ArrowLeft, ArrowUpRight, Check, GitMerge, Link2, Trash2, X } from "lucide-react";
+import { ArrowUpRight, Check, ChevronLeft, GitMerge, Link2, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import type { useOwnerPicker } from "../hooks/use-owner-picker";
@@ -85,10 +85,10 @@ export function PostDetailHeader({
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Back"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="font-medium">Back</span>
+          <ChevronLeft className="h-5 w-5" />
         </button>
       ) : statusAndOwner}
       <div className="flex-1" />

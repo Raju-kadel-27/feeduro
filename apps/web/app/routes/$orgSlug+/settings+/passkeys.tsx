@@ -18,7 +18,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/passkeys";
 
 export function meta() {
-  return [{ title: "Passkeys — Feeduro" }];
+  return [{ title: "Passkeys | Feeduro" }];
 }
 
 export function shouldRevalidate() {

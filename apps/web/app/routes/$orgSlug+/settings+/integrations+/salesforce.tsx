@@ -9,18 +9,18 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { ExternalLink, Unplug } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/salesforce";
 
 export function meta() {
-  return [{ title: "Salesforce Integration — Feeduro" }];
+  return [{ title: "Salesforce Integration | Feeduro" }];
 }
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
@@ -66,6 +66,7 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
 
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
+  const revalidator = useRevalidator();
 
   const [autoCreate, setAutoCreate] = useState(autoCreateOpportunities);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -106,7 +107,8 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
       if (json.error) throw new Error(json.error);
-      window.location.reload();
+      toast.success("Salesforce disconnected");
+      revalidator.revalidate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to disconnect");
       setDisconnecting(false);
@@ -135,7 +137,7 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
             </div>
           </div>
 
-          {/* Step 1 — Connect */}
+          {/* Step 1 | Connect */}
           <section className="rounded-lg border border-border overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
               <div className="flex items-center gap-2">
@@ -224,7 +226,7 @@ export default function SalesforceIntegrationSettings({ loaderData }: Route.Comp
             </div>
           </section>
 
-          {/* Step 2 — Configure */}
+          {/* Step 2 | Configure */}
           {connected && (
             <section className="rounded-lg border border-border overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">

@@ -7,11 +7,11 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/clickup";
 
 export function meta() {
-  return [{ title: "ClickUp Integration — Feeduro" }];
+  return [{ title: "ClickUp Integration | Feeduro" }];
 }
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

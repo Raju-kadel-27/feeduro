@@ -15,7 +15,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/widget";
 
 export function meta() {
-  return [{ title: "Widget Settings — Feeduro" }];
+  return [{ title: "Widget Settings | Feeduro" }];
 }
 
 export function shouldRevalidate({ formAction }: { formAction?: string }) {

@@ -7,6 +7,7 @@ import { getAuth } from "@lib/auth/server";
 import { toDisplayName } from "@utils/display-name";
 import { useEffect } from "react";
 import { data, Outlet, useLoaderData, useMatches } from "react-router";
+import type { ShouldRevalidateFunctionArgs } from "react-router";
 import { getDb } from "~/middleware/cloudflare.server";
 
 import type { Route } from "./+types/_layout";
@@ -21,7 +22,8 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const activeOrgId = (session.session as { activeOrganizationId?: string }).activeOrganizationId;
   let syncHeaders = new Headers();
   if (activeOrgId !== organizationId) {
-    const syncResponse = await getAuth(db).api.setActiveOrganization({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const syncResponse = await (getAuth(db).api as any).setActiveOrganization({
       body: { organizationId },
       headers: request.headers,
       asResponse: true,
@@ -52,8 +54,8 @@ export function shouldRevalidate({
   nextParams,
   formMethod,
   defaultShouldRevalidate,
-}: Route.ShouldRevalidateArgs) {
-  // planLimits only changes after a mutation (billing actions) — skip re-running
+}: ShouldRevalidateFunctionArgs) {
+  // planLimits only changes after a mutation (billing actions) | skip re-running
   // the layout loader on plain tab-switch navigations within the same org.
   if (formMethod) return defaultShouldRevalidate;
   return currentParams.orgSlug !== nextParams.orgSlug;

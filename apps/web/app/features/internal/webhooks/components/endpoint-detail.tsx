@@ -10,7 +10,7 @@ import {
 } from "@components/ui/dialog";
 import { cn } from "@lib/utils";
 import { useMutation } from "@tanstack/react-query";
-import { AlertTriangle, ArrowLeft, KeyRound, Link2, RefreshCw, Trash2, Zap } from "lucide-react";
+import { AlertTriangle, ChevronLeft, KeyRound, Link2, RefreshCw, Trash2, Zap } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -116,15 +116,15 @@ export function EndpointDetail({ endpoint, isAdmin }: EndpointDetailProps) {
       <div className="relative">
 
         {/* Sticky back button — floats left, doesn't shift the card */}
-        <div className="hidden lg:block absolute -left-36 top-0 w-28 pt-1">
+        <div className="hidden lg:block absolute -left-16 top-0 pt-1">
           <div className="sticky top-[76px]">
             <Link
               to=".."
               relative="path"
-              className="group inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border transition-all"
+              aria-label="Back"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
             >
-              <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-              Back
+              <ChevronLeft className="h-5 w-5" />
             </Link>
           </div>
         </div>

@@ -1,4 +1,3 @@
-import { MessageSquare } from "lucide-react";
 import { Link } from "react-router";
 
 export function AuthLeftPanel() {
@@ -14,9 +13,11 @@ export function AuthLeftPanel() {
       />
 
       <Link to="/" className="relative z-10 flex items-center gap-2 font-semibold text-white">
-        <div className="flex size-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white">
-          <MessageSquare className="size-4" />
-        </div>
+        <img
+          src="https://res.cloudinary.com/dlimsxfkf/image/upload/v1787991786/hat_icon_1_bu11be.png"
+          alt="Feeduro"
+          className="size-7 rounded-lg"
+        />
         Feeduro
       </Link>
 

@@ -41,7 +41,7 @@ type TeamData =
     };
 
 export function meta() {
-  return [{ title: "Team Settings — Feeduro" }];
+  return [{ title: "Team Settings | Feeduro" }];
 }
 
 export function shouldRevalidate() {

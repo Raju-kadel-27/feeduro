@@ -7,9 +7,9 @@ import {
 } from "@features/internal/segmentation/components/segment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft,
   ArrowRight,
   Check,
+  ChevronLeft,
   DollarSign,
   Download,
   Layers,
@@ -311,9 +311,10 @@ Authorization: Bearer <api-key>
               type="button"
               onClick={() => goToStep((step - 1) as Step)}
               disabled={step === 1}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold border border-border hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Back"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <ArrowLeft className="h-5 w-5" /> Back
+              <ChevronLeft className="h-6 w-6" />
             </button>
             <div className="flex flex-col items-end gap-1.5">
               <button

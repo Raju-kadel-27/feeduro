@@ -9,7 +9,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/onboarding";
 
 export function meta() {
-  return [{ title: "Create your workspace — Feeduro" }];
+  return [{ title: "Create your workspace | Feeduro" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -24,7 +24,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     throw redirect(org?.slug ? `/${org.slug}/dashboard` : "/");
   }
 
-  // Has orgs but none active (e.g. after sign-in) — set first one active
+  // Has orgs but none active (e.g. after sign-in) | set first one active
   const memberships = await db.query.member.findMany({
     where: eq(member.userId, session.user.id),
   });

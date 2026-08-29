@@ -18,7 +18,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/workspace";
 
 export function meta() {
-  return [{ title: "Workspace Settings — Feeduro" }];
+  return [{ title: "Workspace Settings | Feeduro" }];
 }
 
 export function shouldRevalidate() {

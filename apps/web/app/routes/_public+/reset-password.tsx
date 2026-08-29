@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 export function meta() {
-  return [{ title: "Reset Password — Feeduro" }];
+  return [{ title: "Reset Password | Feeduro" }];
 }
 
 export default function ResetPassword() {

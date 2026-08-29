@@ -1,6 +1,6 @@
 import { Button } from "@components/ui/button";
 import { Dialog, DialogContent } from "@components/ui/dialog";
-import { ArrowLeft, X } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { OrgRole } from "../types";
 import { PermissionsEditor } from "./permissions-editor";
@@ -59,9 +59,9 @@ export function RoleFormDialog({ role, onClose, onSubmit, isPending }: RoleFormD
             type="button"
             onClick={onClose}
             aria-label="Go back"
-            className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground shrink-0"
+            className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground shrink-0"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-base font-semibold leading-tight">

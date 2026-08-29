@@ -9,6 +9,7 @@ import {
   ShortcutIcon,
   TrelloIcon,
 } from "@components/icons";
+import { GitBranch } from "lucide-react";
 
 import { ensureIntegrationConfigured } from "../utils";
 
@@ -22,6 +23,11 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
       icon: <LinearIcon className="h-10 w-10 text-foreground" />,
 
       connected: linear.connected,
+
+      footer:
+        linear.connected && linear.workspaceName ? (
+          <span>{linear.workspaceName}</span>
+        ) : undefined,
 
       description:
         linear.connected && linear.workspaceName
@@ -48,6 +54,14 @@ export function createProjectManagementIntegrations({ loaderData, navigate, orgS
       icon: <GitHubIcon className="h-10 w-10 fill-foreground" />,
 
       connected: github.connected,
+
+      footer:
+        github.connected && github.repo ? (
+          <>
+            <GitBranch size={11} />
+            <span>{github.repo}</span>
+          </>
+        ) : undefined,
 
       description:
         github.connected && github.repo

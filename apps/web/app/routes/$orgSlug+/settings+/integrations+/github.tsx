@@ -1,6 +1,9 @@
 import { Spinner } from "@components/ui/spinner";
 import { requireOrgBySlug } from "@features/auth/server/guards";
+import { DisconnectDialog } from "@features/internal/integrations/components/disconnect-dialog";
 import { IntegrationPageHeader } from "@features/internal/integrations/components/integration-page-header";
+import { GitHubLogo } from "@features/internal/integrations/components/logos";
+import { SetupStep } from "@features/internal/integrations/components/setup-step";
 import { getIntegration } from "@features/internal/integrations/server/queries";
 import { cn } from "@lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -15,9 +18,8 @@ import {
   RefreshCw,
   Settings2,
   Unlink,
-  Unplug,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { member } from "@/db/schema";
@@ -26,16 +28,19 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/github";
 
 export function meta() {
-  return [{ title: "GitHub Integration — Feeduro" }];
+  return [{ title: "GitHub Integration | Feeduro" }];
 }
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = getDb(context);
   const { session, organizationId } = await requireOrgBySlug(db, request, params.orgSlug);
+
+  const url = new URL(request.url);
+  const oauthError = url.searchParams.get("oauth_error");
 
   const [integration, memberRecord] = await Promise.all([
     getIntegration(db, organizationId, "github"),
@@ -50,6 +55,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
         repoOwner?: string;
         repoName?: string;
         autoCreateIssues?: boolean;
+        connectedAs?: { login: string; avatarUrl: string };
       })
     : null;
 
@@ -61,8 +67,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
           autoCreateIssues: settings.autoCreateIssues ?? false,
         }
       : null,
+    connectedAs: settings?.connectedAs ?? null,
     isAdmin: memberRecord?.role === "admin",
     githubConnected: !!integration?.accessToken,
+    oauthError,
   };
 }
 
@@ -85,7 +93,13 @@ async function callApi(body: object) {
   return json;
 }
 
-function RepoSelector({ onSelect }: { onSelect: (owner: string, name: string) => void }) {
+function RepoSelector({
+  onSelect,
+  onTokenInvalid,
+}: {
+  onSelect: (owner: string, name: string) => void;
+  onTokenInvalid: () => void;
+}) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -96,6 +110,9 @@ function RepoSelector({ onSelect }: { onSelect: (owner: string, name: string) =>
       return json.repos ?? [];
     },
     enabled: open,
+    onError: (err: Error) => {
+      if (/403|revoked|SAML|token/i.test(err.message)) onTokenInvalid();
+    },
   });
 
   const filtered = (data ?? []).filter((r) =>
@@ -136,12 +153,22 @@ function RepoSelector({ onSelect }: { onSelect: (owner: string, name: string) =>
               </div>
             )}
             {error && (
-              <div className="flex items-center gap-2 px-3 py-4 text-sm text-destructive">
-                <AlertCircle size={14} />
-                {error.message}
+              <div className="flex flex-col gap-2 px-3 py-4 text-sm text-destructive">
+                <div className="flex items-center gap-2">
+                  <AlertCircle size={14} className="shrink-0" />
+                  {error.message}
+                </div>
+                {/403|revoked|SAML|token/i.test(error.message) && (
+                  <a
+                    href="/api/oauth2/integrations/github?intent=connect"
+                    className="self-start text-xs text-primary underline underline-offset-2"
+                  >
+                    Reconnect GitHub →
+                  </a>
+                )}
               </div>
             )}
-            {!isLoading && filtered.length === 0 && (
+            {!isLoading && !error && filtered.length === 0 && (
               <p className="px-3 py-4 text-sm text-muted-foreground text-center">
                 No repositories found
               </p>
@@ -184,11 +211,13 @@ function RepoSelector({ onSelect }: { onSelect: (owner: string, name: string) =>
 }
 
 export default function GithubIntegrationSettings({ loaderData }: Route.ComponentProps) {
-  const { integration, isAdmin, githubConnected } = loaderData;
+  const { integration, connectedAs, isAdmin, githubConnected, oauthError } = loaderData;
   const revalidator = useRevalidator();
 
   const [selectedRepo, setSelectedRepo] = useState<{ owner: string; name: string } | null>(null);
   const [autoCreate, setAutoCreate] = useState(integration?.autoCreateIssues ?? false);
+  const [tokenInvalid, setTokenInvalid] = useState(false);
+  const handleTokenInvalid = useCallback(() => setTokenInvalid(true), []);
 
   const { mutate: saveRepo, isPending: saving } = useMutation({
     mutationFn: () =>
@@ -233,6 +262,15 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
   return (
         <IntegrationPageHeader title="GitHub Integration">
         <main className="p-6 max-w-[840px] mx-auto w-full space-y-8">
+          {oauthError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle size={15} className="shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium">GitHub authorization failed</p>
+                <p className="text-destructive/80 mt-0.5">{oauthError}</p>
+              </div>
+            </div>
+          )}
           <div>
             <h2 className="text-sm font-semibold text-foreground">GitHub Issues</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
@@ -243,42 +281,60 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
 
           {/* Step 1: Connect GitHub */}
           <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
-                1
-              </span>
-              <h3 className="text-sm font-semibold text-foreground">
-                Connect your GitHub account
-              </h3>
-            </div>
+            <SetupStep
+              number={1}
+              title="Connect your GitHub account"
+              state={githubConnected ? "complete" : "active"}
+            />
 
             <div className="rounded-lg border border-border bg-card p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
-                  <GitBranch size={16} className="text-foreground" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted overflow-hidden">
+                  {githubConnected && connectedAs?.avatarUrl ? (
+                    <img
+                      src={connectedAs.avatarUrl}
+                      alt={connectedAs.login}
+                      width={36}
+                      height={36}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <GitHubLogo className="text-foreground" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">GitHub</p>
                   <p className="text-sm text-muted-foreground">
-                    {githubConnected ? "Workspace connected" : "Not connected"}
+                    {githubConnected
+                      ? connectedAs
+                        ? `Connected as @${connectedAs.login}`
+                        : "Workspace connected"
+                      : "Not connected"}
                   </p>
                 </div>
                 {githubConnected ? (
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 text-sm font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
-                      <Check size={11} />
-                      Connected
-                    </span>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => disconnect()}
-                        disabled={disconnecting}
-                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                    {tokenInvalid ? (
+                      <a
+                        href="/api/oauth2/integrations/github?intent=connect"
+                        className="flex items-center gap-1.5 text-sm font-medium text-amber-600 bg-amber-500/10 px-2.5 py-1 rounded-full hover:bg-amber-500/20 transition-colors"
                       >
-                        <Unplug size={12} />
-                        {disconnecting ? "Disconnecting…" : "Disconnect"}
-                      </button>
+                        <AlertCircle size={11} />
+                        Token expired | Reconnect
+                      </a>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full">
+                        <Check size={11} />
+                        Connected
+                      </span>
+                    )}
+                    {isAdmin && (
+                      <DisconnectDialog
+                        integrationName="GitHub"
+                        consequence="This will remove the webhook from your repository and disconnect the integration."
+                        onConfirm={() => disconnect()}
+                        isPending={disconnecting}
+                      />
                     )}
                   </div>
                 ) : (
@@ -300,12 +356,11 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
           <section
             className={cn("space-y-3", !githubConnected && "opacity-40 pointer-events-none")}
           >
-            <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
-                2
-              </span>
-              <h3 className="text-sm font-semibold text-foreground">Select a repository</h3>
-            </div>
+            <SetupStep
+              number={2}
+              title="Select a repository"
+              state={!githubConnected ? "locked" : integration ? "complete" : "active"}
+            />
 
             <div className="rounded-lg border border-border bg-card p-4 space-y-4">
               {integration && !selectedRepo ? (
@@ -342,7 +397,7 @@ export default function GithubIntegrationSettings({ loaderData }: Route.Componen
                 </div>
               ) : (
                 isAdmin && (
-                  <RepoSelector onSelect={(owner, name) => setSelectedRepo({ owner, name })} />
+                  <RepoSelector onSelect={(owner, name) => setSelectedRepo({ owner, name })} onTokenInvalid={handleTokenInvalid} />
                 )
               )}
 

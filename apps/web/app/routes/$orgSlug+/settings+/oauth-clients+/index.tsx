@@ -20,7 +20,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/index";
 
 export function meta() {
-  return [{ title: "OAuth Apps — Feeduro" }];
+  return [{ title: "OAuth Apps | Feeduro" }];
 }
 
 function toStringArray(value: unknown): string[] {

@@ -8,7 +8,7 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/accept-invitation";
 
 export function meta() {
-  return [{ title: "Accept Invitation — Feeduro" }];
+  return [{ title: "Accept Invitation | Feeduro" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

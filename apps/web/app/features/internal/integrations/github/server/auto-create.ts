@@ -17,7 +17,7 @@ export async function autoCreateGithubIssue(
   const settings = parseSettings<GithubSettings>(integration.settings);
   if (!settings?.autoCreateIssues || !settings.repoOwner || !settings.repoName) return;
 
-  if (await isAlreadyLinked(post.id, "github")) return;
+  if (await isAlreadyLinked(db, post.id, "github")) return;
 
   const bodyText = post.description
     ? `${post.description}\n\n---\n*Created from [Feeduro](https://feeduro.com) feedback #${post.id}*`

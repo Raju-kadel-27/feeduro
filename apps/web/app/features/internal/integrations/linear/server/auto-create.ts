@@ -29,7 +29,7 @@ export async function autoCreateLinearIssue(
     return;
   }
 
-  if (await isAlreadyLinked(post.id, "linear")) {
+  if (await isAlreadyLinked(db, post.id, "linear")) {
     console.log(`${LOG} skipped — already linked postId=${post.id}`);
     return;
   }

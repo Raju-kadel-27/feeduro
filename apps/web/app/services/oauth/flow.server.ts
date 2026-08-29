@@ -7,11 +7,30 @@ export class TokenExpiredError extends Error {
   }
 }
 
+export function generateCodeVerifier(): string {
+  const buf = new Uint8Array(32);
+  crypto.getRandomValues(buf);
+  return btoa(String.fromCharCode(...buf))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export async function buildCodeChallenge(verifier: string): Promise<string> {
+  const data = new TextEncoder().encode(verifier);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
 export function buildAuthUrl(
   config: OAuthConfig,
   clientId: string,
   redirectUri: string,
   state: string,
+  codeChallenge?: string,
 ): string {
   const params: Record<string, string> = {
     response_type: "code",
@@ -21,6 +40,10 @@ export function buildAuthUrl(
   };
   if (config.scopes) params.scope = config.scopes;
   if (config.extraAuthParams) Object.assign(params, config.extraAuthParams);
+  if (codeChallenge) {
+    params.code_challenge = codeChallenge;
+    params.code_challenge_method = "S256";
+  }
   return `${config.authorizeUrl}?${new URLSearchParams(params)}`;
 }
 
@@ -65,17 +88,17 @@ export async function exchangeCode(
   clientId: string,
   clientSecret: string,
   redirectUri: string,
+  codeVerifier?: string,
 ): Promise<TokenResponse> {
-  const { body, contentType } = buildBody(
-    {
-      grant_type: "authorization_code",
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-      redirect_uri: redirectUri,
-    },
-    config.bodyFormat,
-  );
+  const tokenParams: Record<string, string> = {
+    grant_type: "authorization_code",
+    client_id: clientId,
+    client_secret: clientSecret,
+    code,
+    redirect_uri: redirectUri,
+  };
+  if (codeVerifier) tokenParams.code_verifier = codeVerifier;
+  const { body, contentType } = buildBody(tokenParams, config.bodyFormat);
   const res = await fetch(config.tokenUrl, {
     method: "POST",
     headers: { "Content-Type": contentType, Accept: "application/json" },

@@ -1,5 +1,5 @@
 import { requireOrganization, requirePermission } from "@features/auth/server/guards";
-import { getSalesforceUserInfo } from "@features/internal/integrations/salesforce/server/client";
+import { getSalesforceOpportunityById, getSalesforceUserInfo, parseSalesforceOpportunityInput } from "@features/internal/integrations/salesforce/server/client";
 import {
   exchangeSalesforceCode,
   salesforceAuthUrl,
@@ -17,7 +17,7 @@ import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
 import type { Db } from "@/db";
-import { integrations } from "@/db/schema";
+import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 
 const CALLBACK_PATH = "/api/oauth2/integrations/salesforce";
 
@@ -106,6 +106,8 @@ export async function handleSalesforceLoader(db: Db, request: Request) {
 const salesforceActionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("update_settings"), autoCreateOpportunities: z.boolean() }),
   z.object({ intent: z.literal("disconnect") }),
+  z.object({ intent: z.literal("link_opportunity"), postId: z.string().min(1), opportunityInput: z.string().min(1) }),
+  z.object({ intent: z.literal("unlink_opportunity"), postId: z.string().min(1) }),
 ]);
 
 export async function handleSalesforceAction(db: Db, request: Request) {
@@ -140,6 +142,61 @@ export async function handleSalesforceAction(db: Db, request: Request) {
       .where(
         and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "salesforce")),
       );
+    return data({ success: true });
+  }
+
+  if (parsed.data.intent === "link_opportunity") {
+    const { postId, opportunityInput } = parsed.data;
+    const opportunityId = parseSalesforceOpportunityInput(opportunityInput);
+    const [integration, post] = await Promise.all([
+      getIntegration(db, organizationId, "salesforce"),
+      db.query.feedbackPosts.findFirst({
+        where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
+        columns: { id: true },
+      }),
+    ]);
+    if (!integration?.accessToken) return data({ error: "Salesforce not connected" }, { status: 400 });
+    if (!post) return data({ error: "Post not found" }, { status: 404 });
+    const settings = parseSettings<SalesforceSettings>(integration.settings ?? null);
+    if (!settings?.instanceUrl) return data({ error: "Salesforce instance URL missing" }, { status: 400 });
+    try {
+      const opp = await getSalesforceOpportunityById(integration.accessToken, settings.instanceUrl, opportunityId);
+      await db
+        .insert(postExternalLinks)
+        .values({
+          postId,
+          organizationId,
+          provider: "salesforce",
+          externalId: opp.id,
+          externalUrl: opp.opportunityUrl,
+          identifier: opp.id.slice(0, 8),
+          externalTitle: opp.name,
+          externalStatus: opp.stageName,
+          linkedByUserId: session.user.id,
+          lastSyncedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [postExternalLinks.postId, postExternalLinks.provider],
+          set: {
+            externalId: opp.id,
+            externalUrl: opp.opportunityUrl,
+            identifier: opp.id.slice(0, 8),
+            externalTitle: opp.name,
+            externalStatus: opp.stageName,
+            lastSyncedAt: new Date(),
+          },
+        });
+      return data({ success: true, opportunity: opp });
+    } catch (err) {
+      return data({ error: err instanceof Error ? err.message : "Failed to link opportunity" }, { status: 400 });
+    }
+  }
+
+  if (parsed.data.intent === "unlink_opportunity") {
+    const { postId } = parsed.data;
+    await db
+      .delete(postExternalLinks)
+      .where(and(eq(postExternalLinks.postId, postId), eq(postExternalLinks.provider, "salesforce"), eq(postExternalLinks.organizationId, organizationId)));
     return data({ success: true });
   }
 

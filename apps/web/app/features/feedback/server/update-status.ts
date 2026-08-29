@@ -75,7 +75,7 @@ export async function handleUpdateStatus(
   // Notifications are fast (DB inserts only) — await so they complete before
   // the pool is closed, but don't let a failure affect the response.
   try {
-    await notifyStatusChanged({
+    await notifyStatusChanged(db, {
       postId: id,
       postTitle: existing.title,
       oldStatus: existing.status,
@@ -90,7 +90,7 @@ export async function handleUpdateStatus(
 
   // Integration syncs hit external APIs — run in the background so they don't
   // block the response.
-  waitUntil(context, fireStatusSyncIntegrations(organizationId, id, newStatus));
+  waitUntil(context, fireStatusSyncIntegrations(db, organizationId, id, newStatus));
 
   return data({ success: true });
 }

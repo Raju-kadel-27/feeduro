@@ -7,16 +7,39 @@ const PLACEHOLDERS: Record<string, string> = {
   jira: "PROJ-42 or paste URL…",
   linear: "ENG-123 or issue ID…",
   asana: "Task GID or paste URL…",
+  github: "Paste GitHub issue URL…",
+  clickup: "Task ID or paste ClickUp URL…",
+  shortcut: "Story ID (e.g. 12345)…",
+  notion: "Page ID or paste Notion URL…",
+  trello: "Card ID or paste Trello URL…",
+  monday: "Item ID or paste Monday.com URL…",
+  zendesk: "Ticket # or paste Zendesk URL…",
+  hubspot: "Deal ID or paste HubSpot URL…",
+  salesforce: "Opportunity ID or paste Salesforce URL…",
 };
 
-const ACCENT: Record<string, string> = { jira: "#2684FF", linear: "#5E6AD2", asana: "#F06A6A" };
+const ACCENT: Record<string, string> = {
+  jira: "#2684FF",
+  linear: "#5E6AD2",
+  asana: "#F06A6A",
+  github: "#24292f",
+  clickup: "#7B68EE",
+  shortcut: "#45474D",
+  notion: "#000000",
+  trello: "#0079BF",
+  monday: "#FF3D57",
+  zendesk: "#1F73B7",
+  hubspot: "#FF5C35",
+  salesforce: "#00A1E0",
+};
+
+type Provider = "jira" | "linear" | "asana" | "github" | "clickup" | "shortcut" | "notion" | "trello" | "monday" | "zendesk" | "hubspot" | "salesforce";
 
 export function LinkIssuePopover({
-  provider, linking, triggerLabel = "Link issue", onLink,
+  provider, linking, onLink,
 }: {
-  provider: "jira" | "linear" | "asana";
+  provider: Provider;
   linking: boolean;
-  triggerLabel?: string;
   onLink: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -24,7 +47,20 @@ export function LinkIssuePopover({
   const [pasteValue, setPasteValue] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const { results, loading, error } = useSearchIssues(provider, query, open);
+  const supportsSearch = provider === "jira" || provider === "linear" || provider === "asana";
+  const { results, loading, error } = useSearchIssues(
+    supportsSearch ? (provider as "jira" | "linear" | "asana") : "linear",
+    query,
+    open && supportsSearch,
+  );
+
+  const triggerLabel = provider === "zendesk" ? "Link ticket"
+    : provider === "hubspot" ? "Link deal"
+    : provider === "salesforce" ? "Link opportunity"
+    : provider === "notion" ? "Link page"
+    : provider === "trello" ? "Link card"
+    : provider === "monday" ? "Link item"
+    : "Link issue";
 
   useEffect(() => {
     if (open) setTimeout(() => searchRef.current?.focus(), 50);
@@ -48,55 +84,60 @@ export function LinkIssuePopover({
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0 z-[60]" align="start" side="bottom" sideOffset={6}>
-        {/* Search row */}
-        <div className="flex items-center gap-2 px-3 py-2 border-b">
-          <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <input ref={searchRef} value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by title or key…"
-            className="flex-1 text-xs bg-transparent outline-none placeholder:text-muted-foreground"
-          />
-          {loading && <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin shrink-0" />}
-        </div>
+        {/* Search row — hidden for providers without search support */}
+        {supportsSearch && (
+          <>
+            <div className="flex items-center gap-2 px-3 py-2 border-b">
+              <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <input ref={searchRef} value={query} onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by title or key…"
+                className="flex-1 text-xs bg-transparent outline-none placeholder:text-muted-foreground"
+              />
+              {loading && <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin shrink-0" />}
+            </div>
 
-        {/* Search results */}
-        <div className="max-h-52 overflow-y-auto">
-          {error && <p className="px-3 py-3 text-xs text-destructive text-center">{error}</p>}
-          {!error && !loading && query.trim() && results.length === 0 && (
-            <p className="px-3 py-3 text-xs text-muted-foreground text-center">No results found</p>
-          )}
-          {!error && !query.trim() && (
-            <p className="px-3 py-3 text-xs text-muted-foreground text-center">Type to search…</p>
-          )}
-          {results.map((r) => (
-            <button key={r.id} type="button" onClick={() => handleSelect(r)}
-              className="w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-muted transition-colors text-left group">
-              <div className="flex-1 min-w-0 space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold font-mono shrink-0" style={{ color: accent }}>
-                    {r.identifier}
-                  </span>
-                  {r.status && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted font-medium text-muted-foreground shrink-0">
-                      {r.status}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-foreground truncate leading-snug">{r.title}</p>
-              </div>
-              {r.url && (
-                <a href={r.url} target="_blank" rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 mt-0.5 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+            <div className="max-h-52 overflow-y-auto">
+              {error && <p className="px-3 py-3 text-xs text-destructive text-center">{error}</p>}
+              {!error && !loading && query.trim() && results.length === 0 && (
+                <p className="px-3 py-3 text-xs text-muted-foreground text-center">No results found</p>
               )}
-            </button>
-          ))}
-        </div>
+              {!error && !query.trim() && (
+                <p className="px-3 py-3 text-xs text-muted-foreground text-center">Type to search…</p>
+              )}
+              {results.map((r) => (
+                <button key={r.id} type="button" onClick={() => handleSelect(r)}
+                  className="w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-muted transition-colors text-left group">
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold font-mono shrink-0" style={{ color: accent }}>
+                        {r.identifier}
+                      </span>
+                      {r.status && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted font-medium text-muted-foreground shrink-0">
+                          {r.status}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-foreground truncate leading-snug">{r.title}</p>
+                  </div>
+                  {r.url && (
+                    <a href={r.url} target="_blank" rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0 mt-0.5 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Paste URL / key */}
-        <div className="border-t px-3 py-2 space-y-1.5">
-          <p className="text-[10px] text-muted-foreground font-medium">Or paste URL / issue key</p>
+        <div className={supportsSearch ? "border-t px-3 py-2 space-y-1.5" : "px-3 py-3 space-y-1.5"}>
+          <p className="text-[10px] text-muted-foreground font-medium">
+            {supportsSearch ? "Or paste URL / issue key" : "Paste issue URL"}
+          </p>
           <div className="flex items-center gap-1.5">
             <input value={pasteValue} onChange={(e) => setPasteValue(e.target.value)}
               placeholder={PLACEHOLDERS[provider]}

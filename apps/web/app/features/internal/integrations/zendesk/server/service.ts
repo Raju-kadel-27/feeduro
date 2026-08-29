@@ -4,7 +4,7 @@ import {
   getOrgSlugFromId,
   parseSettings,
 } from "@features/internal/integrations/server/queries";
-import { getZendeskCurrentUser } from "@features/internal/integrations/zendesk/server/client";
+import { getZendeskCurrentUser, getZendeskTicketById, parseZendeskTicketInput } from "@features/internal/integrations/zendesk/server/client";
 import { zendeskOAuth } from "@features/internal/integrations/zendesk/server/oauth";
 import type { ZendeskSettings } from "@features/internal/integrations/zendesk/server/schemas";
 import { buildAuthUrl, exchangeCode } from "@services/oauth/flow.server";
@@ -14,7 +14,7 @@ import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import { z } from "zod";
 import type { Db } from "@/db";
-import { integrations } from "@/db/schema";
+import { feedbackPosts, integrations, postExternalLinks } from "@/db/schema";
 
 const CALLBACK_PATH = "/api/oauth2/integrations/zendesk";
 
@@ -123,6 +123,8 @@ export async function handleZendeskLoader(db: Db, request: Request) {
 const zendeskActionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("update_settings"), autoCreateTickets: z.boolean() }),
   z.object({ intent: z.literal("disconnect") }),
+  z.object({ intent: z.literal("link_ticket"), postId: z.string().min(1), ticketInput: z.string().min(1) }),
+  z.object({ intent: z.literal("unlink_ticket"), postId: z.string().min(1) }),
 ]);
 
 export async function handleZendeskAction(db: Db, request: Request) {
@@ -157,6 +159,61 @@ export async function handleZendeskAction(db: Db, request: Request) {
       .where(
         and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "zendesk")),
       );
+    return data({ success: true });
+  }
+
+  if (parsed.data.intent === "link_ticket") {
+    const { postId, ticketInput } = parsed.data;
+    const ticketId = parseZendeskTicketInput(ticketInput);
+    const [integration, post] = await Promise.all([
+      getIntegration(db, organizationId, "zendesk"),
+      db.query.feedbackPosts.findFirst({
+        where: and(eq(feedbackPosts.id, postId), eq(feedbackPosts.organizationId, organizationId)),
+        columns: { id: true },
+      }),
+    ]);
+    if (!integration?.accessToken) return data({ error: "Zendesk not connected" }, { status: 400 });
+    if (!post) return data({ error: "Post not found" }, { status: 404 });
+    const settings = parseSettings<ZendeskSettings>(integration.settings ?? null);
+    if (!settings?.subdomain) return data({ error: "Zendesk subdomain missing" }, { status: 400 });
+    try {
+      const ticket = await getZendeskTicketById(integration.accessToken, settings.subdomain, ticketId);
+      await db
+        .insert(postExternalLinks)
+        .values({
+          postId,
+          organizationId,
+          provider: "zendesk",
+          externalId: String(ticket.id),
+          externalUrl: ticket.url,
+          identifier: `#${ticket.id}`,
+          externalTitle: ticket.subject,
+          externalStatus: ticket.status,
+          linkedByUserId: session.user.id,
+          lastSyncedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [postExternalLinks.postId, postExternalLinks.provider],
+          set: {
+            externalId: String(ticket.id),
+            externalUrl: ticket.url,
+            identifier: `#${ticket.id}`,
+            externalTitle: ticket.subject,
+            externalStatus: ticket.status,
+            lastSyncedAt: new Date(),
+          },
+        });
+      return data({ success: true, ticket });
+    } catch (err) {
+      return data({ error: err instanceof Error ? err.message : "Failed to link ticket" }, { status: 400 });
+    }
+  }
+
+  if (parsed.data.intent === "unlink_ticket") {
+    const { postId } = parsed.data;
+    await db
+      .delete(postExternalLinks)
+      .where(and(eq(postExternalLinks.postId, postId), eq(postExternalLinks.provider, "zendesk"), eq(postExternalLinks.organizationId, organizationId)));
     return data({ success: true });
   }
 

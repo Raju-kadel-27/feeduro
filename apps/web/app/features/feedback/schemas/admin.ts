@@ -100,6 +100,24 @@ export const DetailDataSchema = z.object({
   jiraConnected: z.boolean(),
   asanaLink: IntegrationLinkSchema.nullable(),
   asanaConnected: z.boolean(),
+  githubLink: IntegrationLinkSchema.nullable(),
+  githubConnected: z.boolean(),
+  clickupLink: IntegrationLinkSchema.nullable(),
+  clickupConnected: z.boolean(),
+  shortcutLink: IntegrationLinkSchema.nullable(),
+  shortcutConnected: z.boolean(),
+  notionLink: IntegrationLinkSchema.nullable(),
+  notionConnected: z.boolean(),
+  trelloLink: IntegrationLinkSchema.nullable(),
+  trelloConnected: z.boolean(),
+  mondayLink: IntegrationLinkSchema.nullable(),
+  mondayConnected: z.boolean(),
+  zendeskLink: IntegrationLinkSchema.nullable(),
+  zendeskConnected: z.boolean(),
+  hubspotLink: IntegrationLinkSchema.nullable(),
+  hubspotConnected: z.boolean(),
+  salesforceLink: IntegrationLinkSchema.nullable(),
+  salesforceConnected: z.boolean(),
   mergedIntoPost: z.object({ id: z.string(), title: z.string() }).nullable(),
   mergedChildren: z.array(z.object({ id: z.string(), title: z.string(), createdAt: z.string() })),
   canUnmerge: z.boolean(),
@@ -149,4 +167,67 @@ export const AsanaTaskResultSchema = z.object({
   sectionGid: z.string().nullable(),
   sectionName: z.string().nullable(),
   completed: z.boolean(),
+});
+
+export const GithubIssueResultSchema = z.object({
+  number: z.number(),
+  html_url: z.string(),
+  title: z.string(),
+  state: z.string(),
+});
+
+export const ClickupTaskResultSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  url: z.string(),
+  custom_id: z.string().nullable().optional(),
+  status: z.object({ status: z.string() }),
+});
+
+export const ShortcutStoryResultSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  app_url: z.string(),
+});
+
+export const NotionPageResultSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  title: z.string(),
+});
+
+export const TrelloCardResultSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  url: z.string(),
+  listName: z.string().nullable().optional(),
+});
+
+export const MondayItemResultSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  url: z.string(),
+  groupTitle: z.string().nullable(),
+  state: z.string(),
+});
+
+export const ZendeskTicketResultSchema = z.object({
+  id: z.number(),
+  subject: z.string(),
+  status: z.string(),
+  url: z.string(),
+});
+
+export const HubSpotDealResultSchema = z.object({
+  id: z.string(),
+  dealname: z.string(),
+  dealstage: z.string(),
+  dealUrl: z.string(),
+});
+
+export const SalesforceOpportunityResultSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  stageName: z.string(),
+  opportunityUrl: z.string(),
 });

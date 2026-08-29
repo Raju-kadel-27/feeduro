@@ -31,21 +31,39 @@ export async function action({ request, context }: Route.ActionArgs) {
   const url = new URL(request.url);
   const orgId = url.searchParams.get("orgId");
 
+  console.log("[shortcut-webhook] received", {
+    orgId,
+    method: request.method,
+    headers: Object.fromEntries(request.headers.entries()),
+  });
+
   if (!orgId) return new Response("Missing orgId", { status: 400 });
 
   const rawBody = await request.text();
   const signature = request.headers.get("Shortcut-Signature") ?? "";
 
+  console.log("[shortcut-webhook] body", rawBody.slice(0, 500));
+  console.log("[shortcut-webhook] signature header", signature);
+
   const integration = await db.query.integrations.findFirst({
     where: and(eq(integrations.organizationId, orgId), eq(integrations.provider, "shortcut")),
   });
 
-  if (!integration) return new Response("Integration not found", { status: 404 });
+  if (!integration) {
+    console.log("[shortcut-webhook] integration not found for orgId", orgId);
+    return new Response("Integration not found", { status: 404 });
+  }
 
   const settings = parseSettings<ShortcutSettings>(integration.settings);
+  console.log("[shortcut-webhook] settings", {
+    hasWebhookSecret: !!settings?.webhookSecret,
+    webhookId: settings?.webhookId,
+    statusMappings: settings?.statusMappings?.length ?? 0,
+  });
 
   if (settings?.webhookSecret) {
     const valid = await verifyShortcutWebhookSignature(rawBody, signature, settings.webhookSecret);
+    console.log("[shortcut-webhook] signature valid:", valid);
     if (!valid) return new Response("Invalid signature", { status: 401 });
   }
 

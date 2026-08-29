@@ -26,6 +26,33 @@ export async function getHubSpotPortalInfo(accessToken: string): Promise<HubSpot
   }
 }
 
+export function parseHubSpotDealInput(input: string): string {
+  const trimmed = input.trim();
+  const urlMatch = trimmed.match(/\/deal\/(\d+)/);
+  return urlMatch?.[1] ?? trimmed;
+}
+
+export async function getHubSpotDealById(
+  accessToken: string,
+  dealId: string,
+  portalId?: string,
+): Promise<{ id: string; dealname: string; dealstage: string; dealUrl: string }> {
+  const res = await fetch(
+    `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=dealname,dealstage`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+  if (!res.ok) throw new Error(`HubSpot deal ${dealId} not found`);
+  const json = (await res.json()) as { id: string; properties: { dealname?: string; dealstage?: string } };
+  return {
+    id: json.id,
+    dealname: json.properties.dealname ?? `Deal ${json.id}`,
+    dealstage: json.properties.dealstage ?? "",
+    dealUrl: portalId
+      ? `https://app.hubspot.com/contacts/${portalId}/deal/${json.id}`
+      : `https://app.hubspot.com/crm/deals/${json.id}`,
+  };
+}
+
 export async function createHubSpotDeal(
   accessToken: string,
   dealName: string,

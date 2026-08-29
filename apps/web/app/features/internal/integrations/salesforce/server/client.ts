@@ -20,6 +20,31 @@ export async function getSalesforceUserInfo(
   }
 }
 
+export function parseSalesforceOpportunityInput(input: string): string {
+  const trimmed = input.trim();
+  const urlMatch = trimmed.match(/\/Opportunity\/([a-zA-Z0-9]+)\/view/);
+  return urlMatch?.[1] ?? trimmed;
+}
+
+export async function getSalesforceOpportunityById(
+  accessToken: string,
+  instanceUrl: string,
+  opportunityId: string,
+): Promise<{ id: string; name: string; stageName: string; opportunityUrl: string }> {
+  const res = await fetch(
+    `${instanceUrl}/services/data/v60.0/sobjects/Opportunity/${opportunityId}?fields=Id,Name,StageName`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+  if (!res.ok) throw new Error(`Salesforce opportunity ${opportunityId} not found`);
+  const json = (await res.json()) as { Id: string; Name: string; StageName: string };
+  return {
+    id: json.Id,
+    name: json.Name,
+    stageName: json.StageName,
+    opportunityUrl: `${instanceUrl}/lightning/r/Opportunity/${json.Id}/view`,
+  };
+}
+
 export async function createSalesforceOpportunity(
   accessToken: string,
   instanceUrl: string,

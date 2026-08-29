@@ -8,14 +8,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { AlertTriangle, CheckCircle2, ChevronDown, ExternalLink, Unplug } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/jira";
 
 export function meta() {
-  return [{ title: "Jira Integration — Feeduro" }];
+  return [{ title: "Jira Integration | Feeduro" }];
 }
 
 const FEEDURO_STATUSES = [
@@ -27,8 +27,8 @@ const FEEDURO_STATUSES = [
   { value: "closed", label: "Closed" },
 ] as const;
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
@@ -95,9 +95,9 @@ function WebhookBadge({ expiresAt }: { expiresAt: string | null }) {
     >
       {expired ? <AlertTriangle className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3" />}
       {expired
-        ? "Webhook expired — reconnect to resume sync"
+        ? "Webhook expired | reconnect to resume sync"
         : warning
-          ? `Webhook expires in ${daysLeft}d — reconnect to renew`
+          ? `Webhook expires in ${daysLeft}d | reconnect to renew`
           : `Webhook active · expires ${expiryDate.toLocaleDateString()}`}
     </div>
   );
@@ -119,6 +119,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
 
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
+  const revalidator = useRevalidator();
 
   const [selectedProjectKey, setSelectedProjectKey] = useState(initialProjectKey ?? "");
   const [autoCreate, setAutoCreate] = useState(initialAutoCreate);
@@ -229,7 +230,8 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
       if (json.error) throw new Error(json.error);
-      window.location.reload();
+      toast.success("Jira disconnected");
+      revalidator.revalidate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to disconnect");
       setDisconnecting(false);
@@ -252,7 +254,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
             </div>
           </div>
 
-          {/* Step 1 — Connect */}
+          {/* Step 1 | Connect */}
           <section className="rounded-lg border border-border overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
               <div className="flex items-center gap-2">
@@ -296,7 +298,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
                   {!webhookConfigured && (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-muted text-muted-foreground">
                       <AlertTriangle className="h-3 w-3" />
-                      Webhooks not active (localhost or registration failed) — status sync is
+                      Webhooks not active (localhost or registration failed) | status sync is
                       disabled
                     </div>
                   )}
@@ -369,7 +371,7 @@ export default function JiraIntegrationSettings({ loaderData }: Route.ComponentP
             </div>
           </section>
 
-          {/* Step 2 — Configure (only shown when connected) */}
+          {/* Step 2 | Configure (only shown when connected) */}
           {connected && (
             <section className="rounded-lg border border-border overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">

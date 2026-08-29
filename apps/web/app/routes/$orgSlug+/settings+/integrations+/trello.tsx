@@ -8,14 +8,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { ChevronDown, ExternalLink, Unplug } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/trello";
 
 export function meta() {
-  return [{ title: "Trello Integration — Feeduro" }];
+  return [{ title: "Trello Integration | Feeduro" }];
 }
 
 const FEEDURO_STATUSES = [
@@ -27,8 +27,8 @@ const FEEDURO_STATUSES = [
   { value: "closed", label: "Closed" },
 ] as const;
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
@@ -86,6 +86,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
 
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
+  const revalidator = useRevalidator();
 
   const [selectedBoardId, setSelectedBoardId] = useState(initialBoardId ?? "");
   const [selectedBoardName, setSelectedBoardName] = useState(initialBoardName ?? "");
@@ -176,7 +177,8 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
       if (json.error) throw new Error(json.error);
-      window.location.reload();
+      toast.success("Trello disconnected");
+      revalidator.revalidate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to disconnect");
       setDisconnecting(false);
@@ -199,7 +201,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
             </div>
           </div>
 
-          {/* Step 1 — Connect */}
+          {/* Step 1 | Connect */}
           <section className="rounded-lg border border-border overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
               <div className="flex items-center gap-2">
@@ -240,7 +242,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
                 <div className="space-y-3">
                   {webhookActive ? (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                      Webhook active — status sync is enabled
+                      Webhook active | status sync is enabled
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-muted text-muted-foreground">
@@ -293,7 +295,7 @@ export default function TrelloIntegrationSettings({ loaderData }: Route.Componen
             </div>
           </section>
 
-          {/* Step 2 — Configure */}
+          {/* Step 2 | Configure */}
           {connected && (
             <section className="rounded-lg border border-border overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">

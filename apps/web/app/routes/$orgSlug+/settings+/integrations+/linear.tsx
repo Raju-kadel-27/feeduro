@@ -24,11 +24,11 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/linear";
 
 export function meta() {
-  return [{ title: "Linear Integration — Feeduro" }];
+  return [{ title: "Linear Integration | Feeduro" }];
 }
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
@@ -130,7 +130,7 @@ function TeamSelector({
         className="w-full flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-muted/40 transition-colors"
       >
         <span className={selectedTeam ? "text-foreground" : "text-muted-foreground"}>
-          {selectedTeam ? `${selectedTeam.key} — ${selectedTeam.name}` : "Select a team…"}
+          {selectedTeam ? `${selectedTeam.key} | ${selectedTeam.name}` : "Select a team…"}
         </span>
         <ChevronDown
           size={14}

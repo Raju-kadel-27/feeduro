@@ -8,14 +8,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
 import { CheckSquare, ExternalLink, Square, Unplug } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/n8n";
 
 export function meta() {
-  return [{ title: "n8n Integration — Feeduro" }];
+  return [{ title: "n8n Integration | Feeduro" }];
 }
 
 const ALL_EVENTS = [
@@ -26,8 +26,8 @@ const ALL_EVENTS = [
   { id: "changelog.published", label: "Changelog published" },
 ] as const;
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
@@ -74,6 +74,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
 
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
+  const revalidator = useRevalidator();
 
   const [webhookUrl, setWebhookUrl] = useState(initialUrl ?? "");
   const [selectedEvents, setSelectedEvents] = useState<string[]>(
@@ -132,6 +133,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
       setConnected(false);
       setWebhookUrl("");
       setSelectedEvents(ALL_EVENTS.map((e) => e.id));
+      revalidator.revalidate();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -156,7 +158,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
             </div>
           </div>
 
-          {/* Step 1 — Create workflow */}
+          {/* Step 1 | Create workflow */}
           <section className="rounded-lg border border-border overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">
               <span
@@ -190,7 +192,7 @@ export default function N8nIntegrationSettings({ loaderData }: Route.ComponentPr
             </div>
           </section>
 
-          {/* Step 2 — Paste URL + select events */}
+          {/* Step 2 | Paste URL + select events */}
           <section className="rounded-lg border border-border overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
               <div className="flex items-center gap-2">

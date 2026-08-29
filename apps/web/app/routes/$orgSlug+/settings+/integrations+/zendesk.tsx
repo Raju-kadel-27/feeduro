@@ -9,18 +9,18 @@ import { getEnv } from "@utils/get-env";
 import { and, eq } from "drizzle-orm";
 import { ExternalLink, Unplug } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useRevalidator } from "react-router";
 import { toast } from "sonner";
 import { member } from "@/db/schema";
 import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/zendesk";
 
 export function meta() {
-  return [{ title: "Zendesk Integration — Feeduro" }];
+  return [{ title: "Zendesk Integration | Feeduro" }];
 }
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
@@ -62,6 +62,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
 
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const qc = useQueryClient();
+  const revalidator = useRevalidator();
 
   const [inputSubdomain, setInputSubdomain] = useState("");
   const [autoCreate, setAutoCreate] = useState(autoCreateTickets);
@@ -98,7 +99,8 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
       if (json.error) throw new Error(json.error);
-      window.location.reload();
+      toast.success("Zendesk disconnected");
+      revalidator.revalidate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to disconnect");
       setDisconnecting(false);
@@ -120,7 +122,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
             </div>
           </div>
 
-          {/* Step 1 — Connect */}
+          {/* Step 1 | Connect */}
           <section className="rounded-lg border border-border overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
               <div className="flex items-center gap-2">
@@ -244,7 +246,7 @@ export default function ZendeskIntegrationSettings({ loaderData }: Route.Compone
             </div>
           </section>
 
-          {/* Step 2 — Configure */}
+          {/* Step 2 | Configure */}
           {connected && (
             <section className="rounded-lg border border-border overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">

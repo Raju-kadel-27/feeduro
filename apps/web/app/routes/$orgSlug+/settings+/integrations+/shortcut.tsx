@@ -27,11 +27,11 @@ import { getDb } from "~/middleware/cloudflare.server";
 import type { Route } from "./+types/shortcut";
 
 export function meta() {
-  return [{ title: "Shortcut Integration — Feeduro" }];
+  return [{ title: "Shortcut Integration | Feeduro" }];
 }
 
-export function shouldRevalidate() {
-  return false;
+export function shouldRevalidate({ defaultShouldRevalidate }: { defaultShouldRevalidate: boolean }) {
+  return defaultShouldRevalidate;
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

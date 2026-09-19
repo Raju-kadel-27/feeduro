@@ -1,10 +1,9 @@
-import { ChurnSection } from "./components/churn-section";
+import { TeamsOrbitSection } from "./components/teams-orbit-section";
 import { FaqSection } from "./components/faq-section";
 import { FeaturesSection } from "./components/features-section";
 import { HeroSection } from "./components/hero-section";
 import { LandingFooter } from "./components/landing-footer";
 import { LandingNav } from "./components/landing-nav";
-import { OutcomesSection } from "./components/outcomes-section";
 import { ShowcaseSection } from "./components/showcase-section";
 
 export function LandingPage() {
@@ -21,8 +20,7 @@ export function LandingPage() {
       <LandingNav />
       <main>
         <HeroSection />
-<ChurnSection />
-<OutcomesSection />
+<TeamsOrbitSection />
         <ShowcaseSection />
         <FeaturesSection />
 <FaqSection />

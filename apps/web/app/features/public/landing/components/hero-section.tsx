@@ -37,16 +37,17 @@ export function HeroSection() {
             className="text-5xl sm:text-7xl font-black tracking-tight leading-[1.05] mb-6 animate-slide-up-fade"
             style={{ animationDelay: "80ms" }}
           >
-            <span className="block text-gray-800">Votes lie.</span>
-            <span className="block landing-gradient-text-animated">Revenue doesn't.</span>
+            <span className="block text-gray-800">Every customer idea.</span>
+            <span className="block landing-gradient-text-animated">One place.</span>
           </h1>
 
           <p
             className="text-lg sm:text-xl text-gray-700 max-w-xl mx-auto mb-10 animate-slide-up-fade font-['Roboto'] font-light"
             style={{ animationDelay: "180ms" }}
           >
-            Know the revenue, churn risk, and customer value hiding behind every request.{" "}
-            <strong className="text-foreground">Build what retains, not what trends.</strong>
+            Collect feature requests, understand what customers need most, and notify them
+            the moment you ship.{" "}
+            <strong className="text-foreground">No more feedback lost in Slack or email.</strong>
           </p>
 
         </div>

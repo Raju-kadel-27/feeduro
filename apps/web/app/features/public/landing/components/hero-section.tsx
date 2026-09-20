@@ -1,4 +1,13 @@
-import { BarChart2 } from "lucide-react";
+import { BarChart2, Star } from "lucide-react";
+import { Link } from "react-router";
+
+const AVATAR_PHOTOS = [
+  "https://randomuser.me/api/portraits/women/44.jpg",
+  "https://randomuser.me/api/portraits/men/32.jpg",
+  "https://randomuser.me/api/portraits/women/68.jpg",
+  "https://randomuser.me/api/portraits/men/75.jpg",
+  "https://randomuser.me/api/portraits/women/90.jpg",
+];
 
 export function HeroSection() {
   return (
@@ -28,8 +37,8 @@ export function HeroSection() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-6">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-1.5 text-sm font-semibold text-white mb-8 animate-slide-up-fade">
-            <BarChart2 className="w-3.5 h-3.5 text-yellow-400" />
+          <div className="inline-flex items-center gap-2 rounded-full border-2 border-gray-900 px-4 py-1.5 text-sm font-semibold text-gray-900 mb-8 animate-slide-up-fade">
+            <BarChart2 className="w-3.5 h-3.5 text-gray-900" />
             <span>Analytics rich feedback board</span>
           </div>
 
@@ -42,13 +51,53 @@ export function HeroSection() {
           </h1>
 
           <p
-            className="text-lg sm:text-xl text-gray-700 max-w-xl mx-auto mb-10 animate-slide-up-fade font-['Roboto'] font-light"
+            className="text-lg sm:text-xl text-gray-700 max-w-xl mx-auto mb-8 animate-slide-up-fade font-['Roboto'] font-light"
             style={{ animationDelay: "180ms" }}
           >
             Collect feature requests, understand what customers need most, and notify them
             the moment you ship.{" "}
             <strong className="text-foreground">No more feedback lost in Slack or email.</strong>
           </p>
+
+          {/* CTA */}
+          <div
+            className="flex flex-col items-center gap-5 animate-slide-up-fade"
+            style={{ animationDelay: "280ms" }}
+          >
+            <Link
+              to="/sign-up"
+              className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-8 py-3.5 text-base font-semibold text-white shadow-lg hover:bg-gray-800 transition-colors"
+            >
+              Start for free
+              <span aria-hidden>→</span>
+            </Link>
+
+            {/* Social proof */}
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {AVATAR_PHOTOS.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm"
+                  />
+                ))}
+              </div>
+              <div className="w-px h-7 bg-gray-200" />
+              <div className="flex flex-col items-start gap-0.5">
+                <div className="flex gap-px">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-gray-500">
+                  Join{" "}
+                  <strong className="text-gray-800 font-semibold">50+ product teams</strong>
+                </p>
+              </div>
+            </div>
+          </div>
 
         </div>
 

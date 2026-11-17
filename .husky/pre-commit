@@ -1,2 +1,10 @@
+# Block committing secrets: env files (except .env.example), dev vars, certs and keys
+blocked=$(git diff --cached --name-only --diff-filter=ACR | grep -E '(^|/)(\.env(\..*)?|\.dev\.vars(\..*)?)$|\.(key|pem|crt|csr|srl)$' | grep -vE '(^|/)\.env\.example$')
+if [ -n "$blocked" ]; then
+  echo "pre-commit: refusing to commit secret/dev-env files:"; echo "$blocked"
+  echo "Unstage them (git restore --staged <file>) or use --no-verify if truly intended."
+  exit 1
+fi
+
 # biome disabled — re-enable when ready:
 # npx biome check --staged --write --no-errors-on-unmatched

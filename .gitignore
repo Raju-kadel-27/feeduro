@@ -1,9 +1,15 @@
-# Environment
+# Environment (only .env.example is committed)
 .env
-.env.dev
-.env.local
-.env.staging
-.env.production
+.env.*
+!.env.example
+
+# Local dev certificates and private keys
+**/local_certificates/
+*.key
+*.pem
+*.crt
+*.csr
+*.srl
 
 # Dependencies
 .node_modules
@@ -15,6 +21,7 @@
 **/build/
 **/dist/
 **/.vite/
+**/.astro/
 
 # TypeScript build info
 *.tsbuildinfo

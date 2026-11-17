@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { reactRouter } from "@react-router/dev/vite";
@@ -46,10 +46,13 @@ const reactSingletonDeps = [
 export default defineConfig({
   server: {
     port: 3000,
-    https: {
-      key: readFileSync("./local_certificates/localhost.key"),
-      cert: readFileSync("./local_certificates/localhost.crt"),
-    },
+    // Local certs are gitignored; serve plain http when they are absent (e.g. CI)
+    https: existsSync("./local_certificates/localhost.key")
+      ? {
+          key: readFileSync("./local_certificates/localhost.key"),
+          cert: readFileSync("./local_certificates/localhost.crt"),
+        }
+      : undefined,
   },
   customLogger: logger,
   plugins: [
